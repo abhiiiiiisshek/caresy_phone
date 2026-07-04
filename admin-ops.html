@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Caresy Operations Central Desk." />
+    <title>Caresy | Live Operations Desk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .admin-layout {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 20px 24px 104px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+      }
+      @media (max-width: 968px) {
+        .admin-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .admin-column {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        background: rgba(33, 48, 44, 0.02);
+        padding: 16px;
+        border-radius: var(--radius);
+        border: 1px dashed var(--line);
+        min-height: 500px;
+      }
+      .column-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        padding: 0 4px;
+      }
+      .column-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .badge-count {
+        background: var(--ink);
+        color: var(--surface);
+        padding: 2px 8px;
+        border-radius: 99px;
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+      .admin-card {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+      .admin-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-2);
+      }
+      .card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 8px;
+      }
+      .patient-info strong {
+        font-size: 1.1rem;
+        color: var(--ink);
+      }
+      .patient-info span {
+        font-size: 0.84rem;
+        color: var(--muted);
+        display: block;
+      }
+      .hospital-lbl {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--primary-dark);
+      }
+      .details-list {
+        font-size: 0.86rem;
+        color: var(--muted);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: rgba(33, 48, 44, 0.03);
+        padding: 10px;
+        border-radius: 12px;
+        margin: 4px 0;
+      }
+      .details-list dt {
+        font-weight: 700;
+        color: var(--ink);
+        float: left;
+        clear: left;
+        width: 90px;
+      }
+      .details-list dd {
+        margin-left: 95px;
+        margin-bottom: 0;
+      }
+      .admin-control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        margin-top: 4px;
+      }
+      .admin-control-group label {
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .admin-select {
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        font-size: 0.88rem;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      .admin-select:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+      .save-btn {
+        margin-top: 6px;
+        min-height: auto;
+        padding: 8px 14px;
+        font-size: 0.84rem;
+        border-radius: 10px;
+      }
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: var(--primary-dark);
+        color: var(--surface);
+        padding: 12px 24px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-2);
+        font-weight: 700;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+      }
+      .toast.active {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    </style>
+  
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%2308796f%22>C</text></svg>">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+  <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only" style="position:absolute; left:-9999px;">Skip to content</a>
+    <header class="app-bar">
+      <a class="brand" href="index.html" aria-label="Caresy home">
+      <span class="brand-mark">C</span>
+      <span style="margin-left: 6px;">Caresy Ops</span>
+    </a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button>
+      <nav class="main-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="my-bookings.html">Customer Dashboard</a>
+        <a class="nav-cta" href="booking.html">Book Visit</a>
+      </nav>
+    </header>
+
+    <main class="page admin-page" id="main-content">
+      <section class="page-hero reveal">
+        <p class="eyebrow">Dispatcher Command Center</p>
+        <h1>Live Operations Desk</h1>
+        <p>Monitor patient incoming requests, assign companions, and push milestone progress updates to families.</p>
+      </section>
+
+      <!-- Auth Required Section -->
+      <div id="unauthSection" style="display: none;">
+        <div class="material-card reveal" style="padding: 48px 32px; text-align: center; max-width: 600px; margin: 40px auto;">
+          <div style="font-size: 3rem; margin-bottom: 16px;">🔐</div>
+          <h2>Admin Login Required</h2>
+          <p style="font-size: 1.05rem; margin-bottom: 24px;">Please sign in with an authorized ops account to access the dispatcher dashboard.</p>
+          <button class="btn btn-primary" id="unauthSignInBtn">Ops Sign In</button>
+        </div>
+      </div>
+
+      <div class="admin-layout" id="adminLayout">
+        <!-- Column 1: Pending Requests -->
+        <div>
+          <div class="column-header">
+            <div class="column-title"><span>⏳</span> Pending Requests</div>
+            <span class="badge-count" id="pendingCount">0</span>
+          </div>
+          <div class="admin-column" id="pendingCol">
+            <!-- Dynamic pending booking cards -->
+          </div>
+        </div>
+
+        <!-- Column 2: Active / Assigned Visits -->
+        <div>
+          <div class="column-header">
+            <div class="column-title"><span>🚗</span> Active Visits</div>
+            <span class="badge-count" id="activeCount">0</span>
+          </div>
+          <div class="admin-column" id="activeCol">
+            <!-- Dynamic active booking cards -->
+          </div>
+        </div>
+
+        <!-- Column 3: Completed Visits -->
+        <div>
+          <div class="column-header">
+            <div class="column-title"><span>✅</span> Completed</div>
+            <span class="badge-count" id="completedCount">0</span>
+          </div>
+          <div class="admin-column" id="completedCol">
+            <!-- Dynamic completed booking cards -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Success Toast Alert -->
+    <div class="toast" id="adminToast">
+      <span>💾</span> Booking updated successfully
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+      // Companion profiles available for assignment
+      const companions = [
+        {
+          name: "Priya Sharma",
+          avatar: "PS",
+          rating: "★ 4.9 (82 visits)",
+          verification: "Police Verified",
+          lang: "Hindi, English",
+          specialty: "Cardiology",
+          color: "#08796f"
+        },
+        {
+          name: "Anil Kumar",
+          avatar: "AK",
+          rating: "★ 4.8 (120 visits)",
+          verification: "Police Verified",
+          lang: "Kannada, Tamil, English",
+          specialty: "Orthopedics",
+          color: "#e77f62"
+        },
+        {
+          name: "Sarah Mathews",
+          avatar: "SM",
+          rating: "★ 4.9 (65 visits)",
+          verification: "Police Verified",
+          lang: "Malayalam, Telugu, English",
+          specialty: "General Care",
+          color: "#a45b9a"
+        }
+      ];
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const unauthSection = document.getElementById("unauthSection");
+        const adminLayout = document.getElementById("adminLayout");
+        const unauthSignInBtn = document.getElementById("unauthSignInBtn");
+
+        const pendingCol = document.getElementById("pendingCol");
+        const activeCol = document.getElementById("activeCol");
+        const completedCol = document.getElementById("completedCol");
+
+        const pendingCount = document.getElementById("pendingCount");
+        const activeCount = document.getElementById("activeCount");
+        const completedCount = document.getElementById("completedCount");
+
+        const toast = document.getElementById("adminToast");
+
+        function showToast(message) {
+          toast.textContent = message;
+          toast.classList.add("active");
+          setTimeout(() => {
+            toast.classList.remove("active");
+          }, 3000);
+        }
+
+        // Auth Guard
+        function checkAuth() {
+          const user = window.getAuthUser();
+          if (!user || !user.loggedIn) {
+            unauthSection.style.display = "block";
+            adminLayout.style.display = "none";
+            return false;
+          }
+          unauthSection.style.display = "none";
+          adminLayout.style.display = "grid";
+          return true;
+        }
+
+        if (unauthSignInBtn) {
+          unauthSignInBtn.addEventListener("click", () => {
+            window.startVerification("", "", () => {
+              if (checkAuth()) loadAllBookings();
+            });
+          });
+        }
+
+        function loadAllBookings() {
+          if (!checkAuth()) return;
+          fetch(`${window.API_BASE || ''}/api/admin/bookings`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                renderBoard(data.bookings);
+              }
+            })
+            .catch(err => console.error('Error loading admin board:', err));
+        }
+
+        function renderBoard(bookings) {
+          // Clear board columns
+          pendingCol.innerHTML = '';
+          activeCol.innerHTML = '';
+          completedCol.innerHTML = '';
+
+          let pCount = 0;
+          let aCount = 0;
+          let cCount = 0;
+
+          bookings.forEach(b => {
+            const card = document.createElement("div");
+            card.className = "admin-card material-card reveal visible";
+            
+            // Build companion choices
+            const companionOptions = companions.map(c => {
+              const selected = b.companion && b.companion.name === c.name ? 'selected' : '';
+              return `<option value="${c.name}" ${selected}>${c.name} (${c.specialty})</option>`;
+            }).join('');
+
+            // Build status choices
+            const statuses = ['Request submitted', 'Operations review needed', 'Companion Assigned', 'Active', 'Completed'];
+            const statusOptions = statuses.map(s => {
+              const selected = b.status === s ? 'selected' : '';
+              return `<option value="${s}" ${selected}>${s}</option>`;
+            }).join('');
+
+            card.innerHTML = `
+              <div class="card-row">
+                <div class="patient-info">
+                  <strong>${b.patientName}</strong>
+                  <span>Age: ${b.age || '—'} &bull; Language: ${b.language}</span>
+                </div>
+                <span style="font-size: 0.8rem; font-weight: 800; color: var(--muted);">${b.id}</span>
+              </div>
+              <div class="hospital-lbl">${b.hospital} (${b.department || 'General'})</div>
+              
+              <dl class="details-list">
+                <dt>Date & Time</dt>
+                <dd>${b.date} at ${b.time || 'TBD'}</dd>
+                <dt>Customer No</dt>
+                <dd>${b.phone}</dd>
+                <dt>Customer Email</dt>
+                <dd>${b.email || '—'}</dd>
+                <dt>Emergency No</dt>
+                <dd>${b.emergency || '—'}</dd>
+                <dt>Service Plan</dt>
+                <dd>${b.service}</dd>
+                ${b.needs && b.needs.length > 0 ? `
+                  <dt>Needs</dt>
+                  <dd>${b.needs.join(', ')}</dd>
+                ` : ''}
+              </dl>
+              
+              ${b.notes ? `
+                <div style="font-size: 0.8rem; border-left: 2px solid var(--primary); padding-left: 8px; color: var(--muted); margin-bottom: 4px;">
+                  <strong>Note:</strong> ${b.notes}
+                </div>
+              ` : ''}
+
+              <div class="admin-control-group">
+                <label>Companion Assignment</label>
+                <select class="admin-select companion-select" id="comp-${b.id}">
+                  <option value="">Unassigned</option>
+                  ${companionOptions}
+                </select>
+
+                <label style="margin-top: 6px;">Milestone Status</label>
+                <select class="admin-select status-select" id="status-${b.id}">
+                  ${statusOptions}
+                </select>
+
+                <button class="btn btn-primary save-btn" data-id="${b.id}">Save Updates</button>
+              </div>
+            `;
+
+            // Sort cards by their status into corresponding columns
+            const statusLower = b.status.toLowerCase();
+            if (statusLower === 'completed') {
+              completedCol.appendChild(card);
+              cCount++;
+            } else if (statusLower.includes('assigned') || statusLower.includes('active')) {
+              activeCol.appendChild(card);
+              aCount++;
+            } else {
+              pendingCol.appendChild(card);
+              pCount++;
+            }
+          });
+
+          // Update counts
+          pendingCount.textContent = pCount;
+          activeCount.textContent = aCount;
+          completedCount.textContent = cCount;
+
+          // Attach click listeners to Save buttons
+          document.querySelectorAll('.save-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const id = e.target.getAttribute('data-id');
+              const statusSelect = document.getElementById(`status-${id}`);
+              const companionSelect = document.getElementById(`comp-${id}`);
+
+              const status = statusSelect.value;
+              const selectedCompName = companionSelect.value;
+              const matchedCompanion = companions.find(c => c.name === selectedCompName) || null;
+
+              fetch(`${window.API_BASE || ''}/api/admin/bookings/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  bookingId: id,
+                  status: status,
+                  companion: matchedCompanion
+                })
+              })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    showToast(`Updated CRS-${id.split('-')[1] || id}`);
+                    loadAllBookings();
+                  }
+                })
+                .catch(err => {
+                  console.error('Error updating booking:', err);
+                  showToast('Error saving updates');
+                });
+            });
+          });
+        }
+
+        loadAllBookings();
+
+        // Trigger reveal animations on page elements
+        const pageReveal = document.querySelectorAll(".reveal");
+        pageReveal.forEach((item) => item.classList.add("visible"));
+      });
+    </script>
+  
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        if(window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+    </script>
+</body>
+</html>

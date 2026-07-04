@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Caresy trust framework, companion verification, service boundaries, and emergency SOP." />
+    <title>Caresy | Trust Framework</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%2308796f%22>C</text></svg>">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+.verification-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto 60px;
+}
+.verification-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 32px;
+  width: 2px;
+  background: var(--line);
+}
+.timeline-item {
+  position: relative;
+  padding-left: 80px;
+  padding-right: 20px;
+}
+.timeline-icon {
+  position: absolute;
+  left: 16px;
+  top: 0;
+  width: 34px;
+  height: 34px;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  z-index: 2;
+}
+</style>
+</head>
+  <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only" style="position:absolute; left:-9999px;">Skip to content</a>
+    <header class="app-bar"></header>
+
+    <main class="page" id="main-content">
+      <section class="page-hero trust-hero reveal">
+        <p class="eyebrow">Trust framework</p>
+        <h1>Families need proof before they need a pitch.</h1>
+        <p>Every companion must be verified and trained before assignment. The customer sees who is coming and why they can be trusted.</p>
+      </section>
+
+      
+      <section class="section verification-timeline reveal">
+        <div class="timeline-item">
+          <div class="timeline-icon"><i data-lucide="fingerprint" style="width: 18px;"></i></div>
+          <article class="material-card" style="padding: 24px;">
+            <strong style="display: block; font-size: 1.2rem; color: var(--ink); margin-bottom: 8px;">1. Aadhaar verification</strong>
+            <span style="color: var(--muted); line-height: 1.5;">Identity checked before companion activation via UIDAI / Digilocker API integration.</span>
+          </article>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-icon"><i data-lucide="shield-alert" style="width: 18px;"></i></div>
+          <article class="material-card" style="padding: 24px;">
+            <strong style="display: block; font-size: 1.2rem; color: var(--ink); margin-bottom: 8px;">2. Police verification</strong>
+            <span style="color: var(--muted); line-height: 1.5;">Conducted in partnership with AuthBridge (India's leading verification partner).</span>
+          </article>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-icon"><i data-lucide="map-pin" style="width: 18px;"></i></div>
+          <article class="material-card" style="padding: 24px;">
+            <strong style="display: block; font-size: 1.2rem; color: var(--ink); margin-bottom: 8px;">3. Address verification</strong>
+            <span style="color: var(--muted); line-height: 1.5;">Current residential address and family emergency contacts physically verified.</span>
+          </article>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-icon"><i data-lucide="camera" style="width: 18px;"></i></div>
+          <article class="material-card" style="padding: 24px;">
+            <strong style="display: block; font-size: 1.2rem; color: var(--ink); margin-bottom: 8px;">4. Photo verification</strong>
+            <span style="color: var(--muted); line-height: 1.5;">Customer receives a recognizable companion profile with recent photo.</span>
+          </article>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-icon"><i data-lucide="graduation-cap" style="width: 18px;"></i></div>
+          <article class="material-card" style="padding: 24px;">
+            <strong style="display: block; font-size: 1.2rem; color: var(--ink); margin-bottom: 8px;">5. Training completion</strong>
+            <span style="color: var(--muted); line-height: 1.5;">Etiquette, hospital navigation, patient coordination, and central dispatcher training.</span>
+          </article>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-icon"><i data-lucide="shield-check" style="width: 18px;"></i></div>
+          <article class="material-card" style="padding: 24px; border-left: 4px solid var(--primary);">
+            <strong style="display: block; font-size: 1.2rem; color: var(--primary); margin-bottom: 8px;">6. Final Background check</strong>
+            <span style="color: var(--muted); line-height: 1.5;">AuthBridge screening and continuous checks completed before assignment.</span>
+          </article>
+        </div>
+      </section>
+
+
+      <section class="section companion-profiles-section reveal" id="companion-profiles">
+        <div class="section-title">
+          <p class="section-kicker">Our Companions</p>
+          <h2>Meet our verified companions.</h2>
+          <p>We believe in full transparency. Here are examples of active companions. Click a card to view their full verified profile and credentials.</p>
+        </div>
+
+        <div class="profiles-container grid-3-col" style="margin-top: 30px;">
+          <!-- Profile 1: Priya Sharma -->
+          <div class="profile-card material-card active" id="profile-priya" style="cursor: pointer;">
+            <div class="profile-summary-header" style="display: flex; gap: 14px; align-items: center; margin-bottom: 12px;">
+              <div class="avatar" style="border-radius: 50%; overflow: hidden; width: 64px; height: 64px; flex-shrink: 0;"><img style="width: 100%; height: 100%; object-fit: cover;" src="assets/caresy-companion-priya.png" alt="Priya Sharma" /></div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.2rem;">Priya Sharma</h3>
+                <span style="color: var(--muted); font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--amber); stroke: var(--amber);"></i> 4.9 (82 visits)</span>
+              </div>
+            </div>
+            <div class="profile-badges" style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+              <span style="background: rgba(8, 121, 111, 0.1); color: var(--primary); padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Aadhaar Verified</span>
+              <span style="background: rgba(8, 121, 111, 0.1); color: var(--primary); padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i> Police Cleared</span>
+            </div>
+            <div class="profile-expanded-details">
+              <p style="font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;"><strong>Languages:</strong> Hindi, English, Punjabi</p>
+              <p style="font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;"><strong>Specialties:</strong> Cardiology coordination, patient navigation, post-consultation discharge procedures.</p>
+              <p style="font-size: 0.88rem; line-height: 1.45; margin: 0; font-style: italic; color: var(--muted);">"I ensure that the patient feels like they have family alongside them at every stage of the hospital day."</p>
+            </div>
+          </div>
+
+          <!-- Profile 2: Anil Kumar -->
+          <div class="profile-card material-card" id="profile-anil" style="cursor: pointer;">
+            <div class="profile-summary-header" style="display: flex; gap: 14px; align-items: center; margin-bottom: 12px;">
+              <div class="avatar" style="border-radius: 50%; overflow: hidden; width: 64px; height: 64px; flex-shrink: 0;"><img style="width: 100%; height: 100%; object-fit: cover;" src="assets/caresy-companion-anil.png" alt="Anil Kumar" /></div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.2rem;">Anil Kumar</h3>
+                <span style="color: var(--muted); font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--amber); stroke: var(--amber);"></i> 4.8 (120 visits)</span>
+              </div>
+            </div>
+            <div class="profile-badges" style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+              <span style="background: rgba(8, 121, 111, 0.1); color: var(--primary); padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Aadhaar Verified</span>
+              <span style="background: rgba(8, 121, 111, 0.1); color: var(--primary); padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i> Police Cleared</span>
+            </div>
+            <div class="profile-expanded-details" style="display: none;">
+              <p style="font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;"><strong>Languages:</strong> Kannada, Tamil, English</p>
+              <p style="font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;"><strong>Specialties:</strong> Orthopedics support, elderly wheelchair mobility navigation, physiotherapy coordination.</p>
+              <p style="font-size: 0.88rem; line-height: 1.45; margin: 0; font-style: italic; color: var(--muted);">"Hospital queues can be extremely tiring for elders. I take care of the wait so they can sit comfortably."</p>
+            </div>
+          </div>
+
+          <!-- Profile 3: Sarah Mathews -->
+          <div class="profile-card material-card" id="profile-sarah" style="cursor: pointer;">
+            <div class="profile-summary-header" style="display: flex; gap: 14px; align-items: center; margin-bottom: 12px;">
+              <div class="avatar" style="border-radius: 50%; overflow: hidden; width: 64px; height: 64px; flex-shrink: 0;"><img style="width: 100%; height: 100%; object-fit: cover;" src="assets/caresy-companion-sarah.png" alt="Sarah Mathews" /></div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.2rem;">Sarah Mathews</h3>
+                <span style="color: var(--muted); font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="star" style="width: 14px; height: 14px; fill: var(--amber); stroke: var(--amber);"></i> 4.9 (65 visits)</span>
+              </div>
+            </div>
+            <div class="profile-badges" style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+              <span style="background: rgba(8, 121, 111, 0.1); color: var(--primary); padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Aadhaar Verified</span>
+              <span style="background: rgba(8, 121, 111, 0.1); color: var(--primary); padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i> Police Cleared</span>
+            </div>
+            <div class="profile-expanded-details" style="display: none;">
+              <p style="font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;"><strong>Languages:</strong> Malayalam, Telugu, English</p>
+              <p style="font-size: 0.88rem; line-height: 1.45; margin-bottom: 12px;"><strong>Specialties:</strong> General health scans, billing paperwork coordination, pharmacy medicine collection.</p>
+              <p style="font-size: 0.88rem; line-height: 1.45; margin: 0; font-style: italic; color: var(--muted);">"My goal is to make sure family members receive detailed, stress-free updates at every major milestone."</p>
+            </div>
+          </div>
+        </div>
+        <p style="font-size: 0.84rem; text-align: center; color: var(--muted); margin-top: 16px;">*Note: Profiles shown above are simulated examples representing our standard companion backgrounds and specialties.</p>
+      </section>
+
+      <section class="section social-proof reveal">
+        <div class="section-title" style="text-align: center; margin-bottom: 48px;">
+          <p class="section-kicker">Family Trust</p>
+          <h2>Real experiences from Caresy families.</h2>
+        </div>
+        <div class="testimonials-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 48px;">
+          <div class="testimonial-card material-card">
+            <p style="font-style: italic; font-size: 1.02rem; line-height: 1.5; color: var(--ink);">
+              "My father had a cardiology checkup at Apollo. Priya was amazing—she handled all the queueing, updated me when he met the doctor, and got his medicines. I didn't have to take leave from work."
+            </p>
+            <strong style="display: block; margin-top: 16px;">Aditi R., Bengaluru</strong>
+            <span style="font-size: 0.82rem; color: var(--muted);">Father visited Apollo Jayanagar</span>
+          </div>
+          <div class="testimonial-card material-card">
+            <p style="font-style: italic; font-size: 1.02rem; line-height: 1.5; color: var(--ink);">
+              "Caresy is a lifesaver. Being in the US, I was constantly anxious about my mother's monthly hospital runs. The live updates make me feel like I am right there with her."
+            </p>
+            <strong style="display: block; margin-top: 16px;">Rajesh K., Chennai</strong>
+            <span style="font-size: 0.82rem; color: var(--muted);">Mother visited MGM Healthcare</span>
+          </div>
+        </div>
+
+        <div class="trust-stats-bar" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; text-align: center; margin-bottom: 48px;">
+          <div class="stat-item material-card" style="background: rgba(231, 243, 237, 0.4);">
+            <strong data-stat="visits" style="display: block; font-size: 2.2rem; color: var(--primary);">5,000+</strong>
+            <span style="font-size: 0.9rem; color: var(--muted);">Visits Completed</span>
+          </div>
+          <div class="stat-item material-card" style="background: rgba(231, 243, 237, 0.4);">
+            <strong data-stat="companions" style="display: block; font-size: 2.2rem; color: var(--primary);">1,200+</strong>
+            <span style="font-size: 0.9rem; color: var(--muted);">Companions Verified</span>
+          </div>
+          <div class="stat-item material-card" style="background: rgba(231, 243, 237, 0.4);">
+            <strong style="display: block; font-size: 2.2rem; color: var(--primary);">4.9/5</strong>
+            <span style="font-size: 0.9rem; color: var(--muted);">Family Rating</span>
+          </div>
+          <div class="stat-item material-card" style="background: rgba(231, 243, 237, 0.4);">
+            <strong style="display: block; font-size: 2.2rem; color: var(--primary);">100%</strong>
+            <span style="font-size: 0.9rem; color: var(--muted);">Aadhaar & Police Screened</span>
+          </div>
+        </div>
+
+        <div class="press-mentions" style="text-align: center; border-top: 1px solid var(--line); padding-top: 30px;">
+          <span style="color: var(--muted); font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; display: block; margin-bottom: 16px;">As Featured In</span>
+          <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; align-items: center; opacity: 0.6;">
+            <strong style="font-size: 1.2rem; color: var(--muted);">The Times of India</strong>
+            <strong style="font-size: 1.2rem; color: var(--muted);">YourStory</strong>
+            <strong style="font-size: 1.2rem; color: var(--muted);">TechSparks</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="section dispatcher-status-section reveal" style="padding-top: 40px; padding-bottom: 40px;">
+        <div class="material-card" style="background: rgba(8, 121, 111, 0.04); border-color: rgba(8, 121, 111, 0.15); display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap;">
+          <div>
+            <span class="live-pulse-container" style="display: flex; align-items: center; gap: 8px;">
+              <span class="pulse"></span>
+              <strong style="color: var(--primary-dark); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">Live Operations Status</strong>
+            </span>
+            <h2 style="font-size: 1.8rem; margin: 8px 0 4px;">Dispatcher Desk: Active</h2>
+            <p style="margin: 0; font-size: 0.92rem; color: var(--muted);">Estimated urgent callback time is <strong>6 minutes</strong>. There are currently <strong>8 verified companions online</strong> in your area.</p>
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <a class="btn btn-urgent" href="quick-help.html">Request Same-Day Dispatch</a>
+            <a class="btn btn-outline" href="booking.html">Schedule planned visit</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section boundaries">
+        <div class="material-card reveal">
+          <p class="eyebrow">Service boundaries</p>
+          <h2>Caresy companions are not doctors or nurses.</h2>
+          <p>They do not give medical advice, interpret diagnosis, recommend medicines, or make independent medical decisions.</p>
+        </div>
+        <div class="material-card reveal delay-1" id="emergency-sop">
+          <p class="eyebrow">Emergency SOP</p>
+          <h2>When the patient's condition worsens.</h2>
+          <ol class="clean-list">
+            <li>Contact the emergency contact.</li>
+            <li>Contact the Caresy operations team.</li>
+            <li>Follow the hospital emergency process.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section final-cta reveal">
+        <div>
+          <p class="eyebrow">Reassurance before booking</p>
+          <h2>See the companion profile before the visit begins.</h2>
+          <p>Photo, name, contact number, experience, languages, rating, and verification status are shared after assignment.</p>
+        </div>
+        <a class="btn btn-primary" href="booking.html">Book for later</a>
+      </section>
+    </main>
+
+    
+    
+    
+    
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <a class="brand" href="index.html" aria-label="Caresy home">
+      <span class="brand-mark">C</span>
+      <span style="margin-left: 6px;">Caresy</span>
+    </a>
+          <p class="footer-desc">
+            Trusted hospital companions for elderly and vulnerable patients in India. We bridge the gap when families cannot be physically present.
+          </p>
+          <div class="footer-badges">
+            <div class="footer-badge">
+              <i data-lucide="shield"></i>
+              <span>Police Verified Companions</span>
+            </div>
+            <div class="footer-badge">
+              <i data-lucide="check-circle"></i>
+              <span>AuthBridge Secured</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About Us</a>
+            <a href="services.html">Our Services</a>
+            <a href="trust.html">Trust Framework</a>
+            <a href="faq.html">FAQs & Coverage</a>
+          </div>
+          <div class="footer-col">
+            <h4>Need Care?</h4>
+            <a href="quick-help.html">Same-Day Help</a>
+            <a href="booking.html">Schedule Visit</a>
+            <a href="my-bookings.html">My Bookings</a>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="footer-newsletter">
+          <h4>Stay Connected</h4>
+          <p>Get tips and guides on caring for aging family members.</p>
+          <form class="footer-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+            <input type="email" placeholder="Email address" required />
+            <button type="submit" aria-label="Subscribe">
+              <i data-lucide="send"></i>
+            </button>
+          </form>
+          <div class="footer-socials">
+            <a href="https://wa.me/919717500225" target="_blank" rel="noopener" aria-label="WhatsApp">
+              <i data-lucide="message-circle"></i> WhatsApp
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn">
+              <i data-lucide="linkedin"></i>
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter">
+              <i data-lucide="twitter"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p class="copyright">&copy; 2026 Caresy Care Services Pvt. Ltd. All rights reserved.</p>
+          <div class="footer-bottom-links">
+            <span class="footer-address-mini">4th Floor, Sector 7, HSR Layout, Bengaluru, KA 560102</span>
+            <span class="footer-divider">|</span>
+            <a href="tel:+919717500225">+91 97175 00225</a>
+            <span class="footer-divider">|</span>
+            <a href="mailto:support@caresy.co">support@caresy.co</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+
+
+
+
+    <!-- Floating WhatsApp Widget -->
+    <a class="whatsapp-float" href="https://wa.me/919717500225" target="_blank" rel="noopener" aria-label="Chat with Caresy on WhatsApp">
+      <svg class="whatsapp-icon" viewBox="0 0 24 24" width="24" height="24">
+        <path fill="#fff" d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.993L2 22l5.13-1.347a9.96 9.96 0 0 0 4.887 1.282h.005c5.502 0 9.985-4.479 9.986-9.985 0-2.67-1.04-5.18-2.93-7.071A9.9 9.9 0 0 0 12.012 2zm5.726 14.126c-.314.885-1.536 1.636-2.122 1.768-.586.13-1.173.23-3.793-.83-3.354-1.356-5.503-4.757-5.671-4.982-.168-.223-1.35-1.79-1.35-3.42 0-1.628.85-2.43 1.15-2.76.3-.332.65-.415.87-.415.22 0 .43.01.62.01.2 0 .46-.08.72.55.27.65.91 2.22.99 2.38.08.17.13.36.01.58-.11.23-.25.37-.37.52-.13.15-.27.3-.39.45-.14.16-.29.34-.12.63.17.29.74 1.23 1.59 1.98.1.09.2.18.3.26.85.76 1.57.99 1.87 1.14.3.15.47.12.65-.08.18-.2.78-.9 1-1.2.22-.3.43-.25.72-.14.3.11 1.88.89 2.2 1.05.32.16.54.24.62.38.08.14.08.82-.24 1.7z"/>
+      </svg>
+      <span>WhatsApp Help</span>
+    </a>
+
+    <script src="script.js"></script>
+  
+
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        if(window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+    </script>
+</body>
+</html>

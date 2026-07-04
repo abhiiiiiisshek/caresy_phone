@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Request same-day Caresy hospital companion assistance." />
+    <title>Caresy | Need Help Today</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%2308796f%22>C</text></svg>">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+  <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only" style="position:absolute; left:-9999px;">Skip to content</a>
+    <header class="app-bar"></header>
+
+    <main class="page urgent-page" id="main-content">
+      <section class="page-hero reveal">
+        <p class="eyebrow">Same-day support</p>
+        <h1>Need help at the hospital today?</h1>
+        <p>Share the minimum details. Operations can call back, verify feasibility, and guide the next step.</p>
+      </section>
+
+      
+      <div class="dispatcher-status-banner reveal" style="max-width: var(--max); margin: 0 auto; padding: 0 24px 20px;">
+        <div class="material-card" style="background: rgba(8, 121, 111, 0.04); border-color: rgba(8, 121, 111, 0.15); padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="pulse"></span>
+            <div>
+              <strong style="color: var(--primary-dark); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; display: block;">Live Operations Desk</strong>
+              <p style="margin: 3px 0 0; font-size: 0.92rem; color: var(--muted);">Desk Status: <strong>Active</strong> &bull; Estimated Callback: <strong>6 mins</strong> &bull; Nearby Companions: <strong>8 online</strong></p>
+            </div>
+          </div>
+          <a href="https://wa.me/919717500225" target="_blank" rel="noopener" class="btn btn-glass" style="min-height: auto; padding: 8px 14px; font-size: 0.84rem; color: #27a875; border-color: #27a875;">Chat on WhatsApp &rarr;</a>
+        </div>
+      </div>
+
+      <section class="section booking-layout">
+        <form class="booking-form urgent-form material-card reveal" id="quickHelpForm">
+          <div class="form-section">
+            <span class="form-step">1</span>
+            <h2>Contact details</h2>
+            <div class="form-row">
+              <label>Your name<input name="customerName" type="text" placeholder="Ananya Rao" required /></label>
+              <label>Mobile number<input name="phone" type="tel" placeholder="+91 97175 00225" required /></label>
+            </div>
+            <div class="form-row">
+              <label>Email address<input name="email" type="email" placeholder="name@example.com" required /></label>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <span class="form-step">2</span>
+            <h2>Where is help needed?</h2>
+            <div class="form-row">
+              <label>Patient name<input name="patientName" type="text" placeholder="Ramesh Kumar" required /></label>
+              <label>Hospital or area<input name="hospital" type="text" placeholder="Fortis, Bannerghatta Road" required /></label>
+            </div>
+            <label>What is happening now?
+              <select name="service">
+                <option>Appointment today</option>
+                <option>Test or scan today</option>
+                <option>Registration or queue support</option>
+                <option>Medicine or document support</option>
+                <option>Need guidance from operations</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="form-section">
+            <span class="form-step">3</span>
+            <h2>Urgency</h2>
+            <fieldset>
+              <legend>When should we call?</legend>
+              <label class="check"><input type="radio" name="needs" value="Call now" checked /> Call now</label>
+              <label class="check"><input type="radio" name="needs" value="Within 30 minutes" /> Within 30 minutes</label>
+              <label class="check"><input type="radio" name="needs" value="Later today" /> Later today</label>
+            </fieldset>
+            <label>Short note<textarea name="notes" rows="4" placeholder="Patient location, appointment time, mobility needs, emergency contact"></textarea></label>
+          </div>
+
+          <button class="btn btn-urgent full" type="submit">Request urgent call-back</button>
+          <p style="font-size: 0.82rem; text-align: center; color: var(--muted); margin-top: 10px;">
+            * Caresy operations callback and feasibility check are <strong>100% free</strong>. You only pay if a companion is successfully dispatched.
+          </p>
+          <div style="text-align: center; margin-top: 15px;">
+            <span style="font-size: 0.88rem; color: var(--muted);">Or connect with us instantly:</span><br />
+            <a href="https://wa.me/919717500225" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 6px; color: #27a875; font-weight: 700; margin-top: 8px;">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right: 4px;"><path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.993L2 22l5.13-1.347a9.96 9.96 0 0 0 4.887 1.282h.005c5.502 0 9.985-4.479 9.986-9.985 0-2.67-1.04-5.18-2.93-7.071A9.9 9.9 0 0 0 12.012 2zm5.726 14.126c-.314.885-1.536 1.636-2.122 1.768-.586.13-1.173.23-3.793-.83-3.354-1.356-5.503-4.757-5.671-4.982-.168-.223-1.35-1.79-1.35-3.42 0-1.628.85-2.43 1.15-2.76.3-.332.65-.415.87-.415.22 0 .43.01.62.01.2 0 .46-.08.72.55.27.65.91 2.22.99 2.38.08.17.13.36.01.58-.11.23-.25.37-.37.52-.13.15-.27.3-.39.45-.14.16-.29.34-.12.63.17.29.74 1.23 1.59 1.98.1.09.2.18.3.26.85.76 1.57.99 1.87 1.14.3.15.47.12.65-.08.18-.2.78-.9 1-1.2.22-.3.43-.25.72-.14.3.11 1.88.89 2.2 1.05.32.16.54.24.62.38.08.14.08.82-.24 1.7z"/></svg>
+              Chat on WhatsApp for urgent help
+            </a>
+          </div>
+        </form>
+
+        <aside class="booking-summary urgent-summary material-card reveal delay-1" aria-live="polite">
+          <p class="eyebrow">Urgent request</p>
+          <h2 id="bookingId">Call-back pending</h2>
+          <dl>
+            <div><dt>Status</dt><dd id="bookingStatus">Operations review needed</dd></div>
+            <div><dt>Best for</dt><dd>Same-day appointments, tests, registration, or queue support</dd></div>
+            <div><dt>Important</dt><dd>Caresy is assistance and coordination, not emergency medical care</dd></div>
+          </dl>
+          <div class="summary-note">
+            <strong>Emergency boundary</strong>
+            <p>If the patient condition is worsening, contact hospital emergency services first.</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+        
+    
+    
+    
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <a class="brand" href="index.html" aria-label="Caresy home">
+      <span class="brand-mark">C</span>
+      <span style="margin-left: 6px;">Caresy</span>
+    </a>
+          <p class="footer-desc">
+            Trusted hospital companions for elderly and vulnerable patients in India. We bridge the gap when families cannot be physically present.
+          </p>
+          <div class="footer-badges">
+            <div class="footer-badge">
+              <i data-lucide="shield"></i>
+              <span>Police Verified Companions</span>
+            </div>
+            <div class="footer-badge">
+              <i data-lucide="check-circle"></i>
+              <span>AuthBridge Secured</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About Us</a>
+            <a href="services.html">Our Services</a>
+            <a href="trust.html">Trust Framework</a>
+            <a href="faq.html">FAQs & Coverage</a>
+          </div>
+          <div class="footer-col">
+            <h4>Need Care?</h4>
+            <a href="quick-help.html">Same-Day Help</a>
+            <a href="booking.html">Schedule Visit</a>
+            <a href="my-bookings.html">My Bookings</a>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="footer-newsletter">
+          <h4>Stay Connected</h4>
+          <p>Get tips and guides on caring for aging family members.</p>
+          <form class="footer-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+            <input type="email" placeholder="Email address" required />
+            <button type="submit" aria-label="Subscribe">
+              <i data-lucide="send"></i>
+            </button>
+          </form>
+          <div class="footer-socials">
+            <a href="https://wa.me/919717500225" target="_blank" rel="noopener" aria-label="WhatsApp">
+              <i data-lucide="message-circle"></i> WhatsApp
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn">
+              <i data-lucide="linkedin"></i>
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter">
+              <i data-lucide="twitter"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p class="copyright">&copy; 2026 Caresy Care Services Pvt. Ltd. All rights reserved.</p>
+          <div class="footer-bottom-links">
+            <span class="footer-address-mini">4th Floor, Sector 7, HSR Layout, Bengaluru, KA 560102</span>
+            <span class="footer-divider">|</span>
+            <a href="tel:+919717500225">+91 97175 00225</a>
+            <span class="footer-divider">|</span>
+            <a href="mailto:support@caresy.co">support@caresy.co</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+
+
+
+
+    <!-- Floating WhatsApp Widget -->
+    <a class="whatsapp-float" href="https://wa.me/919717500225" target="_blank" rel="noopener" aria-label="Chat with Caresy on WhatsApp">
+      <svg class="whatsapp-icon" viewBox="0 0 24 24" width="24" height="24">
+        <path fill="#fff" d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.993L2 22l5.13-1.347a9.96 9.96 0 0 0 4.887 1.282h.005c5.502 0 9.985-4.479 9.986-9.985 0-2.67-1.04-5.18-2.93-7.071A9.9 9.9 0 0 0 12.012 2zm5.726 14.126c-.314.885-1.536 1.636-2.122 1.768-.586.13-1.173.23-3.793-.83-3.354-1.356-5.503-4.757-5.671-4.982-.168-.223-1.35-1.79-1.35-3.42 0-1.628.85-2.43 1.15-2.76.3-.332.65-.415.87-.415.22 0 .43.01.62.01.2 0 .46-.08.72.55.27.65.91 2.22.99 2.38.08.17.13.36.01.58-.11.23-.25.37-.37.52-.13.15-.27.3-.39.45-.14.16-.29.34-.12.63.17.29.74 1.23 1.59 1.98.1.09.2.18.3.26.85.76 1.57.99 1.87 1.14.3.15.47.12.65-.08.18-.2.78-.9 1-1.2.22-.3.43-.25.72-.14.3.11 1.88.89 2.2 1.05.32.16.54.24.62.38.08.14.08.82-.24 1.7z"/>
+      </svg>
+      <span>WhatsApp Help</span>
+    </a>
+
+    <script src="script.js"></script>
+  
+
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        if(window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+    </script>
+</body>
+</html>

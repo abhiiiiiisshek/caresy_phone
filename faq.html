@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Frequently Asked Questions about Caresy hospital companion services, cancellation policy, city coverage, and backup protocols." />
+    <title>Caresy | FAQs & Coverage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%2308796f%22>C</text></svg>">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+  <body>
+    <a href="#main-content" class="sr-only focus:not-sr-only" style="position:absolute; left:-9999px;">Skip to content</a>
+    <header class="app-bar"></header>
+
+    <main class="page" id="main-content">
+      <section class="page-hero reveal">
+        <p class="eyebrow">Got questions?</p>
+        <h1>Frequently Asked Questions & Coverage.</h1>
+        <p>Everything you need to know about our rates, cities covered, cancellation rules, and emergency guidelines.</p>
+      </section>
+
+      
+      <section class="section faq-section" style="max-width: 800px; margin: 0 auto;">
+        <div style="margin-bottom: 32px; position: relative;">
+          <i data-lucide="search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted);"></i>
+          <input type="text" id="faqSearch" placeholder="Search FAQs... (e.g., cancellation, late)" style="width: 100%; padding: 16px 16px 16px 48px; border-radius: 99px; border: 1px solid var(--line); font-size: 1.05rem;" onkeyup="filterFAQs()" />
+        </div>
+        <div class="faq-list" style="display: flex; flex-direction: column; gap: 16px;">
+          
+          <details class="faq-accordion material-card" style="padding: 0;">
+            <summary style="padding: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+              Which cities and hospitals does Caresy cover? <i data-lucide="chevron-down" class="acc-icon"></i>
+            </summary>
+            <div style="padding: 0 20px 20px; color: var(--muted); line-height: 1.6;">
+              <p>We currently operate in <strong>Bengaluru, Chennai, and Hyderabad</strong>. We serve patients at all major hospitals in these metro areas, including Apollo Hospitals, Fortis Hospitals, Manipal Hospitals, Narayana Health, and Aster CMI. If your hospital is not listed, contact us on WhatsApp to verify coverage.</p>
+            </div>
+          </details>
+
+          <details class="faq-accordion material-card" style="padding: 0;">
+            <summary style="padding: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+              What is your cancellation policy? <i data-lucide="chevron-down" class="acc-icon"></i>
+            </summary>
+            <div style="padding: 0 20px 20px; color: var(--muted); line-height: 1.6;">
+              <p>We offer <strong>free cancellation up to 4 hours before</strong> the scheduled visit. If you cancel within 4 hours of the appointment, a flat ₹150 convenience fee is charged to compensate the assigned companion for their time and travel preparation.</p>
+            </div>
+          </details>
+
+          <details class="faq-accordion material-card" style="padding: 0;">
+            <summary style="padding: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+              What happens if a companion is late? <i data-lucide="chevron-down" class="acc-icon"></i>
+            </summary>
+            <div style="padding: 0 20px 20px; color: var(--muted); line-height: 1.6;">
+              <p>Our operations team tracks companion locations live via GPS. If a companion is delayed due to traffic or unforeseen reasons, we notify you immediately. If the delay threatens your appointment time, we will immediately dispatch a backup companion or coordinate directly with the hospital desk.</p>
+            </div>
+          </details>
+
+          <details class="faq-accordion material-card" style="padding: 0;">
+            <summary style="padding: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+              What if we are unsatisfied with the companion? <i data-lucide="chevron-down" class="acc-icon"></i>
+            </summary>
+            <div style="padding: 0 20px 20px; color: var(--muted); line-height: 1.6;">
+              <p>Your peace of mind is our absolute priority. If you or the patient are unsatisfied with the companion's service or conduct, please contact our 24/7 care helpline. We will waive the service fee and match you with a different companion for your next visit.</p>
+            </div>
+          </details>
+
+          <details class="faq-accordion material-card" style="padding: 0;">
+            <summary style="padding: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+              What are your operations and helpline hours? <i data-lucide="chevron-down" class="acc-icon"></i>
+            </summary>
+            <div style="padding: 0 20px 20px; color: var(--muted); line-height: 1.6;">
+              <p>Our central operations desk operates from <strong>6:00 AM to 10:00 PM daily</strong> for booking verifications, status updates, and support. However, companions can be scheduled and dispatched for visits happening at any hour, including overnight stays if booked in advance.</p>
+            </div>
+          </details>
+
+          <details class="faq-accordion material-card" style="padding: 0;">
+            <summary style="padding: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none;">
+              Is Caresy a medical service or home nursing agency? <i data-lucide="chevron-down" class="acc-icon"></i>
+            </summary>
+            <div style="padding: 0 20px 20px; color: var(--muted); line-height: 1.6;">
+              <p><strong>No. Caresy provides non-medical assistance and logistics coordination.</strong> Our companions do not administer medicine, perform medical procedures, interpret diagnostics, or give medical advice. We act as family stand-ins to handle navigation, queuing, documentation, and companionship.</p>
+            </div>
+          </details>
+
+          <details class="faq-accordion material-card" style="padding: 0; background: rgba(231, 127, 98, 0.08); border-color: rgba(231, 127, 98, 0.2);" open>
+            <summary style="padding: 20px; font-weight: 700; font-size: 1.1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none; color: #9b432d;">
+              Emergency Situations & Boundary Policies <i data-lucide="chevron-up" class="acc-icon"></i>
+            </summary>
+            <div style="padding: 0 20px 20px; color: var(--ink); line-height: 1.6;">
+              <p>In case of emergencies where a patient's vital signs deteriorate or an acute medical issue occurs inside the hospital, our companions immediately alert the hospital triage staff, guide the patient to the emergency ward, and notify the family emergency contact. <strong>Caresy is not a substitute for ambulance services or professional nursing. For any life-threatening emergencies, call the hospital's emergency response team directly.</strong></p>
+            </div>
+          </details>
+          
+        </div>
+        
+        <script>
+          function filterFAQs() {
+            const input = document.getElementById('faqSearch').value.toLowerCase();
+            const faqs = document.querySelectorAll('.faq-accordion');
+            faqs.forEach(faq => {
+              const text = faq.textContent.toLowerCase();
+              faq.style.display = text.includes(input) ? 'block' : 'none';
+            });
+          }
+          
+          // Toggle icon helper with auto-collapse behavior (exclusive accordion)
+          document.querySelectorAll('.faq-accordion').forEach(details => {
+            details.addEventListener('toggle', (e) => {
+              if (details.open) {
+                document.querySelectorAll('.faq-accordion').forEach(other => {
+                  if (other !== details && other.open) {
+                    other.open = false;
+                  }
+                });
+              }
+              const icon = details.querySelector('.acc-icon');
+              if(icon) {
+                if(details.open) {
+                  icon.setAttribute('data-lucide', 'chevron-up');
+                } else {
+                  icon.setAttribute('data-lucide', 'chevron-down');
+                }
+                if(window.lucide) window.lucide.createIcons();
+              }
+            });
+          });
+        </script>
+        
+        <style>
+          .faq-accordion summary::-webkit-details-marker { display: none; }
+          .faq-accordion summary { outline: none; }
+          .faq-accordion[open] summary { border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+        </style>
+      </section>
+
+
+      <section class="section final-cta reveal">
+        <div>
+          <p class="eyebrow">Have a specific question?</p>
+          <h2>We are available for quick chat on WhatsApp.</h2>
+          <p>No bots, just our core operations team answering your queries in real-time.</p>
+        </div>
+        <div class="final-actions">
+          <a class="btn btn-primary" href="https://wa.me/919717500225" target="_blank" rel="noopener">Chat on WhatsApp</a>
+          <a class="btn btn-glass" href="booking.html">Book a companion</a>
+        </div>
+      </section>
+    
+      <section class="section coverage-section reveal" style="padding-top: 60px; padding-bottom: 40px;">
+        <div class="material-card" style="background: rgba(231, 243, 237, 0.6); display: flex; flex-direction: column; gap: 14px;">
+          <span class="coverage-badge" style="background: var(--primary); color: #fff; padding: 4px 12px; border-radius: 99px; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; width: max-content; letter-spacing: 0.05em;">Coverage Area</span>
+          <h2>Active Metro Areas & Network Hospitals</h2>
+          <p>
+            Caresy companions are currently deployed and operating in <strong>Bengaluru, Chennai, and Hyderabad</strong>. We coordinate care across all major private and public healthcare systems.
+          </p>
+          <div class="grid-3-col" style="margin-top: 10px;">
+            <div>
+              <strong style="color: var(--primary-dark);">Bengaluru</strong>
+              <p style="font-size: 0.88rem; margin: 4px 0 0; line-height: 1.45;">Apollo Jayanagar/BG Road, Fortis, Manipal Hospital (Old Airport Road, Hebbal), Narayana Health, Aster CMI.</p>
+            </div>
+            <div>
+              <strong style="color: var(--primary-dark);">Chennai</strong>
+              <p style="font-size: 0.88rem; margin: 4px 0 0; line-height: 1.45;">Apollo Greams Road/OMR, MGM Healthcare, Fortis Malar, MIOT International, Sri Ramachandra Medical Centre.</p>
+            </div>
+            <div>
+              <strong style="color: var(--primary-dark);">Hyderabad</strong>
+              <p style="font-size: 0.88rem; margin: 4px 0 0; line-height: 1.45;">Apollo Jubilee Hills, Care Hospitals, Yashoda Hospitals (Somajiguda, Secunderabad), KIMS, AIG Hospitals.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+</main>
+
+        
+    
+    
+    
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <a class="brand" href="index.html" aria-label="Caresy home">
+      <span class="brand-mark">C</span>
+      <span style="margin-left: 6px;">Caresy</span>
+    </a>
+          <p class="footer-desc">
+            Trusted hospital companions for elderly and vulnerable patients in India. We bridge the gap when families cannot be physically present.
+          </p>
+          <div class="footer-badges">
+            <div class="footer-badge">
+              <i data-lucide="shield"></i>
+              <span>Police Verified Companions</span>
+            </div>
+            <div class="footer-badge">
+              <i data-lucide="check-circle"></i>
+              <span>AuthBridge Secured</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Company</h4>
+            <a href="about.html">About Us</a>
+            <a href="services.html">Our Services</a>
+            <a href="trust.html">Trust Framework</a>
+            <a href="faq.html">FAQs & Coverage</a>
+          </div>
+          <div class="footer-col">
+            <h4>Need Care?</h4>
+            <a href="quick-help.html">Same-Day Help</a>
+            <a href="booking.html">Schedule Visit</a>
+            <a href="my-bookings.html">My Bookings</a>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="terms.html">Terms of Service</a>
+          </div>
+        </div>
+
+        <div class="footer-newsletter">
+          <h4>Stay Connected</h4>
+          <p>Get tips and guides on caring for aging family members.</p>
+          <form class="footer-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+            <input type="email" placeholder="Email address" required />
+            <button type="submit" aria-label="Subscribe">
+              <i data-lucide="send"></i>
+            </button>
+          </form>
+          <div class="footer-socials">
+            <a href="https://wa.me/919717500225" target="_blank" rel="noopener" aria-label="WhatsApp">
+              <i data-lucide="message-circle"></i> WhatsApp
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn">
+              <i data-lucide="linkedin"></i>
+            </a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter">
+              <i data-lucide="twitter"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <div class="footer-bottom-container">
+          <p class="copyright">&copy; 2026 Caresy Care Services Pvt. Ltd. All rights reserved.</p>
+          <div class="footer-bottom-links">
+            <span class="footer-address-mini">4th Floor, Sector 7, HSR Layout, Bengaluru, KA 560102</span>
+            <span class="footer-divider">|</span>
+            <a href="tel:+919717500225">+91 97175 00225</a>
+            <span class="footer-divider">|</span>
+            <a href="mailto:support@caresy.co">support@caresy.co</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+
+
+
+
+    <!-- Floating WhatsApp Widget -->
+    <a class="whatsapp-float" href="https://wa.me/919717500225" target="_blank" rel="noopener" aria-label="Chat with Caresy on WhatsApp">
+      <svg class="whatsapp-icon" viewBox="0 0 24 24" width="24" height="24">
+        <path fill="#fff" d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.333 4.993L2 22l5.13-1.347a9.96 9.96 0 0 0 4.887 1.282h.005c5.502 0 9.985-4.479 9.986-9.985 0-2.67-1.04-5.18-2.93-7.071A9.9 9.9 0 0 0 12.012 2zm5.726 14.126c-.314.885-1.536 1.636-2.122 1.768-.586.13-1.173.23-3.793-.83-3.354-1.356-5.503-4.757-5.671-4.982-.168-.223-1.35-1.79-1.35-3.42 0-1.628.85-2.43 1.15-2.76.3-.332.65-.415.87-.415.22 0 .43.01.62.01.2 0 .46-.08.72.55.27.65.91 2.22.99 2.38.08.17.13.36.01.58-.11.23-.25.37-.37.52-.13.15-.27.3-.39.45-.14.16-.29.34-.12.63.17.29.74 1.23 1.59 1.98.1.09.2.18.3.26.85.76 1.57.99 1.87 1.14.3.15.47.12.65-.08.18-.2.78-.9 1-1.2.22-.3.43-.25.72-.14.3.11 1.88.89 2.2 1.05.32.16.54.24.62.38.08.14.08.82-.24 1.7z"/>
+      </svg>
+      <span>WhatsApp Help</span>
+    </a>
+
+    <script src="script.js"></script>
+  
+
+</body>
+</html>
