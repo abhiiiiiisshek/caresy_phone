@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { MessageSquare, Phone, MapPin, Calendar, Clock, Star, ShieldCheck, User } from 'lucide-react';
+import { MessageSquare, Phone, Calendar, Star, ShieldCheck, Check, Clock, User, MapPin, Activity, ArrowRight, Loader2 } from 'lucide-react';
 
 interface CompanionDetails {
   name: string;
@@ -80,91 +80,82 @@ export default function MyBookings() {
     }
   }, [user]);
 
-  const getStatusClass = (status: string) => {
+  const getStatusInfo = (status: string) => {
     const s = status.toLowerCase();
-    if (s === 'pending' || s === 'draft') return 'pending';
-    if (s.includes('review')) return 'review';
-    if (s.includes('assigned')) return 'assigned';
-    if (s.includes('progress') || s === 'active') return 'active';
-    if (s === 'completed') return 'completed';
-    return 'pending';
+    if (s === 'pending' || s === 'draft') return { label: 'Pending Assignment', color: 'bg-marigold text-marigold-deep border-marigold/50 dark:bg-marigold/20 dark:text-marigold dark:border-marigold/30' };
+    if (s.includes('review')) return { label: 'Under Review', color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800' };
+    if (s.includes('assigned')) return { label: 'Companion Assigned', color: 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-400 dark:border-teal-800' };
+    if (s.includes('progress') || s === 'active') return { label: 'Active Visit', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' };
+    if (s === 'completed') return { label: 'Completed', color: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' };
+    return { label: status, color: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' };
   };
 
   const renderTimeline = (status: string, companionName: string) => {
     const currentStatus = status.toLowerCase();
-    let step1Class = 'pending', step2Class = 'pending', step3Class = 'pending', step4Class = 'pending';
+    let step1Active = false, step1Completed = false;
+    let step2Active = false, step2Completed = false;
+    let step3Active = false, step3Completed = false;
+    let step4Active = false, step4Completed = false;
     
     if (currentStatus === 'assigned') {
-      step1Class = 'active';
+      step1Active = true;
     } else if (currentStatus.includes('arrival') || currentStatus.includes('reached')) {
-      step1Class = 'completed';
-      step2Class = 'active';
+      step1Completed = true;
+      step2Active = true;
     } else if (currentStatus.includes('progress') || currentStatus.includes('consultation')) {
-      step1Class = 'completed';
-      step2Class = 'completed';
-      step3Class = 'active';
+      step1Completed = true;
+      step2Completed = true;
+      step3Active = true;
     } else if (currentStatus.includes('medicines') || currentStatus.includes('pharmacy')) {
-      step1Class = 'completed';
-      step2Class = 'completed';
-      step3Class = 'completed';
-      step4Class = 'active';
+      step1Completed = true;
+      step2Completed = true;
+      step3Completed = true;
+      step4Active = true;
     } else if (currentStatus === 'completed') {
-      step1Class = 'completed';
-      step2Class = 'completed';
-      step3Class = 'completed';
-      step4Class = 'completed';
+      step1Completed = true;
+      step2Completed = true;
+      step3Completed = true;
+      step4Completed = true;
     } else {
-      step1Class = 'active';
+      step1Active = true; // Fallback
     }
 
+    const Step = ({ title, desc, active, completed, num, last }: any) => {
+      const isPast = completed;
+      const isCurrent = active;
+      const isFuture = !completed && !active;
+      
+      return (
+        <div className={`flex gap-4 ${isFuture ? 'opacity-50' : ''} relative`}>
+          {!last && (
+            <div className={`absolute left-3 top-8 bottom-[-16px] w-[2px] ${isPast ? 'bg-teal-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
+          )}
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 relative z-10 transition-colors ${
+            isPast ? 'bg-teal-500 text-white' : 
+            isCurrent ? 'bg-marigold text-marigold-deep border-2 border-marigold ring-4 ring-marigold/20' : 
+            'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+          }`}>
+            {isPast ? <Check className="w-3 h-3" /> : num}
+          </div>
+          <div className="pb-6">
+            <strong className={`block text-sm ${isCurrent ? 'text-teal-700 dark:text-teal-400 font-extrabold' : 'text-slate-900 dark:text-slate-100 font-bold'}`}>{title}</strong>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{desc}</p>
+          </div>
+        </div>
+      );
+    };
+
     return (
-      <div className="live-tracker-timeline" style={{ marginTop: '20px', borderTop: '1px dashed var(--line)', paddingTop: '20px' }}>
-        <span className="tracker-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', color: 'var(--charcoal)', fontSize: '0.95rem', marginBottom: '16px' }}>
-          <span className="pulse"></span> Live Companion Journey
+      <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+        <span className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm mb-6">
+          <Activity className="w-4 h-4 text-marigold" /> Live Companion Journey
         </span>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          <div style={{ display: 'flex', gap: '16px', opacity: step1Class === 'pending' ? 0.5 : 1 }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: step1Class === 'completed' ? 'var(--primary)' : step1Class === 'active' ? 'var(--marigold)' : '#ccc', color: '#white', display: 'grid', placeItems: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>
-              {step1Class === 'completed' ? '✓' : '1'}
-            </div>
-            <div>
-              <strong style={{ fontSize: '0.88rem', display: 'block', color: 'var(--charcoal)' }}>Companion Assigned</strong>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: '4px 0 0' }}>{companionName} is verified, police-cleared, and preparing for the visit.</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '16px', opacity: step2Class === 'pending' ? 0.5 : 1 }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: step2Class === 'completed' ? 'var(--primary)' : step2Class === 'active' ? 'var(--marigold)' : '#ccc', color: '#white', display: 'grid', placeItems: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>
-              {step2Class === 'completed' ? '✓' : '2'}
-            </div>
-            <div>
-              <strong style={{ fontSize: '0.88rem', display: 'block', color: 'var(--charcoal)' }}>Hospital Arrival & Check-In</strong>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: '4px 0 0' }}>Companion guides patient through registration, billing queues, and waits in the lounge.</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '16px', opacity: step3Class === 'pending' ? 0.5 : 1 }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: step3Class === 'completed' ? 'var(--primary)' : step3Class === 'active' ? 'var(--marigold)' : '#ccc', color: '#white', display: 'grid', placeItems: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>
-              {step3Class === 'completed' ? '✓' : '3'}
-            </div>
-            <div>
-              <strong style={{ fontSize: '0.88rem', display: 'block', color: 'var(--charcoal)' }}>Doctor Consultation Support</strong>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: '4px 0 0' }}>Companion records follow-up dates, notes down doctor instructions, and updates family.</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '16px', opacity: step4Class === 'pending' ? 0.5 : 1 }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: step4Class === 'completed' ? 'var(--primary)' : step4Class === 'active' ? 'var(--marigold)' : '#ccc', color: '#white', display: 'grid', placeItems: 'center', fontSize: '0.75rem', fontWeight: 'bold', flexShrink: 0 }}>
-              {step4Class === 'completed' ? '✓' : '4'}
-            </div>
-            <div>
-              <strong style={{ fontSize: '0.88rem', display: 'block', color: 'var(--charcoal)' }}>Medicines & Return</strong>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: '4px 0 0' }}>Companion collects pharmacy medicines and guides patient safely to the exit gates.</p>
-            </div>
-          </div>
-
+        <div className="flex flex-col">
+          <Step num="1" title="Companion Assigned" desc={`${companionName} is verified, police-cleared, and preparing for the visit.`} active={step1Active} completed={step1Completed} />
+          <Step num="2" title="Hospital Arrival & Check-In" desc="Companion guides patient through registration, billing queues, and waits in the lounge." active={step2Active} completed={step2Completed} />
+          <Step num="3" title="Doctor Consultation Support" desc="Companion records follow-up dates, notes down doctor instructions, and updates family." active={step3Active} completed={step3Completed} />
+          <Step num="4" title="Medicines & Return" desc="Companion collects pharmacy medicines and guides patient safely to the exit gates." active={step4Active} completed={step4Completed} last />
         </div>
       </div>
     );
@@ -172,29 +163,42 @@ export default function MyBookings() {
 
   if (isLoading) {
     return (
-      <main className="page my-bookings-page" id="main-content" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-        <section className="page-hero reveal active" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px', textAlign: 'center' }}>
-          <p>Loading your bookings...</p>
-        </section>
+      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
+          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading your bookings...</p>
+        </div>
       </main>
     );
   }
 
   if (!user) {
     return (
-      <main className="page my-bookings-page" id="main-content" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-        <section className="page-hero reveal active" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px 24px' }}>
-          <p className="eyebrow">Your Account</p>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>My Bookings</h1>
-          <p style={{ color: 'var(--muted)' }}>Track your submitted care requests, matching status, and history of hospital companions.</p>
-        </section>
+      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 pb-20 relative overflow-hidden">
+        <div className="absolute top-[10%] right-[-10%] w-[40%] h-[40%] bg-teal-200/30 dark:bg-teal-900/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
+        <div className="absolute top-[50%] left-[-10%] w-[30%] h-[30%] bg-marigold/10 dark:bg-marigold-deep/10 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
+        
+        <div className="max-w-4xl mx-auto px-6 relative z-10">
+          <header className="mb-10 text-center animate-fade-in-up">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
+              My <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-700 dark:from-teal-400 dark:to-teal-200">Bookings</span>
+            </h1>
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+              Track your submitted care requests, matching status, and history of hospital companions.
+            </p>
+          </header>
 
-        <div className="dashboard-layout" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px' }}>
-          <div className="unauth-card material-card reveal active" style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔐</div>
-            <h2>Authentication Required</h2>
-            <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>Please sign in with your phone number to access your booking dashboard and track companion matches.</p>
-            <button className="btn btn-primary" onClick={() => openLogin(() => fetchBookings())} style={{ display: 'inline-flex' }}>Sign In / Register</button>
+          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center shadow-xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ShieldCheck className="w-10 h-10 text-slate-400" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">Authentication Required</h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
+              Please sign in with your phone number to access your booking dashboard and track companion matches.
+            </p>
+            <button onClick={() => openLogin(() => fetchBookings())} className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 transition-all">
+              Sign In / Register
+            </button>
           </div>
         </div>
       </main>
@@ -202,25 +206,47 @@ export default function MyBookings() {
   }
 
   return (
-    <main className="page my-bookings-page" id="main-content" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-      <section className="page-hero reveal active" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px 24px' }}>
-        <p className="eyebrow">Your Account</p>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>My Bookings</h1>
-        <p style={{ color: 'var(--muted)' }}>Track your submitted care requests, matching status, and history of hospital companions.</p>
-      </section>
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 pb-20 relative overflow-hidden">
+      
+      {/* Background gradients */}
+      <div className="absolute top-[10%] right-[-10%] w-[40%] h-[40%] bg-teal-200/30 dark:bg-teal-900/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
+      <div className="absolute top-[50%] left-[-10%] w-[30%] h-[30%] bg-marigold/10 dark:bg-marigold-deep/10 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
 
-      <div className="dashboard-layout" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px' }}>
-        <div className="booking-list-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div className="max-w-4xl mx-auto px-6 relative z-10">
+        <header className="mb-10 md:text-left animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider mb-4">
+            <User className="w-4 h-4" /> Your Account
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
+            My <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-700 dark:from-teal-400 dark:to-teal-200">Bookings</span>
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
+            Track your submitted care requests, matching status, and history of hospital companions.
+          </p>
+        </header>
+
+        <div className="space-y-6">
           {bookings.length === 0 ? (
-            <div className="empty-state material-card reveal active" style={{ textAlign: 'center', padding: '40px 20px' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📅</div>
-              <h3>No Bookings Yet</h3>
-              <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>You haven't scheduled any companions yet. Get started by booking a service.</p>
-              <Link className="btn btn-primary" href="/booking" style={{ display: 'inline-flex' }}>Schedule a Visit</Link>
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center shadow-xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+              <div className="w-20 h-20 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Calendar className="w-10 h-10 text-teal-600 dark:text-teal-400" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">No Bookings Yet</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
+                You haven't scheduled any companions yet. Get started by booking a service.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Link href="/booking" className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 transition-all">
+                  Schedule a Visit
+                </Link>
+                <Link href="/quick-help" className="px-8 py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-lg shadow-marigold/20 transition-all">
+                  Get Urgent Help
+                </Link>
+              </div>
             </div>
           ) : (
-            bookings.map((booking) => {
-              const statusClass = getStatusClass(booking.status);
+            bookings.map((booking, index) => {
+              const statusInfo = getStatusInfo(booking.status);
               const customMeta = booking.service_metadata || {};
               const companion: CompanionDetails | null = customMeta.companion || null;
               
@@ -241,110 +267,146 @@ export default function MyBookings() {
               const careNeeds: string[] = customMeta.careNeeds || [];
 
               return (
-                <div key={booking.id} className="booking-card material-card reveal active" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="booking-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+                <div key={booking.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-3xl p-6 md:p-8 animate-fade-in-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
+                  
+                  {/* Header */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800 mb-6">
                     <div>
-                      <h2 className="booking-card-id" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary)' }}>CRS-{booking.id.split('-')[0].toUpperCase()}</h2>
-                      <span className="booking-date-stamp" style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Created: {formattedDate}</span>
-                    </div>
-                    <span className={`status-badge ${statusClass}`} style={{ padding: '6px 12px', fontSize: '0.74rem', borderRadius: '99px', fontWeight: 800 }}>
-                      {booking.status}
-                    </span>
-                  </div>
-
-                  <div className="booking-details-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', paddingBottom: '12px' }}>
-                    <div className="detail-item">
-                      <span className="detail-label" style={{ fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', display: 'block', fontWeight: 700 }}>Patient</span>
-                      <span className="detail-value" style={{ fontSize: '0.94rem', fontWeight: 600 }}>{booking.patient?.full_name || '—'} {booking.patient?.age ? `(${booking.patient.age} yrs)` : ''}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label" style={{ fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', display: 'block', fontWeight: 700 }}>Hospital</span>
-                      <span className="detail-value" style={{ fontSize: '0.94rem', fontWeight: 600 }}>{booking.pickup_location?.title || '—'}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label" style={{ fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', display: 'block', fontWeight: 700 }}>Department</span>
-                      <span className="detail-value" style={{ fontSize: '0.94rem', fontWeight: 600 }}>{customMeta.department || 'General'}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-label" style={{ fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', display: 'block', fontWeight: 700 }}>Service Plan</span>
-                      <span className="detail-value" style={{ fontSize: '0.94rem', fontWeight: 600 }}>{customMeta.originalService || booking.service_type}</span>
-                    </div>
-                    {careNeeds.length > 0 && (
-                      <div className="detail-item" style={{ gridColumn: '1 / -1' }}>
-                        <span className="detail-label" style={{ fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', display: 'block', fontWeight: 700, marginBottom: '6px' }}>Specific Needs</span>
-                        <div className="needs-tags" style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          {careNeeds.map((need, idx) => (
-                            <span key={idx} className="need-tag" style={{ padding: '4px 10px', fontSize: '0.72rem', borderRadius: '8px', background: 'var(--sage)', color: 'var(--primary-dark)', fontWeight: 700 }}>
-                              {need}
-                            </span>
-                          ))}
-                        </div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">
+                          CRS-{booking.id.split('-')[0].toUpperCase()}
+                        </h2>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
                       </div>
-                    )}
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <Clock className="w-4 h-4" /> Created on {new Date(booking.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    {/* Actions Desktop */}
+                    <div className="hidden md:flex items-center gap-3">
+                      {companion ? (
+                        <>
+                          <a href={`https://wa.me/919717500225?text=Hi,%20checking%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors">
+                            <MessageSquare className="w-4 h-4" /> Chat
+                          </a>
+                          <a href="tel:+919717500225" className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors">
+                            <Phone className="w-4 h-4" /> Call
+                          </a>
+                        </>
+                      ) : (
+                        <a href={`https://wa.me/919717500225?text=Hi,%20checking%20assignment%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-bold rounded-xl transition-colors">
+                          <MessageSquare className="w-4 h-4" /> Contact Support
+                        </a>
+                      )}
+                    </div>
                   </div>
 
-                  {booking.special_instructions && (
-                    <div style={{ background: 'rgba(33, 48, 44, 0.03)', padding: '12px', borderRadius: '12px', fontSize: '0.88rem', color: 'var(--charcoal)' }}>
-                      <strong>Notes:</strong> {booking.special_instructions}
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Patient</span>
+                      <p className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        {booking.patient?.full_name || '—'} {booking.patient?.age ? <span className="text-slate-500 font-normal">({booking.patient.age}y)</span> : ''}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hospital</span>
+                      <p className="font-semibold text-slate-900 dark:text-white truncate" title={booking.pickup_location?.title}>
+                        {booking.pickup_location?.title || '—'}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Schedule</span>
+                      <p className="font-semibold text-slate-900 dark:text-white truncate">
+                        {formattedDate}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Service</span>
+                      <p className="font-semibold text-slate-900 dark:text-white truncate">
+                        {customMeta.originalService || booking.service_type}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Needs & Notes */}
+                  {(careNeeds.length > 0 || booking.special_instructions) && (
+                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 border border-slate-100 dark:border-slate-800">
+                      {careNeeds.length > 0 && (
+                        <div className="mb-3">
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Specific Needs</span>
+                          <div className="flex flex-wrap gap-2">
+                            {careNeeds.map((need, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-lg shadow-sm">
+                                {need}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {booking.special_instructions && (
+                        <div>
+                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Notes</span>
+                          <p className="text-sm text-slate-700 dark:text-slate-300">{booking.special_instructions}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
+                  {/* Companion Profile */}
                   {companion && (
-                    <div style={{ borderTop: '1px dashed var(--line)', paddingTop: '16px', marginTop: '8px' }}>
-                      <strong style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Assigned Hospital Companion</strong>
-                      <div style={{ background: 'rgba(8, 121, 111, 0.04)', border: '1px solid rgba(8, 121, 111, 0.12)', padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                        <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'var(--primary)', color: '#fff', fontSize: '1.25rem', fontWeight: 900, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
-                          {companion.photo ? <img src={companion.photo} alt={companion.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (companion.avatar || 'C')}
+                    <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-4">Assigned Companion</span>
+                      <div className="bg-gradient-to-r from-teal-50 to-white dark:from-teal-900/10 dark:to-slate-900 border border-teal-100 dark:border-teal-900/50 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div className="w-16 h-16 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-xl font-bold overflow-hidden shrink-0 shadow-inner">
+                          {companion.photo ? <img src={companion.photo} alt={companion.name} className="w-full h-full object-cover" /> : (companion.avatar || 'C')}
                         </div>
-                        <div style={{ flex: 1, minWidth: '150px' }}>
-                          <strong style={{ fontSize: '1.05rem', color: 'var(--ink)', display: 'block' }}>{companion.name}</strong>
-                          <span style={{ fontSize: '0.82rem', color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Star style={{ width: '12px', height: '12px', fill: 'var(--amber)', stroke: 'var(--amber)' }} /> {companion.rating}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          <span style={{ padding: '4px 8px', fontSize: '0.7rem', borderRadius: '8px', background: 'var(--surface)', color: 'var(--primary-dark)', fontWeight: 800, border: '1px solid var(--line)' }}>{companion.verification}</span>
-                          <span style={{ padding: '4px 8px', fontSize: '0.7rem', borderRadius: '8px', background: 'var(--surface)', color: 'var(--primary-dark)', fontWeight: 800, border: '1px solid var(--line)' }}>{companion.lang}</span>
-                          <span style={{ padding: '4px 8px', fontSize: '0.7rem', borderRadius: '8px', background: 'var(--mint)', color: 'var(--primary-dark)', fontWeight: 800 }}>{companion.specialty}</span>
+                        <div className="flex-1">
+                          <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            {companion.name}
+                            <span className="flex items-center gap-1 text-sm text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-lg">
+                              <Star className="w-3 h-3 fill-current" /> {companion.rating}
+                            </span>
+                          </h4>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3 text-green-500" /> {companion.verification}
+                            </span>
+                            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
+                              {companion.lang}
+                            </span>
+                            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-lg">
+                              {companion.specialty}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
 
+                  {/* Timeline */}
                   {companion && renderTimeline(booking.status, companion.name)}
 
-                  <div className="booking-actions-row" style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                  {/* Actions Mobile */}
+                  <div className="mt-6 flex md:hidden gap-3">
                     {companion ? (
                       <>
-                        <a 
-                          className="btn btn-primary" 
-                          href={`https://wa.me/919717500225?text=Hi,%20checking%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} 
-                          target="_blank" 
-                          rel="noopener" 
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'center' }}
-                        >
-                          <MessageSquare style={{ width: '16px', height: '16px' }} /> Chat with Companion
+                        <a href={`https://wa.me/919717500225?text=Hi,%20checking%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-xl">
+                          <MessageSquare className="w-4 h-4" /> Chat
                         </a>
-                        <a 
-                          className="btn btn-outline" 
-                          href="tel:+919717500225" 
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'center' }}
-                        >
-                          <Phone style={{ width: '16px', height: '16px' }} /> Call Dispatch
+                        <a href="tel:+919717500225" className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-xl">
+                          <Phone className="w-4 h-4" /> Call
                         </a>
                       </>
                     ) : (
-                      <a 
-                        className="btn btn-primary" 
-                        href={`https://wa.me/919717500225?text=Hi,%20checking%20assignment%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} 
-                        target="_blank" 
-                        rel="noopener" 
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}
-                      >
-                        <MessageSquare style={{ width: '16px', height: '16px' }} /> Contact Support
+                      <a href={`https://wa.me/919717500225?text=Hi,%20checking%20assignment%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="w-full flex items-center justify-center gap-2 py-3 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-bold rounded-xl">
+                        <MessageSquare className="w-4 h-4" /> Contact Support
                       </a>
                     )}
                   </div>
+
                 </div>
               );
             })

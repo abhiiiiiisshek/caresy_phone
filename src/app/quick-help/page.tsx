@@ -2,13 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { Phone, MessageSquare } from 'lucide-react';
+import { Phone, MessageSquare, AlertCircle, Clock, MapPin, User, FileText, ArrowRight } from 'lucide-react';
 
 export default function QuickHelp() {
-  const router = useRouter();
   const { user, openLogin } = useAuth();
   
   const [customerName, setCustomerName] = useState('');
@@ -37,7 +35,6 @@ export default function QuickHelp() {
     e.preventDefault();
 
     if (!user) {
-      // Intercept with login modal, then submit once authenticated
       openLogin(() => {
         submitBookingRequest();
       });
@@ -52,7 +49,6 @@ export default function QuickHelp() {
     const supabase = createClient();
 
     try {
-      // 1. Get authenticated user ID
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (!currentUser) {
         alert('Authentication error. Please log in.');
@@ -60,7 +56,6 @@ export default function QuickHelp() {
         return;
       }
 
-      // 2. Insert patient details
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .insert({
@@ -72,7 +67,6 @@ export default function QuickHelp() {
 
       if (patientError) throw patientError;
 
-      // 3. Insert location details
       const { data: locationData, error: locationError } = await supabase
         .from('locations')
         .insert({
@@ -88,7 +82,6 @@ export default function QuickHelp() {
 
       if (locationError) throw locationError;
 
-      // 4. Create booking
       const { data: bookingData, error: bookingError } = await supabase
         .from('bookings')
         .insert({
@@ -112,7 +105,6 @@ export default function QuickHelp() {
 
       if (bookingError) throw bookingError;
 
-      // 5. Update local state on success
       setSuccessBookingId(`CRS-${bookingData.id.split('-')[0].toUpperCase()}`);
     } catch (err: any) {
       console.error('Error submitting urgent booking request:', err);
@@ -124,15 +116,27 @@ export default function QuickHelp() {
 
   if (successBookingId) {
     return (
-      <main id="main-content" style={{ paddingTop: '80px', paddingBottom: '80px', maxWidth: '600px', margin: '0 auto' }}>
-        <div className="material-card" style={{ textAlign: 'center', padding: '40px 20px', margin: '20px' }}>
-          <div style={{ width: '64px', height: '64px', background: 'var(--sage)', color: 'var(--ink-teal)', borderRadius: '50%', display: 'grid', placeItems: 'center', fontSize: '2rem', margin: '0 auto 20px' }}>✓</div>
-          <h2 style={{ marginBottom: '12px' }}>Request received.</h2>
-          <p style={{ fontSize: '1.1rem', color: 'var(--muted)' }}>Our dispatcher will call <strong>{phone || user?.phone || user?.email}</strong> within {callbackMin} minutes.</p>
-          <p style={{ fontSize: '0.9rem', color: 'var(--muted)', marginTop: '15px' }}>Your reference number is <strong>{successBookingId}</strong>.</p>
-          <div style={{ marginTop: '25px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <a href={`https://wa.me/919717500225?text=Hi,%20my%20quick%20help%20reference%20is%20${successBookingId}`} target="_blank" rel="noopener" className="btn btn-primary full">WhatsApp Support</a>
-            <Link href="/my-bookings" className="btn btn-glass full" style={{ color: 'var(--primary)' }}>View My Bookings</Link>
+      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6 pt-28">
+        <div className="w-full max-w-lg p-8 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-200 dark:border-slate-800 text-center animate-fade-in-up">
+          <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          </div>
+          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-4">Request Received!</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-lg mb-4">
+            Our dispatcher will call <strong className="text-slate-900 dark:text-white">{phone || user?.phone || user?.email}</strong> within {callbackMin} minutes.
+          </p>
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-8 border border-slate-200 dark:border-slate-700">
+            <p className="text-sm text-slate-500 uppercase font-semibold mb-1">Reference Number</p>
+            <p className="text-2xl font-black text-marigold-deep">{successBookingId}</p>
+          </div>
+          
+          <div className="space-y-4">
+            <a href={`https://wa.me/919717500225?text=Hi,%20my%20quick%20help%20reference%20is%20${successBookingId}`} target="_blank" rel="noopener" className="w-full flex items-center justify-center gap-2 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-green-500/20">
+              <MessageSquare className="w-5 h-5" /> Chat on WhatsApp
+            </a>
+            <Link href="/my-bookings" className="w-full flex items-center justify-center gap-2 py-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-xl transition-colors">
+              View My Bookings
+            </Link>
           </div>
         </div>
       </main>
@@ -140,100 +144,148 @@ export default function QuickHelp() {
   }
 
   return (
-    <main className="page urgent-page" id="main-content" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-      <section className="page-hero reveal active" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px 24px' }}>
-        <p className="eyebrow">Same-day support</p>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0', lineHeight: 1.2 }}>Need help at the hospital today?</h1>
-        <p style={{ color: 'var(--muted)' }}>Share the minimum details. Operations will call back, verify feasibility, and guide the next step.</p>
-      </section>
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pt-24 pb-20 relative overflow-hidden">
+      
+      {/* Background gradients for urgency */}
+      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-red-400/20 dark:bg-red-900/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
 
-      <div className="dispatcher-status-banner reveal active" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px 20px' }}>
-        <div className="material-card" style={{ background: 'rgba(8, 121, 111, 0.04)', borderColor: 'rgba(8, 121, 111, 0.15)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span className="pulse"></span>
+      <div className="max-w-4xl mx-auto px-6 relative z-10">
+        
+        <header className="mb-10 text-center md:text-left animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-xs font-bold uppercase tracking-wider mb-4">
+            <AlertCircle className="w-4 h-4" /> Same-day Support
+          </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
+            Need help at the hospital <span className="text-red-500">today?</span>
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
+            Share the minimum details. Operations will call back, verify feasibility, and guide the next step immediately.
+          </p>
+        </header>
+
+        {/* Live Operations Desk Widget */}
+        <div className="mb-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center relative">
+              <div className="absolute inset-0 rounded-full border-2 border-green-500 animate-ping opacity-20" />
+              <Phone className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
             <div>
-              <strong style={{ color: 'var(--primary-dark)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block' }}>Live Operations Desk</strong>
-              <p style={{ margin: '3px 0 0', fontSize: '0.92rem', color: 'var(--muted)' }}>Desk Status: <strong style={{ color: '#27a875' }}>Active</strong> &bull; Estimated Callback: <strong>{callbackMin} mins</strong> &bull; Nearby Companions: <strong>{deskCompanions} online</strong></p>
+              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-1">Live Operations Desk</h3>
+              <p className="text-sm md:text-base text-slate-700 dark:text-slate-300">
+                Desk Status: <strong className="text-green-500">Active</strong> &bull; Callback: <strong>~{callbackMin} mins</strong>
+              </p>
             </div>
           </div>
-          <a href="https://wa.me/919717500225" target="_blank" rel="noopener" className="btn btn-glass" style={{ minHeight: 'auto', padding: '8px 14px', fontSize: '0.84rem', color: '#27a875', borderColor: '#27a875' }}>Chat on WhatsApp &rarr;</a>
+          <a href="https://wa.me/919717500225" target="_blank" rel="noopener" className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-xl transition-colors">
+            <MessageSquare className="w-4 h-4" /> WhatsApp Us
+          </a>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+          
+          {/* Main Form */}
+          <form onSubmit={handleFormSubmit} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-3xl p-6 md:p-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            
+            <div className="mb-8">
+              <h2 className="text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center text-sm">1</div> Contact Details
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Your Name</label>
+                  <input required name="customerName" type="text" placeholder="e.g. Ananya Rao" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mobile Number</label>
+                  <input required name="phone" type="tel" placeholder="+91 97175 00225" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email Address</label>
+                <input required name="email" type="email" placeholder="name@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center text-sm">2</div> Where is help needed?
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Patient Name</label>
+                  <input required name="patientName" type="text" placeholder="Ramesh Kumar" value={patientName} onChange={(e) => setPatientName(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Hospital/Area</label>
+                  <input required name="hospital" type="text" placeholder="Max Hospital, Sector 62" value={hospital} onChange={(e) => setHospital(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">What is happening now?</label>
+                <select name="service" value={service} onChange={(e) => setService(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none">
+                  <option>Appointment today</option>
+                  <option>Test or scan today</option>
+                  <option>Registration or queue support</option>
+                  <option>Medicine or document support</option>
+                  <option>Need guidance from operations</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center text-sm">3</div> Urgency
+              </h2>
+              <div className="space-y-3 mb-6">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 block mb-2">When should we call?</label>
+                {['Call now', 'Within 30 minutes', 'Later today'].map((opt) => (
+                  <label key={opt} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${urgency === opt ? 'border-red-500 bg-red-50 dark:bg-red-900/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-red-300'}`}>
+                    <input type="radio" name="urgency" value={opt} checked={urgency === opt} onChange={() => setUrgency(opt)} className="w-5 h-5 accent-red-500" />
+                    <span className={`font-semibold ${urgency === opt ? 'text-red-700 dark:text-red-400' : 'text-slate-700 dark:text-slate-300'}`}>{opt}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Short Note (Optional)</label>
+                <textarea rows={3} placeholder="Patient location, mobility needs, emergency contact..." value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"></textarea>
+              </div>
+            </div>
+
+            <button disabled={isSubmitting} type="submit" className="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+              {isSubmitting ? 'Submitting...' : <>Request Urgent Call-Back <ArrowRight className="w-5 h-5" /></>}
+            </button>
+            <p className="text-xs text-center text-slate-500 mt-4">
+              * Operations callback and feasibility check are <strong>100% free</strong>. You only pay if a companion is dispatched.
+            </p>
+          </form>
+
+          {/* Sidebar */}
+          <aside className="space-y-6 animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+            <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl">
+              <p className="text-sm text-slate-400 uppercase font-bold tracking-wider mb-2">Urgent Request</p>
+              <h3 className="text-2xl font-black mb-6">Call-back Priority</h3>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center shrink-0 mt-0.5"><Clock className="w-3.5 h-3.5 text-blue-400" /></div>
+                  <p className="text-sm text-slate-300"><strong className="text-white">Status:</strong> Operations review needed</p>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center shrink-0 mt-0.5"><MapPin className="w-3.5 h-3.5 text-blue-400" /></div>
+                  <p className="text-sm text-slate-300"><strong className="text-white">Best for:</strong> Same-day appointments, tests, or queue support</p>
+                </li>
+              </ul>
+
+              <div className="bg-red-500/20 border border-red-500/30 p-4 rounded-xl">
+                <h4 className="text-sm font-bold text-red-400 flex items-center gap-2 mb-2"><AlertCircle className="w-4 h-4" /> Emergency Boundary</h4>
+                <p className="text-xs text-slate-300 leading-relaxed">If the patient condition is worsening or life-threatening, contact hospital emergency services immediately. Caresy is for coordination, not medical care.</p>
+              </div>
+            </div>
+          </aside>
+
         </div>
       </div>
-
-      <section className="section booking-layout" style={{ maxWidth: '800px', margin: '0 auto', padding: '0 24px', display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
-        <form className="booking-form urgent-form material-card reveal active" id="quickHelpForm" onSubmit={handleFormSubmit} style={{ padding: '24px' }}>
-          <div className="form-section">
-            <span className="form-step">1</span>
-            <h2>Contact details</h2>
-            <div className="form-row">
-              <label>Your name<input name="customerName" type="text" placeholder="Ananya Rao" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} style={{ background: 'var(--surface)' }} /></label>
-              <label>Mobile number<input name="phone" type="tel" placeholder="+91 97175 00225" required value={phone} onChange={(e) => setPhone(e.target.value)} style={{ background: 'var(--surface)' }} /></label>
-            </div>
-            <div className="form-row">
-              <label>Email address<input name="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} style={{ background: 'var(--surface)' }} /></label>
-            </div>
-          </div>
-
-          <div className="form-section" style={{ marginTop: '24px' }}>
-            <span className="form-step">2</span>
-            <h2>Where is help needed?</h2>
-            <div className="form-row">
-              <label>Patient name<input name="patientName" type="text" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} style={{ background: 'var(--surface)' }} /></label>
-              <label>Hospital or area<input name="hospital" type="text" placeholder="Max Hospital, Sector 62" required value={hospital} onChange={(e) => setHospital(e.target.value)} style={{ background: 'var(--surface)' }} /></label>
-            </div>
-            <label style={{ marginTop: '12px', display: 'block' }}>What is happening now?
-              <select name="service" value={service} onChange={(e) => setService(e.target.value)} style={{ background: 'var(--surface)', display: 'block', width: '100%', marginTop: '6px' }}>
-                <option>Appointment today</option>
-                <option>Test or scan today</option>
-                <option>Registration or queue support</option>
-                <option>Medicine or document support</option>
-                <option>Need guidance from operations</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="form-section" style={{ marginTop: '24px' }}>
-            <span className="form-step">3</span>
-            <h2>Urgency</h2>
-            <fieldset style={{ border: 'none', padding: 0, margin: '12px 0' }}>
-              <legend style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '8px' }}>When should we call?</legend>
-              <label className="check" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', cursor: 'pointer' }}>
-                <input type="radio" name="needs" value="Call now" checked={urgency === 'Call now'} onChange={() => setUrgency('Call now')} style={{ accentColor: 'var(--primary)' }} /> Call now
-              </label>
-              <label className="check" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', cursor: 'pointer' }}>
-                <input type="radio" name="needs" value="Within 30 minutes" checked={urgency === 'Within 30 minutes'} onChange={() => setUrgency('Within 30 minutes')} style={{ accentColor: 'var(--primary)' }} /> Within 30 minutes
-              </label>
-              <label className="check" style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input type="radio" name="needs" value="Later today" checked={urgency === 'Later today'} onChange={() => setUrgency('Later today')} style={{ accentColor: 'var(--primary)' }} /> Later today
-              </label>
-            </fieldset>
-            <label style={{ display: 'block', marginTop: '12px' }}>Short note
-              <textarea name="notes" rows={4} placeholder="Patient location, appointment time, mobility needs, emergency contact" value={notes} onChange={(e) => setNotes(e.target.value)} style={{ background: 'var(--surface)', display: 'block', width: '100%', marginTop: '6px' }}></textarea>
-            </label>
-          </div>
-
-          <button className="btn btn-urgent full" type="submit" disabled={isSubmitting} style={{ marginTop: '24px', cursor: 'pointer' }}>
-            {isSubmitting ? 'Submitting...' : 'Request urgent call-back'}
-          </button>
-          <p style={{ fontSize: '0.82rem', textAlign: 'center', color: 'var(--muted)', marginTop: '10px' }}>
-            * Caresy operations callback and feasibility check are <strong>100% free</strong>. You only pay if a companion is successfully dispatched.
-          </p>
-        </form>
-
-        <aside className="booking-summary urgent-summary material-card reveal active" aria-live="polite" style={{ padding: '24px' }}>
-          <p className="eyebrow">Urgent request</p>
-          <h2>Call-back pending</h2>
-          <dl>
-            <div><dt>Status</dt><dd>Operations review needed</dd></div>
-            <div><dt>Best for</dt><dd>Same-day appointments, tests, registration, or queue support</dd></div>
-            <div><dt>Important</dt><dd>Caresy is assistance and coordination, not emergency medical care</dd></div>
-          </dl>
-          <div className="summary-note">
-            <strong>Emergency boundary</strong>
-            <p>If the patient condition is worsening, contact hospital emergency services first.</p>
-          </div>
-        </aside>
-      </section>
     </main>
   );
 }

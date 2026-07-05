@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
 import { AuthProvider } from '@/context/AuthContext';
 import Header from '@/components/Header';
@@ -18,7 +18,11 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'Caresy | Your Care, Our Priority',
   description: 'Caresy provides trusted hospital companions for families who cannot be physically present.',
-  viewport: 'width=device-width, initial-scale=1.0',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
 };
 
 export default function RootLayout({

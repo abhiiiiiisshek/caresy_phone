@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { X, Mail, KeyRound, User as UserIcon, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 
 export default function AuthModal() {
   const {
@@ -25,7 +26,6 @@ export default function AuthModal() {
   
   const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Start resend timer when entering OTP step
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (step === 'otp' && timer > 0) {
@@ -38,7 +38,6 @@ export default function AuthModal() {
     return () => clearInterval(interval);
   }, [step, timer]);
 
-  // Handle modal open/close resets
   useEffect(() => {
     if (!isOpen) {
       setStep('email');
@@ -67,7 +66,6 @@ export default function AuthModal() {
       setStep('otp');
       setTimer(30);
       setIsResendDisabled(true);
-      // Focus first OTP input
       setTimeout(() => otpInputsRef.current[0]?.focus(), 100);
     } else {
       setError(res.error || 'Failed to send OTP. Please try again.');
@@ -97,7 +95,6 @@ export default function AuthModal() {
     newOtp[index] = val;
     setOtp(newOtp);
 
-    // Auto-focus next input
     if (val && index < 5) {
       otpInputsRef.current[index + 1]?.focus();
     }
@@ -122,9 +119,6 @@ export default function AuthModal() {
     const res = await verifyOtp(email, otpCode);
 
     if (res.success) {
-      // Check if user has a name in metadata
-      // Since verifyOtp updates auth state, user metadata might take a tick or we can read it directly
-      // In Supabase, if the user was just created, metadata is usually empty
       setIsSubmitting(false);
       setStep('name');
     } else {
@@ -153,149 +147,144 @@ export default function AuthModal() {
     }
   };
 
-  // Skip name entry if user already has a name
-  const handleCheckMetadata = () => {
-    if (user && user.user_metadata?.full_name) {
-      closeLogin();
-      if (authSuccessCallback) authSuccessCallback();
-    }
-  };
-
-  // Trigger check if we're on the 'name' step and user already has metadata
   if (step === 'name' && user?.user_metadata?.full_name) {
-    handleCheckMetadata();
+    closeLogin();
+    if (authSuccessCallback) authSuccessCallback();
     return null;
   }
 
   return (
-    <div className="auth-modal-overlay active" onClick={closeLogin}>
-      <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="auth-modal-close" onClick={closeLogin} aria-label="Close authentication modal">
-          &times;
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in-up" onClick={closeLogin}>
+      <div 
+        className="relative w-full max-w-md p-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[2rem] shadow-2xl flex flex-col items-center animate-float"
+        onClick={(e) => e.stopPropagation()}
+        style={{ animationDuration: '10s' }}
+      >
+        <button 
+          onClick={closeLogin}
+          className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+        >
+          <X className="w-5 h-5" />
         </button>
 
+        <div className="w-16 h-16 bg-gradient-to-br from-marigold to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-marigold/30 mb-6">
+          <ShieldCheck className="w-8 h-8 text-ink-teal" />
+        </div>
+
+        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 text-center">
+          {step === 'email' && "Welcome to Caresy"}
+          {step === 'otp' && "Verify Your Identity"}
+          {step === 'name' && "One Last Step"}
+        </h2>
+        
+        <p className="text-slate-500 dark:text-slate-400 text-center mb-8">
+          {step === 'email' && "Enter your email to receive a secure login code."}
+          {step === 'otp' && `We sent a 6-digit code to ${email}`}
+          {step === 'name' && "Please enter your full name to complete your profile."}
+        </p>
+
         {error && (
-          <div style={{
-            background: 'rgba(216, 92, 70, 0.1)',
-            color: 'var(--vermilion-deep)',
-            padding: '10px 14px',
-            borderRadius: '10px',
-            fontSize: '0.86rem',
-            marginBottom: '16px',
-            border: '1px solid rgba(216, 92, 70, 0.2)',
-            textAlign: 'left'
-          }}>
+          <div className="w-full mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 shrink-0" />
             {error}
           </div>
         )}
 
-        {/* Phase 1: Enter Email */}
+        {/* STEP 1: EMAIL */}
         {step === 'email' && (
-          <form onSubmit={handleSendOtp}>
-            <h2>Verify Email Address</h2>
-            <p>Please enter your email address to receive a 6-digit verification code.</p>
-            <div style={{ marginBottom: '24px', textAlign: 'left' }}>
-              <label style={{ fontSize: '0.9rem', color: 'var(--muted)', display: 'block', marginBottom: '8px', fontWeight: 600 }}>
-                Email Address
-              </label>
+          <form onSubmit={handleSendOtp} className="w-full">
+            <div className="relative mb-6">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <Mail className="w-5 h-5 text-slate-400" />
+              </div>
               <input
                 type="email"
-                className="auth-input-text"
+                required
+                disabled={isSubmitting}
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={isSubmitting}
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-marigold focus:border-marigold outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
               />
             </div>
-            <button className="btn btn-primary full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Sending...' : 'Send Code'}
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-md shadow-marigold/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Secure Code"}
             </button>
           </form>
         )}
 
-        {/* Phase 2: Enter OTP */}
+        {/* STEP 2: OTP */}
         {step === 'otp' && (
-          <form onSubmit={handleVerifyOtp}>
-            <h2>Enter verification code</h2>
-            <p>We've sent a 6-digit code to <span style={{ fontWeight: 700 }}>{email}</span></p>
-            <div className="otp-input-group" style={{ display: 'flex', gap: '8px', justifyContent: 'center', margin: '20px 0' }}>
+          <form onSubmit={handleVerifyOtp} className="w-full flex flex-col items-center">
+            <div className="flex gap-2 mb-6">
               {otp.map((digit, idx) => (
                 <input
                   key={idx}
                   type="text"
                   maxLength={1}
-                  className="otp-input"
+                  required
+                  disabled={isSubmitting}
                   value={digit}
                   inputMode="numeric"
                   pattern="[0-9]*"
                   ref={(el) => { otpInputsRef.current[idx] = el; }}
                   onChange={(e) => handleOtpChange(e.target.value, idx)}
                   onKeyDown={(e) => handleOtpKeyDown(e, idx)}
-                  disabled={isSubmitting}
-                  style={{
-                    width: '40px',
-                    height: '48px',
-                    textAlign: 'center',
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold',
-                    border: '1px solid var(--line)',
-                    borderRadius: '8px',
-                    background: 'var(--surface)'
-                  }}
+                  className="w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-marigold focus:border-marigold outline-none transition-all text-slate-900 dark:text-white"
                 />
               ))}
             </div>
-            <div className="resend-container" style={{ margin: '14px 0 24px', fontSize: '0.88rem', color: 'var(--muted)' }}>
-              Didn't receive the email?{' '}
-              <button
-                type="button"
-                className="resend-btn"
-                onClick={handleResendOtp}
-                disabled={isResendDisabled || isSubmitting}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: isResendDisabled ? 'var(--muted)' : 'var(--primary-dark)',
-                  fontWeight: 'bold',
-                  cursor: isResendDisabled ? 'not-allowed' : 'pointer',
-                  textDecoration: isResendDisabled ? 'none' : 'underline',
-                  padding: 0
-                }}
-              >
-                {isResendDisabled ? `Resend in ${timer}s` : 'Resend Code'}
-              </button>
-            </div>
-            <button className="btn btn-primary full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Verifying...' : 'Verify & Proceed'}
+            
+            <button 
+              type="button"
+              disabled={isResendDisabled || isSubmitting}
+              onClick={handleResendOtp}
+              className={`text-sm mb-6 font-medium transition-colors ${isResendDisabled ? 'text-slate-400' : 'text-marigold-deep hover:text-orange-600'}`}
+            >
+              {isResendDisabled ? `Resend code in ${timer}s` : 'Resend Code'}
+            </button>
+
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-md shadow-marigold/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify & Proceed"}
             </button>
           </form>
         )}
 
-        {/* Phase 3: Enter Name */}
+        {/* STEP 3: NAME */}
         {step === 'name' && (
-          <form onSubmit={handleSaveName}>
-            <h2>One Last Step</h2>
-            <p>Please enter your full name to complete signup and access your dashboard.</p>
-            <div style={{ marginBottom: '24px', textAlign: 'left' }}>
-              <label style={{ fontSize: '0.9rem', color: 'var(--muted)', display: 'block', marginBottom: '8px', fontWeight: 600 }}>
-                Your Full Name
-              </label>
+          <form onSubmit={handleSaveName} className="w-full">
+            <div className="relative mb-6">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <UserIcon className="w-5 h-5 text-slate-400" />
+              </div>
               <input
                 type="text"
-                className="auth-input-text"
-                placeholder="e.g. Ananya Rao"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
                 required
                 disabled={isSubmitting}
+                placeholder="Full Name (e.g. Ananya Rao)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-marigold focus:border-marigold outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
               />
             </div>
-            <button className="btn btn-primary full" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save & Proceed'}
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-md shadow-marigold/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+            >
+              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Complete Setup <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
         )}
+
       </div>
     </div>
   );
