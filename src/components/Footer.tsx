@@ -2,9 +2,18 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Shield, CheckCircle, Send, MessageCircle } from 'lucide-react';
+import { IconButton } from '@/components/ds';
+
+// The 4 core app tabs end at the bottom nav, matching the app design — the
+// full website footer only renders on secondary marketing/legal pages.
+const APP_TABS = ['/', '/my-bookings', '/support', '/profile'];
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (APP_TABS.includes(pathname)) return null;
+
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -33,14 +42,16 @@ export default function Footer() {
             <h4>Company</h4>
             <Link href="/about">About Us</Link>
             <Link href="/services">Our Services</Link>
-            <Link href="/trust">Trust Framework</Link>
-            <Link href="/faq">FAQs & Coverage</Link>
+            <Link href="/how-it-works">How It Works</Link>
+            <Link href="/trust">Trust &amp; Safety</Link>
+            <Link href="/testimonials">Testimonials</Link>
           </div>
           <div className="footer-col">
             <h4>Need Care?</h4>
             <Link href="/quick-help">Same-Day Help</Link>
             <Link href="/booking">Schedule Visit</Link>
             <Link href="/my-bookings">My Bookings</Link>
+            <Link href="/support">Support & FAQs</Link>
           </div>
           <div className="footer-col">
             <h4>Legal</h4>
@@ -54,9 +65,7 @@ export default function Footer() {
           <p>Get tips and guides on caring for aging family members.</p>
           <form className="footer-form" onSubmit={(e) => { e.preventDefault(); alert('Thank you for subscribing!'); }}>
             <input type="email" placeholder="Email address" required />
-            <button type="submit" aria-label="Subscribe">
-              <Send style={{ width: '16px', height: '16px' }} />
-            </button>
+            <IconButton type="submit" ariaLabel="Subscribe" variant="solid" size={38} icon={<Send style={{ width: '16px', height: '16px' }} />} />
           </form>
           <div className="footer-socials">
             <a href="https://wa.me/919717500225" target="_blank" rel="noopener" aria-label="WhatsApp">

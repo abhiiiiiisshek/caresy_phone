@@ -1,104 +1,179 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FileText, Car, User, Shield, Star, PhoneCall, ArrowRight, HeartPulse } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { createClient } from '@/utils/supabase/client';
+import {
+  PhoneCall, Zap, Calendar, Stethoscope, Pill, FlaskConical, Home as HomeIcon,
+  ShieldCheck, Building2, Headset,
+} from 'lucide-react';
+import { CompanionCard } from '@/components/ds';
+import LocationBadge from '@/components/LocationBadge';
+import { COMPANIONS } from '@/data/companions';
+
+const SUPPORT_TEL = '+919717500225';
+
+const APP_SERVICES = [
+  { icon: Stethoscope, title: 'Hospital Companion', price: '₹499' },
+  { icon: Pill, title: 'Medicine Pickup', price: '₹299' },
+  { icon: FlaskConical, title: 'Diagnostic Test', price: '₹899' },
+  { icon: HomeIcon, title: 'Safe Return', price: '₹899' },
+];
+
+const TRUST_ITEMS = [
+  { icon: ShieldCheck, title: '100% Police Verified', desc: 'Aadhaar + background checks via AuthBridge' },
+  { icon: Building2, title: '50+ Partner Hospitals', desc: 'Across Noida & Greater Noida' },
+  { icon: Headset, title: '24/7 Ops Control Room', desc: 'Real humans, always reachable' },
+];
+
+interface ActiveBookingInfo {
+  reference_code: string;
+  status: string;
+  pickup_location?: { title?: string } | null;
+  service_metadata?: { companion?: { name?: string; photo?: string } };
+}
+
+function SectionHead({ title, action, actionHref }: { title: string; action?: string; actionHref?: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 4px 8px' }}>
+      <h3 style={{ margin: 0, fontSize: '1.02rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{title}</h3>
+      {action && actionHref && (
+        <Link href={actionHref} style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--teal)', textDecoration: 'none' }}>{action}</Link>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
+  const { user, profile } = useAuth();
+  const [activeBooking, setActiveBooking] = useState<ActiveBookingInfo | null>(null);
+
+  useEffect(() => {
+    if (!user) { setActiveBooking(null); return; }
+    const supabase = createClient();
+    supabase
+      .from('bookings')
+      .select('reference_code, status, service_metadata, pickup_location:locations!pickup_location_id (title)')
+      .in('status', ['ASSIGNED', 'IN_PROGRESS'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) setActiveBooking(data[0] as unknown as ActiveBookingInfo);
+        else setActiveBooking(null);
+      });
+  }, [user]);
+
+  const displayName = profile?.full_name || (user?.user_metadata?.full_name as string) || (user?.user_metadata?.name as string);
+  const firstName = displayName ? displayName.split(' ')[0] : null;
+  const initial = firstName ? firstName.charAt(0).toUpperCase() : 'C';
+  const companion = activeBooking?.service_metadata?.companion;
+
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-marigold selection:text-ink-teal pt-24 pb-20 overflow-hidden relative">
-      
-      {/* Background gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-200/40 dark:bg-teal-900/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
-      <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-marigold/20 dark:bg-marigold-deep/20 blur-[140px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
+    <main className="app-shell-page" id="main-content" style={{ background: 'var(--paper)' }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
-        
-        {/* Hero Section */}
-        <section className="flex flex-col md:flex-row items-center justify-between gap-12 mt-8 md:mt-16 mb-24">
-          <div className="flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-100/50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 text-sm font-semibold mb-6 animate-fade-in-up">
-              <Star className="w-4 h-4 fill-current" /> Trusted in 50+ Hospitals
-            </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              Your Care,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-marigold to-orange-500">Our Priority.</span>
-            </h1>
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-xl mx-auto md:mx-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-              We assist you and your loved ones with everything you need at the hospital so you can focus on what matters most.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-              <Link 
-                href="/booking" 
-                className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-marigold to-orange-500 text-ink-teal font-bold text-lg rounded-2xl shadow-lg shadow-marigold/20 hover:shadow-xl hover:shadow-marigold/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  Book Assistance <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
-              </Link>
-              <Link 
-                href="/quick-help" 
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 dark:bg-white/5 backdrop-blur-md text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-bold text-lg rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-800 hover:-translate-y-1 transition-all duration-300"
-              >
-                <PhoneCall className="w-5 h-5" /> Need Help Now?
-              </Link>
-            </div>
+        {/* Greeting bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '20px 2px 8px' }}>
+          <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--teal)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>
+            {initial}
           </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.98rem', color: 'var(--ink-teal)' }}>
+              {firstName ? `Hello, ${firstName}` : 'Hello there'}
+            </div>
+            <LocationBadge />
+          </div>
+          <a href={`tel:${SUPPORT_TEL}`} aria-label="Call Caresy" style={{ display: 'grid', placeItems: 'center', width: 44, height: 44, borderRadius: 'var(--radius-lg)', background: 'var(--terracotta)', color: '#fff', flexShrink: 0 }}>
+            <PhoneCall style={{ width: 20, height: 20 }} />
+          </a>
+        </div>
 
-          <div className="flex-1 relative w-full max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="aspect-[4/3] rounded-[2rem] overflow-hidden shadow-2xl shadow-teal-900/10 border border-white/20 dark:border-white/10 relative group">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <img 
-                src="/assets/caresy-hero.png" 
-                alt="Caresy companion helping an elderly patient" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
+        {/* Active booking banner — only rendered when a real assigned/in-progress booking exists */}
+        {activeBooking && (
+          <Link href="/my-bookings" style={{ textDecoration: 'none' }}>
+            <div role="status" style={{ margin: '4px 0 8px', padding: 14, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--sage-deep)', boxShadow: 'var(--shadow-1)', display: 'flex', gap: 12, alignItems: 'center' }}>
+              {companion?.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={companion.photo} alt={`Companion ${companion.name}`} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--teal)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, flexShrink: 0 }}>
+                  {(companion?.name || 'C').charAt(0)}
+                </div>
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--ink-teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {companion?.name ? `${companion.name} is on the way` : 'Companion assigned'}
+                    {activeBooking.pickup_location?.title ? ` · ${activeBooking.pickup_location.title}` : ''}
+                  </strong>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>Booking {activeBooking.reference_code}</div>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Intent grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 0' }}>
+          <Link href="/quick-help" style={{ textAlign: 'left', minHeight: 148, padding: 18, borderRadius: 'var(--radius-xl)', textDecoration: 'none', color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(145deg, rgba(255,255,255,0.15), transparent 42%), var(--terracotta)' }}>
+            <span style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.2)' }}><Zap style={{ width: 20, height: 20 }} /></span>
+            <span><strong style={{ display: 'block', fontSize: '1.05rem' }}>Emergency Now</strong><small style={{ opacity: 0.9, fontSize: '0.76rem' }}>Attendant reaches in 20–30 mins</small></span>
+          </Link>
+          <Link href="/booking" style={{ textAlign: 'left', minHeight: 148, padding: 18, borderRadius: 'var(--radius-xl)', textDecoration: 'none', color: 'var(--ink-teal)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(145deg, rgba(255,255,255,0.5), transparent 42%), var(--sage)' }}>
+            <span style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: 12, background: 'rgba(22,48,43,0.1)' }}><Calendar style={{ width: 20, height: 20 }} /></span>
+            <span><strong style={{ display: 'block', fontSize: '1.05rem' }}>Schedule Visit</strong><small style={{ color: 'rgba(22,48,43,0.7)', fontSize: '0.76rem' }}>Book for an appointment or test</small></span>
+          </Link>
+        </div>
+
+        {/* Quick services */}
+        <SectionHead title="Quick services" action="See all" actionHref="/services" />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {APP_SERVICES.map((s) => (
+            <Link key={s.title} href="/booking" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 14, borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)', textDecoration: 'none' }}>
+              <span style={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 10, background: 'var(--teal-soft)', color: 'var(--teal)', flexShrink: 0 }}><s.icon style={{ width: 18, height: 18 }} /></span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: '0.84rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{s.title}</span>
+                <span style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>from {s.price}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Verified companions */}
+        <SectionHead title="Verified companions" action="Meet the team" actionHref="/trust" />
+        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, scrollSnapType: 'x mandatory' }}>
+          {COMPANIONS.map((c) => (
+            <div key={c.id} style={{ scrollSnapAlign: 'center', flexShrink: 0 }}>
+              <CompanionCard
+                name={c.name}
+                photo={c.photo}
+                initials={c.avatarInitials}
+                rating={c.rating}
+                visits={c.visits}
+                verification={c.verification}
+                languages={c.languages}
+                specialty={c.specialty}
+                style={{ width: 230 }}
               />
             </div>
-            
-            {/* Floating Card */}
-            <div className="absolute -bottom-8 -left-8 md:-bottom-12 md:-left-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 p-4 md:p-6 rounded-2xl shadow-xl flex items-center gap-4 animate-float">
-              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center text-green-600 dark:text-green-400">
-                <HeartPulse className="w-6 h-6" />
-              </div>
+          ))}
+        </div>
+
+        {/* Why families trust Caresy */}
+        <SectionHead title="Why families trust Caresy" />
+        <div style={{ display: 'grid', gap: 10, padding: '0 0 32px' }}>
+          {TRUST_ITEMS.map((t) => (
+            <div key={t.title} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: 14, borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
+              <span style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: 10, background: 'var(--success-soft)', color: '#1B7A54', flexShrink: 0 }}><t.icon style={{ width: 18, height: 18 }} /></span>
               <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Active Companions</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-white">24 Ready</p>
+                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{t.title}</div>
+                <div style={{ fontSize: '0.76rem', color: 'var(--muted)' }}>{t.desc}</div>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Services Section */}
-        <section className="py-12 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Complete Hospital Support</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">From door to doctor and back, we ensure a seamless and comfortable healthcare experience.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {[
-              { icon: FileText, title: "Hospital Assistance", desc: "Paperwork, appointments, medicine pickup, and queue management.", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/30" },
-              { icon: Car, title: "Pick-up & Drop", desc: "Safe and reliable rides for patients and their attendants.", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30" },
-              { icon: User, title: "Elderly Care", desc: "Compassionate companionship during hospital visits.", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
-              { icon: Shield, title: "Full-day Concierge", desc: "Complete day-long support so you don't worry about a thing.", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-100 dark:bg-amber-900/30" }
-            ].map((service, idx) => (
-              <div key={idx} className="group p-6 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-white/5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className={`w-14 h-14 rounded-2xl ${service.bg} ${service.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <service.icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">{service.title}</h3>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {service.desc}
-                </p>
-              </div>
-            ))}
-            
-          </div>
-        </section>
-
+          ))}
+        </div>
       </div>
     </main>
   );

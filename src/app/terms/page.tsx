@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Search, Info } from 'lucide-react';
+import { Input } from '@/components/ds';
 
 const TERMS_SECTIONS = [
   {
@@ -90,14 +91,13 @@ export default function TermsOfService() {
           
           {/* Sidebar Navigation */}
           <aside className="legal-sidebar" style={{ position: 'sticky', top: '100px', background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
-            <div className="legal-search-box" style={{ display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--line)', borderRadius: '99px', padding: '8px 14px', marginBottom: '20px' }}>
-              <Search style={{ width: '18px', height: '18px', color: 'var(--muted)' }} />
-              <input 
-                type="text" 
-                placeholder="Search clauses..." 
+            <div style={{ marginBottom: '20px' }}>
+              <Input
+                type="text"
+                placeholder="Search clauses..."
+                icon={<Search style={{ width: '16px', height: '16px' }} />}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: '100%', border: 'none', background: 'none', outline: 'none', fontSize: '0.9rem' }}
               />
             </div>
             

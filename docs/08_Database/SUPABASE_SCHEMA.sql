@@ -139,47 +139,57 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 -- 5. RLS Policies
 
 -- Patients Policies
-CREATE POLICY "Users can view their own patients" 
-    ON patients FOR SELECT 
+DROP POLICY IF EXISTS "Users can view their own patients" ON patients;
+CREATE POLICY "Users can view their own patients"
+    ON patients FOR SELECT
     USING (customer_user_id = auth.uid() OR is_admin());
 
-CREATE POLICY "Users can create their own patients" 
-    ON patients FOR INSERT 
+DROP POLICY IF EXISTS "Users can create their own patients" ON patients;
+CREATE POLICY "Users can create their own patients"
+    ON patients FOR INSERT
     WITH CHECK (customer_user_id = auth.uid());
 
-CREATE POLICY "Users can update their own patients" 
-    ON patients FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update their own patients" ON patients;
+CREATE POLICY "Users can update their own patients"
+    ON patients FOR UPDATE
     USING (customer_user_id = auth.uid() OR is_admin());
 
 -- Locations Policies
-CREATE POLICY "Users can view saved locations or global locations" 
-    ON locations FOR SELECT 
+DROP POLICY IF EXISTS "Users can view saved locations or global locations" ON locations;
+CREATE POLICY "Users can view saved locations or global locations"
+    ON locations FOR SELECT
     USING (customer_user_id = auth.uid() OR customer_user_id IS NULL OR is_admin());
 
-CREATE POLICY "Users can create their own locations" 
-    ON locations FOR INSERT 
+DROP POLICY IF EXISTS "Users can create their own locations" ON locations;
+CREATE POLICY "Users can create their own locations"
+    ON locations FOR INSERT
     WITH CHECK (customer_user_id = auth.uid());
 
-CREATE POLICY "Users can update their own locations" 
-    ON locations FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update their own locations" ON locations;
+CREATE POLICY "Users can update their own locations"
+    ON locations FOR UPDATE
     USING (customer_user_id = auth.uid() OR is_admin());
 
 -- Bookings Policies
-CREATE POLICY "Users can view their own bookings" 
-    ON bookings FOR SELECT 
+DROP POLICY IF EXISTS "Users can view their own bookings" ON bookings;
+CREATE POLICY "Users can view their own bookings"
+    ON bookings FOR SELECT
     USING (customer_user_id = auth.uid() OR is_admin() OR companion_user_id = auth.uid());
 
-CREATE POLICY "Users can create their own bookings" 
-    ON bookings FOR INSERT 
+DROP POLICY IF EXISTS "Users can create their own bookings" ON bookings;
+CREATE POLICY "Users can create their own bookings"
+    ON bookings FOR INSERT
     WITH CHECK (customer_user_id = auth.uid());
 
-CREATE POLICY "Users and admins can update bookings" 
-    ON bookings FOR UPDATE 
+DROP POLICY IF EXISTS "Users and admins can update bookings" ON bookings;
+CREATE POLICY "Users and admins can update bookings"
+    ON bookings FOR UPDATE
     USING (customer_user_id = auth.uid() OR is_admin());
 
 -- Audit Logs Policies
-CREATE POLICY "Admins can view audit logs" 
-    ON audit_logs FOR SELECT 
+DROP POLICY IF EXISTS "Admins can view audit logs" ON audit_logs;
+CREATE POLICY "Admins can view audit logs"
+    ON audit_logs FOR SELECT
     USING (is_admin());
 
 -- 6. Indexes for Performance
@@ -203,14 +213,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_timestamp_bookings ON bookings;
 CREATE TRIGGER set_timestamp_bookings
 BEFORE UPDATE ON bookings
 FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
+DROP TRIGGER IF EXISTS set_timestamp_patients ON patients;
 CREATE TRIGGER set_timestamp_patients
 BEFORE UPDATE ON patients
 FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
+DROP TRIGGER IF EXISTS set_timestamp_locations ON locations;
 CREATE TRIGGER set_timestamp_locations
 BEFORE UPDATE ON locations
 FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
@@ -232,6 +245,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS audit_bookings_changes ON bookings;
 CREATE TRIGGER audit_bookings_changes
 AFTER UPDATE OR DELETE ON bookings
 FOR EACH ROW EXECUTE PROCEDURE trigger_audit_bookings();

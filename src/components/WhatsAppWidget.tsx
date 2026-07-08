@@ -1,8 +1,16 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
+
+// The 4 core app tabs handle support access through the bottom nav's Support
+// tab — the app design has no floating WhatsApp button there.
+const APP_TABS = ['/', '/my-bookings', '/support', '/profile'];
 
 export default function WhatsAppWidget() {
+  const pathname = usePathname();
+  if (APP_TABS.includes(pathname)) return null;
+
   return (
     <a
       className="whatsapp-float"

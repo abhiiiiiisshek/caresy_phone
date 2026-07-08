@@ -4,43 +4,70 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { User } from '@supabase/supabase-js';
 
+interface Profile {
+  full_name: string | null;
+  age: number | null;
+  phone: string | null;
+  onboarding_completed: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
+  profile: Profile | null;
   isLoading: boolean;
   isAdmin: boolean;
   isOpen: boolean;
-  openLogin: (onSuccess?: () => void) => void;
+  openLogin: (next?: string) => void;
   closeLogin: () => void;
-  sendOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
-  verifyOtp: (email: string, otp: string) => Promise<{ success: boolean; error?: string }>;
-  updateProfileName: (name: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<void>;
+  saveProfile: (data: { full_name: string; age: number; phone: string }) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
-  authSuccessCallback: (() => void) | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [authSuccessCallback, setAuthSuccessCallback] = useState<(() => void) | null>(null);
-  
+  const [nextPath, setNextPath] = useState<string>('/');
+
   const supabase = createClient();
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('full_name, age, phone, onboarding_completed')
+      .eq('id', userId)
+      .maybeSingle();
+    setProfile(data ?? null);
+    return data;
+  };
 
   useEffect(() => {
     async function getSession() {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       setIsAdmin(session?.user?.email?.endsWith('@caresy.co') ?? false);
+      if (session?.user) {
+        const p = await fetchProfile(session.user.id);
+        if (!p || !p.onboarding_completed) setIsOpen(true);
+      }
       setIsLoading(false);
     }
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       setIsAdmin(session?.user?.email?.endsWith('@caresy.co') ?? false);
+      if (session?.user) {
+        const p = await fetchProfile(session.user.id);
+        if (!p || !p.onboarding_completed) setIsOpen(true);
+      } else {
+        setProfile(null);
+      }
       setIsLoading(false);
     });
 
@@ -49,60 +76,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [supabase]);
 
-  const openLogin = (onSuccess?: () => void) => {
-    if (onSuccess) setAuthSuccessCallback(() => onSuccess);
+  const openLogin = (next?: string) => {
+    setNextPath(next || (typeof window !== 'undefined' ? window.location.pathname : '/'));
     setIsOpen(true);
   };
 
   const closeLogin = () => {
     setIsOpen(false);
-    setAuthSuccessCallback(null);
   };
 
-  const sendOtp = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
-      if (error) {
-        return { success: false, error: error.message };
-      }
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'An unknown error occurred' };
-    }
+  const signInWithGoogle = async () => {
+    const origin = window.location.origin;
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(nextPath || '/')}`,
+      },
+    });
   };
 
-  const verifyOtp = async (email: string, otp: string) => {
+  const saveProfile = async (data: { full_name: string; age: number; phone: string }) => {
+    if (!user) return { success: false, error: 'Not authenticated' };
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'email',
+      const { error } = await supabase.from('profiles').upsert({
+        id: user.id,
+        full_name: data.full_name,
+        age: data.age,
+        phone: data.phone,
+        onboarding_completed: true,
       });
-      if (error) {
-        return { success: false, error: error.message };
-      }
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message || 'An unknown error occurred' };
-    }
-  };
-
-  const updateProfileName = async (name: string) => {
-    try {
-      const { error } = await supabase.auth.updateUser({
-        data: { full_name: name.trim() }
-      });
-      if (error) {
-        return { success: false, error: error.message };
-      }
-      // Fetch updated user to update state
-      const { data: { user: updatedUser } } = await supabase.auth.getUser();
-      setUser(updatedUser);
+      if (error) return { success: false, error: error.message };
+      await fetchProfile(user.id);
+      setIsOpen(false);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'An unknown error occurred' };
@@ -112,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setProfile(null);
     setIsAdmin(false);
   };
 
@@ -119,16 +125,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        profile,
         isLoading,
         isAdmin,
         isOpen,
         openLogin,
         closeLogin,
-        sendOtp,
-        verifyOtp,
-        updateProfileName,
-        signOut,
-        authSuccessCallback
+        signInWithGoogle,
+        saveProfile,
+        signOut
       }}
     >
       {children}

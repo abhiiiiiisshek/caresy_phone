@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { MessageSquare, Phone, Calendar, Star, ShieldCheck, Check, Clock, User, MapPin, Activity, ArrowRight, Loader2 } from 'lucide-react';
+import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle } from 'lucide-react';
+import { Button } from '@/components/ds';
 
 interface CompanionDetails {
   name: string;
@@ -19,10 +20,12 @@ interface CompanionDetails {
 
 interface BookingRecord {
   id: string;
+  reference_code: string;
   status: string;
   created_at: string;
   scheduled_start_time: string | null;
   special_instructions: string | null;
+  estimated_duration_minutes: number | null;
   service_type: string;
   booking_type: string;
   service_metadata: any;
@@ -30,19 +33,274 @@ interface BookingRecord {
   pickup_location?: any;
 }
 
+const SUPPORT_WA = '919717500225';
+const SUPPORT_EMAIL = 'support@caresy.co.in';
+
+function waLink(ref: string, companionName?: string) {
+  const msg = companionName
+    ? `Hi ${companionName}, checking status for booking ${ref}`
+    : `Hello Caresy Support,\n\nBooking Reference: ${ref}\n\nI need help regarding this booking.`;
+  return `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent(msg)}`;
+}
+function mailLink(ref: string) {
+  const body = `Hello Caresy Support,\n\nBooking Reference: ${ref}\n\nI need help regarding this booking.`;
+  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Help with booking ' + ref)}&body=${encodeURIComponent(body)}`;
+}
+
+const STATUS_STYLE: Record<string, { bg: string; fg: string; dot: string; live?: boolean }> = {
+  pending: { bg: 'rgba(231,163,62,0.16)', fg: '#8A5A12', dot: 'var(--warning)' },
+  review: { bg: 'var(--terracotta-soft)', fg: 'var(--terracotta-deep)', dot: 'var(--terracotta)' },
+  assigned: { bg: 'var(--teal-soft)', fg: 'var(--teal-deep)', dot: 'var(--teal)', live: true },
+  active: { bg: 'var(--success-soft)', fg: '#1B7A54', dot: 'var(--success)', live: true },
+  completed: { bg: 'rgba(92,107,100,0.14)', fg: 'var(--muted)', dot: 'var(--muted)' },
+};
+
+function getStatusInfo(status: string) {
+  const s = status.toLowerCase();
+  if (s === 'pending' || s === 'draft') return { label: 'Pending Assignment', cls: 'pending' };
+  if (s.includes('review')) return { label: 'Under Review', cls: 'review' };
+  if (s.includes('assigned')) return { label: 'Companion Assigned', cls: 'assigned' };
+  if (s.includes('progress') || s === 'active') return { label: 'Active Visit', cls: 'active' };
+  if (s === 'completed') return { label: 'Completed', cls: 'completed' };
+  if (s === 'cancelled') return { label: 'Cancelled', cls: 'completed' };
+  return { label: status, cls: 'pending' };
+}
+
+function isPastStatus(status: string) {
+  const s = status.toLowerCase();
+  return s === 'completed' || s === 'cancelled';
+}
+
+function StatusPill({ status }: { status: string }) {
+  const info = getStatusInfo(status);
+  const s = STATUS_STYLE[info.cls] || STATUS_STYLE.pending;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 11px', borderRadius: 999, background: s.bg, color: s.fg, fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1, flexShrink: 0 }}>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: s.dot, animation: s.live ? 'caresy-pulse 1.8s infinite' : 'none' }} />
+      {info.label}
+    </span>
+  );
+}
+
+function MetaRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+      <Icon style={{ width: 15, height: 15, color: 'var(--muted)', flexShrink: 0 }} />
+      <span style={{ fontSize: '0.76rem', color: 'var(--muted)', flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--ink)', marginLeft: 'auto', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
+    </div>
+  );
+}
+
+function Timeline({ status, companionName }: { status: string; companionName: string }) {
+  const s = status.toLowerCase();
+  let step1 = 'pending', step2 = 'pending', step3 = 'pending', step4 = 'pending';
+
+  if (s.includes('assigned')) {
+    step1 = 'active';
+  } else if (s.includes('reached') || s.includes('arrival') || s.includes('hospital') || s.includes('check')) {
+    step1 = 'completed'; step2 = 'active';
+  } else if (s.includes('progress') || s.includes('consultation')) {
+    step1 = 'completed'; step2 = 'completed'; step3 = 'active';
+  } else if (s.includes('medicines') || s.includes('pharmacy')) {
+    step1 = 'completed'; step2 = 'completed'; step3 = 'completed'; step4 = 'active';
+  } else if (s === 'completed') {
+    step1 = 'completed'; step2 = 'completed'; step3 = 'completed'; step4 = 'completed';
+  } else {
+    step1 = 'active';
+  }
+
+  const steps = [
+    { cls: step1, icon: User, title: 'Companion Assigned', desc: `${companionName} is background-checked, Aadhaar verified, and preparing to support the patient.` },
+    { cls: step2, icon: MapPin, title: 'Hospital Arrival & Check-In', desc: 'Companion guides patient safely through registration, billing queues, and the waiting lounge.' },
+    { cls: step3, icon: Activity, title: 'Doctor Consultation Notes', desc: 'Companion records dosage instructions, doctor notes, and next follow-up dates.' },
+    { cls: step4, icon: ShoppingBag, title: 'Medicines & Return', desc: 'Companion collects pharmacy medicines and escorts the patient safely back home.' },
+  ];
+
+  return (
+    <div className="live-tracker-timeline">
+      <span className="tracker-title"><span className="pulse"></span> Live Companion Journey</span>
+      {steps.map((step) => {
+        const Icon = step.cls === 'completed' ? Check : step.icon;
+        return (
+          <div className={`timeline-step ${step.cls}`} key={step.title}>
+            <div className="timeline-icon-ring"><Icon /></div>
+            <div className="timeline-step-content">
+              <div className="timeline-step-header">
+                <span className="timeline-step-title">{step.title}</span>
+              </div>
+              <p className="timeline-step-desc">{step.desc}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function formatDate(dateStr: string, withTime = true) {
+  return new Date(dateStr).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+  });
+}
+
+function BookingCard({ booking, onDetails }: { booking: BookingRecord; onDetails: (b: BookingRecord) => void }) {
+  const customMeta = booking.service_metadata || {};
+  const companion: CompanionDetails | null = customMeta.companion || null;
+  const scheduleDate = booking.scheduled_start_time ? formatDate(booking.scheduled_start_time) : formatDate(booking.created_at, false);
+
+  return (
+    <article className="booking-card material-card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{customMeta.originalService || booking.service_type}</div>
+          <div style={{ fontSize: '0.76rem', color: 'var(--muted)' }}>{companion ? `with ${companion.name}` : booking.reference_code}</div>
+        </div>
+        <StatusPill status={booking.status} />
+      </div>
+
+      <div style={{ display: 'grid', gap: 9, padding: '0 18px 16px' }}>
+        <MetaRow icon={Hash} label="Reference" value={booking.reference_code} />
+        <MetaRow icon={Calendar} label="Date" value={scheduleDate} />
+        <MetaRow icon={MapPin} label="Where" value={booking.pickup_location?.title || '—'} />
+        {booking.estimated_duration_minutes && (
+          <MetaRow icon={Clock} label="Duration" value={`${Math.round(booking.estimated_duration_minutes / 60)}h`} />
+        )}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, padding: '12px 18px', borderTop: '1px solid var(--line)', background: 'rgba(244,236,230,0.5)' }}>
+        <a href={waLink(booking.reference_code, companion?.name)} target="_blank" rel="noopener" style={{ flex: 1, textDecoration: 'none' }}>
+          <Button variant="primary" size="sm" full iconLeft={<MessageSquare style={{ width: 16, height: 16 }} />}>Chat Support</Button>
+        </a>
+        <Button variant="secondary" size="sm" onClick={() => onDetails(booking)} iconLeft={<Hash style={{ width: 16, height: 16 }} />}>Details</Button>
+      </div>
+    </article>
+  );
+}
+
+function DetailSheet({ booking, onClose }: { booking: BookingRecord | null; onClose: () => void }) {
+  if (!booking) return null;
+  const customMeta = booking.service_metadata || {};
+  const companion: CompanionDetails | null = customMeta.companion || null;
+  const careNeeds: string[] = customMeta.careNeeds || [];
+  const scheduleDate = booking.scheduled_start_time ? formatDate(booking.scheduled_start_time) : formatDate(booking.created_at, false);
+  const upcoming = !isPastStatus(booking.status);
+
+  const rows: [React.ElementType, string, React.ReactNode][] = [
+    [Hash, 'Booking reference', booking.reference_code],
+    [Activity, 'Service', customMeta.originalService || booking.service_type],
+    ...(companion ? [[User, 'Companion', companion.name] as [React.ElementType, string, React.ReactNode]] : []),
+    [Calendar, 'Date', scheduleDate],
+    [MapPin, 'Address', booking.pickup_location?.title || '—'],
+    [ShieldCheck, 'Status', getStatusInfo(booking.status).label],
+    ...(booking.patient?.full_name ? [[User, 'Patient', `${booking.patient.full_name}${booking.patient.age ? ` (${booking.patient.age} yrs)` : ''}`] as [React.ElementType, string, React.ReactNode]] : []),
+  ];
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(22,48,43,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'flex-end' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto', background: 'var(--paper)', borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: '10px 0 24px', animation: 'caresy-sheet-up 0.28s var(--ease-out)' }}>
+        <div style={{ width: 40, height: 4, borderRadius: 999, background: 'var(--line-strong)', margin: '8px auto 12px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 20px 16px' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--ink-teal)' }}>{customMeta.originalService || booking.service_type}</div>
+            <div style={{ marginTop: 6 }}><StatusPill status={booking.status} /></div>
+          </div>
+          <button onClick={onClose} aria-label="Close" style={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--line)', cursor: 'pointer', flexShrink: 0 }}><X style={{ width: 18, height: 18 }} /></button>
+        </div>
+
+        <div style={{ margin: '0 16px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+          {rows.map(([Icon, label, value], i) => (
+            <div key={label} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '13px 16px', borderTop: i ? '1px solid var(--line)' : 'none' }}>
+              <Icon style={{ width: 16, height: 16, color: 'var(--teal)', flexShrink: 0, marginTop: 2 }} />
+              <span style={{ fontSize: '0.8rem', color: 'var(--muted)', width: 120, flexShrink: 0 }}>{label}</span>
+              <span style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--ink-teal)', textAlign: 'right', marginLeft: 'auto' }}>{value}</span>
+            </div>
+          ))}
+          {careNeeds.length > 0 && (
+            <div style={{ padding: '13px 16px', borderTop: '1px solid var(--line)' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--muted)', display: 'block', marginBottom: 8 }}>Specific needs</span>
+              <div className="needs-tags">
+                {careNeeds.map((need, idx) => <span className="need-tag" key={idx}>{need}</span>)}
+              </div>
+            </div>
+          )}
+          {booking.special_instructions && (
+            <div style={{ padding: '13px 16px', borderTop: '1px solid var(--line)' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--muted)', display: 'block', marginBottom: 6 }}>Notes</span>
+              <span style={{ fontSize: '0.84rem', color: 'var(--ink)' }}>{booking.special_instructions}</span>
+            </div>
+          )}
+        </div>
+
+        {companion && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 16px 0', padding: '10px 14px', borderRadius: 'var(--radius)', background: 'var(--success-soft)' }}>
+              <ShieldCheck style={{ width: 16, height: 16, color: '#1B7A54' }} />
+              <span style={{ fontSize: '0.78rem', color: '#1B7A54', fontWeight: 600 }}>{companion.name} is Aadhaar + police verified via AuthBridge.</span>
+            </div>
+            <div style={{ margin: '12px 16px 0' }}>
+              <Timeline status={booking.status} companionName={companion.name} />
+            </div>
+          </>
+        )}
+
+        <div style={{ display: 'grid', gap: 8, padding: '16px 16px 4px' }}>
+          <a href={waLink(booking.reference_code, companion?.name)} target="_blank" rel="noopener" style={{ textDecoration: 'none' }}>
+            <Button variant="primary" full size="lg" shape="pill" iconLeft={<MessageSquare style={{ width: 18, height: 18 }} />}>Chat Support on WhatsApp</Button>
+          </a>
+          <a href={mailLink(booking.reference_code)} style={{ textDecoration: 'none' }}>
+            <Button variant="secondary" full iconLeft={<Mail style={{ width: 16, height: 16 }} />}>Email Support instead</Button>
+          </a>
+          {upcoming && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+              <Button variant="outline" full onClick={onClose} iconLeft={<CalendarClock style={{ width: 16, height: 16 }} />}>Reschedule</Button>
+              <Button variant="ghost" full onClick={onClose} style={{ color: 'var(--terracotta)' }} iconLeft={<XCircle style={{ width: 16, height: 16 }} />}>Cancel</Button>
+            </div>
+          )}
+          <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--muted)', margin: '6px 0 0' }}>Reschedule &amp; cancellation are handled by our support team for now.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyBookings({ label, showBookLinks }: { label: string; showBookLinks: boolean }) {
+  return (
+    <div className="empty-state material-card">
+      <div style={{ display: 'grid', placeItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--sage)', margin: '0 auto 16px' }}>
+        <CalendarHeart style={{ width: 28, height: 28, color: 'var(--teal-deep)' }} />
+      </div>
+      <h3>No {label} bookings</h3>
+      <p>When you book a companion, it will show up here with live status and support.</p>
+      {showBookLinks && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <Link className="btn btn-primary" href="/booking">Schedule a Visit</Link>
+          <Link className="btn btn-urgent" href="/quick-help">Get Urgent Help</Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MyBookings() {
-  const { user, openLogin } = useAuth();
+  const { user, isLoading: authIsLoading, openLogin } = useAuth();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+  const [detail, setDetail] = useState<BookingRecord | null>(null);
 
   const fetchBookings = async () => {
     setIsLoading(true);
+    setError(null);
     const supabase = createClient();
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('bookings')
         .select(`
           id,
+          reference_code,
           status,
           created_at,
           scheduled_start_time,
@@ -63,110 +321,31 @@ export default function MyBookings() {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
       setBookings(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching bookings:', err);
+      setError(err.message || 'Failed to connect to the database. Please check configuration.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    if (authIsLoading) return;
     if (user) {
       fetchBookings();
     } else {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, authIsLoading]);
 
-  const getStatusInfo = (status: string) => {
-    const s = status.toLowerCase();
-    if (s === 'pending' || s === 'draft') return { label: 'Pending Assignment', color: 'bg-marigold text-marigold-deep border-marigold/50 dark:bg-marigold/20 dark:text-marigold dark:border-marigold/30' };
-    if (s.includes('review')) return { label: 'Under Review', color: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800' };
-    if (s.includes('assigned')) return { label: 'Companion Assigned', color: 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/30 dark:text-teal-400 dark:border-teal-800' };
-    if (s.includes('progress') || s === 'active') return { label: 'Active Visit', color: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' };
-    if (s === 'completed') return { label: 'Completed', color: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' };
-    return { label: status, color: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700' };
-  };
-
-  const renderTimeline = (status: string, companionName: string) => {
-    const currentStatus = status.toLowerCase();
-    let step1Active = false, step1Completed = false;
-    let step2Active = false, step2Completed = false;
-    let step3Active = false, step3Completed = false;
-    let step4Active = false, step4Completed = false;
-    
-    if (currentStatus === 'assigned') {
-      step1Active = true;
-    } else if (currentStatus.includes('arrival') || currentStatus.includes('reached')) {
-      step1Completed = true;
-      step2Active = true;
-    } else if (currentStatus.includes('progress') || currentStatus.includes('consultation')) {
-      step1Completed = true;
-      step2Completed = true;
-      step3Active = true;
-    } else if (currentStatus.includes('medicines') || currentStatus.includes('pharmacy')) {
-      step1Completed = true;
-      step2Completed = true;
-      step3Completed = true;
-      step4Active = true;
-    } else if (currentStatus === 'completed') {
-      step1Completed = true;
-      step2Completed = true;
-      step3Completed = true;
-      step4Completed = true;
-    } else {
-      step1Active = true; // Fallback
-    }
-
-    const Step = ({ title, desc, active, completed, num, last }: any) => {
-      const isPast = completed;
-      const isCurrent = active;
-      const isFuture = !completed && !active;
-      
-      return (
-        <div className={`flex gap-4 ${isFuture ? 'opacity-50' : ''} relative`}>
-          {!last && (
-            <div className={`absolute left-3 top-8 bottom-[-16px] w-[2px] ${isPast ? 'bg-teal-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
-          )}
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 relative z-10 transition-colors ${
-            isPast ? 'bg-teal-500 text-white' : 
-            isCurrent ? 'bg-marigold text-marigold-deep border-2 border-marigold ring-4 ring-marigold/20' : 
-            'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
-          }`}>
-            {isPast ? <Check className="w-3 h-3" /> : num}
-          </div>
-          <div className="pb-6">
-            <strong className={`block text-sm ${isCurrent ? 'text-teal-700 dark:text-teal-400 font-extrabold' : 'text-slate-900 dark:text-slate-100 font-bold'}`}>{title}</strong>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{desc}</p>
-          </div>
-        </div>
-      );
-    };
-
+  if (isLoading || authIsLoading) {
     return (
-      <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-        <span className="flex items-center gap-2 font-bold text-slate-900 dark:text-white text-sm mb-6">
-          <Activity className="w-4 h-4 text-marigold" /> Live Companion Journey
-        </span>
-        
-        <div className="flex flex-col">
-          <Step num="1" title="Companion Assigned" desc={`${companionName} is verified, police-cleared, and preparing for the visit.`} active={step1Active} completed={step1Completed} />
-          <Step num="2" title="Hospital Arrival & Check-In" desc="Companion guides patient through registration, billing queues, and waits in the lounge." active={step2Active} completed={step2Completed} />
-          <Step num="3" title="Doctor Consultation Support" desc="Companion records follow-up dates, notes down doctor instructions, and updates family." active={step3Active} completed={step3Completed} />
-          <Step num="4" title="Medicines & Return" desc="Companion collects pharmacy medicines and guides patient safely to the exit gates." active={step4Active} completed={step4Completed} last />
-        </div>
-      </div>
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-teal-600 animate-spin" />
-          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading your bookings...</p>
+      <main className="app-shell-page" id="main-content">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '80px 24px' }}>
+          <Loader2 style={{ width: '40px', height: '40px', color: 'var(--primary)' }} className="animate-spin" />
+          <p style={{ color: 'var(--muted)', fontWeight: 600 }}>Loading your bookings...</p>
         </div>
       </main>
     );
@@ -174,245 +353,72 @@ export default function MyBookings() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 pb-20 relative overflow-hidden">
-        <div className="absolute top-[10%] right-[-10%] w-[40%] h-[40%] bg-teal-200/30 dark:bg-teal-900/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
-        <div className="absolute top-[50%] left-[-10%] w-[30%] h-[30%] bg-marigold/10 dark:bg-marigold-deep/10 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
-        
-        <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <header className="mb-10 text-center animate-fade-in-up">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
-              My <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-700 dark:from-teal-400 dark:to-teal-200">Bookings</span>
-            </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Track your submitted care requests, matching status, and history of hospital companions.
-            </p>
-          </header>
-
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center shadow-xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShieldCheck className="w-10 h-10 text-slate-400" />
-            </div>
-            <h2 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">Authentication Required</h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
-              Please sign in with your phone number to access your booking dashboard and track companion matches.
-            </p>
-            <button onClick={() => openLogin(() => fetchBookings())} className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 transition-all">
-              Sign In / Register
-            </button>
+      <main className="app-shell-page my-bookings-page" id="main-content">
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
+          <div style={{ padding: '20px 2px 6px' }}>
+            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: 'var(--ink-teal)', letterSpacing: '-0.01em' }}>Your bookings</h1>
+            <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: 'var(--muted)' }}>Track every visit, status, and payment in one place.</p>
+          </div>
+          <div className="unauth-card material-card" style={{ marginTop: 16 }}>
+            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔐</div>
+            <h2>Authentication Required</h2>
+            <p>Please sign in to access your booking dashboard and track companion matches.</p>
+            <Button variant="primary" onClick={() => openLogin()}>Sign In / Register</Button>
           </div>
         </div>
       </main>
     );
   }
 
+  const upcomingBookings = bookings.filter((b) => !isPastStatus(b.status));
+  const pastBookings = bookings.filter((b) => isPastStatus(b.status));
+  const list = filter === 'upcoming' ? upcomingBookings : pastBookings;
+
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 pt-24 pb-20 relative overflow-hidden">
-      
-      {/* Background gradients */}
-      <div className="absolute top-[10%] right-[-10%] w-[40%] h-[40%] bg-teal-200/30 dark:bg-teal-900/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
-      <div className="absolute top-[50%] left-[-10%] w-[30%] h-[30%] bg-marigold/10 dark:bg-marigold-deep/10 blur-[100px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
-
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
-        <header className="mb-10 md:text-left animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider mb-4">
-            <User className="w-4 h-4" /> Your Account
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
-            My <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-700 dark:from-teal-400 dark:to-teal-200">Bookings</span>
-          </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
-            Track your submitted care requests, matching status, and history of hospital companions.
-          </p>
-        </header>
-
-        <div className="space-y-6">
-          {bookings.length === 0 ? (
-            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center shadow-xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              <div className="w-20 h-20 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Calendar className="w-10 h-10 text-teal-600 dark:text-teal-400" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-slate-900 dark:text-white">No Bookings Yet</h3>
-              <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
-                You haven't scheduled any companions yet. Get started by booking a service.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <Link href="/booking" className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 transition-all">
-                  Schedule a Visit
-                </Link>
-                <Link href="/quick-help" className="px-8 py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-lg shadow-marigold/20 transition-all">
-                  Get Urgent Help
-                </Link>
-              </div>
-            </div>
-          ) : (
-            bookings.map((booking, index) => {
-              const statusInfo = getStatusInfo(booking.status);
-              const customMeta = booking.service_metadata || {};
-              const companion: CompanionDetails | null = customMeta.companion || null;
-              
-              const formattedDate = booking.scheduled_start_time
-                ? new Date(booking.scheduled_start_time).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                : new Date(booking.created_at).toLocaleDateString('en-IN', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                  });
-
-              const careNeeds: string[] = customMeta.careNeeds || [];
-
-              return (
-                <div key={booking.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-3xl p-6 md:p-8 animate-fade-in-up" style={{ animationDelay: `${(index + 1) * 100}ms` }}>
-                  
-                  {/* Header */}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800 mb-6">
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">
-                          CRS-{booking.id.split('-')[0].toUpperCase()}
-                        </h2>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${statusInfo.color}`}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <Clock className="w-4 h-4" /> Created on {new Date(booking.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                    {/* Actions Desktop */}
-                    <div className="hidden md:flex items-center gap-3">
-                      {companion ? (
-                        <>
-                          <a href={`https://wa.me/919717500225?text=Hi,%20checking%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors">
-                            <MessageSquare className="w-4 h-4" /> Chat
-                          </a>
-                          <a href="tel:+919717500225" className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-colors">
-                            <Phone className="w-4 h-4" /> Call
-                          </a>
-                        </>
-                      ) : (
-                        <a href={`https://wa.me/919717500225?text=Hi,%20checking%20assignment%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="flex items-center gap-2 px-4 py-2 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-bold rounded-xl transition-colors">
-                          <MessageSquare className="w-4 h-4" /> Contact Support
-                        </a>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Details Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-                    <div className="space-y-1">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Patient</span>
-                      <p className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                        {booking.patient?.full_name || '—'} {booking.patient?.age ? <span className="text-slate-500 font-normal">({booking.patient.age}y)</span> : ''}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hospital</span>
-                      <p className="font-semibold text-slate-900 dark:text-white truncate" title={booking.pickup_location?.title}>
-                        {booking.pickup_location?.title || '—'}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Schedule</span>
-                      <p className="font-semibold text-slate-900 dark:text-white truncate">
-                        {formattedDate}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Service</span>
-                      <p className="font-semibold text-slate-900 dark:text-white truncate">
-                        {customMeta.originalService || booking.service_type}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Needs & Notes */}
-                  {(careNeeds.length > 0 || booking.special_instructions) && (
-                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 mb-6 border border-slate-100 dark:border-slate-800">
-                      {careNeeds.length > 0 && (
-                        <div className="mb-3">
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Specific Needs</span>
-                          <div className="flex flex-wrap gap-2">
-                            {careNeeds.map((need, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-lg shadow-sm">
-                                {need}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {booking.special_instructions && (
-                        <div>
-                          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">Notes</span>
-                          <p className="text-sm text-slate-700 dark:text-slate-300">{booking.special_instructions}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Companion Profile */}
-                  {companion && (
-                    <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-4">Assigned Companion</span>
-                      <div className="bg-gradient-to-r from-teal-50 to-white dark:from-teal-900/10 dark:to-slate-900 border border-teal-100 dark:border-teal-900/50 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-teal-600 text-white flex items-center justify-center text-xl font-bold overflow-hidden shrink-0 shadow-inner">
-                          {companion.photo ? <img src={companion.photo} alt={companion.name} className="w-full h-full object-cover" /> : (companion.avatar || 'C')}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            {companion.name}
-                            <span className="flex items-center gap-1 text-sm text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-lg">
-                              <Star className="w-3 h-3 fill-current" /> {companion.rating}
-                            </span>
-                          </h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center gap-1">
-                              <ShieldCheck className="w-3 h-3 text-green-500" /> {companion.verification}
-                            </span>
-                            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg">
-                              {companion.lang}
-                            </span>
-                            <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 rounded-lg">
-                              {companion.specialty}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Timeline */}
-                  {companion && renderTimeline(booking.status, companion.name)}
-
-                  {/* Actions Mobile */}
-                  <div className="mt-6 flex md:hidden gap-3">
-                    {companion ? (
-                      <>
-                        <a href={`https://wa.me/919717500225?text=Hi,%20checking%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-xl">
-                          <MessageSquare className="w-4 h-4" /> Chat
-                        </a>
-                        <a href="tel:+919717500225" className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold rounded-xl">
-                          <Phone className="w-4 h-4" /> Call
-                        </a>
-                      </>
-                    ) : (
-                      <a href={`https://wa.me/919717500225?text=Hi,%20checking%20assignment%20status%20for%20booking%20CRS-${booking.id.split('-')[0].toUpperCase()}`} target="_blank" rel="noopener" className="w-full flex items-center justify-center gap-2 py-3 bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400 font-bold rounded-xl">
-                        <MessageSquare className="w-4 h-4" /> Contact Support
-                      </a>
-                    )}
-                  </div>
-
-                </div>
-              );
-            })
-          )}
+    <main className="app-shell-page my-bookings-page" id="main-content">
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
+        <div style={{ padding: '20px 2px 10px' }}>
+          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: 'var(--ink-teal)', letterSpacing: '-0.01em' }}>Your bookings</h1>
+          <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: 'var(--muted)' }}>Track every visit, status, and payment in one place.</p>
         </div>
+        {error ? (
+          <div className="unauth-card material-card" style={{ borderColor: 'rgba(196, 85, 67, 0.3)' }}>
+            <h2 style={{ color: 'var(--terracotta)' }}>Database Connection Error</h2>
+            <p>{error}</p>
+            <Button variant="primary" onClick={() => fetchBookings()}>Retry Connection</Button>
+          </div>
+        ) : bookings.length === 0 ? (
+          <EmptyBookings label="any" showBookLinks />
+        ) : (
+          <>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
+              {([['upcoming', 'Upcoming', upcomingBookings.length], ['past', 'History', pastBookings.length]] as const).map(([key, label, count]) => (
+                <button
+                  key={key}
+                  onClick={() => setFilter(key)}
+                  style={{
+                    flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                    padding: '10px 12px', borderRadius: 999, border: '1px solid ' + (filter === key ? 'transparent' : 'var(--line)'),
+                    background: filter === key ? 'var(--ink-teal)' : 'var(--surface)', color: filter === key ? '#fff' : 'var(--muted)',
+                    fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer', transition: 'all var(--dur) var(--ease-out)',
+                  }}
+                >
+                  {label}
+                  <span style={{ display: 'grid', placeItems: 'center', minWidth: 20, height: 20, padding: '0 6px', borderRadius: 999, background: filter === key ? 'rgba(255,255,255,0.18)' : 'var(--sage)', color: filter === key ? '#fff' : 'var(--ink-teal)', fontSize: '0.7rem', fontWeight: 800 }}>{count}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="booking-list-container">
+              {list.length === 0
+                ? <EmptyBookings label={filter} showBookLinks={filter === 'upcoming'} />
+                : list.map((booking) => <BookingCard key={booking.id} booking={booking} onDetails={setDetail} />)}
+            </div>
+          </>
+        )}
       </div>
+
+      <DetailSheet booking={detail} onClose={() => setDetail(null)} />
     </main>
   );
 }

@@ -1,290 +1,179 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { X, Mail, KeyRound, User as UserIcon, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import { Button, Input } from '@/components/ds';
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.81.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z" />
+      <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z" />
+      <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z" />
+    </svg>
+  );
+}
 
 export default function AuthModal() {
-  const {
-    isOpen,
-    closeLogin,
-    sendOtp,
-    verifyOtp,
-    updateProfileName,
-    user,
-    authSuccessCallback
-  } = useAuth();
+  const { isOpen, closeLogin, user, profile, signInWithGoogle, saveProfile } = useAuth();
 
-  const [step, setStep] = useState<'email' | 'otp' | 'name'>('email');
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
+  const [step, setStep] = useState<'name' | 'age' | 'phone'>('name');
   const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timer, setTimer] = useState(30);
-  const [isResendDisabled, setIsResendDisabled] = useState(true);
-  
-  const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  const needsOnboarding = !!user && (!profile || !profile.onboarding_completed);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (step === 'otp' && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else if (timer === 0) {
-      setIsResendDisabled(false);
-    }
-    return () => clearInterval(interval);
-  }, [step, timer]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setStep('email');
-      setEmail('');
-      setOtp(Array(6).fill(''));
-      setName('');
+    if (isOpen && needsOnboarding) {
+      setStep('name');
+      setName((user?.user_metadata?.full_name || user?.user_metadata?.name || '') as string);
+      setAge(profile?.age ? String(profile.age) : '');
+      setPhone(profile?.phone || '');
       setError('');
-      setIsSubmitting(false);
-      setTimer(30);
-      setIsResendDisabled(true);
     }
-  }, [isOpen]);
+  }, [isOpen, needsOnboarding]);
 
   if (!isOpen) return null;
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
+  const handleGoogleClick = async () => {
     setIsSubmitting(true);
     setError('');
-    const res = await sendOtp(email);
-    setIsSubmitting(false);
-
-    if (res.success) {
-      setStep('otp');
-      setTimer(30);
-      setIsResendDisabled(true);
-      setTimeout(() => otpInputsRef.current[0]?.focus(), 100);
-    } else {
-      setError(res.error || 'Failed to send OTP. Please try again.');
-    }
+    await signInWithGoogle();
   };
 
-  const handleResendOtp = async () => {
-    setIsSubmitting(true);
-    setError('');
-    const res = await sendOtp(email);
-    setIsSubmitting(false);
-
-    if (res.success) {
-      setTimer(30);
-      setIsResendDisabled(true);
-      setOtp(Array(6).fill(''));
-      otpInputsRef.current[0]?.focus();
-    } else {
-      setError(res.error || 'Failed to resend OTP.');
-    }
-  };
-
-  const handleOtpChange = (val: string, index: number) => {
-    if (!/^[0-9]?$/.test(val)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = val;
-    setOtp(newOtp);
-
-    if (val && index < 5) {
-      otpInputsRef.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpInputsRef.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const otpCode = otp.join('');
-    if (otpCode.length < 6) {
-      setError('Please enter the complete 6-digit code.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError('');
-    const res = await verifyOtp(email, otpCode);
-
-    if (res.success) {
-      setIsSubmitting(false);
-      setStep('name');
-    } else {
-      setIsSubmitting(false);
-      setError(res.error || 'Invalid verification code.');
-    }
-  };
-
-  const handleSaveName = async (e: React.FormEvent) => {
+  const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setError('Name is required.');
       return;
     }
+    setError('');
+    setStep('age');
+  };
 
+  const handleAgeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const ageNum = parseInt(age, 10);
+    if (!ageNum || ageNum < 1 || ageNum > 120) {
+      setError('Enter a valid age.');
+      return;
+    }
+    setError('');
+    setStep('phone');
+  };
+
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phone.trim()) {
+      setError('Phone number is required.');
+      return;
+    }
     setIsSubmitting(true);
     setError('');
-    const res = await updateProfileName(name);
+    const res = await saveProfile({ full_name: name.trim(), age: parseInt(age, 10), phone: phone.trim() });
     setIsSubmitting(false);
-
-    if (res.success) {
-      closeLogin();
-      if (authSuccessCallback) authSuccessCallback();
-    } else {
-      setError(res.error || 'Failed to save profile name.');
+    if (!res.success) {
+      setError(res.error || 'Failed to save profile.');
     }
   };
 
-  if (step === 'name' && user?.user_metadata?.full_name) {
-    closeLogin();
-    if (authSuccessCallback) authSuccessCallback();
-    return null;
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in-up" onClick={closeLogin}>
-      <div 
-        className="relative w-full max-w-md p-8 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[2rem] shadow-2xl flex flex-col items-center animate-float"
-        onClick={(e) => e.stopPropagation()}
-        style={{ animationDuration: '10s' }}
-      >
-        <button 
-          onClick={closeLogin}
-          className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          <X className="w-5 h-5" />
+    <div className="auth-modal-overlay active" onClick={closeLogin}>
+      <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
+        <button className="auth-modal-close" onClick={closeLogin} aria-label="Close authentication modal">
+          <X style={{ width: '20px', height: '20px' }} />
         </button>
 
-        <div className="w-16 h-16 bg-gradient-to-br from-marigold to-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-marigold/30 mb-6">
-          <ShieldCheck className="w-8 h-8 text-ink-teal" />
-        </div>
+        {!user ? (
+          <div>
+            <h2>Welcome to Caresy</h2>
+            <p>Sign in to book a companion and track your requests.</p>
 
-        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2 text-center">
-          {step === 'email' && "Welcome to Caresy"}
-          {step === 'otp' && "Verify Your Identity"}
-          {step === 'name' && "One Last Step"}
-        </h2>
-        
-        <p className="text-slate-500 dark:text-slate-400 text-center mb-8">
-          {step === 'email' && "Enter your email to receive a secure login code."}
-          {step === 'otp' && `We sent a 6-digit code to ${email}`}
-          {step === 'name' && "Please enter your full name to complete your profile."}
-        </p>
+            {error && <p style={{ color: 'var(--terracotta)', fontWeight: 600, marginTop: '-12px' }}>{error}</p>}
 
-        {error && (
-          <div className="w-full mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl text-red-600 dark:text-red-400 text-sm flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 shrink-0" />
-            {error}
+            <Button
+              variant="secondary"
+              full
+              shape="pill"
+              size="lg"
+              disabled={isSubmitting}
+              onClick={handleGoogleClick}
+              style={{ background: '#fff', border: '1px solid var(--line)', color: 'var(--ink-teal)' }}
+              iconLeft={isSubmitting ? undefined : <GoogleIcon />}
+            >
+              {isSubmitting ? <Loader2 className="animate-spin" style={{ width: '20px', height: '20px' }} /> : 'Continue with Google'}
+            </Button>
           </div>
-        )}
+        ) : step === 'name' ? (
+          <form onSubmit={handleNameSubmit}>
+            <h2>What&apos;s your name?</h2>
+            <p>We&apos;ll use this to personalize your bookings.</p>
 
-        {/* STEP 1: EMAIL */}
-        {step === 'email' && (
-          <form onSubmit={handleSendOtp} className="w-full">
-            <div className="relative mb-6">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="w-5 h-5 text-slate-400" />
-              </div>
-              <input
-                type="email"
-                required
-                disabled={isSubmitting}
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-marigold focus:border-marigold outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
-              />
-            </div>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-md shadow-marigold/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Secure Code"}
-            </button>
-          </form>
-        )}
+            {error && <p style={{ color: 'var(--terracotta)', fontWeight: 600, marginTop: '-12px' }}>{error}</p>}
 
-        {/* STEP 2: OTP */}
-        {step === 'otp' && (
-          <form onSubmit={handleVerifyOtp} className="w-full flex flex-col items-center">
-            <div className="flex gap-2 mb-6">
-              {otp.map((digit, idx) => (
-                <input
-                  key={idx}
-                  type="text"
-                  maxLength={1}
-                  required
-                  disabled={isSubmitting}
-                  value={digit}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  ref={(el) => { otpInputsRef.current[idx] = el; }}
-                  onChange={(e) => handleOtpChange(e.target.value, idx)}
-                  onKeyDown={(e) => handleOtpKeyDown(e, idx)}
-                  className="w-12 h-14 text-center text-xl font-bold bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-marigold focus:border-marigold outline-none transition-all text-slate-900 dark:text-white"
-                />
-              ))}
-            </div>
-            
-            <button 
-              type="button"
-              disabled={isResendDisabled || isSubmitting}
-              onClick={handleResendOtp}
-              className={`text-sm mb-6 font-medium transition-colors ${isResendDisabled ? 'text-slate-400' : 'text-marigold-deep hover:text-orange-600'}`}
-            >
-              {isResendDisabled ? `Resend code in ${timer}s` : 'Resend Code'}
-            </button>
-
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-md shadow-marigold/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify & Proceed"}
-            </button>
-          </form>
-        )}
-
-        {/* STEP 3: NAME */}
-        {step === 'name' && (
-          <form onSubmit={handleSaveName} className="w-full">
-            <div className="relative mb-6">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <UserIcon className="w-5 h-5 text-slate-400" />
-              </div>
-              <input
+            <div style={{ marginBottom: '24px', textAlign: 'left' }}>
+              <Input
+                label="Full Name"
                 type="text"
                 required
-                disabled={isSubmitting}
-                placeholder="Full Name (e.g. Ananya Rao)"
+                autoFocus
+                placeholder="e.g. Ananya Rao"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-marigold focus:border-marigold outline-none transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
               />
             </div>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full py-4 bg-gradient-to-r from-marigold to-orange-500 hover:from-marigold-deep hover:to-orange-600 text-ink-teal font-bold rounded-xl shadow-md shadow-marigold/20 hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Complete Setup <ArrowRight className="w-4 h-4" /></>}
-            </button>
+            <Button type="submit" variant="primary" full shape="pill" size="lg">Continue</Button>
+          </form>
+        ) : step === 'age' ? (
+          <form onSubmit={handleAgeSubmit}>
+            <h2>How old are you?</h2>
+            <p>Helps us tailor support for you or the person you&apos;re booking for.</p>
+
+            {error && <p style={{ color: 'var(--terracotta)', fontWeight: 600, marginTop: '-12px' }}>{error}</p>}
+
+            <div style={{ marginBottom: '24px', textAlign: 'left' }}>
+              <Input
+                label="Age"
+                type="number"
+                required
+                autoFocus
+                min={1}
+                max={120}
+                placeholder="e.g. 34"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+              />
+            </div>
+            <Button type="submit" variant="primary" full shape="pill" size="lg">Continue</Button>
+          </form>
+        ) : (
+          <form onSubmit={handlePhoneSubmit}>
+            <h2>What&apos;s your phone number?</h2>
+            <p>So our operations team can reach you about a booking.</p>
+
+            {error && <p style={{ color: 'var(--terracotta)', fontWeight: 600, marginTop: '-12px' }}>{error}</p>}
+
+            <div style={{ marginBottom: '24px', textAlign: 'left' }}>
+              <Input
+                label="Phone Number"
+                type="tel"
+                required
+                autoFocus
+                placeholder="+91 98765 43210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+            <Button type="submit" variant="primary" full shape="pill" size="lg" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="animate-spin" style={{ width: '20px', height: '20px' }} /> : 'Finish'}
+            </Button>
           </form>
         )}
-
       </div>
     </div>
   );

@@ -3,39 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-
-const COMPANIONS = [
-  {
-    name: 'Priya Sharma',
-    avatar: 'PS',
-    rating: '4.9 (82 visits)',
-    verification: 'Police Verified',
-    lang: 'Hindi, English',
-    specialty: 'Cardiology',
-    photo: '/assets/caresy-companion-priya.png',
-    color: '#08796f'
-  },
-  {
-    name: 'Anil Kumar',
-    avatar: 'AK',
-    rating: '4.8 (120 visits)',
-    verification: 'Police Verified',
-    lang: 'Kannada, Tamil, English',
-    specialty: 'Orthopedics',
-    photo: '/assets/caresy-companion-anil.png',
-    color: '#e77f62'
-  },
-  {
-    name: 'Sarah Mathews',
-    avatar: 'SM',
-    rating: '4.9 (65 visits)',
-    verification: 'Police Verified',
-    lang: 'Malayalam, Telugu, English',
-    specialty: 'General Care',
-    photo: '/assets/caresy-companion-sarah.png',
-    color: '#a45b9a'
-  }
-];
+import { COMPANIONS, findCompanionByName, ratingLabel } from '@/data/companions';
+import { Button, Input } from '@/components/ds';
 
 const STATUS_OPTIONS = [
   'DRAFT',
@@ -48,6 +17,7 @@ const STATUS_OPTIONS = [
 
 interface BookingRecord {
   id: string;
+  reference_code: string;
   status: string;
   created_at: string;
   scheduled_start_time: string | null;
@@ -68,7 +38,42 @@ export default function AdminOps() {
   // Form states per card to allow editing before saving
   const [editStates, setEditStates] = useState<Record<string, { companionName: string; status: string }>>({});
 
+  // Ops metrics (backs the "Live Operations Desk" widget on /booking, /quick-help, /trust)
+  const [opsMetrics, setOpsMetrics] = useState<{ active_companions: number; avg_callback_minutes: number } | null>(null);
+  const [isSavingMetrics, setIsSavingMetrics] = useState(false);
+
   const isAdmin = user?.email?.endsWith('@caresy.co') || false;
+
+  const fetchOpsMetrics = async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('ops_metrics')
+      .select('active_companions, avg_callback_minutes')
+      .eq('id', 1)
+      .single();
+    if (!error && data) setOpsMetrics(data);
+  };
+
+  const handleSaveOpsMetrics = async () => {
+    if (!opsMetrics) return;
+    setIsSavingMetrics(true);
+    const supabase = createClient();
+    try {
+      const { error } = await supabase
+        .from('ops_metrics')
+        .update({
+          active_companions: opsMetrics.active_companions,
+          avg_callback_minutes: opsMetrics.avg_callback_minutes,
+        })
+        .eq('id', 1);
+      if (error) throw error;
+      showToast('Live Operations Desk numbers updated');
+    } catch (err: any) {
+      showToast(err.message || 'Error updating ops metrics');
+    } finally {
+      setIsSavingMetrics(false);
+    }
+  };
 
   const fetchAllBookings = async () => {
     if (!isAdmin) {
@@ -82,6 +87,7 @@ export default function AdminOps() {
         .from('bookings')
         .select(`
           id,
+          reference_code,
           status,
           created_at,
           scheduled_start_time,
@@ -124,6 +130,7 @@ export default function AdminOps() {
   useEffect(() => {
     if (user) {
       fetchAllBookings();
+      fetchOpsMetrics();
     } else {
       setIsLoading(false);
     }
@@ -138,7 +145,18 @@ export default function AdminOps() {
     const edit = editStates[bookingId];
     if (!edit) return;
 
-    const matchedCompanion = COMPANIONS.find(c => c.name === edit.companionName) || null;
+    const matched = findCompanionByName(edit.companionName);
+    // Stored in the shape my-bookings/page.tsx expects to render.
+    const matchedCompanion = matched ? {
+      name: matched.name,
+      avatar: matched.avatarInitials,
+      photo: matched.photo,
+      rating: ratingLabel(matched),
+      verification: matched.verification,
+      lang: matched.languages,
+      specialty: matched.specialty,
+      color: matched.color,
+    } : null;
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
 
@@ -158,7 +176,7 @@ export default function AdminOps() {
         .eq('id', bookingId);
 
       if (error) throw error;
-      showToast(`Updated CRS-${bookingId.split('-')[0].toUpperCase()}`);
+      showToast(`Updated ${booking.reference_code}`);
       fetchAllBookings();
     } catch (err: any) {
       console.error('Error updating booking:', err);
@@ -210,7 +228,7 @@ export default function AdminOps() {
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔐</div>
             <h2>Admin Login Required</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>Please sign in with an authorized ops account (@caresy.co) to access the dispatcher dashboard.</p>
-            <button className="btn btn-primary" onClick={() => openLogin(() => fetchAllBookings())} style={{ display: 'inline-flex' }}>Ops Sign In</button>
+            <Button variant="primary" onClick={() => openLogin()}>Ops Sign In</Button>
           </div>
         </div>
       </main>
@@ -229,6 +247,40 @@ export default function AdminOps() {
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>Live Operations Desk</h1>
         <p style={{ color: 'var(--muted)' }}>Monitor patient incoming requests, assign companions, and push milestone progress updates to families.</p>
       </section>
+
+      {opsMetrics && (
+        <div style={{ maxWidth: '1200px', margin: '0 auto 24px', padding: '0 24px' }}>
+          <div className="material-card" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <div>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '2px' }}>Live Operations Desk numbers</h3>
+              <p style={{ fontSize: '0.82rem', color: 'var(--muted)', margin: 0 }}>Shown on the Booking, Quick Help, and Trust pages. Keep these accurate.</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+              <Input
+                label="Companions online"
+                type="number"
+                min={0}
+                value={opsMetrics.active_companions}
+                onChange={(e) => setOpsMetrics({ ...opsMetrics, active_companions: parseInt(e.target.value) || 0 })}
+                style={{ width: '140px' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+              <Input
+                label="Avg callback (mins)"
+                type="number"
+                min={0}
+                value={opsMetrics.avg_callback_minutes}
+                onChange={(e) => setOpsMetrics({ ...opsMetrics, avg_callback_minutes: parseInt(e.target.value) || 0 })}
+                style={{ width: '140px' }}
+              />
+            </div>
+            <Button variant="primary" disabled={isSavingMetrics} onClick={handleSaveOpsMetrics}>
+              {isSavingMetrics ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="admin-layout" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
         
@@ -294,7 +346,7 @@ export default function AdminOps() {
             <strong style={{ fontSize: '1.1rem' }}>{b.patient?.full_name || '—'}</strong>
             <span style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Age: {b.patient?.age || '—'} &bull; Lang: {customMeta.language || 'No preference'}</span>
           </div>
-          <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)' }}>CRS-{b.id.split('-')[0].toUpperCase()}</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)' }}>{b.reference_code}</span>
         </div>
 
         <div className="hospital-lbl" style={{ fontWeight: 600, color: 'var(--primary-dark)' }}>{b.pickup_location?.title} ({customMeta.department || 'General'})</div>
@@ -339,13 +391,14 @@ export default function AdminOps() {
             ))}
           </select>
 
-          <button 
-            className="btn btn-primary save-btn" 
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => handleSave(b.id)}
-            style={{ marginTop: '6px', minHeight: 'auto', padding: '8px 14px', fontSize: '0.84rem', borderRadius: '10px' }}
+            style={{ marginTop: '6px' }}
           >
             Save Updates
-          </button>
+          </Button>
         </div>
       </div>
     );
