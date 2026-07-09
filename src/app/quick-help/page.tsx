@@ -7,6 +7,7 @@ import { createClient } from '@/utils/supabase/client';
 import { MessageSquare, Check } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button } from '@/components/ds';
+import { checkPincodeServed, isValidPincode } from '@/utils/serviceArea';
 
 const DRAFT_KEY = 'caresy_quickhelp_draft';
 
@@ -18,6 +19,9 @@ export default function QuickHelp() {
   const [email, setEmail] = useState('');
   const [patientName, setPatientName] = useState('');
   const [hospital, setHospital] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [areaStatus, setAreaStatus] = useState<'idle' | 'checking' | 'served' | 'not_served'>('idle');
+  const [areaLabel, setAreaLabel] = useState('');
   const [service, setService] = useState('Appointment today');
   const [urgency, setUrgency] = useState('Call now');
   const [notes, setNotes] = useState('');
@@ -37,6 +41,7 @@ export default function QuickHelp() {
       setEmail(draft.email || '');
       setPatientName(draft.patientName || '');
       setHospital(draft.hospital || '');
+      setPincode(draft.pincode || '');
       setService(draft.service || 'Appointment today');
       setUrgency(draft.urgency || 'Call now');
       setNotes(draft.notes || '');
@@ -46,13 +51,31 @@ export default function QuickHelp() {
     }
   }, []);
 
+  // Live service-area check as the pincode is typed.
+  useEffect(() => {
+    if (!isValidPincode(pincode)) { setAreaStatus('idle'); setAreaLabel(''); return; }
+    let cancelled = false;
+    setAreaStatus('checking');
+    checkPincodeServed(pincode).then(({ served, area }) => {
+      if (cancelled) return;
+      setAreaStatus(served ? 'served' : 'not_served');
+      setAreaLabel(area?.area_name || area?.city || '');
+    });
+    return () => { cancelled = true; };
+  }, [pincode]);
+
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (areaStatus !== 'served') {
+      alert('Sorry, we don’t serve this pincode yet. Caresy currently operates in Noida & Greater Noida.');
+      return;
+    }
 
     if (!user) {
       try {
         sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
-          customerName, phone, email, patientName, hospital, service, urgency, notes,
+          customerName, phone, email, patientName, hospital, pincode, service, urgency, notes,
         }));
       } catch {
         // ignore unavailable sessionStorage
@@ -93,9 +116,9 @@ export default function QuickHelp() {
           customer_user_id: currentUser.id,
           title: hospital,
           address_line_1: hospital,
-          city: 'Noida',
+          city: areaLabel || 'Noida',
           state: 'Uttar Pradesh',
-          pincode: '201301',
+          pincode: pincode.trim(),
         })
         .select()
         .single();
@@ -203,6 +226,19 @@ export default function QuickHelp() {
             <div className="form-row">
               <Input label="Patient name" name="patientName" type="text" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} />
               <Input label="Hospital or area" name="hospital" type="text" placeholder="Max Hospital, Sector 62" required value={hospital} onChange={(e) => setHospital(e.target.value)} />
+            </div>
+            <div className="form-row">
+              <Input
+                label="Pincode (Noida / Greater Noida)" name="pincode" required
+                inputMode="numeric" maxLength={6} placeholder="201301"
+                value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                hint={
+                  areaStatus === 'checking' ? 'Checking availability…'
+                  : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
+                  : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — Noida & Greater Noida only.'
+                  : 'We currently serve Noida & Greater Noida only.'
+                }
+              />
             </div>
             <label>What is happening now?
               <select name="service" value={service} onChange={(e) => setService(e.target.value)}>

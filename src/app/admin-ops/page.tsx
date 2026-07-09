@@ -246,9 +246,12 @@ export default function AdminOps() {
         <p className="eyebrow">Dispatcher Command Center</p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>Live Operations Desk</h1>
         <p style={{ color: 'var(--muted)' }}>Monitor patient incoming requests, assign companions, and push milestone progress updates to families.</p>
-        <div style={{ marginTop: 14 }}>
+        <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Link href="/admin/companions">
             <Button variant="secondary" size="sm">Companion applications →</Button>
+          </Link>
+          <Link href="/admin/service-areas">
+            <Button variant="outline" size="sm">Service areas →</Button>
           </Link>
         </div>
       </section>

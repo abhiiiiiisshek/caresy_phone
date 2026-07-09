@@ -8,6 +8,7 @@ import { ArrowRight, ArrowLeft, Loader2, Check } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { matchCompanionByDepartment } from '@/data/companions';
 import { Input, Button, CompanionCard } from '@/components/ds';
+import { checkPincodeServed, isValidPincode } from '@/utils/serviceArea';
 
 const STEPS = ['Patient details', 'Appointment details', 'Support needed'];
 const DRAFT_KEY = 'caresy_booking_draft';
@@ -26,6 +27,9 @@ export default function Booking() {
 
   // Step 2: Appointment details
   const [hospital, setHospital] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [areaStatus, setAreaStatus] = useState<'idle' | 'checking' | 'served' | 'not_served'>('idle');
+  const [areaLabel, setAreaLabel] = useState('');
   const [department, setDepartment] = useState('');
   const [doctor, setDoctor] = useState('');
   const [date, setDate] = useState('');
@@ -54,6 +58,7 @@ export default function Booking() {
       setEmail(draft.email || '');
       setEmergency(draft.emergency || '');
       setHospital(draft.hospital || '');
+      setPincode(draft.pincode || '');
       setDepartment(draft.department || '');
       setDoctor(draft.doctor || '');
       setDate(draft.date || '');
@@ -68,6 +73,19 @@ export default function Booking() {
       // ignore malformed/unavailable sessionStorage
     }
   }, []);
+
+  // Live service-area check as the pincode is typed.
+  useEffect(() => {
+    if (!isValidPincode(pincode)) { setAreaStatus('idle'); setAreaLabel(''); return; }
+    let cancelled = false;
+    setAreaStatus('checking');
+    checkPincodeServed(pincode).then(({ served, area }) => {
+      if (cancelled) return;
+      setAreaStatus(served ? 'served' : 'not_served');
+      setAreaLabel(area?.area_name || area?.city || '');
+    });
+    return () => { cancelled = true; };
+  }, [pincode]);
 
   const handleCheckboxChange = (need: string) => {
     if (careNeeds.includes(need)) {
@@ -86,7 +104,7 @@ export default function Booking() {
 
   const isStepValid = (s: number) => {
     if (s === 1) return patientName.trim() !== '' && phone.trim() !== '' && email.trim() !== '';
-    if (s === 2) return hospital.trim() !== '' && date !== '' && time !== '';
+    if (s === 2) return hospital.trim() !== '' && date !== '' && time !== '' && areaStatus === 'served';
     return true;
   };
 
@@ -110,7 +128,7 @@ export default function Booking() {
       try {
         sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
           patientName, age, phone, email, emergency,
-          hospital, department, doctor, date, time, language,
+          hospital, pincode, department, doctor, date, time, language,
           service, careNeeds, notes,
         }));
       } catch {
@@ -154,9 +172,9 @@ export default function Booking() {
           customer_user_id: currentUser.id,
           title: hospital,
           address_line_1: hospital,
-          city: 'Noida',
+          city: areaLabel || 'Noida',
           state: 'Uttar Pradesh',
-          pincode: '201301',
+          pincode: pincode.trim(),
         })
         .select()
         .single();
@@ -292,6 +310,19 @@ export default function Booking() {
               <div className="form-row">
                 <Input label="Hospital" name="hospital" type="text" placeholder="Apollo Hospitals" required value={hospital} onChange={(e) => setHospital(e.target.value)} />
                 <Input label="Department" name="department" type="text" placeholder="Cardiology" value={department} onChange={(e) => setDepartment(e.target.value)} />
+              </div>
+              <div className="form-row">
+                <Input
+                  label="Pincode (Noida / Greater Noida)" name="pincode" required
+                  inputMode="numeric" maxLength={6} placeholder="201301"
+                  value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                  hint={
+                    areaStatus === 'checking' ? 'Checking availability…'
+                    : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
+                    : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — we currently cover Noida & Greater Noida.'
+                    : 'We currently serve Noida & Greater Noida only.'
+                  }
+                />
               </div>
               <div className="form-row">
                 <Input label="Doctor name" name="doctor" type="text" placeholder="Dr. Mehta" value={doctor} onChange={(e) => setDoctor(e.target.value)} />

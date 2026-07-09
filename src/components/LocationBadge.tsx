@@ -4,35 +4,36 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MapPin, Check, X, Loader2, BellRing, Trash2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { Input, Button } from '@/components/ds';
+import { checkPincodeServed, isValidPincode } from '@/utils/serviceArea';
 
 /**
- * LocationBadge — geolocation-driven service-area indicator for the app's
- * greeting bar. Detects the visitor's area once (cached in localStorage),
- * reverse-geocodes it, and shows whether Caresy operates there. Falls back
- * to manual entry when permission is denied or geocoding fails.
+ * LocationBadge — service-area indicator for the app's greeting bar.
  *
- * Privacy: raw GPS coordinates are sent only to the reverse-geocoding
- * endpoint and are never stored — only the resolved area name and the
- * serviceability flag are kept, and the user can clear them anytime.
+ * Serviceability is decided by PINCODE against the DB-driven `service_areas`
+ * allowlist (same list the booking guard enforces) — not by fuzzy city-name
+ * matching. This is what fixes cases like "Gaur City" (Greater Noida West,
+ * 201009), which a text match on "Noida" would wrongly reject.
+ *
+ * Detection: browser geolocation -> reverse-geocode to a postcode -> DB check.
+ * Manual: the user enters their 6-digit pincode directly. Cached in
+ * localStorage; only the area label + pincode + served flag are stored, never
+ * raw GPS coordinates.
  */
 
-const LS_KEY = 'caresy_location_v1';
+const LS_KEY = 'caresy_location_v2';
 
-// Service area: Noida & Greater Noida (Gautam Buddha Nagar district).
-// String match handles geocoder naming variants; the distance check handles
-// boundary cases where the geocoder returns a neighbouring locality name for
-// an address that is actually within our operating radius.
-const SERVED_PATTERN = /noida|gautam\s*buddh?a?\s*nagar/i;
-const SERVICE_ANCHORS: [number, number][] = [
-  [28.5355, 77.391], // Noida
-  [28.4744, 77.504], // Greater Noida
+// City quick-picks map to a representative pincode that gets validated against
+// the DB — so "Noida"/"Greater Noida" resolve as served and others as not.
+const QUICK_PICKS: { label: string; pincode: string }[] = [
+  { label: 'Noida', pincode: '201301' },
+  { label: 'Greater Noida', pincode: '201310' },
+  { label: 'Greater Noida West', pincode: '201009' },
+  { label: 'Ghaziabad', pincode: '201001' },
 ];
-const SERVICE_RADIUS_KM = 25;
-
-const QUICK_PICKS = ['Noida', 'Greater Noida', 'Ghaziabad', 'New Delhi'];
 
 interface StoredLocation {
   area: string;
+  pincode: string;
   served: boolean;
   manual: boolean;
   ts: number;
@@ -43,30 +44,12 @@ type BadgeState =
   | { kind: 'unset' }
   | { kind: 'resolved'; loc: StoredLocation };
 
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function isServed(areaText: string, lat?: number, lon?: number): boolean {
-  if (SERVED_PATTERN.test(areaText)) return true;
-  if (lat != null && lon != null) {
-    return SERVICE_ANCHORS.some(([aLat, aLon]) => haversineKm(lat, lon, aLat, aLon) <= SERVICE_RADIUS_KM);
-  }
-  return false;
-}
-
 function readStored(): StoredLocation | null {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (typeof parsed?.area === 'string' && typeof parsed?.served === 'boolean') return parsed;
+    if (typeof parsed?.pincode === 'string' && typeof parsed?.served === 'boolean') return parsed;
   } catch {
     /* corrupted entry — treat as unset */
   }
@@ -81,49 +64,52 @@ function writeStored(loc: StoredLocation) {
   }
 }
 
-async function reverseGeocode(lat: number, lon: number): Promise<string> {
-  // BigDataCloud's client-side endpoint: no API key, CORS-enabled, free tier
-  // designed for exactly this browser use case.
+async function reverseGeocode(lat: number, lon: number): Promise<{ area: string; postcode: string }> {
+  // BigDataCloud's client-side endpoint: no API key, CORS-enabled, returns a
+  // postcode which is exactly what we validate against.
   const res = await fetch(
     `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
   );
   if (!res.ok) throw new Error(`reverse geocode failed: ${res.status}`);
   const data = await res.json();
-  // Prefer the most specific human-readable name available.
-  const area = data.city || data.locality || data.principalSubdivision;
-  if (!area) throw new Error('reverse geocode returned no locality');
-  // Keep district context when it adds serviceability signal (e.g. locality
-  // inside Gautam Buddha Nagar that isn't literally named "Noida").
-  const district = data.localityInfo?.administrative?.find?.(
-    (a: { adminLevel?: number; name?: string }) => a.adminLevel === 5
-  )?.name;
-  return district && district !== area ? `${area}, ${district}` : area;
+  const area = data.locality || data.city || data.principalSubdivision || '';
+  const postcode = (data.postcode || '').toString();
+  return { area, postcode };
 }
 
 export default function LocationBadge() {
   const [state, setState] = useState<BadgeState>({ kind: 'loading' });
   const [sheetOpen, setSheetOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
-  const [manualValue, setManualValue] = useState('');
+  const [manualPincode, setManualPincode] = useState('');
+  const [manualError, setManualError] = useState<string | null>(null);
   const [notifyPhone, setNotifyPhone] = useState('');
   const [notifyStatus, setNotifyStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [detecting, setDetecting] = useState(false);
 
   const resolveFromCoords = useCallback((lat: number, lon: number) => {
     reverseGeocode(lat, lon)
-      .then((area) => {
-        const loc: StoredLocation = { area, served: isServed(area, lat, lon), manual: false, ts: Date.now() };
+      .then(async ({ area, postcode }) => {
+        if (!postcode) {
+          // Coordinates resolved but no postcode — ask for the pincode instead
+          // of guessing serviceability.
+          setDetecting(false);
+          setState({ kind: 'unset' });
+          setSheetOpen(true);
+          return;
+        }
+        const { served, area: match } = await checkPincodeServed(postcode);
+        const label = match?.area_name || area || `Pincode ${postcode}`;
+        const loc: StoredLocation = { area: label, pincode: postcode, served, manual: false, ts: Date.now() };
         writeStored(loc);
         setState({ kind: 'resolved', loc });
+        setDetecting(false);
       })
       .catch(() => {
-        // Geocoding failed (network/service) — still know whether coords are
-        // in range, so degrade to a generic area name rather than giving up.
-        const served = isServed('', lat, lon);
-        const loc: StoredLocation = { area: served ? 'your area' : 'your current area', served, manual: false, ts: Date.now() };
-        setState({ kind: 'resolved', loc });
-      })
-      .finally(() => setDetecting(false));
+        setDetecting(false);
+        setState({ kind: 'unset' });
+        setSheetOpen(true);
+      });
   }, []);
 
   const detect = useCallback(() => {
@@ -134,11 +120,9 @@ export default function LocationBadge() {
       return;
     }
     setDetecting(true);
-    // Triggers the real browser location permission prompt.
     navigator.geolocation.getCurrentPosition(
       (pos) => resolveFromCoords(pos.coords.latitude, pos.coords.longitude),
       () => {
-        // Denied or unavailable — fall back to manual entry.
         setDetecting(false);
         setState({ kind: 'unset' });
         setSheetOpen(true);
@@ -152,21 +136,30 @@ export default function LocationBadge() {
     if (stored) {
       setState({ kind: 'resolved', loc: stored });
     } else {
-      // First visit — greet the user, then ask for location up front with a
-      // real permission popup instead of silently probing geolocation.
       setState({ kind: 'unset' });
       setPermissionOpen(true);
     }
   }, []);
 
-  const applyManual = (text: string) => {
-    const area = text.trim();
-    if (!area) return;
-    const loc: StoredLocation = { area, served: isServed(area), manual: true, ts: Date.now() };
+  const applyPincode = async (pincode: string) => {
+    const pin = pincode.trim();
+    setManualError(null);
+    if (!isValidPincode(pin)) {
+      setManualError('Enter a valid 6-digit pincode.');
+      return;
+    }
+    const { served, area } = await checkPincodeServed(pin);
+    const loc: StoredLocation = {
+      area: area?.area_name || `Pincode ${pin}`,
+      pincode: pin,
+      served,
+      manual: true,
+      ts: Date.now(),
+    };
     writeStored(loc);
     setState({ kind: 'resolved', loc });
     setSheetOpen(false);
-    setManualValue('');
+    setManualPincode('');
     setNotifyStatus('idle');
   };
 
@@ -188,7 +181,7 @@ export default function LocationBadge() {
       const { error } = await supabase.from('contact_messages').insert({
         name: 'Service area waitlist',
         phone: notifyPhone,
-        message: `Notify me when Caresy launches in: ${state.loc.area}`,
+        message: `Notify me when Caresy launches in: ${state.loc.area} (pincode ${state.loc.pincode})`,
       });
       if (error) throw error;
       setNotifyStatus('done');
@@ -236,8 +229,7 @@ export default function LocationBadge() {
         )}
       </div>
 
-      {/* First-visit permission popup — asks for location up front, then fires
-          the real browser geolocation prompt when the user opts in. */}
+      {/* First-visit permission popup */}
       {permissionOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(22,48,43,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ width: '100%', maxWidth: 380, background: 'var(--paper)', borderRadius: 26, padding: '28px 22px 22px', textAlign: 'center', animation: 'caresy-sheet-up 0.28s var(--ease-out)', boxShadow: 'var(--shadow-pop, 0 24px 60px rgba(22,48,43,0.28))' }}>
@@ -257,7 +249,7 @@ export default function LocationBadge() {
             <button
               onClick={() => { setPermissionOpen(false); setSheetOpen(true); }}
               style={{ ...linkStyle, color: 'var(--muted)', display: 'block', margin: '14px auto 0' }}>
-              Enter my location manually
+              Enter my pincode instead
             </button>
             <p style={{ margin: '14px 0 0', fontSize: '0.72rem', color: 'var(--muted)' }}>
               Your location stays on this device. We never store your exact coordinates.
@@ -272,7 +264,7 @@ export default function LocationBadge() {
             <div style={{ width: 40, height: 4, borderRadius: 999, background: 'var(--line-strong)', margin: '8px auto 14px' }} />
             <h3 style={{ margin: '0 0 4px', fontSize: '1.1rem', fontWeight: 800, color: 'var(--ink-teal)' }}>Your location</h3>
             <p style={{ margin: '0 0 16px', fontSize: '0.82rem', color: 'var(--muted)' }}>
-              We currently operate in Noida &amp; Greater Noida. Your location is stored only on this device.
+              We currently operate in Noida &amp; Greater Noida. Enter your pincode to check availability — it&apos;s stored only on this device.
             </p>
 
             {/* Not-served waitlist */}
@@ -305,22 +297,23 @@ export default function LocationBadge() {
 
             {/* Quick picks */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-              {QUICK_PICKS.map((city) => (
-                <button key={city} onClick={() => applyManual(city)} style={{
+              {QUICK_PICKS.map((c) => (
+                <button key={c.label} onClick={() => applyPincode(c.pincode)} style={{
                   padding: '8px 14px', borderRadius: 999, border: '1px solid var(--line)', background: 'var(--surface)',
                   color: 'var(--ink-teal)', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
                 }}>
-                  {city}
+                  {c.label}
                 </button>
               ))}
             </div>
 
-            {/* Manual entry */}
-            <form onSubmit={(e) => { e.preventDefault(); applyManual(manualValue); }} style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-              <Input placeholder="Or type your city / area" value={manualValue}
-                onChange={(e) => setManualValue(e.target.value)} style={{ flex: 1 }} />
-              <Button type="submit" variant="secondary" size="sm" disabled={!manualValue.trim()}>Set</Button>
+            {/* Manual pincode entry */}
+            <form onSubmit={(e) => { e.preventDefault(); applyPincode(manualPincode); }} style={{ display: 'flex', gap: 8, marginBottom: manualError ? 6 : 14 }}>
+              <Input inputMode="numeric" maxLength={6} placeholder="Enter 6-digit pincode" value={manualPincode}
+                onChange={(e) => setManualPincode(e.target.value.replace(/\D/g, ''))} style={{ flex: 1 }} />
+              <Button type="submit" variant="secondary" size="sm" disabled={!manualPincode.trim()}>Check</Button>
             </form>
+            {manualError && <p style={{ margin: '0 0 14px', fontSize: '0.76rem', color: 'var(--terracotta)', fontWeight: 600 }}>{manualError}</p>}
 
             <div style={{ display: 'flex', gap: 8 }}>
               <Button variant="outline" full onClick={() => { setSheetOpen(false); detect(); }}
