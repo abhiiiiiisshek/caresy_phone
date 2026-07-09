@@ -1986,10 +1986,12 @@ th {
   }
 
   /* At this size the button is icon-only, so the icon should read as the
-     button's content, not a small mark floating in a big circle. */
+     button's content, not a small mark floating in a big circle. The glyph
+     inside the 24x24 viewBox already has some internal padding, so the box
+     needs to be a large fraction of the button to look filled. */
   .whatsapp-float .whatsapp-icon {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
   }
 }
 
