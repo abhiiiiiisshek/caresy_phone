@@ -46,11 +46,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return data;
   };
 
+  // Admin status comes from the editable `admin_users` allowlist via the
+  // is_admin() RPC. If that RPC doesn't exist yet (migration 10 not run) we
+  // fall back to the legacy "@caresy.co" domain rule so nothing breaks.
+  const resolveIsAdmin = async (u: User | null | undefined): Promise<boolean> => {
+    if (!u) return false;
+    try {
+      const { data, error } = await supabase.rpc('is_admin');
+      if (error) throw error;
+      return data === true;
+    } catch {
+      return u.email?.endsWith('@caresy.co') ?? false;
+    }
+  };
+
   useEffect(() => {
     async function getSession() {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
-      setIsAdmin(session?.user?.email?.endsWith('@caresy.co') ?? false);
+      setIsAdmin(await resolveIsAdmin(session?.user));
       if (session?.user) {
         const p = await fetchProfile(session.user.id);
         if (!p || !p.onboarding_completed) setIsOpen(true);
@@ -61,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-      setIsAdmin(session?.user?.email?.endsWith('@caresy.co') ?? false);
+      setIsAdmin(await resolveIsAdmin(session?.user));
       if (session?.user) {
         const p = await fetchProfile(session.user.id);
         if (!p || !p.onboarding_completed) setIsOpen(true);

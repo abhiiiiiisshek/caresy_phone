@@ -30,7 +30,7 @@ interface BookingRecord {
 }
 
 export default function AdminOps() {
-  const { user, openLogin } = useAuth();
+  const { user, isAdmin, openLogin } = useAuth();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -42,7 +42,6 @@ export default function AdminOps() {
   const [opsMetrics, setOpsMetrics] = useState<{ active_companions: number; avg_callback_minutes: number } | null>(null);
   const [isSavingMetrics, setIsSavingMetrics] = useState(false);
 
-  const isAdmin = user?.email?.endsWith('@caresy.co') || false;
 
   const fetchOpsMetrics = async () => {
     const supabase = createClient();
@@ -227,7 +226,7 @@ export default function AdminOps() {
           <div className="unauth-card material-card reveal active" style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔐</div>
             <h2>Admin Login Required</h2>
-            <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>Please sign in with an authorized ops account (@caresy.co) to access the dispatcher dashboard.</p>
+            <p style={{ color: 'var(--muted)', marginBottom: '24px' }}>Please sign in with an authorized ops account to access the dispatcher dashboard.</p>
             <Button variant="primary" onClick={() => openLogin()}>Ops Sign In</Button>
           </div>
         </div>
