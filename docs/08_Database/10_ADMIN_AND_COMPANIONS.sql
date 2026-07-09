@@ -155,23 +155,42 @@ CREATE POLICY "Companions update self, admins update all"
     ON companions FOR UPDATE
     USING (id = auth.uid() OR is_admin());
 
--- Guard: a companion may edit their own profile, but ONLY an admin may change
--- the fields that gate access (approval_status, reviewed_by/at, rating,
--- total_jobs). This prevents self-approval even though they can update the row.
+-- Guard: a companion may create and edit their own profile, but ONLY an admin
+-- may set the fields that gate access (approval_status, reviewed_by/at, rating,
+-- total_jobs). On INSERT by a non-admin these are forced to safe defaults; on
+-- UPDATE by a non-admin any attempt to change them is rejected. This makes
+-- self-approval impossible even though the companion owns the row.
 CREATE OR REPLACE FUNCTION guard_companion_privileged_fields()
 RETURNS TRIGGER AS $$
 BEGIN
     IF is_admin() THEN
-        RETURN NEW;   -- admins may change anything
+        RETURN NEW;   -- admins may set anything
     END IF;
 
+    IF TG_OP = 'INSERT' THEN
+        NEW.approval_status  := 'PENDING_REVIEW';
+        NEW.rejection_reason := NULL;
+        NEW.reviewed_by      := NULL;
+        NEW.reviewed_at      := NULL;
+        NEW.rating           := NULL;
+        NEW.total_jobs       := 0;
+        RETURN NEW;
+    END IF;
+
+    -- UPDATE by a non-admin. Allow re-application after rejection
+    -- (REJECTED -> PENDING_REVIEW); block every other approval change.
     IF NEW.approval_status IS DISTINCT FROM OLD.approval_status
-       OR NEW.reviewed_by  IS DISTINCT FROM OLD.reviewed_by
-       OR NEW.reviewed_at  IS DISTINCT FROM OLD.reviewed_at
-       OR NEW.rating       IS DISTINCT FROM OLD.rating
-       OR NEW.total_jobs   IS DISTINCT FROM OLD.total_jobs
+       AND NOT (OLD.approval_status = 'REJECTED' AND NEW.approval_status = 'PENDING_REVIEW')
     THEN
-        RAISE EXCEPTION 'Only an admin can change approval, review, or reputation fields';
+        RAISE EXCEPTION 'Only an admin can change a companion''s approval status';
+    END IF;
+
+    IF NEW.reviewed_by IS DISTINCT FROM OLD.reviewed_by
+       OR NEW.reviewed_at IS DISTINCT FROM OLD.reviewed_at
+       OR NEW.rating      IS DISTINCT FROM OLD.rating
+       OR NEW.total_jobs  IS DISTINCT FROM OLD.total_jobs
+    THEN
+        RAISE EXCEPTION 'Only an admin can change review or reputation fields';
     END IF;
 
     RETURN NEW;
@@ -180,7 +199,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS trg_guard_companion_fields ON companions;
 CREATE TRIGGER trg_guard_companion_fields
-BEFORE UPDATE ON companions
+BEFORE INSERT OR UPDATE ON companions
 FOR EACH ROW EXECUTE PROCEDURE guard_companion_privileged_fields();
 
 DROP TRIGGER IF EXISTS set_timestamp_companions ON companions;
