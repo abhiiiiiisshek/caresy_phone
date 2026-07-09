@@ -246,14 +246,17 @@ FOR EACH ROW EXECUTE PROCEDURE enqueue_booking_notification();
 -- ----------------------------------------------------------------------------
 -- 6. Scheduling the expiry sweep
 -- ----------------------------------------------------------------------------
--- OPTION A (recommended if available) — pg_cron every 5 minutes.
+-- OPTION A (recommended — free, no plan limits) — pg_cron every 5 minutes.
 -- Enable the extension first: Dashboard → Database → Extensions → pg_cron.
--- Then uncomment:
+-- Then run:
 --
 --   SELECT cron.schedule('expire-stale-bookings', '*/5 * * * *',
 --          $$ SELECT expire_stale_bookings(); $$);
 --
--- OPTION B — Vercel Cron. This app already ships /api/cron/expire-bookings and
--- a vercel.json schedule; set a CRON_SECRET env var in Vercel and you're done.
--- No extension needed.
+-- OPTION B — external uptime cron (e.g. cron-job.org) hitting the shipped route
+-- GET https://<your-app>/api/cron/expire-bookings every 5 minutes, with header
+-- Authorization: Bearer <CRON_SECRET>. Works on any Vercel plan.
+--
+-- NOTE: Vercel Cron every-5-min needs the Pro plan (Hobby caps cron at once/day),
+-- so it is NOT wired by default. On Pro, add a vercel.json `crons` entry.
 -- ============================================================================

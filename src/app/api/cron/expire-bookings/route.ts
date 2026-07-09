@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Expiry sweep endpoint, called on a schedule by Vercel Cron (see vercel.json).
-// Moves timed-out PENDING requests to EXPIRED via the DB function. Protected by
-// CRON_SECRET so only the scheduler can trigger it.
+// Expiry sweep endpoint. Moves timed-out PENDING requests to EXPIRED via the DB
+// function. Meant to be hit on a schedule.
 //
-// Setup: add a CRON_SECRET env var in Vercel. Vercel Cron automatically sends
-// it as `Authorization: Bearer <CRON_SECRET>`.
+// Scheduling (pick one):
+//   • pg_cron in Supabase (recommended, free, every 5 min) — see migration 13.
+//   • An external uptime cron (e.g. cron-job.org) calling this URL every 5 min
+//     with header `Authorization: Bearer <CRON_SECRET>`.
+//   • Vercel Cron — only on Pro (Hobby caps cron at once/day); add a vercel.json
+//     `crons` entry if you're on Pro.
+//
+// Protection: if CRON_SECRET is set, the caller must send it as a Bearer token.
 
 export const dynamic = 'force-dynamic';
 
