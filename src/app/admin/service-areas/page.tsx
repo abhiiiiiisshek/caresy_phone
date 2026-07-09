@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
 import { Button, Input, Badge } from '@/components/ds';
-import { Loader2, ShieldCheck, Plus, Trash2, ArrowLeft, MapPin } from 'lucide-react';
+import { AdminNav } from '@/components/AdminNav';
+import { Loader2, ShieldCheck, Plus, Trash2, MapPin } from 'lucide-react';
 import { isValidPincode } from '@/utils/serviceArea';
 
 // Admin editor for the pincode allowlist that decides service coverage. Ops
@@ -87,10 +87,8 @@ export default function AdminServiceAreas() {
 
   return (
     <main className="app-shell-page" style={{ maxWidth: 720, margin: '0 auto', padding: '24px 16px 60px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-        <Link href="/admin-ops" style={{ color: 'var(--muted)', display: 'inline-flex' }} aria-label="Back to ops"><ArrowLeft style={{ width: 18, height: 18 }} /></Link>
-        <h1 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Service areas</h1>
-      </div>
+      <AdminNav />
+      <h1 style={{ margin: '0 0 4px', fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Service areas</h1>
       <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '0.9rem' }}>
         Pincodes Caresy serves. {activeCount} active. Bookings outside this list are rejected automatically.
       </p>

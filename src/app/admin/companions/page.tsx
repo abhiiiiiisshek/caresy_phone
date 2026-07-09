@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
 import { Button, Badge, Input } from '@/components/ds';
+import { AdminNav } from '@/components/AdminNav';
 import {
-  Loader2, ShieldCheck, Check, X, Ban, RotateCcw, FileText, Phone, MapPin, ArrowLeft,
+  Loader2, ShieldCheck, Check, X, Ban, RotateCcw, FileText, Phone, MapPin,
 } from 'lucide-react';
 
 // Admin approval queue — the other half of the Phase-1/Phase-2 slice. Lists
@@ -94,10 +94,8 @@ export default function AdminCompanions() {
 
   return (
     <main className="app-shell-page" style={{ maxWidth: 820, margin: '0 auto', padding: '24px 16px 60px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-        <Link href="/admin-ops" style={{ color: 'var(--muted)', display: 'inline-flex' }} aria-label="Back to ops"><ArrowLeft style={{ width: 18, height: 18 }} /></Link>
-        <h1 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Companion applications</h1>
-      </div>
+      <AdminNav />
+      <h1 style={{ margin: '0 0 4px', fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Companion applications</h1>
       <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '0.9rem' }}>Review KYC and approve, reject, or suspend companions.</p>
 
       {/* Filters */}

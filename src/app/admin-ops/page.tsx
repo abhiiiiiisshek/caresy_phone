@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { COMPANIONS, findCompanionByName, ratingLabel } from '@/data/companions';
 import { Button, Input } from '@/components/ds';
+import { AdminNav } from '@/components/AdminNav';
 
 const STATUS_OPTIONS = [
   'DRAFT',
@@ -28,18 +27,34 @@ interface BookingRecord {
   service_type: string;
   booking_type: string;
   service_metadata: any;
+  companion_user_id: string | null;
   patient?: any;
   pickup_location?: any;
+}
+
+interface ApprovedCompanion {
+  id: string;
+  full_name: string;
+  specialties: string[] | null;
+  languages: string[] | null;
+  photo_url: string | null;
+  rating: number | null;
+  total_jobs: number;
+}
+
+function initials(name: string): string {
+  return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 }
 
 export default function AdminOps() {
   const { user, isAdmin, openLogin } = useAuth();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
+  const [companions, setCompanions] = useState<ApprovedCompanion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Form states per card to allow editing before saving
-  const [editStates, setEditStates] = useState<Record<string, { companionName: string; status: string }>>({});
+  const [editStates, setEditStates] = useState<Record<string, { companionId: string; status: string }>>({});
 
   // Ops metrics (backs the "Live Operations Desk" widget on /booking, /quick-help, /trust)
   const [opsMetrics, setOpsMetrics] = useState<{ active_companions: number; avg_callback_minutes: number } | null>(null);
@@ -98,6 +113,7 @@ export default function AdminOps() {
           service_type,
           booking_type,
           service_metadata,
+          companion_user_id,
           patient:patients (
             full_name,
             age,
@@ -114,10 +130,10 @@ export default function AdminOps() {
       setBookings(data || []);
 
       // Initialize edit states
-      const initialEdits: Record<string, { companionName: string; status: string }> = {};
+      const initialEdits: Record<string, { companionId: string; status: string }> = {};
       (data || []).forEach(b => {
         initialEdits[b.id] = {
-          companionName: b.service_metadata?.companion?.name || '',
+          companionId: b.companion_user_id || '',
           status: b.status
         };
       });
@@ -129,9 +145,21 @@ export default function AdminOps() {
     }
   };
 
+  const fetchCompanions = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('companions')
+      .select('id, full_name, specialties, languages, photo_url, rating, total_jobs')
+      .eq('approval_status', 'APPROVED')
+      .is('deleted_at', null)
+      .order('full_name');
+    setCompanions((data as ApprovedCompanion[]) ?? []);
+  };
+
   useEffect(() => {
     if (user) {
       fetchAllBookings();
+      fetchCompanions();
       fetchOpsMetrics();
     } else {
       setIsLoading(false);
@@ -147,17 +175,17 @@ export default function AdminOps() {
     const edit = editStates[bookingId];
     if (!edit) return;
 
-    const matched = findCompanionByName(edit.companionName);
+    const matched = companions.find((c) => c.id === edit.companionId) || null;
     // Stored in the shape my-bookings/page.tsx expects to render.
     const matchedCompanion = matched ? {
-      name: matched.name,
-      avatar: matched.avatarInitials,
-      photo: matched.photo,
-      rating: ratingLabel(matched),
-      verification: matched.verification,
-      lang: matched.languages,
-      specialty: matched.specialty,
-      color: matched.color,
+      name: matched.full_name,
+      avatar: initials(matched.full_name),
+      photo: matched.photo_url || undefined,
+      rating: matched.rating != null ? `${matched.rating.toFixed(1)} (${matched.total_jobs} visits)` : 'New companion',
+      verification: 'Police Verified',
+      lang: (matched.languages || []).join(', ') || 'Hindi, English',
+      specialty: (matched.specialties || [])[0] || 'General Care',
+      color: '#08796f',
     } : null;
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking) return;
@@ -173,6 +201,7 @@ export default function AdminOps() {
         .from('bookings')
         .update({
           status: edit.status,
+          companion_user_id: edit.companionId || null,
           service_metadata: updatedMetadata
         })
         .eq('id', bookingId);
@@ -186,12 +215,12 @@ export default function AdminOps() {
     }
   };
 
-  const handleCompanionChange = (bookingId: string, name: string) => {
+  const handleCompanionChange = (bookingId: string, companionId: string) => {
     setEditStates(prev => ({
       ...prev,
       [bookingId]: {
         ...prev[bookingId],
-        companionName: name
+        companionId
       }
     }));
   };
@@ -248,14 +277,7 @@ export default function AdminOps() {
         <p className="eyebrow">Dispatcher Command Center</p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>Live Operations Desk</h1>
         <p style={{ color: 'var(--muted)' }}>Monitor patient incoming requests, assign companions, and push milestone progress updates to families.</p>
-        <div style={{ marginTop: 14, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link href="/admin/companions">
-            <Button variant="secondary" size="sm">Companion applications →</Button>
-          </Link>
-          <Link href="/admin/service-areas">
-            <Button variant="outline" size="sm">Service areas →</Button>
-          </Link>
-        </div>
+        <div style={{ marginTop: 14 }}><AdminNav /></div>
       </section>
 
       {opsMetrics && (
@@ -338,7 +360,7 @@ export default function AdminOps() {
   );
 
   function renderCard(b: BookingRecord) {
-    const edit = editStates[b.id] || { companionName: '', status: b.status };
+    const edit = editStates[b.id] || { companionId: '', status: b.status };
     const customMeta = b.service_metadata || {};
     const formattedDate = b.scheduled_start_time
       ? new Date(b.scheduled_start_time).toLocaleDateString('en-IN', {
@@ -377,17 +399,20 @@ export default function AdminOps() {
 
         <div className="admin-control-group" style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--line)', paddingTop: '12px', marginTop: '4px' }}>
           <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Companion Assignment</label>
-          <select 
-            className="admin-select" 
-            value={edit.companionName} 
+          <select
+            className="admin-select"
+            value={edit.companionId}
             onChange={(e) => handleCompanionChange(b.id, e.target.value)}
             style={{ width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--line)', background: 'var(--surface)', fontSize: '0.88rem' }}
           >
             <option value="">Unassigned</option>
-            {COMPANIONS.map(c => (
-              <option key={c.name} value={c.name}>{c.name} ({c.specialty})</option>
+            {companions.map(c => (
+              <option key={c.id} value={c.id}>{c.full_name} ({(c.specialties || [])[0] || 'General Care'})</option>
             ))}
           </select>
+          {companions.length === 0 && (
+            <span style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>No approved companions yet — approve one at /admin/companions.</span>
+          )}
 
           <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', marginTop: '6px' }}>Milestone Status</label>
           <select 

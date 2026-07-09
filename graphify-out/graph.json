@@ -33,20 +33,6 @@
         "confidence": "EXTRACTED",
         "confidence_score": 1.0,
         "source_file": "vanilla-backup/booking.html"
-      },
-      {
-        "id": "booking_lifecycle_status_concept",
-        "label": "Booking lifecycle/status concept spanning DB schema, home screen spec, and both admin/customer JS renderers",
-        "nodes": [
-          "docs_08_database_booking_engine_schema_booking_status_enum",
-          "docs_04_customer_app_customer_home_screen_active_booking_banner",
-          "vanilla_backup_admin_ops_renderboard",
-          "vanilla_backup_my_bookings_renderbookings"
-        ],
-        "relation": "form",
-        "confidence": "INFERRED",
-        "confidence_score": 0.8,
-        "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md"
       }
     ]
   },
@@ -418,38 +404,98 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_admin_ops_page",
-      "community": 8,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
       "label": "STATUS_OPTIONS",
       "file_type": "code",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L10",
+      "source_location": "L9",
       "_origin": "ast",
       "id": "src_app_admin_ops_page_status_options",
-      "community": 8,
+      "community": 1,
       "norm_label": "status_options"
     },
     {
       "label": "BookingRecord",
       "file_type": "code",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L21",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "src_app_admin_ops_page_bookingrecord",
-      "community": 8,
+      "community": 1,
       "norm_label": "bookingrecord"
+    },
+    {
+      "label": "ApprovedCompanion",
+      "file_type": "code",
+      "source_file": "src/app/admin-ops/page.tsx",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "src_app_admin_ops_page_approvedcompanion",
+      "community": 1,
+      "norm_label": "approvedcompanion"
+    },
+    {
+      "label": "initials()",
+      "file_type": "code",
+      "source_file": "src/app/admin-ops/page.tsx",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "src_app_admin_ops_page_initials",
+      "community": 1,
+      "norm_label": "initials()"
     },
     {
       "label": "AdminOps()",
       "file_type": "code",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L35",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "src_app_admin_ops_page_adminops",
-      "community": 8,
+      "community": 1,
       "norm_label": "adminops()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_app_admin_analytics_page",
+      "community": 1,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "STATUS_ORDER",
+      "file_type": "code",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "src_app_admin_analytics_page_status_order",
+      "community": 1,
+      "norm_label": "status_order"
+    },
+    {
+      "label": "Stats",
+      "file_type": "code",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "src_app_admin_analytics_page_stats",
+      "community": 1,
+      "norm_label": "stats"
+    },
+    {
+      "label": "AdminAnalytics()",
+      "file_type": "code",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "src_app_admin_analytics_page_adminanalytics",
+      "community": 1,
+      "norm_label": "adminanalytics()"
     },
     {
       "label": "page.tsx",
@@ -525,7 +571,7 @@
       "label": "ReviewSheet()",
       "file_type": "code",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L165",
+      "source_location": "L163",
       "_origin": "ast",
       "id": "src_app_admin_companions_page_reviewsheet",
       "community": 1,
@@ -535,7 +581,7 @@
       "label": "Detail()",
       "file_type": "code",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L288",
+      "source_location": "L286",
       "_origin": "ast",
       "id": "src_app_admin_companions_page_detail",
       "community": 1,
@@ -544,11 +590,71 @@
     {
       "label": "page.tsx",
       "file_type": "code",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_app_admin_notifications_page",
+      "community": 1,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "NotifStatus",
+      "file_type": "code",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "src_app_admin_notifications_page_notifstatus",
+      "community": 1,
+      "norm_label": "notifstatus"
+    },
+    {
+      "label": "NotifRow",
+      "file_type": "code",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "src_app_admin_notifications_page_notifrow",
+      "community": 1,
+      "norm_label": "notifrow"
+    },
+    {
+      "label": "STATUS_TONE",
+      "file_type": "code",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L28",
+      "_origin": "ast",
+      "id": "src_app_admin_notifications_page_status_tone",
+      "community": 1,
+      "norm_label": "status_tone"
+    },
+    {
+      "label": "FILTERS",
+      "file_type": "code",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "src_app_admin_notifications_page_filters",
+      "community": 1,
+      "norm_label": "filters"
+    },
+    {
+      "label": "AdminNotifications()",
+      "file_type": "code",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "src_app_admin_notifications_page_adminnotifications",
+      "community": 1,
+      "norm_label": "adminnotifications()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
       "source_file": "src/app/admin/service-areas/page.tsx",
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_admin_service_areas_page",
-      "community": 3,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
@@ -558,7 +664,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_app_admin_service_areas_page_arearow",
-      "community": 3,
+      "community": 1,
       "norm_label": "arearow"
     },
     {
@@ -568,8 +674,68 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_app_admin_service_areas_page_adminserviceareas",
-      "community": 3,
+      "community": 1,
       "norm_label": "adminserviceareas()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_app_admin_settings_page",
+      "community": 1,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "SettingRow",
+      "file_type": "code",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "src_app_admin_settings_page_settingrow",
+      "community": 1,
+      "norm_label": "settingrow"
+    },
+    {
+      "label": "AdminSettings()",
+      "file_type": "code",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "src_app_admin_settings_page_adminsettings",
+      "community": 1,
+      "norm_label": "adminsettings()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_app_admin_users_page",
+      "community": 1,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "UserRow",
+      "file_type": "code",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "src_app_admin_users_page_userrow",
+      "community": 1,
+      "norm_label": "userrow"
+    },
+    {
+      "label": "AdminUsers()",
+      "file_type": "code",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "src_app_admin_users_page_adminusers",
+      "community": 1,
+      "norm_label": "adminusers()"
     },
     {
       "label": "route.ts",
@@ -618,7 +784,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_booking_page",
-      "community": 3,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
@@ -628,7 +794,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_app_booking_page_steps",
-      "community": 3,
+      "community": 1,
       "norm_label": "steps"
     },
     {
@@ -638,7 +804,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_app_booking_page_booking",
-      "community": 3,
+      "community": 1,
       "norm_label": "booking()"
     },
     {
@@ -878,7 +1044,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_layout",
-      "community": 1,
+      "community": 46,
       "norm_label": "layout.tsx"
     },
     {
@@ -888,7 +1054,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_app_layout_poppins",
-      "community": 1,
+      "community": 46,
       "norm_label": "poppins"
     },
     {
@@ -898,7 +1064,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_app_layout_metadata",
-      "community": 1,
+      "community": 46,
       "norm_label": "metadata"
     },
     {
@@ -908,7 +1074,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_app_layout_viewport",
-      "community": 1,
+      "community": 46,
       "norm_label": "viewport"
     },
     {
@@ -918,7 +1084,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_app_layout_rootlayout",
-      "community": 1,
+      "community": 46,
       "norm_label": "rootlayout()"
     },
     {
@@ -1148,7 +1314,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_privacy_page",
-      "community": 3,
+      "community": 54,
       "norm_label": "page.tsx"
     },
     {
@@ -1158,7 +1324,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_app_privacy_page_privacy_sections",
-      "community": 3,
+      "community": 54,
       "norm_label": "privacy_sections"
     },
     {
@@ -1168,7 +1334,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "src_app_privacy_page_privacypolicy",
-      "community": 3,
+      "community": 54,
       "norm_label": "privacypolicy()"
     },
     {
@@ -1218,7 +1384,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_quick_help_page",
-      "community": 3,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
@@ -1228,7 +1394,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_app_quick_help_page_quickhelp",
-      "community": 3,
+      "community": 1,
       "norm_label": "quickhelp()"
     },
     {
@@ -1238,7 +1404,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_services_page",
-      "community": 0,
+      "community": 51,
       "norm_label": "page.tsx"
     },
     {
@@ -1248,7 +1414,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_app_services_page_services",
-      "community": 0,
+      "community": 51,
       "norm_label": "services"
     },
     {
@@ -1328,7 +1494,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_terms_page",
-      "community": 3,
+      "community": 55,
       "norm_label": "page.tsx"
     },
     {
@@ -1338,7 +1504,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_app_terms_page_terms_sections",
-      "community": 3,
+      "community": 55,
       "norm_label": "terms_sections"
     },
     {
@@ -1348,7 +1514,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "src_app_terms_page_termsofservice",
-      "community": 3,
+      "community": 55,
       "norm_label": "termsofservice()"
     },
     {
@@ -1378,7 +1544,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_app_trust_page",
-      "community": 0,
+      "community": 50,
       "norm_label": "page.tsx"
     },
     {
@@ -1388,7 +1554,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_app_trust_page_verification_steps",
-      "community": 0,
+      "community": 50,
       "norm_label": "verification_steps"
     },
     {
@@ -1398,8 +1564,38 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_app_trust_page_trust",
-      "community": 0,
+      "community": 50,
       "norm_label": "trust()"
+    },
+    {
+      "label": "AdminNav.tsx",
+      "file_type": "code",
+      "source_file": "src/components/AdminNav.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_components_adminnav",
+      "community": 1,
+      "norm_label": "adminnav.tsx"
+    },
+    {
+      "label": "LINKS",
+      "file_type": "code",
+      "source_file": "src/components/AdminNav.tsx",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "src_components_adminnav_links",
+      "community": 1,
+      "norm_label": "links"
+    },
+    {
+      "label": "AdminNav()",
+      "file_type": "code",
+      "source_file": "src/components/AdminNav.tsx",
+      "source_location": "L18",
+      "_origin": "ast",
+      "id": "src_components_adminnav_adminnav",
+      "community": 1,
+      "norm_label": "adminnav()"
     },
     {
       "label": "AuthModal.tsx",
@@ -1438,7 +1634,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_cookiebanner",
-      "community": 1,
+      "community": 46,
       "norm_label": "cookiebanner.tsx"
     },
     {
@@ -1448,7 +1644,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_components_cookiebanner_cookiebanner",
-      "community": 1,
+      "community": 46,
       "norm_label": "cookiebanner()"
     },
     {
@@ -1458,7 +1654,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_footer",
-      "community": 0,
+      "community": 49,
       "norm_label": "footer.tsx"
     },
     {
@@ -1468,7 +1664,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_components_footer_app_tabs",
-      "community": 0,
+      "community": 49,
       "norm_label": "app_tabs"
     },
     {
@@ -1478,7 +1674,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_components_footer_footer",
-      "community": 0,
+      "community": 49,
       "norm_label": "footer()"
     },
     {
@@ -1508,7 +1704,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_locationbadge",
-      "community": 3,
+      "community": 8,
       "norm_label": "locationbadge.tsx"
     },
     {
@@ -1518,7 +1714,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_components_locationbadge_quick_picks",
-      "community": 3,
+      "community": 8,
       "norm_label": "quick_picks"
     },
     {
@@ -1528,7 +1724,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "src_components_locationbadge_storedlocation",
-      "community": 3,
+      "community": 8,
       "norm_label": "storedlocation"
     },
     {
@@ -1538,7 +1734,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_components_locationbadge_badgestate",
-      "community": 3,
+      "community": 8,
       "norm_label": "badgestate"
     },
     {
@@ -1548,7 +1744,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "src_components_locationbadge_readstored",
-      "community": 3,
+      "community": 8,
       "norm_label": "readstored()"
     },
     {
@@ -1558,7 +1754,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "src_components_locationbadge_writestored",
-      "community": 3,
+      "community": 8,
       "norm_label": "writestored()"
     },
     {
@@ -1568,7 +1764,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "src_components_locationbadge_reversegeocode",
-      "community": 3,
+      "community": 8,
       "norm_label": "reversegeocode()"
     },
     {
@@ -1578,7 +1774,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_components_locationbadge_locationbadge",
-      "community": 3,
+      "community": 8,
       "norm_label": "locationbadge()"
     },
     {
@@ -1588,7 +1784,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mobilebottomnav",
-      "community": 1,
+      "community": 46,
       "norm_label": "mobilebottomnav.tsx"
     },
     {
@@ -1598,7 +1794,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_mobilebottomnav_mobilebottomnav",
-      "community": 1,
+      "community": 46,
       "norm_label": "mobilebottomnav()"
     },
     {
@@ -1608,7 +1804,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_whatsappwidget",
-      "community": 1,
+      "community": 46,
       "norm_label": "whatsappwidget.tsx"
     },
     {
@@ -1618,7 +1814,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_components_whatsappwidget_app_tabs",
-      "community": 1,
+      "community": 46,
       "norm_label": "app_tabs"
     },
     {
@@ -1628,7 +1824,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "src_components_whatsappwidget_whatsappwidget",
-      "community": 1,
+      "community": 46,
       "norm_label": "whatsappwidget()"
     },
     {
@@ -1638,7 +1834,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_badge",
-      "community": 0,
+      "community": 48,
       "norm_label": "badge.tsx"
     },
     {
@@ -1648,7 +1844,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_badge_badgetone",
-      "community": 0,
+      "community": 48,
       "norm_label": "badgetone"
     },
     {
@@ -1658,7 +1854,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_components_ds_badge_badgesize",
-      "community": 0,
+      "community": 48,
       "norm_label": "badgesize"
     },
     {
@@ -1668,7 +1864,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_components_ds_badge_badgeprops",
-      "community": 0,
+      "community": 48,
       "norm_label": "badgeprops"
     },
     {
@@ -1678,7 +1874,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_components_ds_badge_tones",
-      "community": 0,
+      "community": 48,
       "norm_label": "tones"
     },
     {
@@ -1688,7 +1884,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_components_ds_badge_sizes",
-      "community": 0,
+      "community": 48,
       "norm_label": "sizes"
     },
     {
@@ -1698,7 +1894,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "src_components_ds_badge_badge",
-      "community": 0,
+      "community": 1,
       "norm_label": "badge()"
     },
     {
@@ -1708,7 +1904,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_button",
-      "community": 0,
+      "community": 47,
       "norm_label": "button.tsx"
     },
     {
@@ -1718,7 +1914,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_button_buttonvariant",
-      "community": 0,
+      "community": 47,
       "norm_label": "buttonvariant"
     },
     {
@@ -1728,7 +1924,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_components_ds_button_buttonsize",
-      "community": 0,
+      "community": 47,
       "norm_label": "buttonsize"
     },
     {
@@ -1738,7 +1934,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_components_ds_button_buttonshape",
-      "community": 0,
+      "community": 47,
       "norm_label": "buttonshape"
     },
     {
@@ -1748,7 +1944,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_ds_button_buttonprops",
-      "community": 0,
+      "community": 47,
       "norm_label": "buttonprops"
     },
     {
@@ -1758,7 +1954,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_ds_button_sizes",
-      "community": 0,
+      "community": 47,
       "norm_label": "sizes"
     },
     {
@@ -1768,7 +1964,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_components_ds_button_variants",
-      "community": 0,
+      "community": 47,
       "norm_label": "variants"
     },
     {
@@ -1778,7 +1974,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "src_components_ds_button_button",
-      "community": 0,
+      "community": 1,
       "norm_label": "button()"
     },
     {
@@ -1788,7 +1984,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_card",
-      "community": 0,
+      "community": 53,
       "norm_label": "card.tsx"
     },
     {
@@ -1798,7 +1994,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_card_cardvariant",
-      "community": 0,
+      "community": 53,
       "norm_label": "cardvariant"
     },
     {
@@ -1808,7 +2004,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_components_ds_card_cardprops",
-      "community": 0,
+      "community": 53,
       "norm_label": "cardprops"
     },
     {
@@ -1818,7 +2014,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_components_ds_card_variants",
-      "community": 0,
+      "community": 53,
       "norm_label": "variants"
     },
     {
@@ -1838,7 +2034,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_companioncard",
-      "community": 0,
+      "community": 48,
       "norm_label": "companioncard.tsx"
     },
     {
@@ -1848,7 +2044,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "src_components_ds_companioncard_companioncardprops",
-      "community": 0,
+      "community": 48,
       "norm_label": "companioncardprops"
     },
     {
@@ -1858,7 +2054,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_components_ds_companioncard_companioncard",
-      "community": 0,
+      "community": 48,
       "norm_label": "companioncard()"
     },
     {
@@ -1868,7 +2064,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_iconbutton",
-      "community": 0,
+      "community": 49,
       "norm_label": "iconbutton.tsx"
     },
     {
@@ -1878,7 +2074,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_iconbutton_iconbuttonvariant",
-      "community": 0,
+      "community": 49,
       "norm_label": "iconbuttonvariant"
     },
     {
@@ -1888,7 +2084,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_components_ds_iconbutton_iconbuttonprops",
-      "community": 0,
+      "community": 49,
       "norm_label": "iconbuttonprops"
     },
     {
@@ -1898,7 +2094,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_components_ds_iconbutton_variants",
-      "community": 0,
+      "community": 49,
       "norm_label": "variants"
     },
     {
@@ -1908,7 +2104,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_components_ds_iconbutton_iconbutton",
-      "community": 0,
+      "community": 49,
       "norm_label": "iconbutton()"
     },
     {
@@ -1918,7 +2114,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_input",
-      "community": 0,
+      "community": 47,
       "norm_label": "input.tsx"
     },
     {
@@ -1928,7 +2124,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_input_inputprops",
-      "community": 0,
+      "community": 47,
       "norm_label": "inputprops"
     },
     {
@@ -1938,7 +2134,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "src_components_ds_input_input",
-      "community": 3,
+      "community": 1,
       "norm_label": "input()"
     },
     {
@@ -1948,7 +2144,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_servicecard",
-      "community": 0,
+      "community": 51,
       "norm_label": "servicecard.tsx"
     },
     {
@@ -1958,7 +2154,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_servicecard_servicecardprops",
-      "community": 0,
+      "community": 51,
       "norm_label": "servicecardprops"
     },
     {
@@ -1968,7 +2164,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_components_ds_servicecard_servicecard",
-      "community": 0,
+      "community": 51,
       "norm_label": "servicecard()"
     },
     {
@@ -1978,7 +2174,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_statcard",
-      "community": 0,
+      "community": 50,
       "norm_label": "statcard.tsx"
     },
     {
@@ -1988,7 +2184,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_statcard_statcardprops",
-      "community": 0,
+      "community": 50,
       "norm_label": "statcardprops"
     },
     {
@@ -1998,7 +2194,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_components_ds_statcard_statcard",
-      "community": 0,
+      "community": 50,
       "norm_label": "statcard()"
     },
     {
@@ -2008,7 +2204,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_stepitem",
-      "community": 0,
+      "community": 47,
       "norm_label": "stepitem.tsx"
     },
     {
@@ -2018,7 +2214,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "src_components_ds_stepitem_stepitemprops",
-      "community": 0,
+      "community": 47,
       "norm_label": "stepitemprops"
     },
     {
@@ -2028,7 +2224,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_components_ds_stepitem_stepitem",
-      "community": 0,
+      "community": 47,
       "norm_label": "stepitem()"
     },
     {
@@ -2038,7 +2234,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ds_index",
-      "community": 0,
+      "community": 47,
       "norm_label": "index.ts"
     },
     {
@@ -2088,7 +2284,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_context_authcontext_authprovider",
-      "community": 1,
+      "community": 46,
       "norm_label": "authprovider()"
     },
     {
@@ -2148,7 +2344,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "src_data_companions_matchcompanionbydepartment",
-      "community": 8,
+      "community": 1,
       "norm_label": "matchcompanionbydepartment()"
     },
     {
@@ -2168,7 +2364,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_hooks_uselivemetrics",
-      "community": 3,
+      "community": 1,
       "norm_label": "uselivemetrics.ts"
     },
     {
@@ -2178,7 +2374,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_hooks_uselivemetrics_uselivemetrics",
-      "community": 3,
+      "community": 1,
       "norm_label": "uselivemetrics()"
     },
     {
@@ -2212,13 +2408,43 @@
       "norm_label": "config"
     },
     {
+      "label": "pricing.ts",
+      "file_type": "code",
+      "source_file": "src/utils/pricing.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "src_utils_pricing",
+      "community": 1,
+      "norm_label": "pricing.ts"
+    },
+    {
+      "label": "PricedBooking",
+      "file_type": "code",
+      "source_file": "src/utils/pricing.ts",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "src_utils_pricing_pricedbooking",
+      "community": 1,
+      "norm_label": "pricedbooking"
+    },
+    {
+      "label": "estimateBookingPrice()",
+      "file_type": "code",
+      "source_file": "src/utils/pricing.ts",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "src_utils_pricing_estimatebookingprice",
+      "community": 1,
+      "norm_label": "estimatebookingprice()"
+    },
+    {
       "label": "serviceArea.ts",
       "file_type": "code",
       "source_file": "src/utils/serviceArea.ts",
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_servicearea",
-      "community": 3,
+      "community": 1,
       "norm_label": "servicearea.ts"
     },
     {
@@ -2228,7 +2454,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_utils_servicearea_servicearea",
-      "community": 3,
+      "community": 1,
       "norm_label": "servicearea"
     },
     {
@@ -2238,7 +2464,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_utils_servicearea_pincodecheck",
-      "community": 3,
+      "community": 1,
       "norm_label": "pincodecheck"
     },
     {
@@ -2248,7 +2474,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_utils_servicearea_isvalidpincode",
-      "community": 3,
+      "community": 1,
       "norm_label": "isvalidpincode()"
     },
     {
@@ -2258,7 +2484,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_utils_servicearea_checkpincodeserved",
-      "community": 3,
+      "community": 1,
       "norm_label": "checkpincodeserved()"
     },
     {
@@ -2268,7 +2494,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_utils_supabase_client",
-      "community": 3,
+      "community": 1,
       "norm_label": "client.ts"
     },
     {
@@ -2278,7 +2504,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "src_utils_supabase_client_createclient",
-      "community": 3,
+      "community": 1,
       "norm_label": "createclient()"
     },
     {
@@ -3612,6 +3838,766 @@
       "norm_label": "files"
     },
     {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents",
+      "community": 56,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "This is NOT the Next.js you know",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "agents_this_is_not_the_next_js_you_know",
+      "community": 56,
+      "norm_label": "this is not the next.js you know"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude",
+      "community": 57,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "claude_graphify",
+      "community": 57,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "readme",
+      "community": 52,
+      "norm_label": "readme.md"
+    },
+    {
+      "label": "Getting Started",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "readme_getting_started",
+      "community": 52,
+      "norm_label": "getting started"
+    },
+    {
+      "label": "Learn More",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "readme_learn_more",
+      "community": 52,
+      "norm_label": "learn more"
+    },
+    {
+      "label": "Deploy on Vercel",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "readme_deploy_on_vercel",
+      "community": 52,
+      "norm_label": "deploy on vercel"
+    },
+    {
+      "label": "CUSTOMER_HOME_SCREEN.md",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen",
+      "community": 44,
+      "norm_label": "customer_home_screen.md"
+    },
+    {
+      "label": "Customer Home Screen Design Specification",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "community": 44,
+      "norm_label": "customer home screen design specification"
+    },
+    {
+      "label": "Purpose",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_purpose",
+      "community": 44,
+      "norm_label": "purpose"
+    },
+    {
+      "label": "1. Design Philosophy & Theme",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_1_design_philosophy_theme",
+      "community": 44,
+      "norm_label": "1. design philosophy & theme"
+    },
+    {
+      "label": "2. Wireframe & Visual Layout",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_2_wireframe_visual_layout",
+      "community": 44,
+      "norm_label": "2. wireframe & visual layout"
+    },
+    {
+      "label": "3. Component Hierarchy & Specifications",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "community": 44,
+      "norm_label": "3. component hierarchy & specifications"
+    },
+    {
+      "label": "A. Sticky App Bar (Header)",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_a_sticky_app_bar_header",
+      "community": 44,
+      "norm_label": "a. sticky app bar (header)"
+    },
+    {
+      "label": "B. Dynamic Active Booking Banner",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L101",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_b_dynamic_active_booking_banner",
+      "community": 44,
+      "norm_label": "b. dynamic active booking banner"
+    },
+    {
+      "label": "C. Hero Intent Selector (Primary Grid)",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_c_hero_intent_selector_primary_grid",
+      "community": 44,
+      "norm_label": "c. hero intent selector (primary grid)"
+    },
+    {
+      "label": "D. Services Section",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_d_services_section",
+      "community": 44,
+      "norm_label": "d. services section"
+    },
+    {
+      "label": "E. Verified Companions Carousel",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L135",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_e_verified_companions_carousel",
+      "community": 44,
+      "norm_label": "e. verified companions carousel"
+    },
+    {
+      "label": "F. Trust & Safety Badges",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L145",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_f_trust_safety_badges",
+      "community": 44,
+      "norm_label": "f. trust & safety badges"
+    },
+    {
+      "label": "G. Sticky Bottom Navigation Bar",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_g_sticky_bottom_navigation_bar",
+      "community": 44,
+      "norm_label": "g. sticky bottom navigation bar"
+    },
+    {
+      "label": "4. Spacing & Typography (Material 3 Scale)",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L163",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_4_spacing_typography_material_3_scale",
+      "community": 44,
+      "norm_label": "4. spacing & typography (material 3 scale)"
+    },
+    {
+      "label": "Spacing System (8px Grid)",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L165",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_spacing_system_8px_grid",
+      "community": 44,
+      "norm_label": "spacing system (8px grid)"
+    },
+    {
+      "label": "Typography (Poppins / System Sans)",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L171",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_typography_poppins_system_sans",
+      "community": 44,
+      "norm_label": "typography (poppins / system sans)"
+    },
+    {
+      "label": "5. Micro-Animations & Interactions",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L180",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_5_micro_animations_interactions",
+      "community": 44,
+      "norm_label": "5. micro-animations & interactions"
+    },
+    {
+      "label": "6. Accessibility & WCAG AA Checklist",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L198",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_6_accessibility_wcag_aa_checklist",
+      "community": 44,
+      "norm_label": "6. accessibility & wcag aa checklist"
+    },
+    {
+      "label": "7. Responsive Design (Desktop Adaptation)",
+      "file_type": "document",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L212",
+      "_origin": "ast",
+      "id": "docs_04_customer_app_customer_home_screen_7_responsive_design_desktop_adaptation",
+      "community": 44,
+      "norm_label": "7. responsive design (desktop adaptation)"
+    },
+    {
+      "label": "BOOKING_ENGINE_SCHEMA.md",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema",
+      "community": 45,
+      "norm_label": "booking_engine_schema.md"
+    },
+    {
+      "label": "Caresy Booking Engine Schema",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "community": 45,
+      "norm_label": "caresy booking engine schema"
+    },
+    {
+      "label": "Purpose",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_purpose",
+      "community": 45,
+      "norm_label": "purpose"
+    },
+    {
+      "label": "1. Enums & Custom Types",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_1_enums_custom_types",
+      "community": 45,
+      "norm_label": "1. enums & custom types"
+    },
+    {
+      "label": "2. Core Tables",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L38",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_2_core_tables",
+      "community": 45,
+      "norm_label": "2. core tables"
+    },
+    {
+      "label": "A. patients",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L40",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_a_patients",
+      "community": 45,
+      "norm_label": "a. patients"
+    },
+    {
+      "label": "B. locations",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_b_locations",
+      "community": 45,
+      "norm_label": "b. locations"
+    },
+    {
+      "label": "C. bookings",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L83",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_c_bookings",
+      "community": 45,
+      "norm_label": "c. bookings"
+    },
+    {
+      "label": "D. audit_logs",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L122",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_d_audit_logs",
+      "community": 45,
+      "norm_label": "d. audit_logs"
+    },
+    {
+      "label": "3. Indexes",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L138",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_3_indexes",
+      "community": 45,
+      "norm_label": "3. indexes"
+    },
+    {
+      "label": "4. Database Triggers & Functions",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L159",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_4_database_triggers_functions",
+      "community": 45,
+      "norm_label": "4. database triggers & functions"
+    },
+    {
+      "label": "A. Auto-Update Timestamp",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L161",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_a_auto_update_timestamp",
+      "community": 45,
+      "norm_label": "a. auto-update timestamp"
+    },
+    {
+      "label": "B. Audit Logging Trigger",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L180",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_b_audit_logging_trigger",
+      "community": 45,
+      "norm_label": "b. audit logging trigger"
+    },
+    {
+      "label": "5. Entity Relationship Diagram (ERD)",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L205",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_5_entity_relationship_diagram_erd",
+      "community": 45,
+      "norm_label": "5. entity relationship diagram (erd)"
+    },
+    {
+      "label": "6. Migration Notes & Deployment Strategy",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L244",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_6_migration_notes_deployment_strategy",
+      "community": 45,
+      "norm_label": "6. migration notes & deployment strategy"
+    },
+    {
+      "label": "7. TODOs (Pending Product Clarifications)",
+      "file_type": "document",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L250",
+      "_origin": "ast",
+      "id": "docs_08_database_booking_engine_schema_7_todos_pending_product_clarifications",
+      "community": 45,
+      "norm_label": "7. todos (pending product clarifications)"
+    },
+    {
+      "label": "DEVELOPER_HANDOFF.md",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_developer_handoff",
+      "community": 43,
+      "norm_label": "developer_handoff.md"
+    },
+    {
+      "label": "Caresy \u2014 Developer Handoff",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_caresy_developer_handoff",
+      "community": 43,
+      "norm_label": "caresy \u2014 developer handoff"
+    },
+    {
+      "label": "1. Product overview & vision",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_1_product_overview_vision",
+      "community": 43,
+      "norm_label": "1. product overview & vision"
+    },
+    {
+      "label": "The vision (owner's words, paraphrased)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_the_vision_owner_s_words_paraphrased",
+      "community": 43,
+      "norm_label": "the vision (owner's words, paraphrased)"
+    },
+    {
+      "label": "The owner's original 5 concerns and their status",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_the_owner_s_original_5_concerns_and_their_status",
+      "community": 43,
+      "norm_label": "the owner's original 5 concerns and their status"
+    },
+    {
+      "label": "2. Tech stack",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_2_tech_stack",
+      "community": 43,
+      "norm_label": "2. tech stack"
+    },
+    {
+      "label": "3. Repository map (key files)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_3_repository_map_key_files",
+      "community": 43,
+      "norm_label": "3. repository map (key files)"
+    },
+    {
+      "label": "4. Database \u2014 schema & migrations",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_4_database_schema_migrations",
+      "community": 43,
+      "norm_label": "4. database \u2014 schema & migrations"
+    },
+    {
+      "label": "Tables (as of migration 13)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L109",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_tables_as_of_migration_13",
+      "community": 43,
+      "norm_label": "tables (as of migration 13)"
+    },
+    {
+      "label": "`booking_status_enum`",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L124",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_booking_status_enum",
+      "community": 43,
+      "norm_label": "`booking_status_enum`"
+    },
+    {
+      "label": "Storage",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L128",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_storage",
+      "community": 43,
+      "norm_label": "storage"
+    },
+    {
+      "label": "Important triggers/functions",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L132",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_important_triggers_functions",
+      "community": 43,
+      "norm_label": "important triggers/functions"
+    },
+    {
+      "label": "5. What has been built (chronological)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L143",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "community": 43,
+      "norm_label": "5. what has been built (chronological)"
+    },
+    {
+      "label": "Presentation layer (earlier)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L145",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_presentation_layer_earlier",
+      "community": 43,
+      "norm_label": "presentation layer (earlier)"
+    },
+    {
+      "label": "Phase 0 \u2014 DB foundation",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L150",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_phase_0_db_foundation",
+      "community": 43,
+      "norm_label": "phase 0 \u2014 db foundation"
+    },
+    {
+      "label": "Phase 3 \u2014 Service areas (the \"Gaur City\" fix)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L155",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_phase_3_service_areas_the_gaur_city_fix",
+      "community": 43,
+      "norm_label": "phase 3 \u2014 service areas (the \"gaur city\" fix)"
+    },
+    {
+      "label": "Phase 2 \u2014 Companion portal",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L162",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_phase_2_companion_portal",
+      "community": 43,
+      "norm_label": "phase 2 \u2014 companion portal"
+    },
+    {
+      "label": "Phase 1 \u2014 Admin (partial)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L167",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_phase_1_admin_partial",
+      "community": 43,
+      "norm_label": "phase 1 \u2014 admin (partial)"
+    },
+    {
+      "label": "Phase 4 \u2014 Request lifecycle",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L171",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_phase_4_request_lifecycle",
+      "community": 43,
+      "norm_label": "phase 4 \u2014 request lifecycle"
+    },
+    {
+      "label": "6. What's PENDING and HOW to do it",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L179",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "community": 43,
+      "norm_label": "6. what's pending and how to do it"
+    },
+    {
+      "label": "A. Notification DELIVERY (highest priority for production)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L181",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_a_notification_delivery_highest_priority_for_production",
+      "community": 43,
+      "norm_label": "a. notification delivery (highest priority for production)"
+    },
+    {
+      "label": "B. Expiry / worker SCHEDULING \u2014 \u2705 DONE",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L199",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_b_expiry_worker_scheduling_done",
+      "community": 43,
+      "norm_label": "b. expiry / worker scheduling \u2014 \u2705 done"
+    },
+    {
+      "label": "C. Admin panel \u2014 \u2705 DONE (code-complete; one migration pending)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L215",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_c_admin_panel_done_code_complete_one_migration_pending",
+      "community": 43,
+      "norm_label": "c. admin panel \u2014 \u2705 done (code-complete; one migration pending)"
+    },
+    {
+      "label": "D. Companion job feed \u2014 polish (Phase 2)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L244",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_d_companion_job_feed_polish_phase_2",
+      "community": 43,
+      "norm_label": "d. companion job feed \u2014 polish (phase 2)"
+    },
+    {
+      "label": "E. Service areas \u2014 remaining (Phase 3)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L252",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_e_service_areas_remaining_phase_3",
+      "community": 43,
+      "norm_label": "e. service areas \u2014 remaining (phase 3)"
+    },
+    {
+      "label": "F. Cross-cutting production hardening",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L257",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_f_cross_cutting_production_hardening",
+      "community": 43,
+      "norm_label": "f. cross-cutting production hardening"
+    },
+    {
+      "label": "G. Domain (operational)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L276",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_g_domain_operational",
+      "community": 43,
+      "norm_label": "g. domain (operational)"
+    },
+    {
+      "label": "7. Setup / running locally",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L285",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_7_setup_running_locally",
+      "community": 43,
+      "norm_label": "7. setup / running locally"
+    },
+    {
+      "label": "Vercel env vars (Production + Preview)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L303",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_vercel_env_vars_production_preview",
+      "community": 43,
+      "norm_label": "vercel env vars (production + preview)"
+    },
+    {
+      "label": "8. Known gotchas (learned the hard way)",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L309",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_8_known_gotchas_learned_the_hard_way",
+      "community": 43,
+      "norm_label": "8. known gotchas (learned the hard way)"
+    },
+    {
+      "label": "9. Verification approach",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L328",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_9_verification_approach",
+      "community": 43,
+      "norm_label": "9. verification approach"
+    },
+    {
+      "label": "The three loops to smoke-test after any change",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L336",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_the_three_loops_to_smoke_test_after_any_change",
+      "community": 43,
+      "norm_label": "the three loops to smoke-test after any change"
+    },
+    {
+      "label": "10. Quick status snapshot",
+      "file_type": "document",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L345",
+      "_origin": "ast",
+      "id": "docs_developer_handoff_10_quick_status_snapshot",
+      "community": 43,
+      "norm_label": "10. quick status snapshot"
+    },
+    {
       "label": "Warning: Non-standard Next.js version with breaking changes",
       "file_type": "rationale",
       "source_file": "AGENTS.md",
@@ -3620,9 +4606,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "agents_nextjs_breaking_changes",
       "community": 20,
-      "norm_label": "warning: non-standard next.js version with breaking changes"
+      "norm_label": "warning: non-standard next.js version with breaking changes",
+      "id": "agents_nextjs_breaking_changes"
     },
     {
       "label": "CLAUDE.md project instructions (imports AGENTS.md)",
@@ -3633,9 +4619,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "claude_project_instructions",
-      "community": 20,
-      "norm_label": "claude.md project instructions (imports agents.md)"
+      "community": 58,
+      "norm_label": "claude.md project instructions (imports agents.md)",
+      "id": "claude_project_instructions"
     },
     {
       "label": "graphify knowledge-graph workflow rules",
@@ -3646,9 +4632,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "claude_graphify_rules",
       "community": 26,
-      "norm_label": "graphify knowledge-graph workflow rules"
+      "norm_label": "graphify knowledge-graph workflow rules",
+      "id": "claude_graphify_rules"
     },
     {
       "label": "Caresy Next.js project README (create-next-app bootstrap)",
@@ -3659,9 +4645,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_nextjs_project",
       "community": 41,
-      "norm_label": "caresy next.js project readme (create-next-app bootstrap)"
+      "norm_label": "caresy next.js project readme (create-next-app bootstrap)",
+      "id": "readme_nextjs_project"
     },
     {
       "label": "Design Philosophy & Theme (Deep Ink Teal, Marigold, Vermilion, Sage)",
@@ -3672,9 +4658,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_design_philosophy",
-      "community": 4,
-      "norm_label": "design philosophy & theme (deep ink teal, marigold, vermilion, sage)"
+      "community": 60,
+      "norm_label": "design philosophy & theme (deep ink teal, marigold, vermilion, sage)",
+      "id": "docs_04_customer_app_customer_home_screen_design_philosophy"
     },
     {
       "label": "Home Screen Wireframe & Visual Layout (mermaid graph)",
@@ -3685,9 +4671,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_wireframe_layout",
       "community": 34,
-      "norm_label": "home screen wireframe & visual layout (mermaid graph)"
+      "norm_label": "home screen wireframe & visual layout (mermaid graph)",
+      "id": "docs_04_customer_app_customer_home_screen_wireframe_layout"
     },
     {
       "label": "Sticky App Bar (Header) component spec",
@@ -3698,9 +4684,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_app_bar",
       "community": 28,
-      "norm_label": "sticky app bar (header) component spec"
+      "norm_label": "sticky app bar (header) component spec",
+      "id": "docs_04_customer_app_customer_home_screen_app_bar"
     },
     {
       "label": "Dynamic Active Booking Banner (renders when bookings.status is ASSIGNED/IN_PROGRESS)",
@@ -3711,9 +4697,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_active_booking_banner",
       "community": 21,
-      "norm_label": "dynamic active booking banner (renders when bookings.status is assigned/in_progress)"
+      "norm_label": "dynamic active booking banner (renders when bookings.status is assigned/in_progress)",
+      "id": "docs_04_customer_app_customer_home_screen_active_booking_banner"
     },
     {
       "label": "Hero Intent Selector: Emergency Now vs Schedule Visit",
@@ -3724,9 +4710,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_hero_intent_selector",
       "community": 30,
-      "norm_label": "hero intent selector: emergency now vs schedule visit"
+      "norm_label": "hero intent selector: emergency now vs schedule visit",
+      "id": "docs_04_customer_app_customer_home_screen_hero_intent_selector"
     },
     {
       "label": "Services Section (Hospital Companion, Medicine Pickup, Diagnostic Test, Safe Return)",
@@ -3737,9 +4723,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_services_section",
-      "community": 4,
-      "norm_label": "services section (hospital companion, medicine pickup, diagnostic test, safe return)"
+      "community": 61,
+      "norm_label": "services section (hospital companion, medicine pickup, diagnostic test, safe return)",
+      "id": "docs_04_customer_app_customer_home_screen_services_section"
     },
     {
       "label": "Verified Companions Carousel (name, rating, languages, badge)",
@@ -3750,9 +4736,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_companions_carousel",
-      "community": 4,
-      "norm_label": "verified companions carousel (name, rating, languages, badge)"
+      "community": 59,
+      "norm_label": "verified companions carousel (name, rating, languages, badge)",
+      "id": "docs_04_customer_app_customer_home_screen_companions_carousel"
     },
     {
       "label": "Trust & Safety Badges (Police Verified, Partner Hospitals, 24/7 Ops)",
@@ -3763,9 +4749,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_trust_safety_badges",
-      "community": 4,
-      "norm_label": "trust & safety badges (police verified, partner hospitals, 24/7 ops)"
+      "community": 62,
+      "norm_label": "trust & safety badges (police verified, partner hospitals, 24/7 ops)",
+      "id": "docs_04_customer_app_customer_home_screen_trust_safety_badges"
     },
     {
       "label": "Sticky Bottom Navigation Bar (Home, Bookings, Support, Profile)",
@@ -3776,9 +4762,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_bottom_nav",
       "community": 29,
-      "norm_label": "sticky bottom navigation bar (home, bookings, support, profile)"
+      "norm_label": "sticky bottom navigation bar (home, bookings, support, profile)",
+      "id": "docs_04_customer_app_customer_home_screen_bottom_nav"
     },
     {
       "label": "Spacing & Typography (Material 3 scale, 8px grid, Poppins)",
@@ -3789,9 +4775,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_spacing_typography",
       "community": 33,
-      "norm_label": "spacing & typography (material 3 scale, 8px grid, poppins)"
+      "norm_label": "spacing & typography (material 3 scale, 8px grid, poppins)",
+      "id": "docs_04_customer_app_customer_home_screen_spacing_typography"
     },
     {
       "label": "Micro-Animations & Interactions (pulse, hover/tap, carousel physics)",
@@ -3802,9 +4788,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_micro_animations",
       "community": 31,
-      "norm_label": "micro-animations & interactions (pulse, hover/tap, carousel physics)"
+      "norm_label": "micro-animations & interactions (pulse, hover/tap, carousel physics)",
+      "id": "docs_04_customer_app_customer_home_screen_micro_animations"
     },
     {
       "label": "Accessibility & WCAG AA Checklist",
@@ -3815,9 +4801,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_accessibility_wcag",
       "community": 27,
-      "norm_label": "accessibility & wcag aa checklist"
+      "norm_label": "accessibility & wcag aa checklist",
+      "id": "docs_04_customer_app_customer_home_screen_accessibility_wcag"
     },
     {
       "label": "Responsive Design (Desktop Adaptation, phone-frame wrapper)",
@@ -3828,9 +4814,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_04_customer_app_customer_home_screen_responsive_design",
       "community": 32,
-      "norm_label": "responsive design (desktop adaptation, phone-frame wrapper)"
+      "norm_label": "responsive design (desktop adaptation, phone-frame wrapper)",
+      "id": "docs_04_customer_app_customer_home_screen_responsive_design"
     },
     {
       "label": "booking_status_enum (DRAFT, PENDING, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED)",
@@ -3841,9 +4827,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_booking_status_enum",
-      "community": 21,
-      "norm_label": "booking_status_enum (draft, pending, assigned, in_progress, completed, cancelled)"
+      "community": 63,
+      "norm_label": "booking_status_enum (draft, pending, assigned, in_progress, completed, cancelled)",
+      "id": "docs_08_database_booking_engine_schema_booking_status_enum"
     },
     {
       "label": "booking_type_enum (INSTANT, SCHEDULED)",
@@ -3854,9 +4840,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_booking_type_enum",
       "community": 36,
-      "norm_label": "booking_type_enum (instant, scheduled)"
+      "norm_label": "booking_type_enum (instant, scheduled)",
+      "id": "docs_08_database_booking_engine_schema_booking_type_enum"
     },
     {
       "label": "service_type_enum (HOSPITAL_COMPANION, MEDICINE_PICKUP, DIAGNOSTIC_TEST, ...)",
@@ -3867,9 +4853,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_service_type_enum",
-      "community": 4,
-      "norm_label": "service_type_enum (hospital_companion, medicine_pickup, diagnostic_test, ...)"
+      "community": 64,
+      "norm_label": "service_type_enum (hospital_companion, medicine_pickup, diagnostic_test, ...)",
+      "id": "docs_08_database_booking_engine_schema_service_type_enum"
     },
     {
       "label": "patients table (patient separate from paying customer)",
@@ -3880,9 +4866,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_patients_table",
       "community": 4,
-      "norm_label": "patients table (patient separate from paying customer)"
+      "norm_label": "patients table (patient separate from paying customer)",
+      "id": "docs_08_database_booking_engine_schema_patients_table"
     },
     {
       "label": "locations table (hospitals, labs, home addresses)",
@@ -3893,9 +4879,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_locations_table",
       "community": 4,
-      "norm_label": "locations table (hospitals, labs, home addresses)"
+      "norm_label": "locations table (hospitals, labs, home addresses)",
+      "id": "docs_08_database_booking_engine_schema_locations_table"
     },
     {
       "label": "bookings table (central transaction table)",
@@ -3906,9 +4892,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_bookings_table",
       "community": 4,
-      "norm_label": "bookings table (central transaction table)"
+      "norm_label": "bookings table (central transaction table)",
+      "id": "docs_08_database_booking_engine_schema_bookings_table"
     },
     {
       "label": "audit_logs table (immutable compliance ledger)",
@@ -3919,9 +4905,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_audit_logs_table",
       "community": 35,
-      "norm_label": "audit_logs table (immutable compliance ledger)"
+      "norm_label": "audit_logs table (immutable compliance ledger)",
+      "id": "docs_08_database_booking_engine_schema_audit_logs_table"
     },
     {
       "label": "Query indexes (customer_id, companion_id, status, scheduled_time)",
@@ -3932,9 +4918,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_indexes",
       "community": 38,
-      "norm_label": "query indexes (customer_id, companion_id, status, scheduled_time)"
+      "norm_label": "query indexes (customer_id, companion_id, status, scheduled_time)",
+      "id": "docs_08_database_booking_engine_schema_indexes"
     },
     {
       "label": "trigger_set_timestamp() function/trigger",
@@ -3945,9 +4931,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_trigger_set_timestamp",
       "community": 40,
-      "norm_label": "trigger_set_timestamp() function/trigger"
+      "norm_label": "trigger_set_timestamp() function/trigger",
+      "id": "docs_08_database_booking_engine_schema_trigger_set_timestamp"
     },
     {
       "label": "trigger_audit_bookings() function/trigger",
@@ -3958,9 +4944,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_trigger_audit_bookings",
       "community": 39,
-      "norm_label": "trigger_audit_bookings() function/trigger"
+      "norm_label": "trigger_audit_bookings() function/trigger",
+      "id": "docs_08_database_booking_engine_schema_trigger_audit_bookings"
     },
     {
       "label": "Entity Relationship Diagram (USERS, PATIENTS, BOOKINGS, LOCATIONS, AUDIT_LOGS)",
@@ -3971,9 +4957,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_08_database_booking_engine_schema_erd",
       "community": 37,
-      "norm_label": "entity relationship diagram (users, patients, bookings, locations, audit_logs)"
+      "norm_label": "entity relationship diagram (users, patients, bookings, locations, audit_logs)",
+      "id": "docs_08_database_booking_engine_schema_erd"
     },
     {
       "label": "about.html - About Us page",
@@ -3984,9 +4970,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_about_page",
       "community": 4,
-      "norm_label": "about.html - about us page"
+      "norm_label": "about.html - about us page",
+      "id": "vanilla_backup_about_page"
     },
     {
       "label": "admin-ops.html - Live Operations Desk (dispatcher board)",
@@ -3997,9 +4983,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_admin_ops_page",
       "community": 4,
-      "norm_label": "admin-ops.html - live operations desk (dispatcher board)"
+      "norm_label": "admin-ops.html - live operations desk (dispatcher board)",
+      "id": "vanilla_backup_admin_ops_page"
     },
     {
       "label": "companions[] hardcoded roster (Priya Sharma, Anil Kumar, Sarah Mathews)",
@@ -4010,9 +4996,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_admin_ops_companions_data",
       "community": 4,
-      "norm_label": "companions[] hardcoded roster (priya sharma, anil kumar, sarah mathews)"
+      "norm_label": "companions[] hardcoded roster (priya sharma, anil kumar, sarah mathews)",
+      "id": "vanilla_backup_admin_ops_companions_data"
     },
     {
       "label": "checkAuth() function",
@@ -4023,9 +5009,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_admin_ops_checkauth",
       "community": 4,
-      "norm_label": "checkauth() function"
+      "norm_label": "checkauth() function",
+      "id": "vanilla_backup_admin_ops_checkauth"
     },
     {
       "label": "loadAllBookings() function (fetch /api/admin/bookings)",
@@ -4036,9 +5022,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_admin_ops_loadallbookings",
       "community": 4,
-      "norm_label": "loadallbookings() function (fetch /api/admin/bookings)"
+      "norm_label": "loadallbookings() function (fetch /api/admin/bookings)",
+      "id": "vanilla_backup_admin_ops_loadallbookings"
     },
     {
       "label": "renderBoard() function (renders pending/active/completed columns, wires Save button)",
@@ -4049,9 +5035,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_admin_ops_renderboard",
       "community": 4,
-      "norm_label": "renderboard() function (renders pending/active/completed columns, wires save button)"
+      "norm_label": "renderboard() function (renders pending/active/completed columns, wires save button)",
+      "id": "vanilla_backup_admin_ops_renderboard"
     },
     {
       "label": "showToast() function",
@@ -4062,9 +5048,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_admin_ops_showtoast",
       "community": 4,
-      "norm_label": "showtoast() function"
+      "norm_label": "showtoast() function",
+      "id": "vanilla_backup_admin_ops_showtoast"
     },
     {
       "label": "booking.html - Book Assistance (planned visit) page",
@@ -4075,9 +5061,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_booking_page",
       "community": 4,
-      "norm_label": "booking.html - book assistance (planned visit) page"
+      "norm_label": "booking.html - book assistance (planned visit) page",
+      "id": "vanilla_backup_booking_page"
     },
     {
       "label": "#bookingForm (patient details, appointment details, support needed)",
@@ -4088,9 +5074,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_booking_booking_form",
       "community": 4,
-      "norm_label": "#bookingform (patient details, appointment details, support needed)"
+      "norm_label": "#bookingform (patient details, appointment details, support needed)",
+      "id": "vanilla_backup_booking_booking_form"
     },
     {
       "label": "Companion Matcher live-match-preview widget (defaults to Priya Sharma / Cardiology)",
@@ -4101,9 +5087,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_booking_matcher_widget",
       "community": 4,
-      "norm_label": "companion matcher live-match-preview widget (defaults to priya sharma / cardiology)"
+      "norm_label": "companion matcher live-match-preview widget (defaults to priya sharma / cardiology)",
+      "id": "vanilla_backup_booking_matcher_widget"
     },
     {
       "label": "contact.html - Contact Us page",
@@ -4114,9 +5100,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_contact_page",
       "community": 19,
-      "norm_label": "contact.html - contact us page"
+      "norm_label": "contact.html - contact us page",
+      "id": "vanilla_backup_contact_page"
     },
     {
       "label": "Drop-us-a-message contact form (client-side alert only)",
@@ -4127,9 +5113,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_contact_form",
       "community": 19,
-      "norm_label": "drop-us-a-message contact form (client-side alert only)"
+      "norm_label": "drop-us-a-message contact form (client-side alert only)",
+      "id": "vanilla_backup_contact_form"
     },
     {
       "label": "faq.html - FAQs & Coverage page",
@@ -4140,9 +5126,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_faq_page",
       "community": 4,
-      "norm_label": "faq.html - faqs & coverage page"
+      "norm_label": "faq.html - faqs & coverage page",
+      "id": "vanilla_backup_faq_page"
     },
     {
       "label": "filterFAQs() function (search box onkeyup handler)",
@@ -4153,9 +5139,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_faq_filterfaqs",
       "community": 4,
-      "norm_label": "filterfaqs() function (search box onkeyup handler)"
+      "norm_label": "filterfaqs() function (search box onkeyup handler)",
+      "id": "vanilla_backup_faq_filterfaqs"
     },
     {
       "label": "for-hospitals.html - For Hospitals partner page",
@@ -4166,9 +5152,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_for_hospitals_page",
       "community": 19,
-      "norm_label": "for-hospitals.html - for hospitals partner page"
+      "norm_label": "for-hospitals.html - for hospitals partner page",
+      "id": "vanilla_backup_for_hospitals_page"
     },
     {
       "label": "how-it-works.html - How It Works timeline page",
@@ -4179,9 +5165,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_how_it_works_page",
       "community": 42,
-      "norm_label": "how-it-works.html - how it works timeline page"
+      "norm_label": "how-it-works.html - how it works timeline page",
+      "id": "vanilla_backup_how_it_works_page"
     },
     {
       "label": "index.html - Caresy homepage (Your Care, Our Priority)",
@@ -4192,9 +5178,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_index_page",
       "community": 4,
-      "norm_label": "index.html - caresy homepage (your care, our priority)"
+      "norm_label": "index.html - caresy homepage (your care, our priority)",
+      "id": "vanilla_backup_index_page"
     },
     {
       "label": "Our Services grid (Hospital Assistance, Pick-up & Drop, Elderly Care, Full-day Concierge)",
@@ -4205,9 +5191,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_index_services_grid",
       "community": 4,
-      "norm_label": "our services grid (hospital assistance, pick-up & drop, elderly care, full-day concierge)"
+      "norm_label": "our services grid (hospital assistance, pick-up & drop, elderly care, full-day concierge)",
+      "id": "vanilla_backup_index_services_grid"
     },
     {
       "label": "my-bookings.html - My Bookings customer dashboard",
@@ -4218,9 +5204,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_my_bookings_page",
       "community": 4,
-      "norm_label": "my-bookings.html - my bookings customer dashboard"
+      "norm_label": "my-bookings.html - my bookings customer dashboard",
+      "id": "vanilla_backup_my_bookings_page"
     },
     {
       "label": "loadDashboard() function",
@@ -4231,9 +5217,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_my_bookings_loaddashboard",
       "community": 4,
-      "norm_label": "loaddashboard() function"
+      "norm_label": "loaddashboard() function",
+      "id": "vanilla_backup_my_bookings_loaddashboard"
     },
     {
       "label": "getLocalBookings() function (localStorage caresy_local_bookings)",
@@ -4244,9 +5230,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_my_bookings_getlocalbookings",
       "community": 4,
-      "norm_label": "getlocalbookings() function (localstorage caresy_local_bookings)"
+      "norm_label": "getlocalbookings() function (localstorage caresy_local_bookings)",
+      "id": "vanilla_backup_my_bookings_getlocalbookings"
     },
     {
       "label": "mergeAndRender() function (merges server + local bookings)",
@@ -4257,9 +5243,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_my_bookings_mergeandrender",
       "community": 4,
-      "norm_label": "mergeandrender() function (merges server + local bookings)"
+      "norm_label": "mergeandrender() function (merges server + local bookings)",
+      "id": "vanilla_backup_my_bookings_mergeandrender"
     },
     {
       "label": "renderBookings() function (booking cards + live tracker timeline)",
@@ -4270,9 +5256,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_my_bookings_renderbookings",
       "community": 4,
-      "norm_label": "renderbookings() function (booking cards + live tracker timeline)"
+      "norm_label": "renderbookings() function (booking cards + live tracker timeline)",
+      "id": "vanilla_backup_my_bookings_renderbookings"
     },
     {
       "label": "privacy.html - Privacy Policy (DPDP Act 2023 compliance)",
@@ -4283,9 +5269,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_privacy_page",
       "community": 4,
-      "norm_label": "privacy.html - privacy policy (dpdp act 2023 compliance)"
+      "norm_label": "privacy.html - privacy policy (dpdp act 2023 compliance)",
+      "id": "vanilla_backup_privacy_page"
     },
     {
       "label": "quick-help.html - Need Help Today (same-day request)",
@@ -4296,9 +5282,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_quick_help_page",
       "community": 4,
-      "norm_label": "quick-help.html - need help today (same-day request)"
+      "norm_label": "quick-help.html - need help today (same-day request)",
+      "id": "vanilla_backup_quick_help_page"
     },
     {
       "label": "#quickHelpForm urgent call-back request form",
@@ -4309,9 +5295,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_quick_help_form",
       "community": 4,
-      "norm_label": "#quickhelpform urgent call-back request form"
+      "norm_label": "#quickhelpform urgent call-back request form",
+      "id": "vanilla_backup_quick_help_form"
     },
     {
       "label": "services.html - Our Services page",
@@ -4322,9 +5308,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_services_page",
       "community": 4,
-      "norm_label": "services.html - our services page"
+      "norm_label": "services.html - our services page",
+      "id": "vanilla_backup_services_page"
     },
     {
       "label": "terms.html - Terms of Service page",
@@ -4335,9 +5321,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_terms_page",
       "community": 4,
-      "norm_label": "terms.html - terms of service page"
+      "norm_label": "terms.html - terms of service page",
+      "id": "vanilla_backup_terms_page"
     },
     {
       "label": "testimonials.html - What People Say page",
@@ -4348,9 +5334,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_testimonials_page",
       "community": 4,
-      "norm_label": "testimonials.html - what people say page"
+      "norm_label": "testimonials.html - what people say page",
+      "id": "vanilla_backup_testimonials_page"
     },
     {
       "label": "trust.html - Trust Framework page",
@@ -4361,9 +5347,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_trust_page",
       "community": 4,
-      "norm_label": "trust.html - trust framework page"
+      "norm_label": "trust.html - trust framework page",
+      "id": "vanilla_backup_trust_page"
     },
     {
       "label": "6-step verification timeline (Aadhaar, Police, Address, Photo, Training, Background check)",
@@ -4374,9 +5360,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_trust_verification_timeline",
       "community": 4,
-      "norm_label": "6-step verification timeline (aadhaar, police, address, photo, training, background check)"
+      "norm_label": "6-step verification timeline (aadhaar, police, address, photo, training, background check)",
+      "id": "vanilla_backup_trust_verification_timeline"
     },
     {
       "label": "Companion profile cards (Priya Sharma, Anil Kumar, Sarah Mathews)",
@@ -4387,9 +5373,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "vanilla_backup_trust_companion_profiles",
       "community": 4,
-      "norm_label": "companion profile cards (priya sharma, anil kumar, sarah mathews)"
+      "norm_label": "companion profile cards (priya sharma, anil kumar, sarah mathews)",
+      "id": "vanilla_backup_trust_companion_profiles"
     }
   ],
   "links": [
@@ -4740,7 +5726,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L35",
+      "source_location": "L49",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_app_admin_ops_page_adminops",
@@ -4750,7 +5736,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L21",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "src_app_admin_ops_page",
+      "target": "src_app_admin_ops_page_approvedcompanion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin-ops/page.tsx",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_app_admin_ops_page_bookingrecord",
@@ -4760,10 +5756,31 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L10",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "src_app_admin_ops_page",
+      "target": "src_app_admin_ops_page_initials",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin-ops/page.tsx",
+      "source_location": "L9",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_app_admin_ops_page_status_options",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin-ops/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_ops_page",
+      "target": "src_components_adminnav",
       "confidence_score": 1.0
     },
     {
@@ -4771,7 +5788,18 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L8",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_ops_page",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin-ops/page.tsx",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_components_ds_button_button",
@@ -4782,7 +5810,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L8",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_components_ds_index",
@@ -4793,7 +5821,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L8",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_components_ds_input_input",
@@ -4804,7 +5832,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_context_authcontext",
@@ -4815,7 +5843,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_context_authcontext_useauth",
@@ -4826,51 +5854,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "src_app_admin_ops_page",
-      "target": "src_data_companions",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "src_app_admin_ops_page",
-      "target": "src_data_companions_companions",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "src_app_admin_ops_page",
-      "target": "src_data_companions_findcompanionbyname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "src_app_admin_ops_page",
-      "target": "src_data_companions_ratinglabel",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_utils_supabase_client",
@@ -4881,7 +5865,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "src_app_admin_ops_page",
       "target": "src_utils_supabase_client_createclient",
@@ -4891,34 +5875,12 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L36",
+      "source_location": "L182",
       "weight": 1.0,
       "source": "src_app_admin_ops_page_adminops",
-      "target": "src_context_authcontext_useauth"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L150",
-      "weight": 1.0,
-      "source": "src_app_admin_ops_page_adminops",
-      "target": "src_data_companions_findcompanionbyname"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/app/admin-ops/page.tsx",
-      "source_location": "L156",
-      "weight": 1.0,
-      "source": "src_app_admin_ops_page_adminops",
-      "target": "src_data_companions_ratinglabel"
+      "target": "src_app_admin_ops_page_initials",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -4929,6 +5891,201 @@
       "source_location": "L50",
       "weight": 1.0,
       "source": "src_app_admin_ops_page_adminops",
+      "target": "src_context_authcontext_useauth"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin-ops/page.tsx",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "src_app_admin_ops_page_adminops",
+      "target": "src_utils_supabase_client_createclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_app_admin_analytics_page_adminanalytics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_app_admin_analytics_page_stats",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_app_admin_analytics_page_status_order",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_components_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_components_ds_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_components_ds_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_components_ds_statcard_statcard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_context_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_context_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_utils_pricing",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_utils_pricing_estimatebookingprice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_utils_supabase_client",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page",
+      "target": "src_utils_supabase_client_createclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page_adminanalytics",
+      "target": "src_context_authcontext_useauth"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page_adminanalytics",
+      "target": "src_utils_pricing_estimatebookingprice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/analytics/page.tsx",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "src_app_admin_analytics_page_adminanalytics",
       "target": "src_utils_supabase_client_createclient"
     },
     {
@@ -4965,7 +6122,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L288",
+      "source_location": "L286",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_app_admin_companions_page_detail",
@@ -4995,7 +6152,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L165",
+      "source_location": "L163",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_app_admin_companions_page_reviewsheet",
@@ -5012,11 +6169,33 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/companions/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_companions_page",
+      "target": "src_components_adminnav",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
       "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_companions_page",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/companions/page.tsx",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_components_ds_badge_badge",
@@ -5027,7 +6206,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_components_ds_button_button",
@@ -5038,7 +6217,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_components_ds_index",
@@ -5049,7 +6228,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_components_ds_input_input",
@@ -5060,7 +6239,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_context_authcontext",
@@ -5071,7 +6250,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_context_authcontext_useauth",
@@ -5082,7 +6261,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_utils_supabase_client",
@@ -5093,7 +6272,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "src_app_admin_companions_page",
       "target": "src_utils_supabase_client_createclient",
@@ -5127,7 +6306,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L166",
+      "source_location": "L164",
       "weight": 1.0,
       "source": "src_app_admin_companions_page_reviewsheet",
       "target": "src_context_authcontext_useauth"
@@ -5138,9 +6317,180 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/app/admin/companions/page.tsx",
-      "source_location": "L175",
+      "source_location": "L173",
       "weight": 1.0,
       "source": "src_app_admin_companions_page_reviewsheet",
+      "target": "src_utils_supabase_client_createclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_app_admin_notifications_page_adminnotifications",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_app_admin_notifications_page_filters",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_app_admin_notifications_page_notifrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_app_admin_notifications_page_notifstatus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_app_admin_notifications_page_status_tone",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_components_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_components_ds_badge_badge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_components_ds_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_components_ds_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_context_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_context_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_utils_supabase_client",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page",
+      "target": "src_utils_supabase_client_createclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page_adminnotifications",
+      "target": "src_context_authcontext_useauth"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/notifications/page.tsx",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "src_app_admin_notifications_page_adminnotifications",
       "target": "src_utils_supabase_client_createclient"
     },
     {
@@ -5164,11 +6514,33 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/service-areas/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_service_areas_page",
+      "target": "src_components_adminnav",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
       "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_service_areas_page",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/service-areas/page.tsx",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_components_ds_badge_badge",
@@ -5179,7 +6551,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_components_ds_button_button",
@@ -5190,7 +6562,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_components_ds_index",
@@ -5201,7 +6573,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
-      "source_location": "L7",
+      "source_location": "L6",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_components_ds_input_input",
@@ -5212,7 +6584,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_context_authcontext",
@@ -5223,7 +6595,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_context_authcontext_useauth",
@@ -5256,7 +6628,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_utils_supabase_client",
@@ -5267,7 +6639,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "src/app/admin/service-areas/page.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page",
       "target": "src_utils_supabase_client_createclient",
@@ -5304,6 +6676,299 @@
       "source_location": "L36",
       "weight": 1.0,
       "source": "src_app_admin_service_areas_page_adminserviceareas",
+      "target": "src_utils_supabase_client_createclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_app_admin_settings_page_adminsettings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_app_admin_settings_page_settingrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_components_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_components_ds_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_components_ds_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_components_ds_input_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_context_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_context_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_utils_supabase_client",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page",
+      "target": "src_utils_supabase_client_createclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page_adminsettings",
+      "target": "src_context_authcontext_useauth"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/settings/page.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "src_app_admin_settings_page_adminsettings",
+      "target": "src_utils_supabase_client_createclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_app_admin_users_page_adminusers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_app_admin_users_page_userrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_components_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_components_ds_badge_badge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_components_ds_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_components_ds_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_components_ds_input_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_context_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_context_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_utils_supabase_client",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page",
+      "target": "src_utils_supabase_client_createclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page_adminusers",
+      "target": "src_context_authcontext_useauth"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/app/admin/users/page.tsx",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "src_app_admin_users_page_adminusers",
       "target": "src_utils_supabase_client_createclient"
     },
     {
@@ -7476,6 +9141,26 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/components/AdminNav.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "source": "src_components_adminnav",
+      "target": "src_components_adminnav_adminnav",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AdminNav.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_components_adminnav",
+      "target": "src_components_adminnav_links",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/components/AuthModal.tsx",
       "source_location": "L19",
       "weight": 1.0,
@@ -8919,6 +10604,26 @@
       "weight": 1.0,
       "source": "src_proxy_proxy",
       "target": "src_utils_supabase_middleware_updatesession"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/utils/pricing.ts",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "src_utils_pricing",
+      "target": "src_utils_pricing_estimatebookingprice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/utils/pricing.ts",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_utils_pricing",
+      "target": "src_utils_pricing_pricedbooking",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -10402,74 +12107,704 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "references",
+      "relation": "contains",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
+      "source_file": "AGENTS.md",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "agents",
+      "target": "agents_this_is_not_the_next_js_you_know",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
-      "source_location": null,
+      "source_location": "L3",
       "weight": 1.0,
-      "source": "claude_project_instructions",
-      "target": "agents_nextjs_breaking_changes"
+      "source": "claude",
+      "target": "claude_graphify",
+      "confidence_score": 1.0
     },
     {
-      "relation": "semantically_similar_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.75,
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "readme",
+      "target": "readme_deploy_on_vercel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "readme",
+      "target": "readme_getting_started",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "readme",
+      "target": "readme_learn_more",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
-      "source_location": null,
+      "source_location": "L1",
       "weight": 1.0,
-      "source": "docs_04_customer_app_customer_home_screen_design_philosophy",
-      "target": "vanilla_backup_index_page"
+      "source": "docs_04_customer_app_customer_home_screen",
+      "target": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "confidence_score": 1.0
     },
     {
-      "relation": "shares_data_with",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
-      "source_location": null,
+      "source_location": "L10",
       "weight": 1.0,
-      "source": "docs_04_customer_app_customer_home_screen_active_booking_banner",
-      "target": "docs_08_database_booking_engine_schema_booking_status_enum"
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_1_design_philosophy_theme",
+      "confidence_score": 1.0
     },
     {
-      "relation": "semantically_similar_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
-      "source_location": null,
+      "source_location": "L20",
       "weight": 1.0,
-      "source": "docs_04_customer_app_customer_home_screen_services_section",
-      "target": "vanilla_backup_index_services_grid"
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_2_wireframe_visual_layout",
+      "confidence_score": 1.0
     },
     {
-      "relation": "semantically_similar_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.85,
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
-      "source_location": null,
+      "source_location": "L91",
       "weight": 1.0,
-      "source": "docs_04_customer_app_customer_home_screen_companions_carousel",
-      "target": "vanilla_backup_trust_companion_profiles"
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "confidence_score": 1.0
     },
     {
-      "relation": "semantically_similar_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.75,
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
-      "source_location": null,
+      "source_location": "L163",
       "weight": 1.0,
-      "source": "docs_04_customer_app_customer_home_screen_trust_safety_badges",
-      "target": "vanilla_backup_trust_verification_timeline"
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_4_spacing_typography_material_3_scale",
+      "confidence_score": 1.0
     },
     {
-      "relation": "semantically_similar_to",
-      "confidence": "INFERRED",
-      "confidence_score": 0.75,
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L180",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_5_micro_animations_interactions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L198",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_6_accessibility_wcag_aa_checklist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L212",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_7_responsive_design_desktop_adaptation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_customer_home_screen_design_specification",
+      "target": "docs_04_customer_app_customer_home_screen_purpose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "target": "docs_04_customer_app_customer_home_screen_a_sticky_app_bar_header",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L101",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "target": "docs_04_customer_app_customer_home_screen_b_dynamic_active_booking_banner",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "target": "docs_04_customer_app_customer_home_screen_c_hero_intent_selector_primary_grid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "target": "docs_04_customer_app_customer_home_screen_d_services_section",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L135",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "target": "docs_04_customer_app_customer_home_screen_e_verified_companions_carousel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "target": "docs_04_customer_app_customer_home_screen_f_trust_safety_badges",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L152",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_3_component_hierarchy_specifications",
+      "target": "docs_04_customer_app_customer_home_screen_g_sticky_bottom_navigation_bar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L165",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_4_spacing_typography_material_3_scale",
+      "target": "docs_04_customer_app_customer_home_screen_spacing_system_8px_grid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "docs_04_customer_app_customer_home_screen_4_spacing_typography_material_3_scale",
+      "target": "docs_04_customer_app_customer_home_screen_typography_poppins_system_sans",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
-      "source_location": null,
+      "source_location": "L1",
       "weight": 1.0,
-      "source": "docs_08_database_booking_engine_schema_service_type_enum",
-      "target": "vanilla_backup_booking_booking_form"
+      "source": "docs_08_database_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_1_enums_custom_types",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L38",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_2_core_tables",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L138",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_3_indexes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L159",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_4_database_triggers_functions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L205",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_5_entity_relationship_diagram_erd",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L244",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_6_migration_notes_deployment_strategy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L250",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_7_todos_pending_product_clarifications",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_caresy_booking_engine_schema",
+      "target": "docs_08_database_booking_engine_schema_purpose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L40",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_2_core_tables",
+      "target": "docs_08_database_booking_engine_schema_a_patients",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L60",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_2_core_tables",
+      "target": "docs_08_database_booking_engine_schema_b_locations",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_2_core_tables",
+      "target": "docs_08_database_booking_engine_schema_c_bookings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L122",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_2_core_tables",
+      "target": "docs_08_database_booking_engine_schema_d_audit_logs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L161",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_4_database_triggers_functions",
+      "target": "docs_08_database_booking_engine_schema_a_auto_update_timestamp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+      "source_location": "L180",
+      "weight": 1.0,
+      "source": "docs_08_database_booking_engine_schema_4_database_triggers_functions",
+      "target": "docs_08_database_booking_engine_schema_b_audit_logging_trigger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_developer_handoff",
+      "target": "docs_developer_handoff_caresy_developer_handoff",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L345",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_10_quick_status_snapshot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_1_product_overview_vision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_2_tech_stack",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_3_repository_map_key_files",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L91",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_4_database_schema_migrations",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L179",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L285",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_7_setup_running_locally",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L309",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_8_known_gotchas_learned_the_hard_way",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L328",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_caresy_developer_handoff",
+      "target": "docs_developer_handoff_9_verification_approach",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_1_product_overview_vision",
+      "target": "docs_developer_handoff_the_owner_s_original_5_concerns_and_their_status",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_1_product_overview_vision",
+      "target": "docs_developer_handoff_the_vision_owner_s_words_paraphrased",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_4_database_schema_migrations",
+      "target": "docs_developer_handoff_booking_status_enum",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L132",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_4_database_schema_migrations",
+      "target": "docs_developer_handoff_important_triggers_functions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L128",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_4_database_schema_migrations",
+      "target": "docs_developer_handoff_storage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L109",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_4_database_schema_migrations",
+      "target": "docs_developer_handoff_tables_as_of_migration_13",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L150",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "target": "docs_developer_handoff_phase_0_db_foundation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L167",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "target": "docs_developer_handoff_phase_1_admin_partial",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L162",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "target": "docs_developer_handoff_phase_2_companion_portal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "target": "docs_developer_handoff_phase_3_service_areas_the_gaur_city_fix",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "target": "docs_developer_handoff_phase_4_request_lifecycle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_5_what_has_been_built_chronological",
+      "target": "docs_developer_handoff_presentation_layer_earlier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L181",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "target": "docs_developer_handoff_a_notification_delivery_highest_priority_for_production",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L199",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "target": "docs_developer_handoff_b_expiry_worker_scheduling_done",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L215",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "target": "docs_developer_handoff_c_admin_panel_done_code_complete_one_migration_pending",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L244",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "target": "docs_developer_handoff_d_companion_job_feed_polish_phase_2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L252",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "target": "docs_developer_handoff_e_service_areas_remaining_phase_3",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L257",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "target": "docs_developer_handoff_f_cross_cutting_production_hardening",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L276",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_6_what_s_pending_and_how_to_do_it",
+      "target": "docs_developer_handoff_g_domain_operational",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L303",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_7_setup_running_locally",
+      "target": "docs_developer_handoff_vercel_env_vars_production_preview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/DEVELOPER_HANDOFF.md",
+      "source_location": "L336",
+      "weight": 1.0,
+      "source": "docs_developer_handoff_9_verification_approach",
+      "target": "docs_developer_handoff_the_three_loops_to_smoke_test_after_any_change",
+      "confidence_score": 1.0
     },
     {
       "relation": "shares_data_with",
@@ -10853,21 +13188,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "vanilla-backup/booking.html"
-    },
-    {
-      "id": "booking_lifecycle_status_concept",
-      "label": "Booking lifecycle/status concept spanning DB schema, home screen spec, and both admin/customer JS renderers",
-      "nodes": [
-        "docs_08_database_booking_engine_schema_booking_status_enum",
-        "docs_04_customer_app_customer_home_screen_active_booking_banner",
-        "vanilla_backup_admin_ops_renderboard",
-        "vanilla_backup_my_bookings_renderbookings"
-      ],
-      "relation": "form",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "docs/08_Database/BOOKING_ENGINE_SCHEMA.md"
     }
   ],
-  "built_at_commit": "e3a57dc7f4e8eb349bdd0d9a1769c20586825bd8"
+  "built_at_commit": "e44f9b16a675c37cdef2eb22b58c15640e791e14"
 }

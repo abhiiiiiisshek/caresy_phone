@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { Phone, Mail, FileText, LogOut, CalendarCheck, CircleCheckBig, Loader2 } from 'lucide-react';
+import { Phone, Mail, FileText, LogOut, CalendarCheck, CircleCheckBig, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ds';
 
 function StatTile({ icon: Icon, value, label, color = 'var(--teal)' }: { icon: React.ElementType; value: string | number; label: string; color?: string }) {
@@ -32,7 +32,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
 }
 
 export default function Profile() {
-  const { user, profile, isLoading: authIsLoading, openLogin, signOut } = useAuth();
+  const { user, profile, isAdmin, isLoading: authIsLoading, openLogin, signOut } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<{ total: number; completed: number } | null>(null);
 
@@ -128,6 +128,23 @@ export default function Profile() {
             </div>
           )}
         </div>
+
+        {/* Admin — only rendered for accounts in the admin_users allowlist */}
+        {isAdmin && (
+          <>
+            <div className="section-title" style={{ padding: '24px 0 8px' }}>
+              <p className="section-kicker">Admin</p>
+            </div>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: 8 }}>
+              <a href="/admin-ops" style={{ textDecoration: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
+                  <ShieldCheck style={{ width: 16, height: 16, color: 'var(--marigold)' }} />
+                  <span style={{ flex: 1, fontSize: '0.86rem', fontWeight: 600, color: 'var(--ink-teal)' }}>Admin Operations</span>
+                </div>
+              </a>
+            </div>
+          </>
+        )}
 
         {/* Legal / support */}
         <div className="section-title" style={{ padding: '24px 0 8px' }}>

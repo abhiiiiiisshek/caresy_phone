@@ -31,8 +31,8 @@ notifications, error handling, edge cases, DB integrity, and security.
 ### The owner's original 5 concerns and their status
 | # | Concern | Status |
 |---|---------|--------|
-| 1 | Requests stuck in Pending; no expiry/timeout/transitions | ✅ Built (Phase 4). Scheduler setup still required — see §6. |
-| 2 | No real admin panel | 🟡 Approvals + service-area editor done; users list & analytics pending (§6-C) |
+| 1 | Requests stuck in Pending; no expiry/timeout/transitions | ✅ Built (Phase 4) and scheduled (pg_cron, verified active) — fully resolved. |
+| 2 | No real admin panel | ✅ Approvals, service-area editor, users list, analytics, settings, notifications viewer, and real companion assignment all built and live (§6-C). |
 | 3 | No companion portal | ✅ Built (Phase 2): register → KYC → approve → job feed |
 | 4 | Service-area logic wrong ("Gaur City" rejected) | ✅ Fixed (Phase 3): DB pincode allowlist + server-side rejection |
 | 5 | Production readiness (notifications, errors, edge cases, security) | 🟡 Partially; see §6 and §8 |
@@ -103,6 +103,8 @@ Files live in `docs/08_Database/`.
 | 6 | `11_SERVICE_AREAS.sql` | `service_areas` pincode allowlist, `is_pincode_served()`, booking guard trigger | **applied** |
 | 7 | `12_LIFECYCLE_ENUMS.sql` | adds `ACCEPTED`, `EXPIRED` enum values (run FIRST, alone) | **applied** |
 | 8 | `13_LIFECYCLE.sql` | `app_settings`, `bookings.expires_at`, expiry sweep, companion job RLS, `notifications` | **applied** |
+| 9 | `14_SCHEDULER.sql` | pg_cron job: runs `expire_stale_bookings()` every 5 min | **applied** — verified active in `cron.job` |
+| 10 | `15_ADMIN_USERS_RPC.sql` | `admin_list_users()` — joins profiles + auth.users email for `/admin/users` | **applied** |
 
 ### Tables (as of migration 13)
 - `patients`, `locations`, `bookings`, `audit_logs` — core.
@@ -194,32 +196,47 @@ sends them. Only the CUSTOMER role is targeted; recipient contact isn't resolved
 5. Templates: booking received, companion assigned/accepted, on-the-way, completed,
    expired, waitlist confirmation.
 
-### B. Expiry / worker SCHEDULING (required for Phase 4 to run automatically)
-The sweep exists but needs a scheduler. **Pick one:**
-- **pg_cron (recommended, free):** enable extension (Dashboard → Database →
-  Extensions → pg_cron), then:
-  `SELECT cron.schedule('expire-stale-bookings','*/5 * * * *',$$ SELECT expire_stale_bookings(); $$);`
+### B. Expiry / worker SCHEDULING — ✅ DONE
+`docs/08_Database/14_SCHEDULER.sql` was run in the Supabase SQL Editor.
+`expire-stale-bookings` is confirmed active in `cron.job` (`*/5 * * * *`),
+so `expire_stale_bookings()` now runs automatically — no more requests stuck
+in Pending forever (owner concern #1).
+
+**Alternative (kept for reference, not needed — pg_cron is active):**
 - **External uptime cron** (cron-job.org) hitting
   `https://<app>/api/cron/expire-bookings` every 5 min with
-  `Authorization: Bearer <CRON_SECRET>`.
+  `Authorization: Bearer <CRON_SECRET>`. Set `CRON_SECRET` in Vercel env first
+  (not currently set in `.env.local` — the route works without it, just
+  unauthenticated, since the function only touches already-overdue rows).
 - **Vercel Cron** — Pro plan only (Hobby caps cron at once/day). If on Pro, add a
   `vercel.json` `crons` entry. ⚠️ Do NOT add a sub-daily Vercel cron on Hobby — it
   **fails the whole deployment** (this happened once; see §8).
 
-### C. Admin panel — remaining (Phase 1)
-- **Users list:** read `profiles` (admins already have SELECT via RLS). Add a
-  `/admin/users` page. For auth emails, join via a SECURITY DEFINER view/RPC
-  (anon can't read `auth.users`).
-- **Analytics:** counts by `status`, active companions, today's requests, revenue
-  (derive from `service_metadata`/service price). Build aggregate RPCs or client
-  queries; render with `StatCard`.
-- **Timeout settings editor:** small CRUD over `app_settings`
-  (`instant_expiry_minutes`, `scheduled_flag_hours`).
-- **Notifications viewer:** list `notifications` (admins have SELECT).
-- **Booking reassignment UX:** `/admin-ops` can set status + companion name today;
-  wire real companion assignment (`bookings.companion_user_id`) from the approved
-  companions list.
-- **Unify** `/admin-ops` + `/admin/*` into one hub with shared nav/tabs.
+### C. Admin panel — ✅ DONE
+All six items below are built and `15_ADMIN_USERS_RPC.sql` has been applied.
+
+- **Users list** (`/admin/users`) — reads `admin_list_users()` (migration 15,
+  SECURITY DEFINER), which joins `profiles` + `auth.users` for email since
+  anon/authenticated can't read `auth.users` directly. Excludes companion
+  accounts (those live at `/admin/companions`). Search by name/email/phone.
+- **Analytics** (`/admin/analytics`) — requests today, total requests,
+  companions online/approved, and an estimated revenue figure (via
+  `src/utils/pricing.ts` — payments aren't built yet, so this is a derived
+  estimate from `service_type`/duration, clearly labeled as such in the UI),
+  plus a request-by-status breakdown. All client-side queries against
+  existing admin RLS — no new RPC needed.
+- **Timeout settings editor** (`/admin/settings`) — CRUD over `app_settings`.
+- **Notifications viewer** (`/admin/notifications`) — lists the `notifications`
+  table with a status filter; makes visible that delivery isn't wired yet (§6-A).
+- **Real companion assignment** — `/admin-ops` previously wrote a free-text
+  name into `service_metadata.companion` and never touched
+  `bookings.companion_user_id` at all. It now fetches APPROVED rows from the
+  live `companions` table and sets `companion_user_id` on save (`data/companions.ts`
+  hardcoded roster is no longer used here — it's still used for the
+  illustrative match on the customer-facing booking/quick-help forms).
+- **Unified nav** — `src/components/AdminNav.tsx`, a shared tab row (Dispatch /
+  Companions / Service areas / Users / Analytics / Settings / Notifications)
+  now appears on every `/admin*` page.
 
 ### D. Companion job feed — polish (Phase 2)
 - Filter open jobs to the companion's `service_pincodes` (currently shows all open).
@@ -330,9 +347,9 @@ UI loops (register → approve → accept → complete; out-of-area rejection) i
 | DB foundation, admin allowlist | ✅ Done |
 | Service-area validation (pincode) | ✅ Done |
 | Companion portal (register→approve→jobs) | ✅ Done |
-| Request lifecycle + expiry sweep | ✅ Done (scheduler setup pending — §6-B) |
+| Request lifecycle + expiry sweep | ✅ Done, scheduled (§6-B) |
 | Notification delivery | 🔴 Enqueue only; sending pending (§6-A) |
-| Admin users list / analytics | 🔴 Pending (§6-C) |
+| Admin users list / analytics | ✅ Done (§6-C) |
 | Payments / self-service cancel | 🔴 Not built (§6-F) |
 | Tests / hardening / a11y | 🔴 Pending (§6-F) |
 | Real domain pointing to this app | 🔴 Pending (§6-G) |
