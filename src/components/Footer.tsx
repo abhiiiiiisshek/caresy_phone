@@ -45,7 +45,7 @@ export default function Footer() {
             <Link href="/how-it-works">How It Works</Link>
             <Link href="/trust">Trust &amp; Safety</Link>
             <Link href="/testimonials">Testimonials</Link>
-            <Link href="/companion">Become a Companion</Link>
+            <Link href="/companion" style={{ color: 'var(--marigold)', fontWeight: 800 }}>Become a Companion →</Link>
           </div>
           <div className="footer-col">
             <h4>Need Care?</h4>

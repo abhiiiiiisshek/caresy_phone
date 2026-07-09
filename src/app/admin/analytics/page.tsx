@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
 import { Button, StatCard } from '@/components/ds';
@@ -64,11 +65,11 @@ export default function AdminAnalytics() {
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
   if (isLoading) {
-    return <main className="app-shell-page" style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
+    return <main style={{ minHeight: '60vh', paddingTop: 118, display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
   }
   if (!user || !isAdmin) {
     return (
-      <main className="app-shell-page" style={{ maxWidth: 520, margin: '0 auto', padding: '48px 20px', textAlign: 'center' }}>
+      <main style={{ maxWidth: 520, margin: '0 auto', padding: '138px 20px 48px', textAlign: 'center' }}>
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
         <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
         <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to view analytics.</p>
@@ -78,7 +79,7 @@ export default function AdminAnalytics() {
   }
 
   return (
-    <main className="app-shell-page" style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px 60px' }}>
+    <main style={{ maxWidth: 900, margin: '0 auto', padding: '118px 16px 60px' }}>
       <AdminNav />
       <h1 style={{ margin: '0 0 4px', fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Analytics</h1>
       <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '0.9rem' }}>Snapshot of demand and supply. Revenue is an estimate — payments aren't wired up yet.</p>
@@ -94,19 +95,20 @@ export default function AdminAnalytics() {
             <StatCard icon={<IndianRupee style={{ width: 20, height: 20 }} />} headline={`₹${stats.estimatedRevenue.toLocaleString('en-IN')}`} detail="Estimated revenue (completed jobs)" />
           </div>
 
-          <h2 style={{ fontSize: '1.1rem', color: 'var(--ink-teal)', margin: '0 0 12px' }}>Requests by status</h2>
+          <h2 style={{ fontSize: '1.1rem', color: 'var(--ink-teal)', margin: '0 0 4px' }}>Requests by status</h2>
+          <p style={{ margin: '0 0 12px', fontSize: '0.78rem', color: 'var(--muted)' }}>Click a row to open it in Dispatch.</p>
           <div style={{ display: 'grid', gap: 8 }}>
             {STATUS_ORDER.filter((s) => stats.byStatus[s]).map((s) => {
               const n = stats.byStatus[s];
               const pct = stats.totalBookings ? Math.round((n / stats.totalBookings) * 100) : 0;
               return (
-                <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
+                <Link key={s} href="/admin-ops" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)', cursor: 'pointer' }}>
                   <span style={{ width: 110, fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{s.replace('_', ' ')}</span>
                   <div style={{ flex: 1, height: 8, borderRadius: 999, background: 'var(--surface-2, rgba(0,0,0,0.06))', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: 'var(--teal)' }} />
                   </div>
                   <span style={{ width: 40, textAlign: 'right', fontSize: '0.8rem', color: 'var(--muted)' }}>{n}</span>
-                </div>
+                </Link>
               );
             })}
           </div>

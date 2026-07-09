@@ -320,7 +320,7 @@ export default function AdminOps() {
         <div style={{ background: 'rgba(33, 48, 44, 0.02)', padding: '16px', borderRadius: '16px', border: '1px dashed var(--line)' }}>
           <div className="column-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>⏳ Pending Requests</h3>
-            <span className="badge-count" style={{ background: 'var(--ink)', color: 'var(--surface)', padding: '2px 8px', borderRadius: '99px', fontSize: '0.76rem' }}>{pendingBookings.length}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 22, height: 22, padding: '0 6px', borderRadius: 999, background: 'var(--ink)', color: 'var(--surface)', fontSize: '0.76rem', fontWeight: 700, lineHeight: 1 }}>{pendingBookings.length}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {pendingBookings.map(b => renderCard(b))}
@@ -331,7 +331,7 @@ export default function AdminOps() {
         <div style={{ background: 'rgba(33, 48, 44, 0.02)', padding: '16px', borderRadius: '16px', border: '1px dashed var(--line)' }}>
           <div className="column-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>🚗 Active Visits</h3>
-            <span className="badge-count" style={{ background: 'var(--ink)', color: 'var(--surface)', padding: '2px 8px', borderRadius: '99px', fontSize: '0.76rem' }}>{activeBookings.length}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 22, height: 22, padding: '0 6px', borderRadius: 999, background: 'var(--ink)', color: 'var(--surface)', fontSize: '0.76rem', fontWeight: 700, lineHeight: 1 }}>{activeBookings.length}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {activeBookings.map(b => renderCard(b))}
@@ -342,7 +342,7 @@ export default function AdminOps() {
         <div style={{ background: 'rgba(33, 48, 44, 0.02)', padding: '16px', borderRadius: '16px', border: '1px dashed var(--line)' }}>
           <div className="column-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>✅ Completed</h3>
-            <span className="badge-count" style={{ background: 'var(--ink)', color: 'var(--surface)', padding: '2px 8px', borderRadius: '99px', fontSize: '0.76rem' }}>{completedBookings.length}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 22, height: 22, padding: '0 6px', borderRadius: 999, background: 'var(--ink)', color: 'var(--surface)', fontSize: '0.76rem', fontWeight: 700, lineHeight: 1 }}>{completedBookings.length}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {completedBookings.map(b => renderCard(b))}

@@ -56,11 +56,11 @@ export default function AdminNotifications() {
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
   if (isLoading) {
-    return <main className="app-shell-page" style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
+    return <main style={{ minHeight: '60vh', paddingTop: 118, display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
   }
   if (!user || !isAdmin) {
     return (
-      <main className="app-shell-page" style={{ maxWidth: 520, margin: '0 auto', padding: '48px 20px', textAlign: 'center' }}>
+      <main style={{ maxWidth: 520, margin: '0 auto', padding: '138px 20px 48px', textAlign: 'center' }}>
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
         <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
         <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to view notifications.</p>
@@ -70,7 +70,7 @@ export default function AdminNotifications() {
   }
 
   return (
-    <main className="app-shell-page" style={{ maxWidth: 780, margin: '0 auto', padding: '24px 16px 60px' }}>
+    <main style={{ maxWidth: 780, margin: '0 auto', padding: '118px 16px 60px' }}>
       <AdminNav />
       <h1 style={{ margin: '0 0 4px', fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Notifications</h1>
       <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '0.9rem' }}>
@@ -99,14 +99,18 @@ export default function AdminNotifications() {
       ) : (
         <div style={{ display: 'grid', gap: 10 }}>
           {rows.map((n) => (
-            <div key={n.id} style={{ padding: 14, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
-                <strong style={{ color: 'var(--ink-teal)', fontSize: '0.92rem' }}>{n.title}</strong>
-                <Badge tone={STATUS_TONE[n.status]} size="sm">{n.status.toLowerCase()}</Badge>
-                {n.recipient_role && <Badge tone="neutral" size="sm">{n.recipient_role.toLowerCase()}</Badge>}
+            <div key={n.id} style={{ padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Badge tone={STATUS_TONE[n.status]} size="sm">{n.status.toLowerCase()}</Badge>
+                  {n.recipient_role && <Badge tone="neutral" size="sm">{n.recipient_role.toLowerCase()}</Badge>}
+                </div>
+                <span style={{ fontSize: '0.74rem', color: 'var(--muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {new Date(n.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
-              {n.body && <p style={{ margin: '0 0 6px', fontSize: '0.84rem', color: 'var(--muted)' }}>{n.body}</p>}
-              <span style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>{n.event} · {new Date(n.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+              <strong style={{ display: 'block', color: 'var(--ink-teal)', fontSize: '0.92rem', lineHeight: 1.4 }}>{n.title}</strong>
+              {n.body && <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: 'var(--muted)', lineHeight: 1.5 }}>{n.body}</p>}
             </div>
           ))}
         </div>

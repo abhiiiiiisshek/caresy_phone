@@ -79,11 +79,11 @@ export default function AdminCompanions() {
   const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
 
   if (isLoading) {
-    return <main className="app-shell-page" style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
+    return <main style={{ minHeight: '60vh', paddingTop: 118, display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
   }
   if (!user || !isAdmin) {
     return (
-      <main className="app-shell-page" style={{ maxWidth: 520, margin: '0 auto', padding: '48px 20px', textAlign: 'center' }}>
+      <main style={{ maxWidth: 520, margin: '0 auto', padding: '138px 20px 48px', textAlign: 'center' }}>
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
         <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
         <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to review companion applications.</p>
@@ -93,7 +93,7 @@ export default function AdminCompanions() {
   }
 
   return (
-    <main className="app-shell-page" style={{ maxWidth: 820, margin: '0 auto', padding: '24px 16px 60px' }}>
+    <main style={{ maxWidth: 820, margin: '0 auto', padding: '118px 16px 60px' }}>
       <AdminNav />
       <h1 style={{ margin: '0 0 4px', fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Companion applications</h1>
       <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '0.9rem' }}>Review KYC and approve, reject, or suspend companions.</p>
