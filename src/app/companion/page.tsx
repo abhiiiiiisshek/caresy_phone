@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { Input, Button, Badge } from '@/components/ds';
 import {
   ShieldCheck, Clock, CheckCircle2, XCircle, Ban, Upload, FileCheck2,
-  Loader2, LogIn, Power,
+  Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox,
 } from 'lucide-react';
 
 // Companion portal — one page that branches on the signed-in user's companion
@@ -299,23 +299,86 @@ function ReapplyButton({ onDone }: { onDone: () => void }) {
 
 // ---------------------------------------------------------------------------
 
+interface JobRow {
+  id: string;
+  reference_code: string | null;
+  service_type: string;
+  booking_type: string;
+  status: string;
+  scheduled_start_time: string | null;
+  created_at: string;
+  special_instructions: string | null;
+  service_metadata: { originalService?: string } | null;
+  companion_user_id: string | null;
+  pickup?: { title: string | null; pincode: string | null; city: string | null } | null;
+  patient?: { full_name: string | null } | null;
+}
+
+const JOB_SELECT =
+  'id, reference_code, service_type, booking_type, status, scheduled_start_time, created_at, special_instructions, service_metadata, companion_user_id, pickup:locations!pickup_location_id (title, pincode, city), patient:patients!patient_id (full_name)';
+
+function fmtWhen(iso: string | null): string {
+  if (!iso) return 'Flexible';
+  const d = new Date(iso);
+  return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  ACCEPTED: 'Accepted', IN_PROGRESS: 'In progress', COMPLETED: 'Completed', CANCELLED: 'Cancelled', EXPIRED: 'Expired', PENDING: 'Pending',
+};
+
 function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; onChange: () => void }) {
   const { user } = useAuth();
   const [online, setOnline] = useState(companion.is_online);
-  const [busy, setBusy] = useState(false);
+  const [togglingOnline, setTogglingOnline] = useState(false);
+  const [openJobs, setOpenJobs] = useState<JobRow[]>([]);
+  const [myJobs, setMyJobs] = useState<JobRow[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [actioning, setActioning] = useState<string | null>(null);
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+
+  const fetchJobs = useCallback(async () => {
+    if (!user) return;
+    const supabase = createClient();
+    const [openRes, mineRes] = await Promise.all([
+      supabase.from('bookings').select(JOB_SELECT).eq('status', 'PENDING').is('companion_user_id', null).order('created_at', { ascending: false }),
+      supabase.from('bookings').select(JOB_SELECT).eq('companion_user_id', user.id).order('created_at', { ascending: false }),
+    ]);
+    setOpenJobs((openRes.data as unknown as JobRow[]) ?? []);
+    setMyJobs((mineRes.data as unknown as JobRow[]) ?? []);
+    setLoadingJobs(false);
+  }, [user]);
+
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
 
   const toggleOnline = async () => {
     if (!user) return;
-    setBusy(true);
+    setTogglingOnline(true);
     const next = !online;
     const supabase = createClient();
     const { error } = await supabase.from('companions')
       .update({ is_online: next, last_online_at: next ? new Date().toISOString() : null })
       .eq('id', user.id);
     if (!error) setOnline(next);
-    setBusy(false);
+    setTogglingOnline(false);
     onChange();
   };
+
+  const setJobStatus = async (job: JobRow, status: string, extra: Record<string, unknown> = {}) => {
+    if (!user) return;
+    setActioning(job.id);
+    const supabase = createClient();
+    const { error } = await supabase.from('bookings').update({ status, ...extra }).eq('id', job.id);
+    setActioning(null);
+    if (error) { alert(error.message); return; }
+    await fetchJobs();
+  };
+
+  const accept = (job: JobRow) => setJobStatus(job, 'ACCEPTED', { companion_user_id: user!.id });
+
+  const activeMine = myJobs.filter((j) => ['ACCEPTED', 'IN_PROGRESS'].includes(j.status));
+  const pastMine = myJobs.filter((j) => ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(j.status));
+  const visibleOpen = openJobs.filter((j) => !hidden.has(j.id));
 
   return (
     <main className="app-shell-page" style={{ maxWidth: 640, margin: '0 auto', padding: '28px 16px 48px' }}>
@@ -336,21 +399,107 @@ function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; o
         </span>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, color: 'var(--ink-teal)' }}>{online ? 'You’re online' : 'You’re offline'}</div>
-          <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{online ? 'You’ll receive nearby job requests.' : 'Go online to receive job requests.'}</div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{online ? 'Open job requests are shown below.' : 'Go online to see and accept job requests.'}</div>
         </div>
-        <Button variant={online ? 'outline' : 'primary'} size="sm" onClick={toggleOnline} disabled={busy}>
-          {busy ? <Loader2 className="animate-spin" style={{ width: 15, height: 15 }} /> : online ? 'Go offline' : 'Go online'}
+        <Button variant={online ? 'outline' : 'primary'} size="sm" onClick={toggleOnline} disabled={togglingOnline}>
+          {togglingOnline ? <Loader2 className="animate-spin" style={{ width: 15, height: 15 }} /> : online ? 'Go offline' : 'Go online'}
         </Button>
       </div>
 
-      {/* Jobs feed placeholder — Phase 2 proper wires this to real bookings */}
-      <div style={{ padding: 24, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px dashed var(--line-strong)', textAlign: 'center' }}>
-        <CheckCircle2 style={{ width: 28, height: 28, color: 'var(--teal)', marginBottom: 8 }} />
-        <div style={{ fontWeight: 700, color: 'var(--ink-teal)' }}>You’re verified and ready</div>
-        <p style={{ margin: '6px 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
-          Nearby job requests will appear here. The live job feed and accept/reject flow are being rolled out next.
-        </p>
-      </div>
+      {loadingJobs ? (
+        <div style={{ display: 'grid', placeItems: 'center', padding: 32 }}><Loader2 className="animate-spin" style={{ width: 22, height: 22, color: 'var(--teal)' }} /></div>
+      ) : (
+        <>
+          {/* My active jobs */}
+          {activeMine.length > 0 && (
+            <section style={{ marginBottom: 22 }}>
+              <SectionTitle icon={Briefcase} label={`Your active jobs (${activeMine.length})`} />
+              <div style={{ display: 'grid', gap: 10 }}>
+                {activeMine.map((job) => (
+                  <JobCard key={job.id} job={job} showPatient>
+                    {job.status === 'ACCEPTED' && (
+                      <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => setJobStatus(job, 'IN_PROGRESS', { actual_start_time: new Date().toISOString() })}
+                        iconLeft={<PlayCircle style={{ width: 15, height: 15 }} />}>Start job</Button>
+                    )}
+                    {job.status === 'IN_PROGRESS' && (
+                      <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => setJobStatus(job, 'COMPLETED', { actual_end_time: new Date().toISOString() })}
+                        iconLeft={<CheckCircle2 style={{ width: 15, height: 15 }} />}>Mark complete</Button>
+                    )}
+                  </JobCard>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Open jobs feed (only when online) */}
+          <section style={{ marginBottom: 22 }}>
+            <SectionTitle icon={Inbox} label={`Open requests (${visibleOpen.length})`} />
+            {!online ? (
+              <EmptyState text="You’re offline. Go online to see open job requests." />
+            ) : visibleOpen.length === 0 ? (
+              <EmptyState text="No open requests right now. New ones will appear here." />
+            ) : (
+              <div style={{ display: 'grid', gap: 10 }}>
+                {visibleOpen.map((job) => (
+                  <JobCard key={job.id} job={job}>
+                    <Button variant="ghost" size="sm" onClick={() => setHidden((h) => new Set(h).add(job.id))}>Dismiss</Button>
+                    <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => accept(job)}
+                      iconLeft={actioning === job.id ? <Loader2 className="animate-spin" style={{ width: 15, height: 15 }} /> : <CheckCircle2 style={{ width: 15, height: 15 }} />}>
+                      Accept
+                    </Button>
+                  </JobCard>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Past jobs */}
+          {pastMine.length > 0 && (
+            <section>
+              <SectionTitle icon={Clock} label={`History (${pastMine.length})`} />
+              <div style={{ display: 'grid', gap: 10 }}>
+                {pastMine.map((job) => <JobCard key={job.id} job={job} muted showPatient />)}
+              </div>
+            </section>
+          )}
+        </>
+      )}
     </main>
+  );
+}
+
+function SectionTitle({ icon: Icon, label }: { icon: React.ComponentType<{ style?: React.CSSProperties }>; label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 10px' }}>
+      <Icon style={{ width: 16, height: 16, color: 'var(--teal)' }} />
+      <h2 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{label}</h2>
+    </div>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <div style={{ padding: 22, textAlign: 'center', color: 'var(--muted)', fontSize: '0.86rem', border: '1px dashed var(--line-strong)', borderRadius: 'var(--radius-lg)' }}>{text}</div>;
+}
+
+function JobCard({ job, children, showPatient, muted }: { job: JobRow; children?: React.ReactNode; showPatient?: boolean; muted?: boolean }) {
+  const service = job.service_metadata?.originalService || job.service_type.replace(/_/g, ' ').toLowerCase();
+  const tone = job.status === 'COMPLETED' ? 'success' : job.status === 'IN_PROGRESS' ? 'teal' : job.status === 'EXPIRED' || job.status === 'CANCELLED' ? 'neutral' : 'teal';
+  return (
+    <div style={{ padding: 14, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--line)', opacity: muted ? 0.7 : 1 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 700, color: 'var(--ink-teal)', textTransform: 'capitalize' }}>{service}</div>
+          {job.reference_code && <div style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>{job.reference_code}</div>}
+        </div>
+        {job.status !== 'PENDING' && <Badge tone={tone as 'success' | 'teal' | 'neutral'} size="sm">{STATUS_LABEL[job.status] || job.status}</Badge>}
+      </div>
+      <div style={{ display: 'grid', gap: 4, margin: '10px 0', fontSize: '0.82rem', color: 'var(--muted)' }}>
+        {job.pickup?.title && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MapPin style={{ width: 13, height: 13 }} />{job.pickup.title}{job.pickup.pincode ? ` · ${job.pickup.pincode}` : ''}</span>}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock style={{ width: 13, height: 13 }} />{job.booking_type === 'INSTANT' ? 'Same-day' : fmtWhen(job.scheduled_start_time)}</span>
+        {showPatient && job.patient?.full_name && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CheckCircle2 style={{ width: 13, height: 13 }} />Patient: {job.patient.full_name}</span>}
+        {job.special_instructions && <span style={{ fontStyle: 'italic' }}>“{job.special_instructions}”</span>}
+      </div>
+      {children && <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>{children}</div>}
+    </div>
   );
 }

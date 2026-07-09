@@ -10,10 +10,12 @@ import { Button, Input } from '@/components/ds';
 const STATUS_OPTIONS = [
   'DRAFT',
   'PENDING',
+  'ACCEPTED',
   'ASSIGNED',
   'IN_PROGRESS',
   'COMPLETED',
-  'CANCELLED'
+  'CANCELLED',
+  'EXPIRED'
 ];
 
 interface BookingRecord {
