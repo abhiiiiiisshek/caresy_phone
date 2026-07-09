@@ -103,6 +103,7 @@ async function reverseGeocode(lat: number, lon: number): Promise<string> {
 export default function LocationBadge() {
   const [state, setState] = useState<BadgeState>({ kind: 'loading' });
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
   const [manualValue, setManualValue] = useState('');
   const [notifyPhone, setNotifyPhone] = useState('');
   const [notifyStatus, setNotifyStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
@@ -126,17 +127,21 @@ export default function LocationBadge() {
   }, []);
 
   const detect = useCallback(() => {
+    setPermissionOpen(false);
     if (!('geolocation' in navigator)) {
       setState({ kind: 'unset' });
+      setSheetOpen(true);
       return;
     }
     setDetecting(true);
+    // Triggers the real browser location permission prompt.
     navigator.geolocation.getCurrentPosition(
       (pos) => resolveFromCoords(pos.coords.latitude, pos.coords.longitude),
       () => {
         // Denied or unavailable — fall back to manual entry.
         setDetecting(false);
         setState({ kind: 'unset' });
+        setSheetOpen(true);
       },
       { timeout: 8000, maximumAge: 10 * 60 * 1000 }
     );
@@ -147,9 +152,12 @@ export default function LocationBadge() {
     if (stored) {
       setState({ kind: 'resolved', loc: stored });
     } else {
-      detect();
+      // First visit — greet the user, then ask for location up front with a
+      // real permission popup instead of silently probing geolocation.
+      setState({ kind: 'unset' });
+      setPermissionOpen(true);
     }
-  }, [detect]);
+  }, []);
 
   const applyManual = (text: string) => {
     const area = text.trim();
@@ -204,7 +212,7 @@ export default function LocationBadge() {
             <Loader2 className="animate-spin" style={{ width: 12, height: 12 }} /> Detecting your area…
           </span>
         ) : state.kind === 'unset' ? (
-          <button onClick={() => setSheetOpen(true)} style={linkStyle}>Set your location</button>
+          <button onClick={() => setPermissionOpen(true)} style={linkStyle}>Share your location</button>
         ) : (
           <>
             <span style={{
@@ -227,6 +235,36 @@ export default function LocationBadge() {
           </>
         )}
       </div>
+
+      {/* First-visit permission popup — asks for location up front, then fires
+          the real browser geolocation prompt when the user opts in. */}
+      {permissionOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 210, background: 'rgba(22,48,43,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ width: '100%', maxWidth: 380, background: 'var(--paper)', borderRadius: 26, padding: '28px 22px 22px', textAlign: 'center', animation: 'caresy-sheet-up 0.28s var(--ease-out)', boxShadow: 'var(--shadow-pop, 0 24px 60px rgba(22,48,43,0.28))' }}>
+            <div style={{ display: 'grid', placeItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--teal-soft)', color: 'var(--teal)', margin: '0 auto 16px' }}>
+              <MapPin style={{ width: 30, height: 30 }} />
+            </div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.2rem', fontWeight: 800, color: 'var(--ink-teal)' }}>
+              Share your location
+            </h3>
+            <p style={{ margin: '0 0 20px', fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.5 }}>
+              Let us detect your area so we can confirm whether Caresy companions are available near you. We currently serve <strong style={{ color: 'var(--ink-teal)' }}>Noida &amp; Greater Noida</strong>.
+            </p>
+            <Button variant="primary" full onClick={detect} disabled={detecting}
+              iconLeft={detecting ? <Loader2 className="animate-spin" style={{ width: 16, height: 16 }} /> : <MapPin style={{ width: 16, height: 16 }} />}>
+              {detecting ? 'Detecting…' : 'Allow location access'}
+            </Button>
+            <button
+              onClick={() => { setPermissionOpen(false); setSheetOpen(true); }}
+              style={{ ...linkStyle, color: 'var(--muted)', display: 'block', margin: '14px auto 0' }}>
+              Enter my location manually
+            </button>
+            <p style={{ margin: '14px 0 0', fontSize: '0.72rem', color: 'var(--muted)' }}>
+              Your location stays on this device. We never store your exact coordinates.
+            </p>
+          </div>
+        </div>
+      )}
 
       {sheetOpen && (
         <div onClick={() => setSheetOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(22,48,43,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'flex-end' }}>
