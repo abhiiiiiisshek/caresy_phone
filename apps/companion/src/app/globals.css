@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "@caresy/ui/theme.css";
+
+.app-shell-page {
+  padding-top: 20px;
+}
