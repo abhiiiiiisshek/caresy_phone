@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
 import { Phone, Mail, FileText, LogOut, CalendarCheck, CircleCheckBig, Loader2, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ds';
+import { Button } from '@caresy/ui';
 
 function StatTile({ icon: Icon, value, label, color = 'var(--teal)' }: { icon: React.ElementType; value: string | number; label: string; color?: string }) {
   return (

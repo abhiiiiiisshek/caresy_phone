@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Fingerprint, ShieldAlert, MapPin, Camera, GraduationCap, ShieldCheck } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { COMPANIONS } from '@/data/companions';
-import { StepItem, CompanionCard, StatCard, Card, Badge } from '@/components/ds';
+import { StepItem, CompanionCard, StatCard, Card, Badge } from '@caresy/ui';
 
 const VERIFICATION_STEPS = [
   { icon: Fingerprint, title: 'Aadhaar verification', desc: 'Identity checked before companion activation via UIDAI / Digilocker API integration.' },

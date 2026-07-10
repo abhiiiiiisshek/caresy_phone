@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ArrowLeft, Phone, X, Home, HeartHandshake, Calendar, User, Info, Building2, Headset, Settings, LogOut, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ds';
+import { Button } from '@caresy/ui';
 
 export default function Header() {
   const pathname = usePathname();

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { Button, Input } from '@/components/ds';
+import { Button, Input } from '@caresy/ui';
 import { AdminNav } from '@/components/AdminNav';
 
 const STATUS_OPTIONS = [

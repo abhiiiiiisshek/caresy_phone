@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { FileText, Car, User, Shield } from 'lucide-react';
-import { ServiceCard } from '@/components/ds';
+import { ServiceCard } from '@caresy/ui';
 
 const SERVICES = [
   { icon: FileText, title: 'Hospital Assistance', price: '₹499', desc: 'We help with paperwork, appointments, medicine pickup, queue management and waiting room comfort.' },

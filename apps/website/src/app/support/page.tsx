@@ -6,7 +6,7 @@ import {
   CalendarCheck, Wallet, UserRound, RotateCcw, Siren, CircleHelp,
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
-import { Input, Button, Card, Badge } from '@/components/ds';
+import { Input, Button, Card, Badge } from '@caresy/ui';
 
 const SUP_WA = '919717500225';
 const SUP_EMAIL = 'support@caresy.co.in';

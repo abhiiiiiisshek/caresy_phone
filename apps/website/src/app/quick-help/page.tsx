@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
 import { MessageSquare, Check } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
-import { Input, Button } from '@/components/ds';
+import { Input, Button } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@/utils/serviceArea';
 
 const DRAFT_KEY = 'caresy_quickhelp_draft';

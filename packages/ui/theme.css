@@ -1,0 +1,94 @@
+:root {
+  /* --- Core Colors --- */
+  --ink-teal: #16302B;          /* Deep near-black teal for header, footer, dark sections */
+  --paper: #F4ECE6;             /* Warm cream background for main content (from ref) */
+  --charcoal: #232B28;          /* Body text color */
+  --muted-teal-gray: #5C6B64;   /* Secondary/supporting text */
+
+  /* --- Accents (New Teal & Terracotta Theme) --- */
+  --teal: #0D7A66;              /* Primary deep teal */
+  --teal-deep: #09594A;         /* Primary deep teal hover variant */
+  --terracotta: #C45543;        /* Urgent/Accent terracotta */
+  --terracotta-deep: #A64434;   /* Urgent/Accent terracotta deep variant */
+  --sage: #DCE6D9;              /* Soft green for backgrounds and info badges */
+  --sage-deep: #B9CBB4;         /* Soft green borders/text */
+
+  /* --- Legacy Aliases --- */
+  --marigold: var(--teal);
+  --marigold-deep: var(--teal-deep);
+  --vermilion: var(--terracotta);
+  --vermilion-deep: var(--terracotta-deep);
+
+  /* --- Existing Variables Mapping --- */
+  --bg: var(--paper);
+  --surface: #ffffff;
+  --surface-2: var(--sage);
+  --ink: var(--charcoal);
+  --muted: var(--muted-teal-gray);
+  --primary: var(--marigold);
+  --primary-dark: var(--marigold-deep);
+  --mint: var(--sage);
+  --amber: var(--marigold);
+  --coral: var(--vermilion);
+  --accent: var(--marigold);
+  --line: rgba(22, 48, 43, 0.12);
+  --shadow-1: 0 4px 16px rgba(22, 48, 43, 0.05), 0 1px 3px rgba(22, 48, 43, 0.02);
+  --shadow-2: 0 16px 40px rgba(22, 48, 43, 0.1), 0 4px 12px rgba(22, 48, 43, 0.03);
+  --radius: 12px;
+  --max: 1180px;
+
+  /* J4: New Design Tokens mapped to Core/Accent */
+  --color-primary: var(--marigold);
+  --color-primary-dark: var(--marigold-deep);
+  --color-accent: var(--marigold);
+  --color-warning: var(--marigold);
+  --color-danger: var(--vermilion);
+  --color-text: var(--charcoal);
+  --color-text-muted: var(--muted-teal-gray);
+  --color-bg-subtle: var(--paper);
+  --color-border: var(--line);
+
+  /* ====================================================
+     Design System tokens (Caresy Design System package)
+     Additive only — nothing above is renamed or removed.
+     ==================================================== */
+  --teal-soft: #E4F0EC;
+  --terracotta-soft: #FCEAE8;
+  --success: #27A875;
+  --success-soft: #E1F3EA;
+  --warning: #E7A33E;
+  --line-strong: rgba(22, 48, 43, 0.22);
+  --text-on-teal: #FFFFFF;
+  --focus-ring: var(--teal);
+
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 30px;
+  --radius-pill: 999px;
+
+  --shadow-3: 0 30px 80px rgba(22, 48, 43, 0.20);
+  --shadow-pop: 0 8px 18px rgba(13, 122, 102, 0.22);
+  --shadow-pop-urgent: 0 8px 18px rgba(196, 85, 67, 0.22);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-26: 104px;
+
+  --app-width: 420px;
+  --header-offset: 118px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur: 180ms;
+  --dur-slow: 250ms;
+}

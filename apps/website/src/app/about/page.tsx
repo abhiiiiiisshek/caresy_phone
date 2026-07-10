@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { Card, Badge } from '@/components/ds';
+import { Card, Badge } from '@caresy/ui';
 
 const CHECKLIST = ['Trained & Verified Executives', 'On-time & Reliable Support', 'Compassionate Care', 'Your Privacy, Our Priority'];
 

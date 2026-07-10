@@ -8,7 +8,7 @@ import {
   PhoneCall, Zap, Calendar, Stethoscope, Pill, FlaskConical, Home as HomeIcon,
   ShieldCheck, Building2, Headset,
 } from 'lucide-react';
-import { CompanionCard } from '@/components/ds';
+import { CompanionCard } from '@caresy/ui';
 import LocationBadge from '@/components/LocationBadge';
 import { COMPANIONS } from '@/data/companions';
 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Search, Info } from 'lucide-react';
-import { Input } from '@/components/ds';
+import { Input } from '@caresy/ui';
 
 const TERMS_SECTIONS = [
   {

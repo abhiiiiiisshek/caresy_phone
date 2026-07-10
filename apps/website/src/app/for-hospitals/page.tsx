@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Smile, Activity, ShieldCheck, Expand } from 'lucide-react';
-import { Card } from '@/components/ds';
+import { Card } from '@caresy/ui';
 
 const BENEFITS = [
   { icon: Smile, title: 'Enhanced Patient Experience', desc: 'Provide a seamless and stress-free experience for patients and their attendants.' },

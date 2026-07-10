@@ -7,7 +7,7 @@ import { createClient } from '@/utils/supabase/client';
 import { ArrowRight, ArrowLeft, Loader2, Check } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { matchCompanionByDepartment } from '@/data/companions';
-import { Input, Button, CompanionCard } from '@/components/ds';
+import { Input, Button, CompanionCard } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@/utils/serviceArea';
 
 const STEPS = ['Patient details', 'Appointment details', 'Support needed'];

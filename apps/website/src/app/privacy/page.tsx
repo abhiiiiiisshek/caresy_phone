@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, Info } from 'lucide-react';
-import { Input } from '@/components/ds';
+import { Input } from '@caresy/ui';
 
 const PRIVACY_SECTIONS = [
   {

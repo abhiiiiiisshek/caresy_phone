@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Star } from 'lucide-react';
-import { Card } from '@/components/ds';
+import { Card } from '@caresy/ui';
 
 const TESTIMONIALS = [
   { quote: 'Caresy made our hospital visit so much easier. The executive helped us with everything patiently.', initials: 'NS', name: 'Neha Sharma', place: 'New Delhi' },

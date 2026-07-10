@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, CheckCircle, Send, MessageCircle } from 'lucide-react';
-import { IconButton } from '@/components/ds';
+import { IconButton } from '@caresy/ui';
 
 // The 4 core app tabs end at the bottom nav, matching the app design — the
 // full website footer only renders on secondary marketing/legal pages.

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { PhoneCall } from 'lucide-react';
-import { Card } from '@/components/ds';
+import { Card } from '@caresy/ui';
 
 const STEPS = [
   { title: 'Book Your Service', desc: 'Choose the service you need and share the details with us.' },

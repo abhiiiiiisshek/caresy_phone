@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
-import { Button, Input, Badge } from '@/components/ds';
+import { Button, Input, Badge } from '@caresy/ui';
 import { AdminNav } from '@/components/AdminNav';
 import { Loader2, ShieldCheck, Plus, Trash2, MapPin } from 'lucide-react';
 import { isValidPincode } from '@/utils/serviceArea';
