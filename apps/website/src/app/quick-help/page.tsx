@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@caresy/auth';
+import { createClient } from '@caresy/auth/supabase/client';
 import { MessageSquare, Check } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button } from '@caresy/ui';

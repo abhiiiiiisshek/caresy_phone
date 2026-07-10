@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@caresy/auth';
+import { createClient } from '@caresy/auth/supabase/client';
 import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle } from 'lucide-react';
 import { Button } from '@caresy/ui';
 

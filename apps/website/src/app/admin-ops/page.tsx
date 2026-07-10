@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@caresy/auth';
+import { createClient } from '@caresy/auth/supabase/client';
 import { Button, Input } from '@caresy/ui';
 import { AdminNav } from '@/components/AdminNav';
 

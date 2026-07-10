@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@caresy/auth';
 import { Home, Calendar, Headset, User } from 'lucide-react';
 
 export default function MobileBottomNav() {

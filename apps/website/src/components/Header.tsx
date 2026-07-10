@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@caresy/auth';
 import { ArrowLeft, Phone, X, Home, HeartHandshake, Calendar, User, Info, Building2, Headset, Settings, LogOut, ShieldCheck } from 'lucide-react';
 import { Button } from '@caresy/ui';
 

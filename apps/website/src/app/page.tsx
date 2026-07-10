@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@caresy/auth';
+import { createClient } from '@caresy/auth/supabase/client';
 import {
   PhoneCall, Zap, Calendar, Stethoscope, Pill, FlaskConical, Home as HomeIcon,
   ShieldCheck, Building2, Headset,

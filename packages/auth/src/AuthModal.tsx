@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from './AuthContext';
 import { X, Loader2 } from 'lucide-react';
 import { Button, Input } from '@caresy/ui';
 

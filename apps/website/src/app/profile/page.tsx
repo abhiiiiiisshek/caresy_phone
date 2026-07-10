@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@caresy/auth';
+import { createClient } from '@caresy/auth/supabase/client';
 import { Phone, Mail, FileText, LogOut, CalendarCheck, CircleCheckBig, Loader2, ShieldCheck } from 'lucide-react';
 import { Button } from '@caresy/ui';
 

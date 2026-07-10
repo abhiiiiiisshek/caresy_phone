@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@caresy/auth/supabase/client';
 
 // Static, honest fallback used until the real row loads (or if the
 // `ops_metrics` table/row isn't reachable yet). No randomness — these

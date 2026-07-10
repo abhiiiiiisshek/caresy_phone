@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@caresy/auth": "*",
     "@caresy/ui": "*",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.110.0",

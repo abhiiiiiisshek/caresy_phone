@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@caresy/auth/supabase/client';
 
 // Single source of truth for "do we serve this pincode?" on the client.
 // Mirrors the DB is_pincode_served() function used by the booking guard, so

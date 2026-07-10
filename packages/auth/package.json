@@ -1,0 +1,22 @@
+{
+  "name": "@caresy/auth",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/AuthContext.tsx",
+    "./modal": "./src/AuthModal.tsx",
+    "./supabase/client": "./src/supabase/client.ts",
+    "./supabase/server": "./src/supabase/server.ts",
+    "./supabase/middleware": "./src/supabase/middleware.ts"
+  },
+  "dependencies": {
+    "@caresy/ui": "*",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.0",
+    "lucide-react": "^1.23.0"
+  },
+  "peerDependencies": {
+    "next": "^16",
+    "react": "^19"
+  }
+}

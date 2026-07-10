@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@caresy/auth';
+import { createClient } from '@caresy/auth/supabase/client';
 import { Button, Badge, Input } from '@caresy/ui';
 import { AdminNav } from '@/components/AdminNav';
 import { Loader2, ShieldCheck, Mail, Phone } from 'lucide-react';

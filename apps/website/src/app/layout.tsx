@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
-import { AuthProvider } from '@/context/AuthContext';
+import { AuthProvider } from '@caresy/auth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import WhatsAppWidget from '@/components/WhatsAppWidget';
 import CookieBanner from '@/components/CookieBanner';
-import AuthModal from '@/components/AuthModal';
+import AuthModal from '@caresy/auth/modal';
 import './globals.css';
 
 const poppins = Poppins({
