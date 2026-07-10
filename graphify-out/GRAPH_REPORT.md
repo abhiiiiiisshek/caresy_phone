@@ -1,16 +1,16 @@
 # Graph Report - caresy_phone  (2026-07-10)
 
 ## Corpus Check
-- 108 files · ~540,348 words
+- 109 files · ~540,478 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 696 nodes · 928 edges · 79 communities (42 shown, 37 thin omitted)
+- 699 nodes · 930 edges · 79 communities (42 shown, 37 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `aed43982`
+- Built from commit: `7aec3713`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -106,16 +106,16 @@
 10. `Caresy — Developer Handoff` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `GET()` --calls--> `createClient()`  [EXTRACTED]
-  apps/admin/src/app/auth/callback/route.ts → packages/auth/src/supabase/server.ts
 - `CompanionRow` --references--> `ApprovalStatus`  [EXTRACTED]
   apps/admin/src/app/companions/page.tsx → packages/types/src/index.ts
 - `proxy()` --calls--> `updateSession()`  [EXTRACTED]
   apps/admin/src/proxy.ts → packages/auth/src/supabase/middleware.ts
-- `GET()` --calls--> `createClient()`  [EXTRACTED]
-  apps/companion/src/app/auth/callback/route.ts → packages/auth/src/supabase/server.ts
 - `CompanionRow` --references--> `ApprovalStatus`  [EXTRACTED]
   apps/companion/src/app/page.tsx → packages/types/src/index.ts
+- `proxy()` --calls--> `updateSession()`  [EXTRACTED]
+  apps/companion/src/proxy.ts → packages/auth/src/supabase/middleware.ts
+- `Support()` --calls--> `createClient()`  [EXTRACTED]
+  apps/website/src/app/support/page.tsx → packages/auth/src/supabase/client.ts
 
 ## Import Cycles
 - None detected.
@@ -128,7 +128,7 @@
 
 ### Community 0 - "Card"
 Cohesion: 0.05
-Nodes (70): AdminAnalytics(), Stats, STATUS_ORDER, AdminCompanions(), CompanionRow, DocRow, FILTERS, ReviewSheet() (+62 more)
+Nodes (71): AdminAnalytics(), Stats, STATUS_ORDER, AdminCompanions(), CompanionRow, DocRow, FILTERS, ReviewSheet() (+63 more)
 
 ### Community 1 - "createClient"
 Cohesion: 0.07
@@ -207,8 +207,8 @@ Cohesion: 0.67
 Nodes (3): Drop-us-a-message contact form (client-side alert only), contact.html - Contact Us page, for-hospitals.html - For Hospitals partner page
 
 ### Community 22 - "eslint.config.mjs"
-Cohesion: 0.12
-Nodes (16): dependencies, @caresy/ui, lucide-react, @supabase/ssr, @supabase/supabase-js, exports, ./modal, ./supabase/client (+8 more)
+Cohesion: 0.11
+Nodes (17): dependencies, @caresy/ui, lucide-react, @supabase/ssr, @supabase/supabase-js, exports, ./modal, ./supabase/callback (+9 more)
 
 ### Community 23 - "next.config.ts"
 Cohesion: 0.21
@@ -240,15 +240,15 @@ Nodes (7): config, proxy(), config, proxy(), config, proxy(), updateSession()
 
 ### Community 47 - "index.ts"
 Cohesion: 0.24
-Nodes (7): ActiveBookingInfo, APP_SERVICES, TRUST_ITEMS, Companion, COMPANIONS, findCompanionByName(), matchCompanionByDepartment()
+Nodes (6): ActiveBookingInfo, APP_SERVICES, TRUST_ITEMS, Companion, COMPANIONS, findCompanionByName()
 
 ### Community 48 - "Badge.tsx"
 Cohesion: 0.22
 Nodes (7): BadgeProps, BadgeSize, BadgeTone, SIZES, TONES, CompanionCard(), CompanionCardProps
 
 ### Community 49 - "IconButton.tsx"
-Cohesion: 0.46
-Nodes (4): GET(), GET(), GET(), createClient()
+Cohesion: 0.31
+Nodes (5): GET, GET, GET, authCallback(), createClient()
 
 ### Community 50 - "page.tsx"
 Cohesion: 0.25
@@ -287,7 +287,7 @@ Cohesion: 0.50
 Nodes (3): CardProps, CardVariant, VARIANTS
 
 ## Knowledge Gaps
-- **408 isolated node(s):** `nextConfig`, `name`, `version`, `private`, `dev` (+403 more)
+- **412 isolated node(s):** `nextConfig`, `name`, `version`, `private`, `dev` (+407 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **37 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -301,9 +301,9 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `Button()` connect `Card` to `LocationBadge.tsx`, `route.ts`, `Card.tsx`, `next.config.ts`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **What connects `nextConfig`, `name`, `version` to the rest of the system?**
-  _409 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _413 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Card` be split into smaller, more focused modules?**
-  _Cohesion score 0.05283505154639175 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05217757205975174 - nodes in this community are weakly interconnected._
 - **Should `createClient` be split into smaller, more focused modules?**
   _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
 - **Should `script.js` be split into smaller, more focused modules?**

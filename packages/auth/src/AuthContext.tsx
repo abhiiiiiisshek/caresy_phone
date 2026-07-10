@@ -61,34 +61,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    async function getSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      setIsAdmin(await resolveIsAdmin(session?.user));
-      if (session?.user) {
-        const p = await fetchProfile(session.user.id);
-        if (!p || !p.onboarding_completed) setIsOpen(true);
-      }
-      setIsLoading(false);
-    }
-    getSession();
+      if (!session?.user) setIsLoading(false);
+    });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // Keep this callback synchronous: awaiting any supabase call in here
+    // deadlocks the client's auth lock (the call needs getSession, which
+    // waits on the lock this callback holds) and stalls sign-in for 30s+.
+    // Profile/admin loading happens in the user-keyed effect below.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      setIsAdmin(await resolveIsAdmin(session?.user));
-      if (session?.user) {
-        const p = await fetchProfile(session.user.id);
-        if (!p || !p.onboarding_completed) setIsOpen(true);
-      } else {
+      if (!session?.user) {
         setProfile(null);
+        setIsAdmin(false);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => {
       subscription.unsubscribe();
     };
   }, [supabase]);
+
+  useEffect(() => {
+    if (!user) return;
+    let stale = false;
+    (async () => {
+      const [admin, p] = await Promise.all([resolveIsAdmin(user), fetchProfile(user.id)]);
+      if (stale) return;
+      setIsAdmin(admin);
+      if (!p || !p.onboarding_completed) setIsOpen(true);
+      setIsLoading(false);
+    })();
+    return () => { stale = true; };
+  }, [user?.id]);
 
   const openLogin = (next?: string) => {
     setNextPath(next || (typeof window !== 'undefined' ? window.location.pathname : '/'));

@@ -71,7 +71,7 @@ export default function CompanionPortal() {
           <p style={{ margin: '0 0 22px', color: 'var(--muted)' }}>
             Join our verified network of hospital companions. Sign in to start your registration.
           </p>
-          <Button variant="primary" iconLeft={<LogIn style={{ width: 16, height: 16 }} />} onClick={() => openLogin('/companion')}>
+          <Button variant="primary" iconLeft={<LogIn style={{ width: 16, height: 16 }} />} onClick={() => openLogin('/')}>
             Sign in to continue
           </Button>
         </div>

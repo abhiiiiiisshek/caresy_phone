@@ -10,8 +10,8 @@
     "semantic_hash": "e1d02e814518e06fbcbe2a2cb259fbab"
   },
   ".claude/settings.local.json": {
-    "mtime": 1783697751.858117,
-    "ast_hash": "e53b22f06f35ec89c86a7909f322d6c7",
+    "mtime": 1783701261.805527,
+    "ast_hash": "cdea1d9a66918eb1103da40d922a440e",
     "semantic_hash": ""
   },
   "package.json": {
@@ -235,8 +235,8 @@
     "semantic_hash": ""
   },
   "apps/admin/src/app/auth/callback/route.ts": {
-    "mtime": 1783662058.438752,
-    "ast_hash": "d1f37343eadebbe0470efb0c287a1ed2",
+    "mtime": 1783704101.3212593,
+    "ast_hash": "46ba5abfc0f405ff77bd23933effef93",
     "semantic_hash": ""
   },
   "apps/admin/src/app/companions/page.tsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "apps/companion/src/app/auth/callback/route.ts": {
-    "mtime": 1783661901.6188285,
-    "ast_hash": "d1f37343eadebbe0470efb0c287a1ed2",
+    "mtime": 1783704100.4753118,
+    "ast_hash": "2c9b9a68d195d986c83cf106a41d1bc5",
     "semantic_hash": ""
   },
   "apps/companion/src/app/layout.tsx": {
@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "apps/companion/src/app/page.tsx": {
-    "mtime": 1783661783.9580903,
-    "ast_hash": "480fedbe8748834b398141d5fc5be20f",
+    "mtime": 1783705223.754721,
+    "ast_hash": "5897dcc2573ca24d03cc5a599830da93",
     "semantic_hash": ""
   },
   "apps/companion/src/proxy.ts": {
@@ -370,8 +370,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/auth/callback/route.ts": {
-    "mtime": 1783661730.9637141,
-    "ast_hash": "d1f37343eadebbe0470efb0c287a1ed2",
+    "mtime": 1783704099.5272548,
+    "ast_hash": "fb41ae41761bf3ba3f0a4e885727df17",
     "semantic_hash": ""
   },
   "apps/website/src/app/booking/page.tsx": {
@@ -495,13 +495,13 @@
     "semantic_hash": ""
   },
   "packages/auth/package.json": {
-    "mtime": 1783661713.9423528,
-    "ast_hash": "1f84791a7b0fcc3ebb88e958bfdbace6",
+    "mtime": 1783704081.291408,
+    "ast_hash": "97ffa51267f83d26602899a35f0f8a98",
     "semantic_hash": ""
   },
   "packages/auth/src/AuthContext.tsx": {
-    "mtime": 1783661717.5904734,
-    "ast_hash": "ce8abed1d2306b2a1bb5efc6cdf5a983",
+    "mtime": 1783704049.790373,
+    "ast_hash": "b62b2be228830231f765ec4264653d99",
     "semantic_hash": ""
   },
   "packages/auth/src/AuthModal.tsx": {
@@ -717,6 +717,11 @@
   "apps/website/public/window.svg": {
     "mtime": 1783254375.0,
     "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": ""
+  },
+  "packages/auth/src/supabase/callback.ts": {
+    "mtime": 1783704066.6368546,
+    "ast_hash": "98bedc41719229c8770d46405877af7e",
     "semantic_hash": ""
   }
 }

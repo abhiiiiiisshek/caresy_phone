@@ -10,9 +10,9 @@
     "semantic_hash": "e1d02e814518e06fbcbe2a2cb259fbab"
   },
   ".claude/settings.local.json": {
-    "mtime": 1783600836.679935,
-    "ast_hash": "face252553f0850f8c33932d48bbac57",
-    "semantic_hash": "face252553f0850f8c33932d48bbac57"
+    "mtime": 1783697751.858117,
+    "ast_hash": "e53b22f06f35ec89c86a7909f322d6c7",
+    "semantic_hash": ""
   },
   "package.json": {
     "mtime": 1783661364.0980837,
@@ -80,8 +80,8 @@
     "semantic_hash": "03e3d38ba74cf8886d3d8fc322d9da8a"
   },
   "README.md": {
-    "mtime": 1783662307.7525232,
-    "ast_hash": "0a7db5a69f2d61078a7ed850a6d98b90",
+    "mtime": 1783701104.6565814,
+    "ast_hash": "7e91d8bc0ad5cc6037f4c634d5c63f02",
     "semantic_hash": ""
   },
   "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md": {
@@ -345,8 +345,8 @@
     "semantic_hash": ""
   },
   "apps/website/next.config.ts": {
-    "mtime": 1783662173.8862681,
-    "ast_hash": "ed5fcdeba3d960294dda79a440b3d61b",
+    "mtime": 1783701104.6571429,
+    "ast_hash": "54d3da0906360e8eb7ccb21c47b5268b",
     "semantic_hash": ""
   },
   "apps/website/package.json": {
@@ -410,8 +410,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/profile/page.tsx": {
-    "mtime": 1783662090.0297995,
-    "ast_hash": "30deea50cde0296f7ab5536a92b9680c",
+    "mtime": 1783701104.6574767,
+    "ast_hash": "3e04849ae888d3d1d3e26d3cd7bf28ea",
     "semantic_hash": ""
   },
   "apps/website/src/app/quick-help/page.tsx": {
@@ -455,8 +455,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/components/Header.tsx": {
-    "mtime": 1783662110.45157,
-    "ast_hash": "66082e8c0faf4a83b9a177ddd8cd63d0",
+    "mtime": 1783701104.6579802,
+    "ast_hash": "ad6384147f25d1e5abc31322811e281a",
     "semantic_hash": ""
   },
   "apps/website/src/components/LocationBadge.tsx": {
@@ -650,8 +650,8 @@
     "semantic_hash": ""
   },
   "docs/DEPLOYMENT.md": {
-    "mtime": 1783662277.5843954,
-    "ast_hash": "df1b5828f714aad22e338265a0ab2a09",
+    "mtime": 1783701104.6569033,
+    "ast_hash": "b2e45ed80eba6456e36deb3dd5228399",
     "semantic_hash": ""
   },
   "apps/website/public/assets/caresy-companion-anil.png": {

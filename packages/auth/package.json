@@ -7,6 +7,7 @@
     "./modal": "./src/AuthModal.tsx",
     "./supabase/client": "./src/supabase/client.ts",
     "./supabase/server": "./src/supabase/server.ts",
+    "./supabase/callback": "./src/supabase/callback.ts",
     "./supabase/middleware": "./src/supabase/middleware.ts"
   },
   "dependencies": {

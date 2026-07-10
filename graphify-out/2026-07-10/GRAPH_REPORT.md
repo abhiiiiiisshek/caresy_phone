@@ -1,7 +1,7 @@
 # Graph Report - caresy_phone  (2026-07-10)
 
 ## Corpus Check
-- 108 files · ~540,296 words
+- 108 files · ~540,348 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bf250eb8`
+- Built from commit: `aed43982`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -260,7 +260,7 @@ Nodes (7): exports, ./theme.css, name, peerDependencies, react, private, version
 
 ### Community 52 - "README.md"
 Cohesion: 0.17
-Nodes (10): 1. Update the existing Vercel project (website), 2. Create the two new Vercel projects, 3. Supabase Auth redirect URLs, 4. DNS (at your registrar for caresy.in), 5. Order of operations (zero downtime), Caresy Monorepo Deployment, Notes, Caresy (+2 more)
+Nodes (10): 1. Update the existing Vercel project (website), 2. Create the two new Vercel projects, 3. Supabase Auth redirect URLs, 4. DNS (at your registrar for caresy.co.in), 5. Order of operations (zero downtime), Caresy Monorepo Deployment, Notes, Caresy (+2 more)
 
 ### Community 53 - "Card.tsx"
 Cohesion: 0.33

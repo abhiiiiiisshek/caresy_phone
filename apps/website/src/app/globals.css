@@ -3740,3 +3740,10 @@ body {
     }
   }
 }
+
+/* Any one overflowing child otherwise drags the whole page sideways on
+   mobile; clip (not hidden) avoids creating a scroll container, so
+   position: sticky keeps working. */
+html, body {
+  overflow-x: clip;
+}
