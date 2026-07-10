@@ -500,8 +500,8 @@
     "semantic_hash": ""
   },
   "packages/auth/src/AuthContext.tsx": {
-    "mtime": 1783714139.3266618,
-    "ast_hash": "36d33e94fe43772489cf2c46d1d9d2fb",
+    "mtime": 1783704049.790373,
+    "ast_hash": "b62b2be228830231f765ec4264653d99",
     "semantic_hash": ""
   },
   "packages/auth/src/AuthModal.tsx": {
@@ -510,18 +510,18 @@
     "semantic_hash": ""
   },
   "packages/auth/src/supabase/client.ts": {
-    "mtime": 1783714119.0099325,
-    "ast_hash": "1d31cdc712339a4db653d99b0459e86f",
+    "mtime": 1783254375.0,
+    "ast_hash": "0fcd46865aa959be0b36035511310e72",
     "semantic_hash": ""
   },
   "packages/auth/src/supabase/middleware.ts": {
-    "mtime": 1783714126.3169525,
-    "ast_hash": "5c470918db2a6a411c58558a70669fb7",
+    "mtime": 1783254375.0,
+    "ast_hash": "050a2785d97461b2962ffc3806378fba",
     "semantic_hash": ""
   },
   "packages/auth/src/supabase/server.ts": {
-    "mtime": 1783714122.323183,
-    "ast_hash": "72340ae5ab6958f918ec615a23144c03",
+    "mtime": 1783254375.0,
+    "ast_hash": "fd18d727c956a4b64949e16962e0fc92",
     "semantic_hash": ""
   },
   "packages/types/package.json": {
@@ -650,8 +650,8 @@
     "semantic_hash": ""
   },
   "docs/DEPLOYMENT.md": {
-    "mtime": 1783714203.6692603,
-    "ast_hash": "364d832a9bb60a830180713b4750489a",
+    "mtime": 1783701104.6569033,
+    "ast_hash": "b2e45ed80eba6456e36deb3dd5228399",
     "semantic_hash": ""
   },
   "apps/website/public/assets/caresy-companion-anil.png": {
@@ -720,18 +720,13 @@
     "semantic_hash": ""
   },
   "packages/auth/src/supabase/callback.ts": {
-    "mtime": 1783714147.9484427,
-    "ast_hash": "03ae2d04fe7d92d1e3b8cfca1b8794f7",
+    "mtime": 1783704066.6368546,
+    "ast_hash": "98bedc41719229c8770d46405877af7e",
     "semantic_hash": ""
   },
   "apps/companion/src/components/PortalHeader.tsx": {
     "mtime": 1783707329.3157704,
     "ast_hash": "a8c29f42b10a5cc2ee2562e236057c37",
-    "semantic_hash": ""
-  },
-  "packages/auth/src/supabase/cookies.ts": {
-    "mtime": 1783714098.5323966,
-    "ast_hash": "d4442c0477e8296fb6f5ef49565abde7",
     "semantic_hash": ""
   }
 }

@@ -107,12 +107,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const origin = window.location.origin;
+    const { origin, hostname } = window.location;
+    // Subdomain logins route through the apex callback: Supabase's allowlist
+    // never matches *.caresy.co.in entries (see cookies.ts), but the Site URL
+    // origin is always accepted. Cookies are parent-domain scoped, so the apex
+    // can complete the PKCE exchange and hop back here with `next`.
+    const redirectTo = hostname.endsWith('.caresy.co.in')
+      ? `https://caresy.co.in/auth/callback?next=${encodeURIComponent(`${origin}${nextPath || '/'}`)}`
+      : `${origin}/auth/callback?next=${encodeURIComponent(nextPath || '/')}`;
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(nextPath || '/')}`,
-      },
+      options: { redirectTo },
     });
   };
 

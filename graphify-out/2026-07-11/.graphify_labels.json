@@ -77,10 +77,5 @@
   "75": "eslint.config.mjs",
   "76": "next.config.ts",
   "77": "postcss.config.mjs",
-  "78": "route.ts",
-  "79": "page.tsx",
-  "80": "page.tsx",
-  "81": "LocationBadge.tsx",
-  "82": "page.tsx",
-  "83": "page.tsx"
+  "78": "route.ts"
 }

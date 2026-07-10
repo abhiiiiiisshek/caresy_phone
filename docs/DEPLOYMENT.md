@@ -64,6 +64,6 @@ Vercel shows the exact records it wants — prefer what the dashboard says if it
 
 ## Notes
 
-- Sessions are **not** shared across subdomains — admins/companions sign in on their own domain. If sharing is ever wanted, set the auth cookie domain to `.caresy.co.in` in `packages/auth`.
+- Sessions **are** shared across `caresy.co.in` and its subdomains: auth cookies are scoped to `.caresy.co.in` (`packages/auth/src/supabase/cookies.ts`). Subdomain logins route through the apex `/auth/callback` because Supabase's redirect allowlist never matches `*.caresy.co.in` entries (dashboard shows them; the engine ignores them). Consequence: signing in on raw `*.vercel.app` URLs is unsupported — use the custom domains.
 - `supabase/migrations/` holds the SQL (moved from `docs/08_Database/`); run new migrations manually in the Supabase SQL editor as before.
 - Local dev: `npm install` at repo root, then `npm run dev -w @caresy/website` (or `@caresy/companion` / `@caresy/admin`).
