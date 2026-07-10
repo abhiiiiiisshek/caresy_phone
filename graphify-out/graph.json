@@ -1391,7 +1391,7 @@
       "label": "poppins",
       "file_type": "code",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_poppins",
       "community": 8,
@@ -1401,7 +1401,7 @@
       "label": "metadata",
       "file_type": "code",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L13",
+      "source_location": "L14",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_metadata",
       "community": 8,
@@ -1411,7 +1411,7 @@
       "label": "viewport",
       "file_type": "code",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_viewport",
       "community": 8,
@@ -1421,7 +1421,7 @@
       "label": "RootLayout()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L23",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_rootlayout",
       "community": 8,
@@ -1586,6 +1586,26 @@
       "id": "apps_companion_src_app_page_jobcard",
       "community": 0,
       "norm_label": "jobcard()"
+    },
+    {
+      "label": "PortalHeader.tsx",
+      "file_type": "code",
+      "source_file": "apps/companion/src/components/PortalHeader.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "apps_companion_src_components_portalheader",
+      "community": 8,
+      "norm_label": "portalheader.tsx"
+    },
+    {
+      "label": "PortalHeader()",
+      "file_type": "code",
+      "source_file": "apps/companion/src/components/PortalHeader.tsx",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "apps_companion_src_components_portalheader_portalheader",
+      "community": 8,
+      "norm_label": "portalheader()"
     },
     {
       "label": "proxy.ts",
@@ -2554,7 +2574,7 @@
       "source_location": "L286",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_mybookings",
-      "community": 0,
+      "community": 23,
       "norm_label": "mybookings()"
     },
     {
@@ -3124,7 +3144,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "apps_website_src_data_companions_matchcompanionbydepartment",
-      "community": 0,
+      "community": 47,
       "norm_label": "matchcompanionbydepartment()"
     },
     {
@@ -9465,7 +9485,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0,
       "source": "apps_companion_src_app_layout",
       "target": "apps_companion_src_app_layout_metadata",
@@ -9475,7 +9495,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L7",
+      "source_location": "L8",
       "weight": 1.0,
       "source": "apps_companion_src_app_layout",
       "target": "apps_companion_src_app_layout_poppins",
@@ -9485,7 +9505,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L23",
+      "source_location": "L24",
       "weight": 1.0,
       "source": "apps_companion_src_app_layout",
       "target": "apps_companion_src_app_layout_rootlayout",
@@ -9495,10 +9515,32 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/layout.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "apps_companion_src_app_layout",
       "target": "apps_companion_src_app_layout_viewport",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/companion/src/app/layout.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "apps_companion_src_app_layout",
+      "target": "apps_companion_src_components_portalheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/companion/src/app/layout.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "apps_companion_src_app_layout",
+      "target": "apps_companion_src_components_portalheader_portalheader",
       "confidence_score": 1.0
     },
     {
@@ -9903,6 +9945,49 @@
       "weight": 1.0,
       "source": "apps_companion_src_app_page_approveddashboard",
       "target": "packages_auth_src_supabase_client_createclient"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/companion/src/components/PortalHeader.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "apps_companion_src_components_portalheader",
+      "target": "apps_companion_src_components_portalheader_portalheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/companion/src/components/PortalHeader.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "apps_companion_src_components_portalheader",
+      "target": "packages_auth_src_authcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/companion/src/components/PortalHeader.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "apps_companion_src_components_portalheader",
+      "target": "packages_auth_src_authcontext_useauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/companion/src/components/PortalHeader.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "apps_companion_src_components_portalheader_portalheader",
+      "target": "packages_auth_src_authcontext_useauth"
     },
     {
       "relation": "contains",
@@ -16894,5 +16979,5 @@
       "source_file": "vanilla-backup/booking.html"
     }
   ],
-  "built_at_commit": "7aec37134d21d7168ed47bb7d271d01847b0a3ff"
+  "built_at_commit": "2cfcccd4b85fcc216633eb17e5f595b1ff4f688e"
 }

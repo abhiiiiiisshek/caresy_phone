@@ -1,16 +1,16 @@
 # Graph Report - caresy_phone  (2026-07-10)
 
 ## Corpus Check
-- 109 files · ~540,478 words
+- 110 files · ~540,669 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 699 nodes · 930 edges · 79 communities (42 shown, 37 thin omitted)
+- 701 nodes · 936 edges · 79 communities (42 shown, 37 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7aec3713`
+- Built from commit: `2cfcccd4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -95,7 +95,7 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `createClient()` - 41 edges
-2. `useAuth()` - 37 edges
+2. `useAuth()` - 39 edges
 3. `Button()` - 18 edges
 4. `compilerOptions` - 16 edges
 5. `compilerOptions` - 16 edges
@@ -112,10 +112,10 @@
   apps/admin/src/proxy.ts → packages/auth/src/supabase/middleware.ts
 - `CompanionRow` --references--> `ApprovalStatus`  [EXTRACTED]
   apps/companion/src/app/page.tsx → packages/types/src/index.ts
+- `PortalHeader()` --calls--> `useAuth()`  [EXTRACTED]
+  apps/companion/src/components/PortalHeader.tsx → packages/auth/src/AuthContext.tsx
 - `proxy()` --calls--> `updateSession()`  [EXTRACTED]
   apps/companion/src/proxy.ts → packages/auth/src/supabase/middleware.ts
-- `Support()` --calls--> `createClient()`  [EXTRACTED]
-  apps/website/src/app/support/page.tsx → packages/auth/src/supabase/client.ts
 
 ## Import Cycles
 - None detected.
@@ -128,7 +128,7 @@
 
 ### Community 0 - "Card"
 Cohesion: 0.05
-Nodes (71): AdminAnalytics(), Stats, STATUS_ORDER, AdminCompanions(), CompanionRow, DocRow, FILTERS, ReviewSheet() (+63 more)
+Nodes (69): AdminAnalytics(), Stats, STATUS_ORDER, AdminCompanions(), CompanionRow, DocRow, FILTERS, ReviewSheet() (+61 more)
 
 ### Community 1 - "createClient"
 Cohesion: 0.07
@@ -159,8 +159,8 @@ Cohesion: 0.12
 Nodes (13): activeOtps, adminSessions, app, cors, DB_DIR, DB_FILE, express, fs (+5 more)
 
 ### Community 8 - "LocationBadge.tsx"
-Cohesion: 0.10
-Nodes (14): metadata, poppins, viewport, metadata, poppins, viewport, metadata, poppins (+6 more)
+Cohesion: 0.09
+Nodes (15): metadata, poppins, viewport, metadata, poppins, viewport, PortalHeader(), metadata (+7 more)
 
 ### Community 9 - "page.tsx"
 Cohesion: 0.10
@@ -211,8 +211,8 @@ Cohesion: 0.11
 Nodes (17): dependencies, @caresy/ui, lucide-react, @supabase/ssr, @supabase/supabase-js, exports, ./modal, ./supabase/callback (+9 more)
 
 ### Community 23 - "next.config.ts"
-Cohesion: 0.21
-Nodes (11): BookingCard(), BookingRecord, CompanionDetails, DetailSheet(), formatDate(), getStatusInfo(), isPastStatus(), mailLink() (+3 more)
+Cohesion: 0.20
+Nodes (12): BookingCard(), BookingRecord, CompanionDetails, DetailSheet(), formatDate(), getStatusInfo(), isPastStatus(), mailLink() (+4 more)
 
 ### Community 24 - "postcss.config.mjs"
 Cohesion: 0.15
@@ -240,7 +240,7 @@ Nodes (7): config, proxy(), config, proxy(), config, proxy(), updateSession()
 
 ### Community 47 - "index.ts"
 Cohesion: 0.24
-Nodes (6): ActiveBookingInfo, APP_SERVICES, TRUST_ITEMS, Companion, COMPANIONS, findCompanionByName()
+Nodes (7): ActiveBookingInfo, APP_SERVICES, TRUST_ITEMS, Companion, COMPANIONS, findCompanionByName(), matchCompanionByDepartment()
 
 ### Community 48 - "Badge.tsx"
 Cohesion: 0.22
@@ -297,13 +297,13 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `createClient()` connect `Card` to `LocationBadge.tsx`, `Card.tsx`, `index.ts`, `next.config.ts`?**
   _High betweenness centrality (0.011) - this node is a cross-community bridge._
 - **Why does `useAuth()` connect `Card` to `LocationBadge.tsx`, `index.ts`, `next.config.ts`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+  _High betweenness centrality (0.009) - this node is a cross-community bridge._
 - **Why does `Button()` connect `Card` to `LocationBadge.tsx`, `route.ts`, `Card.tsx`, `next.config.ts`?**
   _High betweenness centrality (0.003) - this node is a cross-community bridge._
 - **What connects `nextConfig`, `name`, `version` to the rest of the system?**
   _413 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Card` be split into smaller, more focused modules?**
-  _Cohesion score 0.05217757205975174 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05350877192982456 - nodes in this community are weakly interconnected._
 - **Should `createClient` be split into smaller, more focused modules?**
   _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
 - **Should `script.js` be split into smaller, more focused modules?**

@@ -320,8 +320,8 @@
     "semantic_hash": ""
   },
   "apps/companion/src/app/layout.tsx": {
-    "mtime": 1783661898.026318,
-    "ast_hash": "cfd92894bc6d213e10806f372b831229",
+    "mtime": 1783707344.8970966,
+    "ast_hash": "cd9cf63a544ac78ebeba399b5935fbef",
     "semantic_hash": ""
   },
   "apps/companion/src/app/page.tsx": {
@@ -722,6 +722,11 @@
   "packages/auth/src/supabase/callback.ts": {
     "mtime": 1783704066.6368546,
     "ast_hash": "98bedc41719229c8770d46405877af7e",
+    "semantic_hash": ""
+  },
+  "apps/companion/src/components/PortalHeader.tsx": {
+    "mtime": 1783707329.3157704,
+    "ast_hash": "a8c29f42b10a5cc2ee2562e236057c37",
     "semantic_hash": ""
   }
 }

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
 import { AuthProvider } from '@caresy/auth';
 import AuthModal from '@caresy/auth/modal';
+import { PortalHeader } from '../components/PortalHeader';
 import './globals.css';
 
 const poppins = Poppins({
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className={`${poppins.className} min-h-full`} style={{ background: 'var(--bg)', color: 'var(--ink)' }}>
         <AuthProvider>
+          <PortalHeader />
           {children}
           <AuthModal />
         </AuthProvider>

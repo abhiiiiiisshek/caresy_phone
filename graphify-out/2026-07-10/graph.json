@@ -398,14 +398,14 @@
       "norm_label": "route.ts"
     },
     {
-      "label": "GET()",
+      "label": "GET",
       "file_type": "code",
       "source_file": "apps/admin/src/app/auth/callback/route.ts",
-      "source_location": "L4",
+      "source_location": "L3",
       "_origin": "ast",
       "id": "apps_admin_src_app_auth_callback_route_get",
       "community": 49,
-      "norm_label": "get()"
+      "norm_label": "get"
     },
     {
       "label": "page.tsx",
@@ -1368,14 +1368,14 @@
       "norm_label": "route.ts"
     },
     {
-      "label": "GET()",
+      "label": "GET",
       "file_type": "code",
       "source_file": "apps/companion/src/app/auth/callback/route.ts",
-      "source_location": "L4",
+      "source_location": "L3",
       "_origin": "ast",
       "id": "apps_companion_src_app_auth_callback_route_get",
       "community": 49,
-      "norm_label": "get()"
+      "norm_label": "get"
     },
     {
       "label": "layout.tsx",
@@ -2248,14 +2248,14 @@
       "norm_label": "route.ts"
     },
     {
-      "label": "GET()",
+      "label": "GET",
       "file_type": "code",
       "source_file": "apps/website/src/app/auth/callback/route.ts",
-      "source_location": "L4",
+      "source_location": "L3",
       "_origin": "ast",
       "id": "apps_website_src_app_auth_callback_route_get",
       "community": 49,
-      "norm_label": "get()"
+      "norm_label": "get"
     },
     {
       "label": "page.tsx",
@@ -3124,7 +3124,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "apps_website_src_data_companions_matchcompanionbydepartment",
-      "community": 47,
+      "community": 0,
       "norm_label": "matchcompanionbydepartment()"
     },
     {
@@ -3548,10 +3548,20 @@
       "norm_label": "./supabase/server"
     },
     {
-      "label": "./supabase/middleware",
+      "label": "./supabase/callback",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
       "source_location": "L10",
+      "_origin": "ast",
+      "id": "packages_auth_package_exports_supabase_callback",
+      "community": 22,
+      "norm_label": "./supabase/callback"
+    },
+    {
+      "label": "./supabase/middleware",
+      "file_type": "code",
+      "source_file": "packages/auth/package.json",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "packages_auth_package_exports_supabase_middleware",
       "community": 22,
@@ -3561,7 +3571,7 @@
       "label": "dependencies",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L12",
+      "source_location": "L13",
       "_origin": "ast",
       "id": "packages_auth_package_dependencies",
       "community": 22,
@@ -3571,7 +3581,7 @@
       "label": "@caresy/ui",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L13",
+      "source_location": "L14",
       "_origin": "ast",
       "id": "packages_auth_package_dependencies_caresy_ui",
       "community": 22,
@@ -3581,7 +3591,7 @@
       "label": "@supabase/ssr",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L14",
+      "source_location": "L15",
       "_origin": "ast",
       "id": "packages_auth_package_dependencies_supabase_ssr",
       "community": 22,
@@ -3591,7 +3601,7 @@
       "label": "@supabase/supabase-js",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L15",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "packages_auth_package_dependencies_supabase_supabase_js",
       "community": 22,
@@ -3601,7 +3611,7 @@
       "label": "lucide-react",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "packages_auth_package_dependencies_lucide_react",
       "community": 22,
@@ -3611,7 +3621,7 @@
       "label": "peerDependencies",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "packages_auth_package_peerdependencies",
       "community": 22,
@@ -3621,7 +3631,7 @@
       "label": "next",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "packages_auth_package_peerdependencies_next",
       "community": 22,
@@ -3631,7 +3641,7 @@
       "label": "react",
       "file_type": "code",
       "source_file": "packages/auth/package.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "packages_auth_package_peerdependencies_react",
       "community": 22,
@@ -3691,7 +3701,7 @@
       "label": "useAuth()",
       "file_type": "code",
       "source_file": "packages/auth/src/AuthContext.tsx",
-      "source_location": "L158",
+      "source_location": "L165",
       "_origin": "ast",
       "id": "packages_auth_src_authcontext_useauth",
       "community": 0,
@@ -3726,6 +3736,26 @@
       "id": "packages_auth_src_authmodal_authmodal",
       "community": 8,
       "norm_label": "authmodal()"
+    },
+    {
+      "label": "callback.ts",
+      "file_type": "code",
+      "source_file": "packages/auth/src/supabase/callback.ts",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "packages_auth_src_supabase_callback",
+      "community": 49,
+      "norm_label": "callback.ts"
+    },
+    {
+      "label": "authCallback()",
+      "file_type": "code",
+      "source_file": "packages/auth/src/supabase/callback.ts",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "packages_auth_src_supabase_callback_authcallback",
+      "community": 49,
+      "norm_label": "authcallback()"
     },
     {
       "label": "client.ts",
@@ -7647,7 +7677,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/admin/src/app/auth/callback/route.ts",
-      "source_location": "L4",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "apps_admin_src_app_auth_callback_route",
       "target": "apps_admin_src_app_auth_callback_route_get",
@@ -7658,10 +7688,10 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/admin/src/app/auth/callback/route.ts",
-      "source_location": "L2",
+      "source_location": "L1",
       "weight": 1.0,
       "source": "apps_admin_src_app_auth_callback_route",
-      "target": "packages_auth_src_supabase_server",
+      "target": "packages_auth_src_supabase_callback",
       "confidence_score": 1.0
     },
     {
@@ -7669,22 +7699,11 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/admin/src/app/auth/callback/route.ts",
-      "source_location": "L2",
+      "source_location": "L1",
       "weight": 1.0,
       "source": "apps_admin_src_app_auth_callback_route",
-      "target": "packages_auth_src_supabase_server_createclient",
+      "target": "packages_auth_src_supabase_callback_authcallback",
       "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "apps/admin/src/app/auth/callback/route.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "apps_admin_src_app_auth_callback_route_get",
-      "target": "packages_auth_src_supabase_server_createclient"
     },
     {
       "relation": "contains",
@@ -9414,7 +9433,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/auth/callback/route.ts",
-      "source_location": "L4",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "apps_companion_src_app_auth_callback_route",
       "target": "apps_companion_src_app_auth_callback_route_get",
@@ -9425,10 +9444,10 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/auth/callback/route.ts",
-      "source_location": "L2",
+      "source_location": "L1",
       "weight": 1.0,
       "source": "apps_companion_src_app_auth_callback_route",
-      "target": "packages_auth_src_supabase_server",
+      "target": "packages_auth_src_supabase_callback",
       "confidence_score": 1.0
     },
     {
@@ -9436,22 +9455,11 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/auth/callback/route.ts",
-      "source_location": "L2",
+      "source_location": "L1",
       "weight": 1.0,
       "source": "apps_companion_src_app_auth_callback_route",
-      "target": "packages_auth_src_supabase_server_createclient",
+      "target": "packages_auth_src_supabase_callback_authcallback",
       "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "apps/companion/src/app/auth/callback/route.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "apps_companion_src_app_auth_callback_route_get",
-      "target": "packages_auth_src_supabase_server_createclient"
     },
     {
       "relation": "contains",
@@ -10536,7 +10544,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/auth/callback/route.ts",
-      "source_location": "L4",
+      "source_location": "L3",
       "weight": 1.0,
       "source": "apps_website_src_app_auth_callback_route",
       "target": "apps_website_src_app_auth_callback_route_get",
@@ -10547,10 +10555,10 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/auth/callback/route.ts",
-      "source_location": "L2",
+      "source_location": "L1",
       "weight": 1.0,
       "source": "apps_website_src_app_auth_callback_route",
-      "target": "packages_auth_src_supabase_server",
+      "target": "packages_auth_src_supabase_callback",
       "confidence_score": 1.0
     },
     {
@@ -10558,22 +10566,11 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/auth/callback/route.ts",
-      "source_location": "L2",
+      "source_location": "L1",
       "weight": 1.0,
       "source": "apps_website_src_app_auth_callback_route",
-      "target": "packages_auth_src_supabase_server_createclient",
+      "target": "packages_auth_src_supabase_callback_authcallback",
       "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "apps/website/src/app/auth/callback/route.ts",
-      "source_location": "L10",
-      "weight": 1.0,
-      "source": "apps_website_src_app_auth_callback_route_get",
-      "target": "packages_auth_src_supabase_server_createclient"
     },
     {
       "relation": "contains",
@@ -13178,7 +13175,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0,
       "source": "packages_auth_package",
       "target": "packages_auth_package_dependencies",
@@ -13208,7 +13205,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "packages_auth_package",
       "target": "packages_auth_package_peerdependencies",
@@ -13248,6 +13245,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "packages_auth_package_exports",
+      "target": "packages_auth_package_exports_supabase_callback",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/auth/package.json",
       "source_location": "L8",
       "weight": 1.0,
       "source": "packages_auth_package_exports",
@@ -13258,7 +13265,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L10",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "packages_auth_package_exports",
       "target": "packages_auth_package_exports_supabase_middleware",
@@ -13278,7 +13285,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0,
       "source": "packages_auth_package_dependencies",
       "target": "packages_auth_package_dependencies_caresy_ui",
@@ -13288,7 +13295,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "packages_auth_package_dependencies",
       "target": "packages_auth_package_dependencies_lucide_react",
@@ -13298,7 +13305,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0,
       "source": "packages_auth_package_dependencies",
       "target": "packages_auth_package_dependencies_supabase_ssr",
@@ -13308,7 +13315,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0,
       "source": "packages_auth_package_dependencies",
       "target": "packages_auth_package_dependencies_supabase_supabase_js",
@@ -13318,7 +13325,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "packages_auth_package_peerdependencies",
       "target": "packages_auth_package_peerdependencies_next",
@@ -13328,7 +13335,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/package.json",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "packages_auth_package_peerdependencies",
       "target": "packages_auth_package_peerdependencies_react",
@@ -13378,7 +13385,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/auth/src/AuthContext.tsx",
-      "source_location": "L158",
+      "source_location": "L165",
       "weight": 1.0,
       "source": "packages_auth_src_authcontext",
       "target": "packages_auth_src_authcontext_useauth",
@@ -13502,6 +13509,49 @@
       "source": "packages_auth_src_authmodal",
       "target": "packages_ui_src_input_input",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/auth/src/supabase/callback.ts",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "packages_auth_src_supabase_callback",
+      "target": "packages_auth_src_supabase_callback_authcallback",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/auth/src/supabase/callback.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "packages_auth_src_supabase_callback",
+      "target": "packages_auth_src_supabase_server",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/auth/src/supabase/callback.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "packages_auth_src_supabase_callback",
+      "target": "packages_auth_src_supabase_server_createclient",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/auth/src/supabase/callback.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "packages_auth_src_supabase_callback_authcallback",
+      "target": "packages_auth_src_supabase_server_createclient"
     },
     {
       "relation": "contains",
@@ -16844,5 +16894,5 @@
       "source_file": "vanilla-backup/booking.html"
     }
   ],
-  "built_at_commit": "aed439829b722d588397f0593a947491e6741a9f"
+  "built_at_commit": "7aec37134d21d7168ed47bb7d271d01847b0a3ff"
 }
