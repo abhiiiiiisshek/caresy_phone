@@ -136,7 +136,7 @@ export default function Profile() {
               <p className="section-kicker">Admin</p>
             </div>
             <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: 8 }}>
-              <a href="/admin-ops" style={{ textDecoration: 'none' }}>
+              <a href="https://admin.caresy.in/ops" style={{ textDecoration: 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px' }}>
                   <ShieldCheck style={{ width: 16, height: 16, color: 'var(--marigold)' }} />
                   <span style={{ flex: 1, fontSize: '0.86rem', fontWeight: 600, color: 'var(--ink-teal)' }}>Admin Operations</span>

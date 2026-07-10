@@ -50,7 +50,7 @@ export default function AdminUsers() {
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
         <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
         <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to view users.</p>
-        {!user && <Button variant="primary" onClick={() => openLogin('/admin/users')}>Sign in</Button>}
+        {!user && <Button variant="primary" onClick={() => openLogin('/users')}>Sign in</Button>}
       </main>
     );
   }

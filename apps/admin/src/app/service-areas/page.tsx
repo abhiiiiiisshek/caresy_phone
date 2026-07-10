@@ -78,7 +78,7 @@ export default function AdminServiceAreas() {
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
         <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
         <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to manage service areas.</p>
-        {!user && <Button variant="primary" onClick={() => openLogin('/admin/service-areas')}>Sign in</Button>}
+        {!user && <Button variant="primary" onClick={() => openLogin('/service-areas')}>Sign in</Button>}
       </main>
     );
   }

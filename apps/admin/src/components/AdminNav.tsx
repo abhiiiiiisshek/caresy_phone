@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const LINKS = [
-  { href: '/admin-ops', label: 'Dispatch' },
-  { href: '/admin/companions', label: 'Companions' },
-  { href: '/admin/service-areas', label: 'Service areas' },
-  { href: '/admin/users', label: 'Users' },
-  { href: '/admin/analytics', label: 'Analytics' },
-  { href: '/admin/settings', label: 'Settings' },
-  { href: '/admin/notifications', label: 'Notifications' },
+  { href: '/ops', label: 'Dispatch' },
+  { href: '/companions', label: 'Companions' },
+  { href: '/service-areas', label: 'Service areas' },
+  { href: '/users', label: 'Users' },
+  { href: '/analytics', label: 'Analytics' },
+  { href: '/settings', label: 'Settings' },
+  { href: '/notifications', label: 'Notifications' },
 ];
 
 /** Shared tab row across all /admin* pages so they read as one hub. */

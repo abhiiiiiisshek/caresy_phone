@@ -87,7 +87,7 @@ export default function AdminCompanions() {
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
         <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
         <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to review companion applications.</p>
-        {!user && <Button variant="primary" onClick={() => openLogin('/admin/companions')}>Sign in</Button>}
+        {!user && <Button variant="primary" onClick={() => openLogin('/companions')}>Sign in</Button>}
       </main>
     );
   }

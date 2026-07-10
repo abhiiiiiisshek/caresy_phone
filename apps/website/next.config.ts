@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
       { source: '/faq', destination: '/support', permanent: true },
       // Companion portal now lives on its own app/domain (apps/companion)
       { source: '/companion', destination: 'https://companion.caresy.in', permanent: false },
+      // Admin dashboard now lives on its own app/domain (apps/admin)
+      { source: '/admin-ops', destination: 'https://admin.caresy.in/ops', permanent: false },
+      { source: '/admin/:path*', destination: 'https://admin.caresy.in/:path*', permanent: false },
     ];
   },
 };

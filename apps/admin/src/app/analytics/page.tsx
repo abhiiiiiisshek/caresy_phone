@@ -73,7 +73,7 @@ export default function AdminAnalytics() {
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
         <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
         <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to view analytics.</p>
-        {!user && <Button variant="primary" onClick={() => openLogin('/admin/analytics')}>Sign in</Button>}
+        {!user && <Button variant="primary" onClick={() => openLogin('/analytics')}>Sign in</Button>}
       </main>
     );
   }
@@ -102,7 +102,7 @@ export default function AdminAnalytics() {
               const n = stats.byStatus[s];
               const pct = stats.totalBookings ? Math.round((n / stats.totalBookings) * 100) : 0;
               return (
-                <Link key={s} href="/admin-ops" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)', cursor: 'pointer' }}>
+                <Link key={s} href="/ops" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)', cursor: 'pointer' }}>
                   <span style={{ width: 110, fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{s.replace('_', ' ')}</span>
                   <div style={{ flex: 1, height: 8, borderRadius: 999, background: 'var(--surface-2, rgba(0,0,0,0.06))', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: 'var(--teal)' }} />

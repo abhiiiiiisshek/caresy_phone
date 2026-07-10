@@ -411,7 +411,7 @@ export default function AdminOps() {
             ))}
           </select>
           {companions.length === 0 && (
-            <span style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>No approved companions yet — approve one at /admin/companions.</span>
+            <span style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>No approved companions yet — approve one at /companions.</span>
           )}
 
           <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', marginTop: '6px' }}>Milestone Status</label>
