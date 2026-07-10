@@ -4,9 +4,9 @@ One GitHub repo → three Vercel projects, each with a different Root Directory.
 
 | App | Root Directory | Production domain | Vercel project |
 |---|---|---|---|
-| Consumer website | `apps/website` | `caresy.in` | existing (caresy-phone) |
-| Companion portal | `apps/companion` | `companion.caresy.in` | new |
-| Admin dashboard | `apps/admin` | `admin.caresy.in` | new |
+| Consumer website | `apps/website` | `caresy.co.in` | existing (caresy-phone) |
+| Companion portal | `apps/companion` | `companion.caresy.co.in` | new |
+| Admin dashboard | `apps/admin` | `admin.caresy.co.in` | new |
 
 ## 1. Update the existing Vercel project (website)
 
@@ -35,16 +35,16 @@ The `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` vars are only used by
 Supabase Dashboard → Authentication → URL Configuration → **Redirect URLs**, add:
 
 ```
-https://caresy.in/auth/callback
-https://companion.caresy.in/auth/callback
-https://admin.caresy.in/auth/callback
+https://caresy.co.in/auth/callback
+https://companion.caresy.co.in/auth/callback
+https://admin.caresy.co.in/auth/callback
 https://<companion-project>.vercel.app/auth/callback
 https://<admin-project>.vercel.app/auth/callback
 ```
 
 (Keep the existing `caresy-phone.vercel.app` entry.)
 
-## 4. DNS (at your registrar for caresy.in)
+## 4. DNS (at your registrar for caresy.co.in)
 
 | Record | Name | Value |
 |---|---|---|
@@ -64,6 +64,6 @@ Vercel shows the exact records it wants — prefer what the dashboard says if it
 
 ## Notes
 
-- Sessions are **not** shared across subdomains — admins/companions sign in on their own domain. If sharing is ever wanted, set the auth cookie domain to `.caresy.in` in `packages/auth`.
+- Sessions are **not** shared across subdomains — admins/companions sign in on their own domain. If sharing is ever wanted, set the auth cookie domain to `.caresy.co.in` in `packages/auth`.
 - `supabase/migrations/` holds the SQL (moved from `docs/08_Database/`); run new migrations manually in the Supabase SQL editor as before.
 - Local dev: `npm install` at repo root, then `npm run dev -w @caresy/website` (or `@caresy/companion` / `@caresy/admin`).

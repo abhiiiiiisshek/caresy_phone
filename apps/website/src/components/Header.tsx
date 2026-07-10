@@ -127,7 +127,7 @@ export default function Header() {
         <Link className={pathname === '/support' ? 'active' : ''} href="/support"><Headset style={{ width: '18px', height: '18px' }} /> Support</Link>
         
         {isAdmin && (
-          <Link href="https://admin.caresy.in/ops" style={{ color: 'var(--marigold)' }}><Settings style={{ width: '18px', height: '18px' }} /> Admin Operations</Link>
+          <Link href="https://admin.caresy.co.in/ops" style={{ color: 'var(--marigold)' }}><Settings style={{ width: '18px', height: '18px' }} /> Admin Operations</Link>
         )}
 
         {user && (

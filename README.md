@@ -4,9 +4,9 @@ Monorepo for Caresy — trusted hospital companions.
 
 ```
 apps/
-  website/     Consumer website        → caresy.in
-  companion/   Companion portal        → companion.caresy.in
-  admin/       Admin dashboard         → admin.caresy.in
+  website/     Consumer website        → caresy.co.in
+  companion/   Companion portal        → companion.caresy.co.in
+  admin/       Admin dashboard         → admin.caresy.co.in
 packages/
   ui/          Design system components + theme.css
   auth/        AuthContext, AuthModal, Supabase client factories
