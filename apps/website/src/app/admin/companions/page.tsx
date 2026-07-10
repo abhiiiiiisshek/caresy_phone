@@ -14,7 +14,7 @@ import {
 // private bucket), and lets an admin approve / reject / suspend. Writes to the
 // privileged fields are permitted here because the DB is_admin() check passes.
 
-type ApprovalStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
+import type { ApprovalStatus } from '@caresy/types';
 
 interface CompanionRow {
   id: string;

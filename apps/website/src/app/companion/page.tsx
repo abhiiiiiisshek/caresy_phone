@@ -23,7 +23,7 @@ const DOC_TYPES = [
   { key: 'PHOTO_ID', label: 'Photo / selfie', hint: 'A recent clear headshot' },
 ] as const;
 
-type ApprovalStatus = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
+import type { ApprovalStatus } from '@caresy/types';
 
 interface CompanionRow {
   id: string;

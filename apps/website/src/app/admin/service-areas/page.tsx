@@ -6,7 +6,7 @@ import { createClient } from '@caresy/auth/supabase/client';
 import { Button, Input, Badge } from '@caresy/ui';
 import { AdminNav } from '@/components/AdminNav';
 import { Loader2, ShieldCheck, Plus, Trash2, MapPin } from 'lucide-react';
-import { isValidPincode } from '@/utils/serviceArea';
+import { isValidPincode } from '@caresy/utils';
 
 // Admin editor for the pincode allowlist that decides service coverage. Ops
 // can add/remove/toggle pincodes here — no deploy needed. Backs both the

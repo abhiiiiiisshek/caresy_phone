@@ -8,7 +8,7 @@ import { ArrowRight, ArrowLeft, Loader2, Check } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { matchCompanionByDepartment } from '@/data/companions';
 import { Input, Button, CompanionCard } from '@caresy/ui';
-import { checkPincodeServed, isValidPincode } from '@/utils/serviceArea';
+import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 
 const STEPS = ['Patient details', 'Appointment details', 'Support needed'];
 const DRAFT_KEY = 'caresy_booking_draft';

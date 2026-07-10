@@ -1,0 +1,11 @@
+{
+  "name": "@caresy/utils",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/serviceArea.ts"
+  },
+  "dependencies": {
+    "@caresy/auth": "*"
+  }
+}

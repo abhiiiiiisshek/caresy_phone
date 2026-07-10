@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { MapPin, Check, X, Loader2, BellRing, Trash2 } from 'lucide-react';
 import { createClient } from '@caresy/auth/supabase/client';
 import { Input, Button } from '@caresy/ui';
-import { checkPincodeServed, isValidPincode } from '@/utils/serviceArea';
+import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 
 /**
  * LocationBadge — service-area indicator for the app's greeting bar.
