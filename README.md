@@ -16,6 +16,13 @@ supabase/
   migrations/  SQL run manually against the shared Supabase project
 ```
 
+## Live tracking
+
+Real-time companion location tracking spans this repo (Supabase backend) and the
+`caresy-app` mobile client. Start here:
+[docs/LIVE_TRACKING_HANDOFF.md](docs/LIVE_TRACKING_HANDOFF.md) — status, turn-it-on
+checklist, next steps, and vision.
+
 ## Develop
 
 ```bash
