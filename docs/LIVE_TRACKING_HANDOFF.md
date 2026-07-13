@@ -42,6 +42,7 @@ Customer app ── trip-eta Edge Function ──▶ get_trip_destination() + Op
 | --- | --- | --- |
 | Trips + breadcrumb tables, RLS, Realtime authorization, RPCs, pg_cron purge | ✅ | `supabase/migrations/16_TRIPS_AND_LIVE_TRACKING.sql` |
 | ETA destination lookup RPC | ✅ | `supabase/migrations/17_TRIP_ETA.sql` |
+| Auto-create/close trip from booking lifecycle + active-trip helper | ✅ | `supabase/migrations/18_BOOKING_TRIP_LINK.sql` |
 | `trip-eta` Edge Function (OpenRouteService) + CORS | ✅ | `supabase/functions/trip-eta`, `_shared/cors.ts` |
 | Companion screen: foreground location → Broadcast + status controls | ✅ | `caresy-app` `src/app/(companion)/trip/[id].tsx` |
 | Customer screen: MapLibre map + animated marker + path + live ETA + stepper | ✅ | `caresy-app` `src/app/(customer)/trip/[id].tsx` |
@@ -84,7 +85,7 @@ Auth (for the app to sign in across web + mobile):
 
 ## Next steps (prioritized)
 
-1. **Wire booking → trip.** Create the trip from a real booking instead of a hand-typed id: call `start_trip_for_booking` when a companion accepts / the job goes in-progress, and route both parties to `trip/<id>`. *(Highest value — makes the flow real.)*
+1. **Booking → trip.** ✅ Backend done (migration 18: trips auto-create/close from the booking lifecycle; `get_active_trip_for_user()` + the app's `fetchActiveTrip()` / "Open my active trip" route without a typed id). **Remaining:** surface real entry points in the UI — a companion "Start trip / share location" action off their accepted job, and a customer "Track" button off their in-progress booking — instead of the dev harness.
 2. **Auth & domain config** (blueprint part a): finish redirect URLs, Site URL, and portal-specific email templates; verify web↔mobile session parity.
 3. **Persisted breadcrumb (optional):** throttled inserts into `trip_locations` (every ~15–30s / 100m) if post-trip audit is needed; the purge job already exists. Otherwise leave it off.
 4. **Admin live view:** an admin map of active trips (policies already allow `is_admin()` reads on trips + `realtime.messages`).

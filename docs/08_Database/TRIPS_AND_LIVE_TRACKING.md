@@ -39,6 +39,24 @@ public access on would let anyone subscribe to any topic.
 If `CREATE EXTENSION postgis`/`pg_cron` errors with a permission error, enable
 them via **Dashboard → Database → Extensions** first, then re-run the file.
 
+## Trip creation & lifecycle (migration 18)
+
+Trips are created and closed out **automatically from the booking state machine**
+— no client has to call anything. A trigger on `bookings.status`
+(`ensure_trip_for_booking`):
+
+- **ACCEPTED / IN_PROGRESS** with a companion assigned → ensure a trip exists
+  (`INSERT … ON CONFLICT (booking_id) DO NOTHING`, deriving customer / companion /
+  destination from the booking).
+- **CANCELLED / EXPIRED** → set the live trip to `cancelled` (immediately revokes
+  the companion's Realtime write access, stopping location sharing).
+- **COMPLETED** → set the live trip to `completed`.
+
+`start_trip_for_booking()` (migration 16) remains as an explicit manual path.
+`get_active_trip_for_user()` (SECURITY INVOKER, RLS-gated) returns the caller's
+current non-terminal trip id, so an app can route straight to it — the mobile
+app's `fetchActiveTrip()` uses this.
+
 ## ETA (Edge Function `trip-eta`)
 
 Migration [`17_TRIP_ETA.sql`](../../supabase/migrations/17_TRIP_ETA.sql) adds
