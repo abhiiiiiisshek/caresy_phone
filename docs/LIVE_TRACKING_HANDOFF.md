@@ -85,7 +85,7 @@ Auth (for the app to sign in across web + mobile):
 
 ## Next steps (prioritized)
 
-1. **Booking → trip.** ✅ Backend done (migration 18: trips auto-create/close from the booking lifecycle; `get_active_trip_for_user()` + the app's `fetchActiveTrip()` / "Open my active trip" route without a typed id). **Remaining:** surface real entry points in the UI — a companion "Start trip / share location" action off their accepted job, and a customer "Track" button off their in-progress booking — instead of the dev harness.
+1. **Booking → trip.** ✅ Done. Backend (migration 18) auto-creates/closes trips from the booking lifecycle; the app's home screen (`caresy-app` `src/app/index.tsx` + `src/lib/bookings.ts`) lists the caller's active bookings and routes each to the right trip — companion → "Share your location" (ensures the trip via `start_trip_for_booking`), customer → "Track live". The dev "open by trip id" path remains for testing. **Follow-ups:** richer job cards (patient/hospital/time), and a real booking-creation flow in the app (bookings currently originate from the web portals).
 2. **Auth & domain config** (blueprint part a): finish redirect URLs, Site URL, and portal-specific email templates; verify web↔mobile session parity.
 3. **Persisted breadcrumb (optional):** throttled inserts into `trip_locations` (every ~15–30s / 100m) if post-trip audit is needed; the purge job already exists. Otherwise leave it off.
 4. **Admin live view:** an admin map of active trips (policies already allow `is_admin()` reads on trips + `realtime.messages`).
