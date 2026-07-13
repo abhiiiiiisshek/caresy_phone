@@ -19,9 +19,11 @@ supabase/
 ## Live tracking
 
 Real-time companion location tracking spans this repo (Supabase backend) and the
-`caresy-app` mobile client. Start here:
-[docs/LIVE_TRACKING_HANDOFF.md](docs/LIVE_TRACKING_HANDOFF.md) — status, turn-it-on
-checklist, next steps, and vision.
+`caresy-app` mobile client.
+
+- **New developer? Start here:** [docs/DEV_ONBOARDING.md](docs/DEV_ONBOARDING.md)
+  — what it is, how to import & run it, do's/don'ts, and next steps.
+- Status, turn-it-on checklist & vision: [docs/LIVE_TRACKING_HANDOFF.md](docs/LIVE_TRACKING_HANDOFF.md).
 
 ## Develop
 
