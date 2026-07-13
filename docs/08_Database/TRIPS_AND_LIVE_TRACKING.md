@@ -39,6 +39,36 @@ public access on would let anyone subscribe to any topic.
 If `CREATE EXTENSION postgis`/`pg_cron` errors with a permission error, enable
 them via **Dashboard → Database → Extensions** first, then re-run the file.
 
+## ETA (Edge Function `trip-eta`)
+
+Migration [`17_TRIP_ETA.sql`](../../supabase/migrations/17_TRIP_ETA.sql) adds
+`get_trip_destination(p_trip) → (dest_lat, dest_lng)` — a `SECURITY DEFINER` RPC,
+gated to trip participants, that extracts the destination from `trips.destination`
+(falling back to the booking's destination location).
+
+The Edge Function [`supabase/functions/trip-eta`](../../supabase/functions/trip-eta/index.ts)
+computes a traffic-aware ETA:
+
+1. Client sends `{ trip_id, origin: { lat, lng } }`, where `origin` is the
+   companion's latest position (from the last Broadcast ping — we don't persist
+   pings, so the freshest origin comes from the client).
+2. The function calls `get_trip_destination` **as the authenticated caller** (RLS
+   applies) so the destination is only revealed to a participant.
+3. It calls the **Google Routes API** with the key kept server-side and returns
+   `{ eta_seconds, distance_meters }`. The customer app refreshes every ~45s.
+
+Deploy + secret:
+
+```bash
+supabase functions deploy trip-eta
+supabase secrets set GOOGLE_MAPS_API_KEY=...   # key with the Routes API enabled
+```
+
+`SUPABASE_URL` / `SUPABASE_ANON_KEY` are injected by the Edge runtime. CORS uses
+a dynamic allow-list of the three portal origins (+ Vercel previews + localhost)
+in `supabase/functions/_shared/cors.ts`; the mobile app calls via
+`supabase.functions.invoke` and isn't subject to browser CORS.
+
 ## Client integration (see blueprint (c))
 
 - **Companion**: `supabase.channel('trip:'+id, { config: { private: true } })`, then `watchPositionAsync({ accuracy: High, timeInterval: 4000, distanceInterval: 15 })` → `channel.send({ type:'broadcast', event:'location', payload:{lat,lng,heading,speed,at} })`. Call `advance_trip_status` at each stage. Remove the watcher + channel on unmount / `arrived`.
