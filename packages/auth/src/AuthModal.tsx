@@ -17,7 +17,7 @@ function GoogleIcon() {
 }
 
 export default function AuthModal() {
-  const { isOpen, closeLogin, user, profile, signInWithGoogle, saveProfile } = useAuth();
+  const { isOpen, closeLogin, user, profile, signInWithGoogle, saveProfile, onboardingEnabled } = useAuth();
 
   const [step, setStep] = useState<'name' | 'age' | 'phone'>('name');
   const [name, setName] = useState('');
@@ -26,7 +26,9 @@ export default function AuthModal() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const needsOnboarding = !!user && (!profile || !profile.onboarding_completed);
+  // Onboarding only applies on portals that enabled it (the customer site).
+  // On admin/companion portals a signed-in user is never asked for name/age.
+  const needsOnboarding = !!user && onboardingEnabled && (!profile || !profile.onboarding_completed);
 
   useEffect(() => {
     if (isOpen && needsOnboarding) {
@@ -39,6 +41,11 @@ export default function AuthModal() {
   }, [isOpen, needsOnboarding]);
 
   if (!isOpen) return null;
+  // Already signed in and nothing to onboard (admin/companion portals, or a
+  // customer who already finished onboarding): the modal has nothing to show,
+  // so don't render the onboarding steps. Prevents admin.caresy.co.in from ever
+  // asking an ops user for their name/age/phone.
+  if (user && !needsOnboarding) return null;
 
   const handleGoogleClick = async () => {
     setIsSubmitting(true);

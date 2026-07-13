@@ -16,6 +16,8 @@ interface AuthContextType {
   profile: Profile | null;
   isLoading: boolean;
   isAdmin: boolean;
+  /** Whether this portal does customer onboarding at all (false on admin/companion). */
+  onboardingEnabled: boolean;
   isOpen: boolean;
   openLogin: (next?: string) => void;
   closeLogin: () => void;
@@ -169,6 +171,7 @@ export function AuthProvider({
         profile,
         isLoading,
         isAdmin,
+        onboardingEnabled: onboarding,
         isOpen,
         openLogin,
         closeLogin,
