@@ -54,14 +54,16 @@ computes a traffic-aware ETA:
    pings, so the freshest origin comes from the client).
 2. The function calls `get_trip_destination` **as the authenticated caller** (RLS
    applies) so the destination is only revealed to a participant.
-3. It calls the **Google Routes API** with the key kept server-side and returns
-   `{ eta_seconds, distance_meters }`. The customer app refreshes every ~45s.
+3. It calls **OpenRouteService** (free, OSM-based) with the key kept server-side
+   and returns `{ eta_seconds, distance_meters }`. The customer app refreshes
+   every ~45s. Note: ORS gives **free-flow** durations (no live traffic), which
+   is fine for a companion-approaching ETA off a moving position.
 
 Deploy + secret:
 
 ```bash
 supabase functions deploy trip-eta
-supabase secrets set GOOGLE_MAPS_API_KEY=...   # key with the Routes API enabled
+supabase secrets set OPENROUTESERVICE_API_KEY=...   # free key from openrouteservice.org
 ```
 
 `SUPABASE_URL` / `SUPABASE_ANON_KEY` are injected by the Edge runtime. CORS uses

@@ -3,11 +3,14 @@
 // The customer client sends { trip_id, origin: { lat, lng } } where origin is
 // the companion's latest position (from the last Realtime Broadcast ping). This
 // function looks up the trip's DESTINATION on the server (RLS-gated to trip
-// participants), calls the Google Routes API with the key kept server-side, and
-// returns a traffic-aware ETA. Refresh from the client every ~45s, not per ping.
+// participants), asks OpenRouteService (free, OSM-based) for a driving route,
+// and returns the ETA. Refresh from the client every ~45s, not per ping.
+//
+// NOTE: OpenRouteService gives free-flow durations (no live traffic), which is
+// fine for a companion-approaching ETA refreshed off their moving position.
 //
 // Secrets (set with `supabase secrets set`):
-//   GOOGLE_MAPS_API_KEY   a key with the Routes API enabled
+//   OPENROUTESERVICE_API_KEY   a free key from openrouteservice.org
 // Auto-injected by the Edge runtime: SUPABASE_URL, SUPABASE_ANON_KEY.
 //
 // Deploy: supabase functions deploy trip-eta
@@ -31,7 +34,7 @@ interface EtaResponse {
 }
 
 const ROUTES_URL =
-  "https://routes.googleapis.com/directions/v2:computeRoutes";
+  "https://api.openrouteservice.org/v2/directions/driving-car";
 
 function json<T = unknown>(
   body: T,
@@ -68,7 +71,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return json({ error: "missing authorization" }, 401, cors);
   }
 
-  const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
+  const apiKey = Deno.env.get("OPENROUTESERVICE_API_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   if (!apiKey || !supabaseUrl || !anonKey) {
@@ -120,21 +123,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
     routeRes = await fetch(ROUTES_URL, {
       method: "POST",
       headers: {
+        // OpenRouteService takes the API key directly in Authorization.
+        "Authorization": apiKey,
         "Content-Type": "application/json",
-        "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "routes.duration,routes.distanceMeters",
+        "Accept": "application/json",
       },
+      // ORS expects [longitude, latitude] pairs, origin then destination.
       body: JSON.stringify({
-        origin: {
-          location: { latLng: { latitude: origin.lat, longitude: origin.lng } },
-        },
-        destination: {
-          location: {
-            latLng: { latitude: dest.dest_lat, longitude: dest.dest_lng },
-          },
-        },
-        travelMode: "DRIVE",
-        routingPreference: "TRAFFIC_AWARE",
+        coordinates: [
+          [origin.lng, origin.lat],
+          [dest.dest_lng, dest.dest_lat],
+        ],
       }),
     });
   } catch (_e) {
@@ -146,18 +145,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   const routeBody = await routeRes.json();
-  const route = routeBody?.routes?.[0];
-  // duration comes back as a string like "1234s".
-  const durationRaw: string | undefined = route?.duration;
-  const etaSeconds = durationRaw ? parseInt(durationRaw, 10) : null;
+  // ORS returns routes[].summary = { distance (m), duration (s, float) }.
+  const summary = routeBody?.routes?.[0]?.summary;
+  const durationRaw: number | undefined = summary?.duration;
+  const distanceRaw: number | undefined = summary?.distance;
+  const etaSeconds =
+    typeof durationRaw === "number" && Number.isFinite(durationRaw)
+      ? Math.round(durationRaw)
+      : null;
   const distanceMeters =
-    typeof route?.distanceMeters === "number" ? route.distanceMeters : null;
+    typeof distanceRaw === "number" && Number.isFinite(distanceRaw)
+      ? Math.round(distanceRaw)
+      : null;
 
   return json<EtaResponse>(
-    {
-      eta_seconds: Number.isFinite(etaSeconds) ? etaSeconds : null,
-      distance_meters: distanceMeters,
-    },
+    { eta_seconds: etaSeconds, distance_meters: distanceMeters },
     200,
     cors,
   );
