@@ -1,18 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import { Button, Badge, Input } from '@caresy/ui';
 import { AdminNav } from '@/components/AdminNav';
 import {
-  Loader2, ShieldCheck, Check, X, Ban, RotateCcw, FileText, Phone, MapPin,
+  Loader2, ShieldCheck, Check, X, Ban, RotateCcw, FileText, Phone, MapPin, Clock,
 } from 'lucide-react';
+import './companions.css';
 
-// Admin approval queue — the other half of the Phase-1/Phase-2 slice. Lists
-// companion applications, shows their KYC documents (signed URLs from the
-// private bucket), and lets an admin approve / reject / suspend. Writes to the
-// privileged fields are permitted here because the DB is_admin() check passes.
+// Admin approval queue. Lists companion applications, shows their KYC documents
+// (signed URLs from the private bucket), and lets an admin approve / reject /
+// suspend. Mutations are OPTIMISTIC: the UI updates instantly and the DB write
+// happens in the background, so an approve/reject feels immediate instead of
+// blocking on a round trip + refetch. All rows are fetched once and filtered
+// client-side, so switching tabs is instant and counts are free.
 
 import type { ApprovalStatus } from '@caresy/types';
 
@@ -48,174 +51,223 @@ const STATUS_TONE: Record<ApprovalStatus, 'teal' | 'success' | 'urgent' | 'neutr
   PENDING_REVIEW: 'teal', APPROVED: 'success', REJECTED: 'urgent', SUSPENDED: 'neutral',
 };
 
+function statusLabel(s: ApprovalStatus): string {
+  return s.replace('_', ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+}
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const d = Math.floor(diff / 86400000);
+  if (d > 0) return `${d}d ago`;
+  const h = Math.floor(diff / 3600000);
+  if (h > 0) return `${h}h ago`;
+  const m = Math.floor(diff / 60000);
+  return m > 0 ? `${m}m ago` : 'just now';
+}
+
+interface Toast { msg: string; tone: 'ok' | 'err'; }
+
 export default function AdminCompanions() {
   const { user, isAdmin, isLoading, openLogin } = useAuth();
+  const supabase = useMemo(() => createClient(), []);
+  const [all, setAll] = useState<CompanionRow[] | null>(null);
   const [filter, setFilter] = useState<ApprovalStatus | 'ALL'>('PENDING_REVIEW');
-  const [rows, setRows] = useState<CompanionRow[]>([]);
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<CompanionRow | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<Toast | null>(null);
 
-  const fetchRows = useCallback(async () => {
+  const load = useCallback(async () => {
     if (!isAdmin) return;
-    setLoading(true);
-    const supabase = createClient();
-    let query = supabase.from('companions').select('*').is('deleted_at', null).order('created_at', { ascending: false });
-    if (filter !== 'ALL') query = query.eq('approval_status', filter);
-    const { data } = await query;
-    setRows((data as CompanionRow[]) ?? []);
+    const { data } = await supabase
+      .from('companions').select('*').is('deleted_at', null)
+      .order('created_at', { ascending: false });
+    setAll((data as CompanionRow[]) ?? []);
+  }, [isAdmin, supabase]);
 
-    // Counts per status for the filter badges.
-    const { data: all } = await supabase.from('companions').select('approval_status').is('deleted_at', null);
+  useEffect(() => { load(); }, [load]);
+
+  const showToast = useCallback((msg: string, tone: 'ok' | 'err' = 'ok') => {
+    setToast({ msg, tone });
+    setTimeout(() => setToast(null), 2800);
+  }, []);
+
+  const counts = useMemo(() => {
     const c: Record<string, number> = {};
-    (all ?? []).forEach((r: { approval_status: string }) => { c[r.approval_status] = (c[r.approval_status] || 0) + 1; });
-    setCounts(c);
-    setLoading(false);
-  }, [isAdmin, filter]);
+    (all ?? []).forEach((r) => { c[r.approval_status] = (c[r.approval_status] || 0) + 1; });
+    return c;
+  }, [all]);
 
-  useEffect(() => { fetchRows(); }, [fetchRows]);
+  const rows = useMemo(
+    () => (all ?? []).filter((c) => filter === 'ALL' || c.approval_status === filter),
+    [all, filter],
+  );
 
-  const showToast = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
+  // Optimistic: update the row locally + close the sheet immediately, then write
+  // to the DB in the background. Revert on error.
+  const applyStatus = useCallback(
+    async (companion: CompanionRow, status: ApprovalStatus, rejection?: string) => {
+      const snapshot = all;
+      setAll((cur) => (cur ?? []).map((c) => c.id === companion.id
+        ? { ...c, approval_status: status, rejection_reason: rejection ?? null,
+            is_online: status === 'APPROVED' ? c.is_online : false }
+        : c));
+      setActive(null);
+      const verb = status === 'APPROVED'
+        ? (companion.approval_status === 'SUSPENDED' ? 'reinstated' : 'approved')
+        : status === 'REJECTED' ? 'rejected'
+        : status === 'SUSPENDED' ? 'suspended' : 'moved to pending';
+      showToast(`${companion.full_name} ${verb}.`);
+
+      const { error } = await supabase.from('companions').update({
+        approval_status: status,
+        rejection_reason: rejection ?? null,
+        reviewed_by: user?.id,
+        reviewed_at: new Date().toISOString(),
+        ...(status !== 'APPROVED' ? { is_online: false } : {}),
+      }).eq('id', companion.id);
+
+      if (error) {
+        setAll(snapshot);
+        showToast(error.message, 'err');
+      }
+    },
+    [all, supabase, user?.id, showToast],
+  );
 
   if (isLoading) {
-    return <main style={{ minHeight: '60vh', paddingTop: 118, display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
+    return <main className="cmp-center"><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
   }
   if (!user || !isAdmin) {
     return (
-      <main style={{ maxWidth: 520, margin: '0 auto', padding: '138px 20px 48px', textAlign: 'center' }}>
+      <main className="cmp-gate">
         <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
-        <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
-        <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to review companion applications.</p>
+        <h1>Admin access required</h1>
+        <p>Sign in with an authorized ops account to review companion applications.</p>
         {!user && <Button variant="primary" onClick={() => openLogin('/companions')}>Sign in</Button>}
       </main>
     );
   }
 
-  return (
-    <main style={{ maxWidth: 820, margin: '0 auto', padding: '118px 16px 60px' }}>
-      <AdminNav />
-      <h1 style={{ margin: '0 0 4px', fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Companion applications</h1>
-      <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '0.9rem' }}>Review KYC and approve, reject, or suspend companions.</p>
+  const pendingCount = counts['PENDING_REVIEW'] || 0;
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+  return (
+    <main className="cmp-wrap">
+      <AdminNav />
+
+      <header className="cmp-head">
+        <div>
+          <h1>Companion applications</h1>
+          <p>Review KYC and approve, reject, or suspend companions.</p>
+        </div>
+        {pendingCount > 0 && (
+          <div className="cmp-pending-chip">
+            <span className="dot" /> {pendingCount} awaiting review
+          </div>
+        )}
+      </header>
+
+      <div className="cmp-filters">
         {FILTERS.map((f) => {
           const activeF = filter === f.key;
-          const n = f.key === 'ALL' ? Object.values(counts).reduce((a, b) => a + b, 0) : counts[f.key] || 0;
+          const n = f.key === 'ALL' ? (all?.length ?? 0) : counts[f.key] || 0;
           return (
-            <button key={f.key} onClick={() => setFilter(f.key)} style={{
-              padding: '8px 14px', borderRadius: 999, cursor: 'pointer', fontSize: '0.84rem', fontWeight: 700,
-              border: `1px solid ${activeF ? 'var(--teal)' : 'var(--line)'}`,
-              background: activeF ? 'var(--teal)' : 'var(--surface)', color: activeF ? '#fff' : 'var(--ink-teal)',
-            }}>
-              {f.label} {n > 0 && <span style={{ opacity: 0.85 }}>({n})</span>}
+            <button key={f.key} onClick={() => setFilter(f.key)}
+              className={`cmp-pill${activeF ? ' is-active' : ''}`}>
+              {f.label}{n > 0 && <span className="cmp-pill-n">{n}</span>}
             </button>
           );
         })}
       </div>
 
-      {loading ? (
-        <div style={{ display: 'grid', placeItems: 'center', padding: 40 }}><Loader2 className="animate-spin" style={{ width: 22, height: 22, color: 'var(--teal)' }} /></div>
+      {all === null ? (
+        <div className="cmp-list">
+          {[0, 1, 2, 3].map((i) => <div key={i} className="cmp-skel" />)}
+        </div>
       ) : rows.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)', border: '1px dashed var(--line-strong)', borderRadius: 'var(--radius-lg)' }}>No companions in this view.</div>
+        <div className="cmp-empty">No companions in this view.</div>
       ) : (
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div className="cmp-list">
           {rows.map((c) => (
-            <div key={c.id} style={{ padding: 16, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ display: 'grid', placeItems: 'center', width: 46, height: 46, borderRadius: '50%', background: 'var(--teal)', color: '#fff', fontWeight: 800, flexShrink: 0 }}>{c.full_name.charAt(0).toUpperCase()}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <strong style={{ color: 'var(--ink-teal)' }}>{c.full_name}</strong>
-                    <Badge tone={STATUS_TONE[c.approval_status]} size="sm">{c.approval_status.replace('_', ' ').toLowerCase()}</Badge>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 4, display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-                    {c.phone && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Phone style={{ width: 12, height: 12 }} />{c.phone}</span>}
-                    {c.service_pincodes && c.service_pincodes.length > 0 && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><MapPin style={{ width: 12, height: 12 }} />{c.service_pincodes.join(', ')}</span>}
-                    {c.years_experience != null && <span>{c.years_experience} yrs exp</span>}
-                  </div>
-                  {c.rejection_reason && c.approval_status === 'REJECTED' && (
-                    <div style={{ fontSize: '0.78rem', color: 'var(--terracotta-deep)', marginTop: 6 }}>Reason: {c.rejection_reason}</div>
-                  )}
+            <button key={c.id} className="cmp-card" onClick={() => setActive(c)}>
+              <div className="cmp-avatar">{c.full_name.charAt(0).toUpperCase()}</div>
+              <div className="cmp-main">
+                <div className="cmp-name-row">
+                  <strong>{c.full_name}</strong>
+                  <Badge tone={STATUS_TONE[c.approval_status]} size="sm">{statusLabel(c.approval_status)}</Badge>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => setActive(c)}>Review</Button>
+                <div className="cmp-meta">
+                  {c.phone && <span><Phone />{c.phone}</span>}
+                  {c.service_pincodes && c.service_pincodes.length > 0 && <span><MapPin />{c.service_pincodes.join(', ')}</span>}
+                  {c.years_experience != null && <span>{c.years_experience} yrs exp</span>}
+                  <span className="cmp-time"><Clock />{relativeTime(c.created_at)}</span>
+                </div>
+                {c.rejection_reason && c.approval_status === 'REJECTED' && (
+                  <div className="cmp-reject">Reason: {c.rejection_reason}</div>
+                )}
               </div>
-            </div>
+              <span className="cmp-review-hint">Review →</span>
+            </button>
           ))}
         </div>
       )}
 
       {active && (
-        <ReviewSheet companion={active} onClose={() => setActive(null)}
-          onDone={(msg) => { setActive(null); showToast(msg); fetchRows(); }} />
+        <ReviewSheet companion={active} supabase={supabase}
+          onClose={() => setActive(null)} onAction={applyStatus} />
       )}
 
-      {toast && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 300, padding: '12px 20px', borderRadius: 999, background: 'var(--ink-teal)', color: '#fff', fontSize: '0.86rem', fontWeight: 600, boxShadow: 'var(--shadow-3, 0 10px 30px rgba(0,0,0,0.2))' }}>{toast}</div>
-      )}
+      {toast && <div className={`cmp-toast ${toast.tone}`}>{toast.msg}</div>}
     </main>
   );
 }
 
 // ---------------------------------------------------------------------------
 
-function ReviewSheet({ companion, onClose, onDone }: { companion: CompanionRow; onClose: () => void; onDone: (msg: string) => void }) {
-  const { user } = useAuth();
+function ReviewSheet({
+  companion, supabase, onClose, onAction,
+}: {
+  companion: CompanionRow;
+  supabase: ReturnType<typeof createClient>;
+  onClose: () => void;
+  onAction: (c: CompanionRow, status: ApprovalStatus, rejection?: string) => void;
+}) {
   const [docs, setDocs] = useState<(DocRow & { signedUrl?: string })[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    let alive = true;
     (async () => {
-      const supabase = createClient();
-      const { data } = await supabase.from('companion_documents').select('id, doc_type, file_path, status').eq('companion_id', companion.id);
+      const { data } = await supabase.from('companion_documents')
+        .select('id, doc_type, file_path, status').eq('companion_id', companion.id);
       const list = (data as DocRow[]) ?? [];
-      // Private bucket -> generate short-lived signed URLs for viewing.
       const withUrls = await Promise.all(list.map(async (d) => {
         const { data: signed } = await supabase.storage.from('companion-docs').createSignedUrl(d.file_path, 600);
         return { ...d, signedUrl: signed?.signedUrl };
       }));
-      setDocs(withUrls);
-      setLoadingDocs(false);
+      if (alive) { setDocs(withUrls); setLoadingDocs(false); }
     })();
-  }, [companion.id]);
-
-  const setStatus = async (status: ApprovalStatus, rejection?: string) => {
-    if (!user) return;
-    setBusy(true);
-    const supabase = createClient();
-    const { error } = await supabase.from('companions').update({
-      approval_status: status,
-      rejection_reason: rejection ?? null,
-      reviewed_by: user.id,
-      reviewed_at: new Date().toISOString(),
-      ...(status !== 'APPROVED' ? { is_online: false } : {}),
-    }).eq('id', companion.id);
-    setBusy(false);
-    if (error) { alert(error.message); return; }
-    const verb = status === 'APPROVED' ? 'approved' : status === 'REJECTED' ? 'rejected' : 'suspended';
-    onDone(`${companion.full_name} ${verb}.`);
-  };
+    return () => { alive = false; };
+  }, [companion.id, supabase]);
 
   const s = companion;
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 250, background: 'rgba(22,48,43,0.55)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, maxHeight: '92vh', overflowY: 'auto', background: 'var(--paper)', borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: '10px 20px 28px', animation: 'caresy-sheet-up 0.28s var(--ease-out)' }}>
-        <div style={{ width: 40, height: 4, borderRadius: 999, background: 'var(--line-strong)', margin: '8px auto 16px' }} />
+    <div className="cmp-sheet-overlay" onClick={onClose}>
+      <div className="cmp-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="cmp-grab" />
+        <button className="cmp-sheet-close" onClick={onClose} aria-label="Close"><X style={{ width: 18, height: 18 }} /></button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <div style={{ display: 'grid', placeItems: 'center', width: 52, height: 52, borderRadius: '50%', background: 'var(--teal)', color: '#fff', fontWeight: 800, fontSize: '1.2rem' }}>{s.full_name.charAt(0).toUpperCase()}</div>
+        <div className="cmp-sheet-head">
+          <div className="cmp-avatar lg">{s.full_name.charAt(0).toUpperCase()}</div>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--ink-teal)' }}>{s.full_name}</h2>
-            <div style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>{s.email}</div>
+            <div className="cmp-name-row">
+              <h2>{s.full_name}</h2>
+              <Badge tone={STATUS_TONE[s.approval_status]} size="sm">{statusLabel(s.approval_status)}</Badge>
+            </div>
+            <div className="cmp-sheet-email">{s.email}</div>
           </div>
         </div>
 
-        {/* Details */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
+        <div className="cmp-detail-grid">
           <Detail label="Phone" value={s.phone} />
           <Detail label="Gender" value={s.gender} />
           <Detail label="Date of birth" value={s.date_of_birth} />
@@ -224,60 +276,60 @@ function ReviewSheet({ companion, onClose, onDone }: { companion: CompanionRow; 
           <Detail label="Languages" value={s.languages?.join(', ') || null} />
           <Detail label="Specialties" value={s.specialties?.join(', ') || null} />
         </div>
-        {s.bio && <p style={{ margin: '0 0 18px', fontSize: '0.88rem', color: 'var(--ink-teal)', padding: 12, background: 'var(--surface)', borderRadius: 'var(--radius)' }}>{s.bio}</p>}
+        {s.bio && <p className="cmp-bio">{s.bio}</p>}
 
-        {/* KYC documents */}
-        <h3 style={{ margin: '0 0 10px', fontSize: '1rem', color: 'var(--ink-teal)' }}>Verification documents</h3>
+        <h3 className="cmp-sec">Verification documents</h3>
         {loadingDocs ? (
-          <div style={{ display: 'grid', placeItems: 'center', padding: 20 }}><Loader2 className="animate-spin" style={{ width: 20, height: 20, color: 'var(--teal)' }} /></div>
+          <div className="cmp-docs">{[0, 1, 2].map((i) => <div key={i} className="cmp-doc-skel" />)}</div>
         ) : docs.length === 0 ? (
-          <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>No documents uploaded.</p>
+          <p className="cmp-nodocs">No documents uploaded.</p>
         ) : (
-          <div style={{ display: 'grid', gap: 8, marginBottom: 18 }}>
+          <div className="cmp-docs">
             {docs.map((d) => (
-              <a key={d.id} href={d.signedUrl} target="_blank" rel="noopener" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)', textDecoration: 'none' }}>
-                <span style={{ display: 'grid', placeItems: 'center', width: 36, height: 36, borderRadius: 9, background: 'var(--teal-soft)', color: 'var(--teal)' }}><FileText style={{ width: 17, height: 17 }} /></span>
-                <span style={{ flex: 1, fontSize: '0.86rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{d.doc_type.replace('_', ' ').toLowerCase()}</span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--teal)', fontWeight: 700 }}>View →</span>
+              <a key={d.id} href={d.signedUrl} target="_blank" rel="noopener" className="cmp-doc">
+                <span className="cmp-doc-ico"><FileText style={{ width: 17, height: 17 }} /></span>
+                <span className="cmp-doc-name">{d.doc_type.replace('_', ' ').toLowerCase()}</span>
+                <span className="cmp-doc-view">View →</span>
               </a>
             ))}
           </div>
         )}
 
-        {/* Actions */}
-        {rejecting ? (
-          <div style={{ display: 'grid', gap: 10 }}>
-            <Input label="Reason for rejection" multiline rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Shared with the companion." />
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button variant="ghost" onClick={() => setRejecting(false)}>Cancel</Button>
-              <Button variant="urgent" full disabled={busy || !reason.trim()} onClick={() => setStatus('REJECTED', reason.trim())}
-                iconLeft={busy ? <Loader2 className="animate-spin" style={{ width: 16, height: 16 }} /> : <X style={{ width: 16, height: 16 }} />}>
-                Confirm rejection
-              </Button>
+        <div className="cmp-actions">
+          {rejecting ? (
+            <div className="cmp-reject-form">
+              <Input label="Reason for rejection" multiline rows={2} value={reason}
+                onChange={(e) => setReason(e.target.value)} placeholder="Shared with the companion." />
+              <div className="cmp-action-row">
+                <Button variant="ghost" onClick={() => setRejecting(false)}>Cancel</Button>
+                <Button variant="urgent" full disabled={!reason.trim()}
+                  onClick={() => onAction(s, 'REJECTED', reason.trim())}
+                  iconLeft={<X style={{ width: 16, height: 16 }} />}>Confirm rejection</Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {s.approval_status !== 'APPROVED' && (
-              <Button variant="primary" onClick={() => setStatus('APPROVED')} disabled={busy}
-                iconLeft={busy ? <Loader2 className="animate-spin" style={{ width: 16, height: 16 }} /> : <Check style={{ width: 16, height: 16 }} />}>
-                {s.approval_status === 'SUSPENDED' ? 'Reinstate' : 'Approve'}
-              </Button>
-            )}
-            {s.approval_status !== 'REJECTED' && (
-              <Button variant="outline" onClick={() => setRejecting(true)} disabled={busy}
-                iconLeft={<X style={{ width: 16, height: 16 }} />}>Reject</Button>
-            )}
-            {s.approval_status === 'APPROVED' && (
-              <Button variant="ghost" style={{ color: 'var(--terracotta)' }} onClick={() => setStatus('SUSPENDED')} disabled={busy}
-                iconLeft={<Ban style={{ width: 16, height: 16 }} />}>Suspend</Button>
-            )}
-            {s.approval_status === 'REJECTED' && (
-              <Button variant="ghost" onClick={() => setStatus('PENDING_REVIEW')} disabled={busy}
-                iconLeft={<RotateCcw style={{ width: 16, height: 16 }} />}>Move to pending</Button>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="cmp-action-row">
+              {s.approval_status !== 'APPROVED' && (
+                <Button variant="primary" onClick={() => onAction(s, 'APPROVED')}
+                  iconLeft={<Check style={{ width: 16, height: 16 }} />}>
+                  {s.approval_status === 'SUSPENDED' ? 'Reinstate' : 'Approve'}
+                </Button>
+              )}
+              {s.approval_status !== 'REJECTED' && (
+                <Button variant="outline" onClick={() => setRejecting(true)}
+                  iconLeft={<X style={{ width: 16, height: 16 }} />}>Reject</Button>
+              )}
+              {s.approval_status === 'APPROVED' && (
+                <Button variant="ghost" style={{ color: 'var(--terracotta)' }} onClick={() => onAction(s, 'SUSPENDED')}
+                  iconLeft={<Ban style={{ width: 16, height: 16 }} />}>Suspend</Button>
+              )}
+              {s.approval_status === 'REJECTED' && (
+                <Button variant="ghost" onClick={() => onAction(s, 'PENDING_REVIEW')}
+                  iconLeft={<RotateCcw style={{ width: 16, height: 16 }} />}>Move to pending</Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -285,9 +337,9 @@ function ReviewSheet({ companion, onClose, onDone }: { companion: CompanionRow; 
 
 function Detail({ label, value }: { label: string; value: string | null }) {
   return (
-    <div>
-      <div style={{ fontSize: '0.72rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-      <div style={{ fontSize: '0.9rem', color: 'var(--ink-teal)', fontWeight: 600 }}>{value || '—'}</div>
+    <div className="cmp-detail">
+      <div className="cmp-detail-l">{label}</div>
+      <div className="cmp-detail-v">{value || '—'}</div>
     </div>
   );
 }
