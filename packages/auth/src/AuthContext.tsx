@@ -16,6 +16,8 @@ interface AuthContextType {
   profile: Profile | null;
   isLoading: boolean;
   isAdmin: boolean;
+  /** Whether this portal does customer onboarding at all (false on admin/companion). */
+  onboardingEnabled: boolean;
   isOpen: boolean;
   openLogin: (next?: string) => void;
   closeLogin: () => void;
@@ -26,7 +28,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({
+  children,
+  onboarding = true,
+}: {
+  children: React.ReactNode;
+  /**
+   * Whether to auto-open the customer onboarding modal (name/age/phone) for a
+   * signed-in user without a completed profile. Admin/companion portals pass
+   * `false` — those users don't have a customer profile and should never be
+   * pushed through customer onboarding. Defaults to true (customer site).
+   */
+  onboarding?: boolean;
+}) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,7 +105,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const [admin, p] = await Promise.all([resolveIsAdmin(user), fetchProfile(user.id)]);
       if (stale) return;
       setIsAdmin(admin);
-      if (!p || !p.onboarding_completed) setIsOpen(true);
+      // Only push a real customer through onboarding: never an admin, and never
+      // on a portal that disabled it (admin/companion). Otherwise an ops user
+      // signing into admin.caresy.co.in gets asked for their name/age/phone.
+      if (onboarding && !admin && (!p || !p.onboarding_completed)) setIsOpen(true);
       setIsLoading(false);
     })();
     return () => { stale = true; };
@@ -154,6 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile,
         isLoading,
         isAdmin,
+        onboardingEnabled: onboarding,
         isOpen,
         openLogin,
         closeLogin,
