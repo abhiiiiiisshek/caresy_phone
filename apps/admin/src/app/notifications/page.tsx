@@ -1,16 +1,15 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@caresy/auth';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@caresy/auth/supabase/client';
-import { Button, Badge } from '@caresy/ui';
-import { AdminNav } from '@/components/AdminNav';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { Badge } from '@caresy/ui';
+import { AdminShell, AdminGuard, Skels, relativeTime } from '@/components/AdminShell';
 
-// Notifications viewer (DEVELOPER_HANDOFF.md §6-C). Reads the `notifications`
-// table (migration 13, admin-only SELECT RLS). Delivery isn't wired up yet
-// (§6-A) — every row here is QUEUED until that ships, which this page makes
-// visible rather than hiding.
+// Notifications viewer. Reads the `notifications` table (migration 13,
+// admin-only SELECT RLS). Delivery isn't wired up yet — every row here is
+// QUEUED until that ships, which this page makes visible rather than hiding.
+// Loads the latest 300 once and filters client-side, so switching tabs is
+// instant and each pill shows a live count.
 
 type NotifStatus = 'QUEUED' | 'SENT' | 'FAILED';
 
@@ -36,77 +35,77 @@ const FILTERS: { key: NotifStatus | 'ALL'; label: string }[] = [
   { key: 'FAILED', label: 'Failed' },
 ];
 
+const FETCH_LIMIT = 300;
+
 export default function AdminNotifications() {
-  const { user, isAdmin, isLoading, openLogin } = useAuth();
-  const [rows, setRows] = useState<NotifRow[]>([]);
+  return (
+    <AdminShell title="Notifications" subtitle="Enqueued on every booking status change. Delivery isn't wired up yet — everything stays QUEUED until it is." maxWidth={780}>
+      <AdminGuard purpose="view notifications">
+        <NotifBody />
+      </AdminGuard>
+    </AdminShell>
+  );
+}
+
+function NotifBody() {
+  const supabase = useMemo(() => createClient(), []);
+  const [all, setAll] = useState<NotifRow[] | null>(null);
   const [filter, setFilter] = useState<NotifStatus | 'ALL'>('ALL');
-  const [loading, setLoading] = useState(true);
 
-  const fetchRows = useCallback(async () => {
-    if (!isAdmin) return;
-    setLoading(true);
-    const supabase = createClient();
-    let query = supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(200);
-    if (filter !== 'ALL') query = query.eq('status', filter);
-    const { data } = await query;
-    setRows((data as NotifRow[]) ?? []);
-    setLoading(false);
-  }, [isAdmin, filter]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.from('notifications').select('*')
+        .order('created_at', { ascending: false }).limit(FETCH_LIMIT);
+      if (alive) setAll((data as NotifRow[]) ?? []);
+    })();
+    return () => { alive = false; };
+  }, [supabase]);
 
-  useEffect(() => { fetchRows(); }, [fetchRows]);
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    (all ?? []).forEach((n) => { c[n.status] = (c[n.status] || 0) + 1; });
+    return c;
+  }, [all]);
 
-  if (isLoading) {
-    return <main style={{ minHeight: '60vh', paddingTop: 118, display: 'grid', placeItems: 'center' }}><Loader2 className="animate-spin" style={{ width: 26, height: 26, color: 'var(--teal)' }} /></main>;
-  }
-  if (!user || !isAdmin) {
-    return (
-      <main style={{ maxWidth: 520, margin: '0 auto', padding: '138px 20px 48px', textAlign: 'center' }}>
-        <ShieldCheck style={{ width: 40, height: 40, color: 'var(--teal)', marginBottom: 12 }} />
-        <h1 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Admin access required</h1>
-        <p style={{ color: 'var(--muted)', marginBottom: 20 }}>Sign in with an authorized ops account to view notifications.</p>
-        {!user && <Button variant="primary" onClick={() => openLogin('/notifications')}>Sign in</Button>}
-      </main>
-    );
-  }
+  const rows = useMemo(
+    () => (all ?? []).filter((n) => filter === 'ALL' || n.status === filter),
+    [all, filter],
+  );
 
   return (
-    <main style={{ maxWidth: 780, margin: '0 auto', padding: '118px 16px 60px' }}>
-      <AdminNav />
-      <h1 style={{ margin: '0 0 4px', fontSize: '1.5rem', color: 'var(--ink-teal)' }}>Notifications</h1>
-      <p style={{ margin: '0 0 18px', color: 'var(--muted)', fontSize: '0.9rem' }}>
-        Enqueued on every booking status change. Delivery isn't wired up yet (§6-A) — everything below stays QUEUED until it is.
-      </p>
-
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+    <>
+      <div className="adm-pills">
         {FILTERS.map((f) => {
           const active = filter === f.key;
+          const n = f.key === 'ALL' ? (all?.length ?? 0) : counts[f.key] || 0;
           return (
-            <button key={f.key} onClick={() => setFilter(f.key)} style={{
-              padding: '8px 14px', borderRadius: 999, cursor: 'pointer', fontSize: '0.84rem', fontWeight: 700,
-              border: `1px solid ${active ? 'var(--teal)' : 'var(--line)'}`,
-              background: active ? 'var(--teal)' : 'var(--surface)', color: active ? '#fff' : 'var(--ink-teal)',
-            }}>
-              {f.label}
+            <button key={f.key} onClick={() => setFilter(f.key)} className={`adm-pill${active ? ' is-active' : ''}`}>
+              {f.label}{n > 0 && <span className="adm-pill-n">{n}</span>}
             </button>
           );
         })}
       </div>
 
-      {loading ? (
-        <div style={{ display: 'grid', placeItems: 'center', padding: 40 }}><Loader2 className="animate-spin" style={{ width: 22, height: 22, color: 'var(--teal)' }} /></div>
+      {all !== null && all.length === FETCH_LIMIT && (
+        <p className="adm-hint" style={{ display: 'block', marginBottom: 12 }}>Showing the latest {FETCH_LIMIT}.</p>
+      )}
+
+      {all === null ? (
+        <Skels n={5} h={86} />
       ) : rows.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)', border: '1px dashed var(--line-strong)', borderRadius: 'var(--radius-lg)' }}>No notifications in this view.</div>
+        <div className="adm-empty">No notifications in this view.</div>
       ) : (
-        <div style={{ display: 'grid', gap: 10 }}>
+        <div className="adm-list" style={{ gap: 10 }}>
           {rows.map((n) => (
-            <div key={n.id} style={{ padding: '14px 16px', borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
+            <div key={n.id} className="adm-card" style={{ padding: '14px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Badge tone={STATUS_TONE[n.status]} size="sm">{n.status.toLowerCase()}</Badge>
                   {n.recipient_role && <Badge tone="neutral" size="sm">{n.recipient_role.toLowerCase()}</Badge>}
                 </div>
-                <span style={{ fontSize: '0.74rem', color: 'var(--muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                  {new Date(n.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                <span className="adm-side-note" title={new Date(n.created_at).toLocaleString('en-IN')}>
+                  {relativeTime(n.created_at)}
                 </span>
               </div>
               <strong style={{ display: 'block', color: 'var(--ink-teal)', fontSize: '0.92rem', lineHeight: 1.4 }}>{n.title}</strong>
@@ -115,6 +114,6 @@ export default function AdminNotifications() {
           ))}
         </div>
       )}
-    </main>
+    </>
   );
 }
