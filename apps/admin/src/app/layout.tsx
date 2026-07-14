@@ -3,6 +3,7 @@ import { Poppins } from 'next/font/google';
 import { AuthProvider } from '@caresy/auth';
 import AuthModal from '@caresy/auth/modal';
 import './globals.css';
+import './admin.css';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800'],
