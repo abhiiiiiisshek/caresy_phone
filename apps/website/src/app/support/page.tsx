@@ -101,7 +101,7 @@ export default function Support() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, padding: '0 16px' }}>
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/caresy-logo.jpg" alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+            <img src="/img/caresy-logo.png" alt="" style={{ width: 32, height: 32, objectFit: 'contain' }} />
             <span style={{ fontSize: 28, lineHeight: '36px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>Caresy</span>
           </Link>
           <Link href="/my-bookings" aria-label="Notifications" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', color: 'var(--m3-ink)' }}>

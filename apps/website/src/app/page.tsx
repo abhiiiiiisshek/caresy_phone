@@ -106,7 +106,7 @@ export default function Home() {
               )}
             </Link>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/img/caresy-logo.jpg" alt="Caresy" style={{ height: 32, width: 'auto' }} />
+            <img src="/img/caresy-logo.png" alt="Caresy" style={{ height: 32, width: 'auto' }} />
           </div>
           <Link href="/my-bookings" aria-label="Notifications" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', color: 'var(--m3-ink)' }}>
             <Bell style={{ width: 20, height: 20 }} />

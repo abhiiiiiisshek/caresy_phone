@@ -40,7 +40,7 @@ export default function Login() {
         {/* Logo + tagline */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/caresy-logo.jpg" alt="Caresy" style={{ height: 40, width: 'auto' }} />
+          <img src="/img/caresy-logo.png" alt="Caresy" style={{ height: 40, width: 'auto' }} />
           <p style={{ margin: 0, fontSize: 16, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>Wellness, centered around you.</p>
         </div>
 

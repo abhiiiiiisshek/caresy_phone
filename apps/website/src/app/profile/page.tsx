@@ -103,7 +103,7 @@ export default function Profile() {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/img/caresy-logo.jpg" alt="" style={{ width: 37, height: 32, borderRadius: 999, objectFit: 'cover' }} />
+          <img src="/img/caresy-logo.png" alt="" style={{ width: 37, height: 32, objectFit: 'contain' }} />
           <h1 style={{ margin: 0, fontSize: 28, lineHeight: '34px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>Profile</h1>
         </div>
 

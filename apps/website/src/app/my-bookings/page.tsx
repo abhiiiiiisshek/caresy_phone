@@ -66,12 +66,26 @@ function getStatusInfo(status: string) {
   if (s.includes('progress') || s === 'active') return { label: 'Active Visit', cls: 'active' };
   if (s === 'completed') return { label: 'Completed', cls: 'completed' };
   if (s === 'cancelled') return { label: 'Cancelled', cls: 'completed' };
+  if (s === 'expired') return { label: 'Expired', cls: 'completed' };
   return { label: status, cls: 'pending' };
 }
 
-function isPastStatus(status: string) {
-  const s = status.toLowerCase();
-  return s === 'completed' || s === 'cancelled';
+// Turn a raw enum (HOSPITAL_COMPANION) into a friendly label when the booking
+// has no human-entered service name in its metadata.
+function prettyService(raw: string) {
+  return raw.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+function serviceLabel(b: BookingRecord) {
+  return (b.service_metadata?.originalService as string) || prettyService(b.service_type || 'Booking');
+}
+
+// A booking is "past" if it reached a terminal status OR its scheduled time
+// has already elapsed (stale pending/expired shouldn't sit under Upcoming).
+function isPastBooking(b: BookingRecord) {
+  const s = b.status.toLowerCase();
+  if (s === 'completed' || s === 'cancelled' || s === 'expired') return true;
+  const when = b.scheduled_start_time ? new Date(b.scheduled_start_time).getTime() : null;
+  return when !== null && when < Date.now();
 }
 
 function StatusPill({ status }: { status: string }) {
@@ -165,12 +179,12 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
             <img src={companion.photo} alt={`Companion ${companion.name}`} style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', flexShrink: 0 }} />
           ) : (
             <div style={{ width: 64, height: 64, borderRadius: 16, background: 'var(--m3-green)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 22, flexShrink: 0 }}>
-              {(companion?.name || customMeta.originalService || booking.service_type || 'C').charAt(0)}
+              {(companion?.name || serviceLabel(booking)).charAt(0)}
             </div>
           )}
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '0.15px', color: 'var(--ink-teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {companion?.name || customMeta.originalService || booking.service_type}
+              {companion?.name || serviceLabel(booking)}
             </div>
             <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>
               {companion ? (companion.specialty || 'Verified Companion') : booking.reference_code}
@@ -181,7 +195,7 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
       </div>
 
       <div style={{ display: 'flex', gap: 16 }}>
-        <InfoTile icon={Briefcase} label="Service" value={customMeta.originalService || booking.service_type} />
+        <InfoTile icon={Briefcase} label="Service" value={serviceLabel(booking)} />
         <InfoTile icon={CalendarDays} label="Date & time" value={scheduleDate} />
       </div>
 
@@ -220,7 +234,7 @@ function BookingRow({ booking, onDetails }: { booking: BookingRecord; onDetails:
         </span>
         <span style={{ minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 14, fontWeight: 700, letterSpacing: '0.25px', color: 'var(--ink-teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {customMeta.originalService || booking.service_type}
+            {serviceLabel(booking)}
           </span>
           <span style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>
             {when}{companion ? ` • ${companion.name}` : ` • ${booking.reference_code}`}
@@ -238,11 +252,11 @@ function DetailSheet({ booking, onClose }: { booking: BookingRecord | null; onCl
   const companion: CompanionDetails | null = customMeta.companion || null;
   const careNeeds: string[] = customMeta.careNeeds || [];
   const scheduleDate = booking.scheduled_start_time ? formatDate(booking.scheduled_start_time) : formatDate(booking.created_at, false);
-  const upcoming = !isPastStatus(booking.status);
+  const upcoming = !isPastBooking(booking);
 
   const rows: [React.ElementType, string, React.ReactNode][] = [
     [Hash, 'Booking reference', booking.reference_code],
-    [Activity, 'Service', customMeta.originalService || booking.service_type],
+    [Activity, 'Service', serviceLabel(booking)],
     ...(companion ? [[User, 'Companion', companion.name] as [React.ElementType, string, React.ReactNode]] : []),
     [Calendar, 'Date', scheduleDate],
     [MapPin, 'Address', booking.pickup_location?.title || '—'],
@@ -256,7 +270,7 @@ function DetailSheet({ booking, onClose }: { booking: BookingRecord | null; onCl
         <div style={{ width: 40, height: 4, borderRadius: 999, background: 'var(--line-strong)', margin: '8px auto 12px' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 20px 16px' }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--ink-teal)' }}>{customMeta.originalService || booking.service_type}</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--ink-teal)' }}>{serviceLabel(booking)}</div>
             <div style={{ marginTop: 6 }}><StatusPill status={booking.status} /></div>
           </div>
           <button onClick={onClose} aria-label="Close" style={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--line)', cursor: 'pointer', flexShrink: 0 }}><X style={{ width: 18, height: 18 }} /></button>
@@ -440,8 +454,11 @@ export default function MyBookings() {
     );
   }
 
-  const upcomingBookings = bookings.filter((b) => !isPastStatus(b.status));
-  const pastBookings = bookings.filter((b) => isPastStatus(b.status));
+  const when = (b: BookingRecord) => new Date(b.scheduled_start_time || b.created_at).getTime();
+  // Upcoming: soonest first (nearest visit is the "Next Scheduled" hero).
+  const upcomingBookings = bookings.filter((b) => !isPastBooking(b)).sort((a, b) => when(a) - when(b));
+  // Past: most recent first.
+  const pastBookings = bookings.filter(isPastBooking).sort((a, b) => when(b) - when(a));
   const list = filter === 'upcoming' ? upcomingBookings : pastBookings;
   const [primary, ...rest] = list;
 
