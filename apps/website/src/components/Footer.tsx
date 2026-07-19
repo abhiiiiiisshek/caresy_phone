@@ -8,7 +8,7 @@ import { IconButton } from '@caresy/ui';
 
 // The 4 core app tabs end at the bottom nav, matching the app design — the
 // full website footer only renders on secondary marketing/legal pages.
-const APP_TABS = ['/', '/my-bookings', '/support', '/profile'];
+const APP_TABS = ['/', '/my-bookings', '/support', '/profile', '/login', '/booking', '/tracking'];
 
 export default function Footer() {
   const pathname = usePathname();

@@ -5,27 +5,12 @@ import Link from 'next/link';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import {
-  PhoneCall, Zap, Calendar, Stethoscope, Pill, FlaskConical, Home as HomeIcon,
-  ShieldCheck, Building2, Headset,
+  Bell, Zap, Calendar, CalendarDays, Users, FileText, ArrowRight,
+  ClipboardCheck, ChevronRight, BookOpen, BadgeCheck, BriefcaseMedical,
 } from 'lucide-react';
-import { CompanionCard } from '@caresy/ui';
-import LocationBadge from '@/components/LocationBadge';
-import { COMPANIONS } from '@/data/companions';
 
-const SUPPORT_TEL = '+919717500225';
-
-const APP_SERVICES = [
-  { icon: Stethoscope, title: 'Hospital Companion', price: '₹499' },
-  { icon: Pill, title: 'Medicine Pickup', price: '₹299' },
-  { icon: FlaskConical, title: 'Diagnostic Test', price: '₹899' },
-  { icon: HomeIcon, title: 'Safe Return', price: '₹899' },
-];
-
-const TRUST_ITEMS = [
-  { icon: ShieldCheck, title: '100% Police Verified', desc: 'Aadhaar + background checks via AuthBridge' },
-  { icon: Building2, title: '50+ Partner Hospitals', desc: 'Across Noida & Greater Noida' },
-  { icon: Headset, title: '24/7 Ops Control Room', desc: 'Real humans, always reachable' },
-];
+const SUPPORT_WA = '919717500225';
+const EPILOGUE = 'var(--font-epilogue), sans-serif';
 
 interface ActiveBookingInfo {
   reference_code: string;
@@ -34,14 +19,49 @@ interface ActiveBookingInfo {
   service_metadata?: { companion?: { name?: string; photo?: string } };
 }
 
-function SectionHead({ title, action, actionHref }: { title: string; action?: string; actionHref?: string }) {
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+const SERVICE_CHIPS = [
+  { icon: Users, label: 'Companions', href: '/booking' },
+  { icon: CalendarDays, label: 'Appointments', href: '/booking' },
+  { icon: FileText, label: 'Custom Care Plan', href: `https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent('Hi Caresy, I would like a custom care plan.')}`, note: 'Redirects to WhatsApp' },
+];
+
+function SectionTitle({ children, action, actionHref }: { children: React.ReactNode; action?: string; actionHref?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 4px 8px' }}>
-      <h3 style={{ margin: 0, fontSize: '1.02rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{title}</h3>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--m3-ink)' }}>{children}</h3>
       {action && actionHref && (
-        <Link href={actionHref} style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--teal)', textDecoration: 'none' }}>{action}</Link>
+        <Link href={actionHref} style={{ fontSize: 14, fontWeight: 500, letterSpacing: '0.1px', color: 'var(--m3-green-deep)', textDecoration: 'none' }}>{action}</Link>
       )}
     </div>
+  );
+}
+
+function ActionCard({ href, bg, ink, btnBg, label, labelIcon: LabelIcon, title, desc, decorIcon: DecorIcon }: {
+  href: string; bg: string; ink: string; btnBg: string; label: string;
+  labelIcon: React.ElementType; title: string; desc: string; decorIcon: React.ElementType;
+}) {
+  return (
+    <Link href={href} style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 20, borderRadius: 'var(--m3-radius-card)', background: bg, overflow: 'hidden', textDecoration: 'none', boxSizing: 'border-box' }}>
+      <DecorIcon aria-hidden style={{ position: 'absolute', right: -16, bottom: -16, width: 128, height: 128, color: ink, opacity: 0.12 }} />
+      <span style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: 250 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: ink }}>
+          <LabelIcon style={{ width: 18, height: 18 }} />
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>{label}</span>
+        </span>
+        <span style={{ fontSize: 22, lineHeight: '28px', fontWeight: 700, color: ink }}>{title}</span>
+        <span style={{ fontSize: 14, lineHeight: '20px', letterSpacing: '0.25px', color: ink, opacity: 0.9 }}>{desc}</span>
+      </span>
+      <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: '50%', background: btnBg, color: '#fff', flexShrink: 0, zIndex: 1 }}>
+        <ArrowRight style={{ width: 16, height: 16 }} />
+      </span>
+    </Link>
   );
 }
 
@@ -67,112 +87,159 @@ export default function Home() {
   const displayName = profile?.full_name || (user?.user_metadata?.full_name as string) || (user?.user_metadata?.name as string);
   const firstName = displayName ? displayName.split(' ')[0] : null;
   const initial = firstName ? firstName.charAt(0).toUpperCase() : 'C';
+  const avatarUrl = (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string) || null;
   const companion = activeBooking?.service_metadata?.companion;
 
   return (
-    <main className="app-shell-page" id="main-content" style={{ background: 'var(--paper)' }}>
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
+    <main id="main-content" style={{ background: 'var(--m3-bg)', fontFamily: EPILOGUE, minHeight: '100vh', paddingBottom: 96 }}>
+      <div style={{ maxWidth: 576, margin: '0 auto' }}>
 
-        {/* Greeting bar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '20px 2px 8px' }}>
-          <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--teal)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>
-            {initial}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.98rem', color: 'var(--ink-teal)' }}>
-              {firstName ? `Hello, ${firstName}` : 'Hello there'}
-            </div>
-            <LocationBadge />
-          </div>
-          <a href={`tel:${SUPPORT_TEL}`} aria-label="Call Caresy" style={{ display: 'grid', placeItems: 'center', width: 44, height: 44, borderRadius: 'var(--radius-lg)', background: 'var(--terracotta)', color: '#fff', flexShrink: 0 }}>
-            <PhoneCall style={{ width: 20, height: 20 }} />
-          </a>
-        </div>
-
-        {/* Active booking banner — only rendered when a real assigned/in-progress booking exists */}
-        {activeBooking && (
-          <Link href="/my-bookings" style={{ textDecoration: 'none' }}>
-            <div role="status" style={{ margin: '4px 0 8px', padding: 14, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--sage-deep)', boxShadow: 'var(--shadow-1)', display: 'flex', gap: 12, alignItems: 'center' }}>
-              {companion?.photo ? (
+        {/* Top app bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, padding: '0 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <Link href="/profile" aria-label="Your profile" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', border: '2px solid var(--m3-green)', padding: 2, boxSizing: 'border-box', textDecoration: 'none' }}>
+              {avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={companion.photo} alt={`Companion ${companion.name}`} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+                <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
               ) : (
-                <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--teal)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, flexShrink: 0 }}>
-                  {(companion?.name || 'C').charAt(0)}
-                </div>
+                <span style={{ display: 'grid', placeItems: 'center', width: '100%', height: '100%', borderRadius: '50%', background: 'var(--m3-green)', color: '#fff', fontWeight: 800, fontSize: 14 }}>{initial}</span>
               )}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--ink-teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {companion?.name ? `${companion.name} is on the way` : 'Companion assigned'}
-                    {activeBooking.pickup_location?.title ? ` · ${activeBooking.pickup_location.title}` : ''}
-                  </strong>
-                </div>
-                <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>Booking {activeBooking.reference_code}</div>
-              </div>
-            </div>
-          </Link>
-        )}
-
-        {/* Intent grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '8px 0' }}>
-          <Link href="/quick-help" style={{ textAlign: 'left', minHeight: 148, padding: 18, borderRadius: 'var(--radius-xl)', textDecoration: 'none', color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(145deg, rgba(255,255,255,0.15), transparent 42%), var(--terracotta)' }}>
-            <span style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.2)' }}><Zap style={{ width: 20, height: 20 }} /></span>
-            <span><strong style={{ display: 'block', fontSize: '1.05rem' }}>Emergency Now</strong><small style={{ opacity: 0.9, fontSize: '0.76rem' }}>Attendant reaches in 20–30 mins</small></span>
-          </Link>
-          <Link href="/booking" style={{ textAlign: 'left', minHeight: 148, padding: 18, borderRadius: 'var(--radius-xl)', textDecoration: 'none', color: 'var(--ink-teal)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(145deg, rgba(255,255,255,0.5), transparent 42%), var(--sage)' }}>
-            <span style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: 12, background: 'rgba(22,48,43,0.1)' }}><Calendar style={{ width: 20, height: 20 }} /></span>
-            <span><strong style={{ display: 'block', fontSize: '1.05rem' }}>Schedule Visit</strong><small style={{ color: 'rgba(22,48,43,0.7)', fontSize: '0.76rem' }}>Book for an appointment or test</small></span>
-          </Link>
-        </div>
-
-        {/* Quick services */}
-        <SectionHead title="Quick services" action="See all" actionHref="/services" />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {APP_SERVICES.map((s) => (
-            <Link key={s.title} href="/booking" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 14, borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)', textDecoration: 'none' }}>
-              <span style={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 10, background: 'var(--teal-soft)', color: 'var(--teal)', flexShrink: 0 }}><s.icon style={{ width: 18, height: 18 }} /></span>
-              <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: '0.84rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{s.title}</span>
-                <span style={{ fontSize: '0.74rem', color: 'var(--muted)' }}>from {s.price}</span>
-              </span>
             </Link>
-          ))}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/img/caresy-logo.jpg" alt="Caresy" style={{ height: 32, width: 'auto' }} />
+          </div>
+          <Link href="/my-bookings" aria-label="Notifications" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', color: 'var(--m3-ink)' }}>
+            <Bell style={{ width: 20, height: 20 }} />
+          </Link>
         </div>
 
-        {/* Verified companions */}
-        <SectionHead title="Verified companions" action="Meet the team" actionHref="/trust" />
-        <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8, scrollSnapType: 'x mandatory' }}>
-          {COMPANIONS.map((c) => (
-            <div key={c.id} style={{ scrollSnapAlign: 'center', flexShrink: 0 }}>
-              <CompanionCard
-                name={c.name}
-                photo={c.photo}
-                initials={c.avatarInitials}
-                rating={c.rating}
-                visits={c.visits}
-                verification={c.verification}
-                languages={c.languages}
-                specialty={c.specialty}
-                style={{ width: 230 }}
-              />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '16px 16px 0' }}>
+
+          {/* Greeting */}
+          <div style={{ padding: '8px 0 0' }}>
+            <p style={{ margin: 0, fontSize: 32, lineHeight: '40px', color: 'var(--m3-ink)' }}>
+              {greeting()},{firstName ? <><br />{firstName}.</> : <><br />welcome.</>}
+            </p>
+          </div>
+
+          {/* Active booking banner — only when a real assigned/in-progress booking exists */}
+          {activeBooking && (
+            <Link href="/my-bookings" style={{ textDecoration: 'none' }}>
+              <div role="status" style={{ padding: 16, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', display: 'flex', gap: 12, alignItems: 'center' }}>
+                {companion?.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={companion.photo} alt={`Companion ${companion.name}`} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--m3-green)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, flexShrink: 0 }}>
+                    {(companion?.name || 'C').charAt(0)}
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
+                    <strong style={{ fontSize: 14, color: 'var(--m3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {companion?.name ? `${companion.name} is on the way` : 'Companion assigned'}
+                      {activeBooking.pickup_location?.title ? ` · ${activeBooking.pickup_location.title}` : ''}
+                    </strong>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--m3-muted)', marginTop: 2 }}>Booking {activeBooking.reference_code}</div>
+                </div>
+                <ChevronRight style={{ width: 16, height: 16, color: 'var(--m3-muted)', flexShrink: 0 }} />
+              </div>
+            </Link>
+          )}
+
+          {/* Primary actions */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <ActionCard
+              href="/quick-help"
+              bg="var(--m3-urgent-bg)" ink="var(--m3-urgent-ink)" btnBg="var(--m3-urgent)"
+              label="Immediate need" labelIcon={Zap}
+              title="Urgent Booking"
+              desc="Find a companion for last-minute emergencies."
+              decorIcon={BriefcaseMedical}
+            />
+            <ActionCard
+              href="/booking"
+              bg="var(--m3-green)" ink="var(--m3-green-soft)" btnBg="var(--m3-green-deep)"
+              label="Plan ahead" labelIcon={Calendar}
+              title="Schedule Appointment"
+              desc="Book a companion for a future medical visit."
+              decorIcon={CalendarDays}
+            />
+          </div>
+
+          {/* Our services */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <SectionTitle action="See all" actionHref="/services">Our Services</SectionTitle>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              {SERVICE_CHIPS.map((c) => {
+                const external = c.href.startsWith('http');
+                const inner = (
+                  <>
+                    <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', color: 'var(--m3-green)' }}>
+                      <c.icon style={{ width: 20, height: 20 }} />
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-ink)', textAlign: 'center' }}>{c.label}</span>
+                    {c.note && <span style={{ fontSize: 10, color: 'var(--m3-muted)', textAlign: 'center' }}>{c.note}</span>}
+                  </>
+                );
+                const style: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 12, background: 'var(--m3-chip)', textDecoration: 'none', minHeight: 118, boxSizing: 'border-box' };
+                return external ? (
+                  <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" style={style}>{inner}</a>
+                ) : (
+                  <Link key={c.label} href={c.href} style={style}>{inner}</Link>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Why families trust Caresy */}
-        <SectionHead title="Why families trust Caresy" />
-        <div style={{ display: 'grid', gap: 10, padding: '0 0 32px' }}>
-          {TRUST_ITEMS.map((t) => (
-            <div key={t.title} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: 14, borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
-              <span style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: 10, background: 'var(--success-soft)', color: '#1B7A54', flexShrink: 0 }}><t.icon style={{ width: 18, height: 18 }} /></span>
-              <div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{t.title}</div>
-                <div style={{ fontSize: '0.76rem', color: 'var(--muted)' }}>{t.desc}</div>
+          {/* Recommended */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <SectionTitle>Recommended for you</SectionTitle>
+
+            <Link href="/how-it-works" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 17, borderRadius: 12, background: 'var(--m3-card)', textDecoration: 'none' }}>
+              <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: 8, background: 'var(--m3-amber)', color: 'var(--m3-ink)', flexShrink: 0 }}>
+                <ClipboardCheck style={{ width: 20, height: 20 }} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', color: 'var(--m3-ink)' }}>Prepare for your visit</span>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>Checklist for your upcoming appointment</span>
+              </span>
+              <ChevronRight style={{ width: 16, height: 16, color: 'var(--m3-muted)', flexShrink: 0 }} />
+            </Link>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 21, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--m3-ink)' }}>Post-surgery care guide</span>
+                  <span style={{ fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>Essential tips for a smooth recovery</span>
+                </div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/img/care-guide.jpg" alt="" style={{ width: 63, height: 64, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--m3-green-deep)' }}>
+                  <BookOpen style={{ width: 16, height: 16 }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.5px' }}>5 min read</span>
+                </span>
+                <Link href="/how-it-works" style={{ padding: '6px 16px', borderRadius: 'var(--radius-pill)', background: 'var(--m3-cyan)', color: 'var(--m3-cyan-ink)', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', textDecoration: 'none' }}>Read</Link>
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Trust & safety */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid rgba(192,201,195,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <BadgeCheck style={{ width: 22, height: 22, color: 'var(--m3-green)' }} />
+              <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--m3-ink)' }}>Verified Companions</span>
+            </div>
+            <p style={{ margin: 0, fontSize: 14, lineHeight: '23px', letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>
+              Your safety is our priority. All Caresy companions undergo strict background checks, interviews, and professional certification reviews.
+            </p>
+            <Link href="/trust" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', color: 'var(--m3-green-deep)', textDecoration: 'none' }}>Learn about our screening</Link>
+          </div>
+
         </div>
       </div>
     </main>

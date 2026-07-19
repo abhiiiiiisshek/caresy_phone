@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Poppins } from 'next/font/google';
+import { Poppins, Epilogue } from 'next/font/google';
 import { AuthProvider } from '@caresy/auth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,6 +13,13 @@ const poppins = Poppins({
   weight: ['400', '500', '600', '700', '800'],
   subsets: ['latin'],
   display: 'swap',
+});
+
+const epilogue = Epilogue({
+  weight: ['400', '500', '600', '700', '800'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-epilogue',
 });
 
 export const metadata: Metadata = {
@@ -32,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className={`${poppins.className} min-h-full flex flex-col`}>
+      <body className={`${poppins.className} ${epilogue.variable} min-h-full flex flex-col`}>
         <AuthProvider>
           <a href="#main-content" className="sr-only focus:not-sr-only" style={{ position: 'absolute', left: '-9999px' }}>
             Skip to content

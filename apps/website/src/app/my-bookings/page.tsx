@@ -2,10 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
-import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle } from 'lucide-react';
+import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays } from 'lucide-react';
 import { Button } from '@caresy/ui';
+
+const EPILOGUE = 'var(--font-epilogue), sans-serif';
 
 interface CompanionDetails {
   name: string;
@@ -50,8 +53,8 @@ function mailLink(ref: string) {
 const STATUS_STYLE: Record<string, { bg: string; fg: string; dot: string; live?: boolean }> = {
   pending: { bg: 'rgba(231,163,62,0.16)', fg: '#8A5A12', dot: 'var(--warning)' },
   review: { bg: 'var(--terracotta-soft)', fg: 'var(--terracotta-deep)', dot: 'var(--terracotta)' },
-  assigned: { bg: 'var(--teal-soft)', fg: 'var(--teal-deep)', dot: 'var(--teal)', live: true },
-  active: { bg: 'var(--success-soft)', fg: '#1B7A54', dot: 'var(--success)', live: true },
+  assigned: { bg: '#baeed9', fg: '#002117', dot: 'var(--m3-green)', live: true },
+  active: { bg: '#baeed9', fg: '#002117', dot: 'var(--success)', live: true },
   completed: { bg: 'rgba(92,107,100,0.14)', fg: 'var(--muted)', dot: 'var(--muted)' },
 };
 
@@ -59,7 +62,7 @@ function getStatusInfo(status: string) {
   const s = status.toLowerCase();
   if (s === 'pending' || s === 'draft') return { label: 'Pending Assignment', cls: 'pending' };
   if (s.includes('review')) return { label: 'Under Review', cls: 'review' };
-  if (s.includes('assigned')) return { label: 'Companion Assigned', cls: 'assigned' };
+  if (s.includes('assigned')) return { label: 'Confirmed', cls: 'assigned' };
   if (s.includes('progress') || s === 'active') return { label: 'Active Visit', cls: 'active' };
   if (s === 'completed') return { label: 'Completed', cls: 'completed' };
   if (s === 'cancelled') return { label: 'Cancelled', cls: 'completed' };
@@ -75,20 +78,10 @@ function StatusPill({ status }: { status: string }) {
   const info = getStatusInfo(status);
   const s = STATUS_STYLE[info.cls] || STATUS_STYLE.pending;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 11px', borderRadius: 999, background: s.bg, color: s.fg, fontSize: '0.7rem', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1, flexShrink: 0 }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 16px', borderRadius: 999, background: s.bg, color: s.fg, fontSize: 12, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', lineHeight: '16px', flexShrink: 0 }}>
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: s.dot, animation: s.live ? 'caresy-pulse 1.8s infinite' : 'none' }} />
       {info.label}
     </span>
-  );
-}
-
-function MetaRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-      <Icon style={{ width: 15, height: 15, color: 'var(--muted)', flexShrink: 0 }} />
-      <span style={{ fontSize: '0.76rem', color: 'var(--muted)', flexShrink: 0 }}>{label}</span>
-      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--ink)', marginLeft: 'auto', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>
-    </div>
   );
 }
 
@@ -145,37 +138,97 @@ function formatDate(dateStr: string, withTime = true) {
   });
 }
 
-function BookingCard({ booking, onDetails }: { booking: BookingRecord; onDetails: (b: BookingRecord) => void }) {
+function InfoTile({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+  return (
+    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: 16, borderRadius: 16, background: '#e7e9e4' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--m3-muted)' }}>
+        <Icon style={{ width: 12, height: 12 }} />
+        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.55px' }}>{label}</span>
+      </span>
+      <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.25px', color: 'var(--ink-teal)', lineHeight: '20px' }}>{value}</span>
+    </div>
+  );
+}
+
+function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; onDetails: (b: BookingRecord) => void }) {
   const customMeta = booking.service_metadata || {};
   const companion: CompanionDetails | null = customMeta.companion || null;
   const scheduleDate = booking.scheduled_start_time ? formatDate(booking.scheduled_start_time) : formatDate(booking.created_at, false);
+  const trackable = ['assigned', 'in_progress', 'active'].some((k) => booking.status.toLowerCase().includes(k));
 
   return (
-    <article className="booking-card material-card" style={{ padding: 0, overflow: 'hidden' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: '0.94rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{customMeta.originalService || booking.service_type}</div>
-          <div style={{ fontSize: '0.76rem', color: 'var(--muted)' }}>{companion ? `with ${companion.name}` : booking.reference_code}</div>
+    <article style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 24, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)', border: '1px solid #e1e3de', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
+          {companion?.photo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={companion.photo} alt={`Companion ${companion.name}`} style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: 64, height: 64, borderRadius: 16, background: 'var(--m3-green)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 22, flexShrink: 0 }}>
+              {(companion?.name || customMeta.originalService || booking.service_type || 'C').charAt(0)}
+            </div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '0.15px', color: 'var(--ink-teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {companion?.name || customMeta.originalService || booking.service_type}
+            </div>
+            <div style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>
+              {companion ? (companion.specialty || 'Verified Companion') : booking.reference_code}
+            </div>
+          </div>
         </div>
         <StatusPill status={booking.status} />
       </div>
 
-      <div style={{ display: 'grid', gap: 9, padding: '0 18px 16px' }}>
-        <MetaRow icon={Hash} label="Reference" value={booking.reference_code} />
-        <MetaRow icon={Calendar} label="Date" value={scheduleDate} />
-        <MetaRow icon={MapPin} label="Where" value={booking.pickup_location?.title || '—'} />
-        {booking.estimated_duration_minutes && (
-          <MetaRow icon={Clock} label="Duration" value={`${Math.round(booking.estimated_duration_minutes / 60)}h`} />
-        )}
+      <div style={{ display: 'flex', gap: 16 }}>
+        <InfoTile icon={Briefcase} label="Service" value={customMeta.originalService || booking.service_type} />
+        <InfoTile icon={CalendarDays} label="Date & time" value={scheduleDate} />
       </div>
 
-      <div style={{ display: 'flex', gap: 8, padding: '12px 18px', borderTop: '1px solid var(--line)', background: 'rgba(244,236,230,0.5)' }}>
-        <a href={waLink(booking.reference_code, companion?.name)} target="_blank" rel="noopener" style={{ flex: 1, textDecoration: 'none' }}>
-          <Button variant="primary" size="sm" full iconLeft={<MessageSquare style={{ width: 16, height: 16 }} />}>Chat Support</Button>
-        </a>
-        <Button variant="secondary" size="sm" onClick={() => onDetails(booking)} iconLeft={<Hash style={{ width: 16, height: 16 }} />}>Details</Button>
+      <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
+        {trackable ? (
+          <Link href={`/tracking?ref=${booking.reference_code}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '16px 0', borderRadius: 999, background: 'var(--m3-green-deep)', color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', textDecoration: 'none' }}>
+            <MapPin style={{ width: 15, height: 15 }} />
+            Track Companion
+          </Link>
+        ) : (
+          <a href={waLink(booking.reference_code, companion?.name)} target="_blank" rel="noopener" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '16px 0', borderRadius: 999, background: 'var(--m3-green-deep)', color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', textDecoration: 'none' }}>
+            <MessageSquare style={{ width: 15, height: 15 }} />
+            Chat Support
+          </a>
+        )}
+        <button onClick={() => onDetails(booking)} aria-label="Booking details" style={{ display: 'grid', placeItems: 'center', padding: '0 25px', borderRadius: 999, border: '1px solid #707974', background: 'transparent', cursor: 'pointer', color: 'var(--ink-teal)' }}>
+          <MoreHorizontal style={{ width: 16, height: 16 }} />
+        </button>
       </div>
     </article>
+  );
+}
+
+function BookingRow({ booking, onDetails }: { booking: BookingRecord; onDetails: (b: BookingRecord) => void }) {
+  const customMeta = booking.service_metadata || {};
+  const companion: CompanionDetails | null = customMeta.companion || null;
+  const when = booking.scheduled_start_time
+    ? new Date(booking.scheduled_start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+    : new Date(booking.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+  return (
+    <button onClick={() => onDetails(booking)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, width: '100%', padding: 17, borderRadius: 16, background: 'var(--m3-bg)', border: '1px solid #c0c9c3', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
+        <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: 12, background: 'var(--m3-cyan)', color: 'var(--m3-cyan-ink)', flexShrink: 0 }}>
+          <Activity style={{ width: 20, height: 20 }} />
+        </span>
+        <span style={{ minWidth: 0 }}>
+          <span style={{ display: 'block', fontSize: 14, fontWeight: 700, letterSpacing: '0.25px', color: 'var(--ink-teal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {customMeta.originalService || booking.service_type}
+          </span>
+          <span style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>
+            {when}{companion ? ` • ${companion.name}` : ` • ${booking.reference_code}`}
+          </span>
+        </span>
+      </span>
+      <ChevronRight style={{ width: 14, height: 14, color: 'var(--m3-muted)', flexShrink: 0 }} />
+    </button>
   );
 }
 
@@ -198,8 +251,8 @@ function DetailSheet({ booking, onClose }: { booking: BookingRecord | null; onCl
   ];
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(22,48,43,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'flex-end' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto', background: 'var(--paper)', borderTopLeftRadius: 26, borderTopRightRadius: 26, padding: '10px 0 24px', animation: 'caresy-sheet-up 0.28s var(--ease-out)' }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(22,48,43,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'flex-end', fontFamily: EPILOGUE }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto', background: 'var(--m3-bg)', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: '10px 0 24px', animation: 'caresy-sheet-up 0.28s var(--ease-out)' }}>
         <div style={{ width: 40, height: 4, borderRadius: 999, background: 'var(--line-strong)', margin: '8px auto 12px' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 20px 16px' }}>
           <div style={{ flex: 1 }}>
@@ -267,24 +320,41 @@ function DetailSheet({ booking, onClose }: { booking: BookingRecord | null; onCl
 
 function EmptyBookings({ label, showBookLinks }: { label: string; showBookLinks: boolean }) {
   return (
-    <div className="empty-state material-card">
-      <div style={{ display: 'grid', placeItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--sage)', margin: '0 auto 16px' }}>
-        <CalendarHeart style={{ width: 28, height: 28, color: 'var(--teal-deep)' }} />
+    <div style={{ textAlign: 'center', padding: '40px 24px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
+      <div style={{ display: 'grid', placeItems: 'center', width: 64, height: 64, borderRadius: '50%', background: 'var(--m3-cyan)', margin: '0 auto 16px' }}>
+        <CalendarHeart style={{ width: 28, height: 28, color: 'var(--m3-cyan-ink)' }} />
       </div>
-      <h3>No {label} bookings</h3>
-      <p>When you book a companion, it will show up here with live status and support.</p>
+      <h3 style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 700, color: 'var(--m3-ink)' }}>No {label} bookings</h3>
+      <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--m3-muted)' }}>When you book a companion, it will show up here with live status and support.</p>
       {showBookLinks && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <Link className="btn btn-primary" href="/booking">Schedule a Visit</Link>
-          <Link className="btn btn-urgent" href="/quick-help">Get Urgent Help</Link>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <Link href="/booking" style={{ padding: '12px 24px', borderRadius: 999, background: 'var(--m3-green)', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Schedule a Visit</Link>
+          <Link href="/quick-help" style={{ padding: '12px 24px', borderRadius: 999, background: 'var(--m3-urgent)', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Get Urgent Help</Link>
         </div>
       )}
     </div>
   );
 }
 
+function PageHeader({ initial }: { initial: string }) {
+  const router = useRouter();
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <button onClick={() => router.back()} aria-label="Go back" style={{ display: 'grid', placeItems: 'center', width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink-teal)' }}>
+          <ArrowLeft style={{ width: 20, height: 20 }} />
+        </button>
+        <h1 style={{ margin: 0, fontSize: 28, lineHeight: '36px', fontWeight: 700, color: 'var(--ink-teal)' }}>My Bookings</h1>
+      </div>
+      <Link href="/profile" aria-label="Your profile" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', border: '2px solid var(--m3-green)', padding: 2, boxSizing: 'border-box', textDecoration: 'none' }}>
+        <span style={{ display: 'grid', placeItems: 'center', width: '100%', height: '100%', borderRadius: '50%', background: 'var(--m3-green)', color: '#fff', fontWeight: 800, fontSize: 14 }}>{initial}</span>
+      </Link>
+    </div>
+  );
+}
+
 export default function MyBookings() {
-  const { user, isLoading: authIsLoading, openLogin } = useAuth();
+  const { user, profile, isLoading: authIsLoading, openLogin } = useAuth();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -340,12 +410,15 @@ export default function MyBookings() {
     }
   }, [user, authIsLoading]);
 
+  const displayName = profile?.full_name || (user?.user_metadata?.full_name as string) || (user?.user_metadata?.name as string);
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : 'C';
+
   if (isLoading || authIsLoading) {
     return (
-      <main className="app-shell-page" id="main-content">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', padding: '80px 24px' }}>
-          <Loader2 style={{ width: '40px', height: '40px', color: 'var(--primary)' }} className="animate-spin" />
-          <p style={{ color: 'var(--muted)', fontWeight: 600 }}>Loading your bookings...</p>
+      <main id="main-content" style={{ background: 'var(--m3-bg)', minHeight: '100vh', fontFamily: EPILOGUE }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, padding: '80px 24px' }}>
+          <Loader2 style={{ width: 40, height: 40, color: 'var(--m3-green)' }} className="animate-spin" />
+          <p style={{ color: 'var(--m3-muted)', fontWeight: 600 }}>Loading your bookings...</p>
         </div>
       </main>
     );
@@ -353,16 +426,13 @@ export default function MyBookings() {
 
   if (!user) {
     return (
-      <main className="app-shell-page my-bookings-page" id="main-content">
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
-          <div style={{ padding: '20px 2px 6px' }}>
-            <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: 'var(--ink-teal)', letterSpacing: '-0.01em' }}>Your bookings</h1>
-            <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: 'var(--muted)' }}>Track every visit, status, and payment in one place.</p>
-          </div>
-          <div className="unauth-card material-card" style={{ marginTop: 16 }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔐</div>
-            <h2>Authentication Required</h2>
-            <p>Please sign in to access your booking dashboard and track companion matches.</p>
+      <main id="main-content" style={{ background: 'var(--m3-bg)', minHeight: '100vh', fontFamily: EPILOGUE, paddingBottom: 96 }}>
+        <div style={{ maxWidth: 576, margin: '0 auto' }}>
+          <PageHeader initial={initial} />
+          <div style={{ margin: '16px 16px 0', textAlign: 'center', padding: '40px 24px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔐</div>
+            <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: 'var(--m3-ink)' }}>Authentication Required</h2>
+            <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--m3-muted)' }}>Please sign in to access your booking dashboard and track companion matches.</p>
             <Button variant="primary" onClick={() => openLogin()}>Sign In / Register</Button>
           </div>
         </div>
@@ -373,49 +443,59 @@ export default function MyBookings() {
   const upcomingBookings = bookings.filter((b) => !isPastStatus(b.status));
   const pastBookings = bookings.filter((b) => isPastStatus(b.status));
   const list = filter === 'upcoming' ? upcomingBookings : pastBookings;
+  const [primary, ...rest] = list;
 
   return (
-    <main className="app-shell-page my-bookings-page" id="main-content">
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 16px' }}>
-        <div style={{ padding: '20px 2px 10px' }}>
-          <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: 'var(--ink-teal)', letterSpacing: '-0.01em' }}>Your bookings</h1>
-          <p style={{ margin: '2px 0 0', fontSize: '0.84rem', color: 'var(--muted)' }}>Track every visit, status, and payment in one place.</p>
-        </div>
-        {error ? (
-          <div className="unauth-card material-card" style={{ borderColor: 'rgba(196, 85, 67, 0.3)' }}>
-            <h2 style={{ color: 'var(--terracotta)' }}>Database Connection Error</h2>
-            <p>{error}</p>
-            <Button variant="primary" onClick={() => fetchBookings()}>Retry Connection</Button>
-          </div>
-        ) : bookings.length === 0 ? (
-          <EmptyBookings label="any" showBookLinks />
-        ) : (
-          <>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
-              {([['upcoming', 'Upcoming', upcomingBookings.length], ['past', 'History', pastBookings.length]] as const).map(([key, label, count]) => (
-                <button
-                  key={key}
-                  onClick={() => setFilter(key)}
-                  style={{
-                    flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                    padding: '10px 12px', borderRadius: 999, border: '1px solid ' + (filter === key ? 'transparent' : 'var(--line)'),
-                    background: filter === key ? 'var(--ink-teal)' : 'var(--surface)', color: filter === key ? '#fff' : 'var(--muted)',
-                    fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer', transition: 'all var(--dur) var(--ease-out)',
-                  }}
-                >
-                  {label}
-                  <span style={{ display: 'grid', placeItems: 'center', minWidth: 20, height: 20, padding: '0 6px', borderRadius: 999, background: filter === key ? 'rgba(255,255,255,0.18)' : 'var(--sage)', color: filter === key ? '#fff' : 'var(--ink-teal)', fontSize: '0.7rem', fontWeight: 800 }}>{count}</span>
-                </button>
-              ))}
-            </div>
+    <main id="main-content" style={{ background: 'var(--m3-bg)', minHeight: '100vh', fontFamily: EPILOGUE, paddingBottom: 96 }}>
+      <div style={{ maxWidth: 576, margin: '0 auto' }}>
+        <PageHeader initial={initial} />
 
-            <div className="booking-list-container">
-              {list.length === 0
-                ? <EmptyBookings label={filter} showBookLinks={filter === 'upcoming'} />
-                : list.map((booking) => <BookingCard key={booking.id} booking={booking} onDetails={setDetail} />)}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32, padding: '0 16px' }}>
+
+          {/* Tabs */}
+          <div style={{ position: 'relative', display: 'flex', borderBottom: '1px solid #c0c9c3' }}>
+            {(['upcoming', 'past'] as const).map((key) => (
+              <button
+                key={key}
+                onClick={() => setFilter(key)}
+                style={{
+                  flex: 1, padding: '16px 0', border: 'none', background: 'transparent', cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 14, letterSpacing: '0.1px', lineHeight: '20px',
+                  fontWeight: filter === key ? 700 : 500,
+                  color: filter === key ? 'var(--ink-teal)' : 'var(--m3-muted)',
+                }}
+              >
+                {key === 'upcoming' ? 'Upcoming' : 'Past'}
+              </button>
+            ))}
+            <span style={{ position: 'absolute', bottom: -1, left: filter === 'upcoming' ? 0 : '50%', width: '50%', height: 3, background: 'var(--ink-teal)', transition: 'left 0.2s ease' }} />
+          </div>
+
+          {error ? (
+            <div style={{ textAlign: 'center', padding: '32px 24px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid rgba(196, 85, 67, 0.3)' }}>
+              <h2 style={{ margin: '0 0 8px', fontSize: 18, color: 'var(--terracotta)' }}>Database Connection Error</h2>
+              <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--m3-muted)' }}>{error}</p>
+              <Button variant="primary" onClick={() => fetchBookings()}>Retry Connection</Button>
             </div>
-          </>
-        )}
+          ) : list.length === 0 ? (
+            <EmptyBookings label={filter === 'upcoming' ? 'upcoming' : 'past'} showBookLinks={filter === 'upcoming'} />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <h2 style={{ margin: 0, fontSize: 22, lineHeight: '28px', fontWeight: 500, color: 'var(--ink-teal)' }}>
+                {filter === 'upcoming' ? 'Next Scheduled' : 'Booking History'}
+              </h2>
+              <PrimaryBookingCard booking={primary} onDetails={setDetail} />
+              {rest.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 16 }}>
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--ink-teal)' }}>
+                    {filter === 'upcoming' ? 'Also Coming Up' : 'Earlier'}
+                  </h3>
+                  {rest.map((booking) => <BookingRow key={booking.id} booking={booking} onDetails={setDetail} />)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <DetailSheet booking={detail} onClose={() => setDetail(null)} />

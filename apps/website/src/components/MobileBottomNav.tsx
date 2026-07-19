@@ -4,28 +4,23 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
-import { Home, Calendar, Headset, User } from 'lucide-react';
+import { Home, Calendar, Headset } from 'lucide-react';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const { user, openLogin } = useAuth();
 
+  // Transactional/auth screens are full-screen and suppress the tab bar.
+  if (pathname === '/login' || pathname === '/booking' || pathname === '/tracking') return null;
+
   const isHome = pathname === '/' || pathname === '/index.html' || pathname === '';
   const isBookings = pathname === '/my-bookings';
   const isSupport = pathname === '/support';
-  const isProfile = pathname === '/profile';
 
   const handleBookingsClick = (e: React.MouseEvent) => {
     if (!user) {
       e.preventDefault();
       openLogin('/my-bookings');
-    }
-  };
-
-  const handleProfileClick = (e: React.MouseEvent) => {
-    if (!user) {
-      e.preventDefault();
-      openLogin('/profile');
     }
   };
 
@@ -37,15 +32,11 @@ export default function MobileBottomNav() {
       </Link>
       <Link className={`mobile-bottom-nav-item ${isBookings ? 'active' : ''}`} href="/my-bookings" onClick={handleBookingsClick}>
         <span className="mobile-bottom-nav-icon"><Calendar style={{ width: '20px', height: '20px' }} /></span>
-        <span>Bookings</span>
+        <span>Booking</span>
       </Link>
       <Link className={`mobile-bottom-nav-item ${isSupport ? 'active' : ''}`} href="/support">
         <span className="mobile-bottom-nav-icon"><Headset style={{ width: '20px', height: '20px' }} /></span>
         <span>Support</span>
-      </Link>
-      <Link className={`mobile-bottom-nav-item ${isProfile ? 'active' : ''}`} href="/profile" onClick={handleProfileClick}>
-        <span className="mobile-bottom-nav-icon"><User style={{ width: '20px', height: '20px' }} /></span>
-        <span>Profile</span>
       </Link>
     </nav>
   );

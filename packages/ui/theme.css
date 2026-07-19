@@ -168,3 +168,27 @@
   color: var(--ink);
   font-weight: 700;
 }
+
+/* ====================================================
+   M3 Redesign tokens (Figma "Untitled" 2026-07 redesign)
+   Additive only.
+   ==================================================== */
+:root {
+  --m3-bg: #f8faf5;
+  --m3-surface: #ffffff;
+  --m3-card: #ecefea;
+  --m3-chip: #f2f4ef;
+  --m3-ink: #191c1a;
+  --m3-muted: #404945;
+  --m3-green: #1b4d3e;
+  --m3-green-deep: #003629;
+  --m3-green-soft: #8abda9;
+  --m3-cyan: #97edf7;
+  --m3-cyan-ink: #006d76;
+  --m3-urgent-bg: #ffdad6;
+  --m3-urgent-ink: #93000a;
+  --m3-urgent: #ba1a1a;
+  --m3-amber: #f3e1bb;
+  --m3-line: rgba(192, 201, 195, 0.4);
+  --m3-radius-card: 28px;
+}
