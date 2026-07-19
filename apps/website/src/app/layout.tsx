@@ -7,6 +7,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import WhatsAppWidget from '@/components/WhatsAppWidget';
 import CookieBanner from '@/components/CookieBanner';
 import AuthModal from '@caresy/auth/modal';
+import RegisterSW from '@/components/RegisterSW';
 import './globals.css';
 
 const poppins = Poppins({
@@ -25,11 +26,13 @@ const epilogue = Epilogue({
 export const metadata: Metadata = {
   title: 'Caresy | Your Care, Our Priority',
   description: 'Caresy provides trusted hospital companions for families who cannot be physically present.',
+  appleWebApp: { capable: true, title: 'Caresy', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1.0,
+  themeColor: '#16302b',
 };
 
 export default function RootLayout({
@@ -53,6 +56,7 @@ export default function RootLayout({
           <WhatsAppWidget />
           <CookieBanner />
           <AuthModal />
+          <RegisterSW />
         </AuthProvider>
       </body>
     </html>
