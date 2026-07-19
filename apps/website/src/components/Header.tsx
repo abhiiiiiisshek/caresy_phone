@@ -51,13 +51,17 @@ export default function Header() {
   // the secondary marketing pages (About, Services, Trust, etc.).
   const isAppTab = isHome || isTrack || pathname === '/support' || pathname === '/profile';
 
+  // Full-screen transactional/auth screens own their entire chrome (back bar,
+  // step progress, or a standalone auth layout) — no marketing pill header.
+  const isStandalone = pathname === '/login' || pathname === '/booking' || pathname === '/tracking';
+
   // Get initials for profile badge
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.user_metadata?.name;
   const initials = displayName
     ? displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
     : 'C';
 
-  if (isAppTab) return null;
+  if (isAppTab || isStandalone) return null;
 
   return (
     <header className="app-bar">
