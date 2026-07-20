@@ -8,6 +8,7 @@ import WhatsAppWidget from '@/components/WhatsAppWidget';
 import CookieBanner from '@/components/CookieBanner';
 import AuthModal from '@caresy/auth/modal';
 import RegisterSW from '@/components/RegisterSW';
+import InstallPrompt from '@/components/InstallPrompt';
 import './globals.css';
 
 const poppins = Poppins({
@@ -57,6 +58,7 @@ export default function RootLayout({
           <CookieBanner />
           <AuthModal />
           <RegisterSW />
+          <InstallPrompt />
         </AuthProvider>
       </body>
     </html>
