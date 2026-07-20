@@ -14,6 +14,7 @@ import { Loader2, LogOut, ShieldCheck } from 'lucide-react';
 
 const LINKS = [
   { href: '/ops', label: 'Dispatch' },
+  { href: '/live', label: 'Live map' },
   { href: '/companions', label: 'Companions' },
   { href: '/service-areas', label: 'Service areas' },
   { href: '/users', label: 'Users' },
