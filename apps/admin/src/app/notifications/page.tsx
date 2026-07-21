@@ -46,21 +46,25 @@ const FETCH_LIMIT = 300;
 // "... is now EXPIRED"; we rewrite it here so what's shown and what's sent on
 // WhatsApp reads like a message to a family, not a status enum dump. Falls back
 // to the stored title/body for any status without an entry.
+// `ref` is a leading-space reference suffix (" CRS-1042") or "" when the
+// booking has no code, so every template reads naturally either way —
+// "booking CRS-1042" or just "booking".
 const STATUS_COPY: Record<string, { title: string; body: (ref: string) => string }> = {
-  PENDING: { title: 'Booking received', body: (r) => `We've received your Caresy booking ${r} and are finding a companion for you.` },
-  ACCEPTED: { title: 'Your booking is confirmed', body: (r) => `Good news — a Caresy companion has accepted booking ${r}. We'll share their details shortly.` },
-  ASSIGNED: { title: 'Companion assigned', body: (r) => `A verified companion has been assigned to your booking ${r}. You can track them live from your bookings page.` },
-  IN_PROGRESS: { title: 'Your visit is in progress', body: (r) => `Your Caresy companion has started the visit for booking ${r}.` },
-  COMPLETED: { title: 'Visit completed', body: (r) => `Your Caresy visit for booking ${r} is complete. Thank you for trusting us — we'd love your feedback.` },
-  CANCELLED: { title: 'Booking cancelled', body: (r) => `Your booking ${r} has been cancelled. If this wasn't expected, just reply here and we'll help.` },
-  EXPIRED: { title: 'Booking could not be confirmed', body: (r) => `We're sorry — we couldn't confirm a companion for booking ${r} in time. Reply here and we'll rebook you right away.` },
+  PENDING: { title: 'Booking received', body: (r) => `We've received your Caresy booking${r} and are finding a companion for you.` },
+  ACCEPTED: { title: 'Your booking is confirmed', body: (r) => `Good news — a Caresy companion has accepted your booking${r}. We'll share their details shortly.` },
+  ASSIGNED: { title: 'Companion assigned', body: (r) => `A verified companion has been assigned to your booking${r}. You can track them live from your bookings page.` },
+  IN_PROGRESS: { title: 'Your visit is in progress', body: (r) => `Your Caresy companion has started the visit for your booking${r}.` },
+  COMPLETED: { title: 'Visit completed', body: (r) => `Your Caresy visit${r ? ` for booking${r}` : ''} is complete. Thank you for trusting us — we'd love your feedback.` },
+  CANCELLED: { title: 'Booking cancelled', body: (r) => `Your booking${r} has been cancelled. If this wasn't expected, just reply here and we'll help.` },
+  EXPIRED: { title: 'Booking could not be confirmed', body: (r) => `We're sorry — we couldn't confirm a companion for your booking${r} in time. Reply here and we'll rebook you right away.` },
 };
 
 // Returns the customer-friendly title/body for a notification, falling back to
 // the raw stored copy when the status isn't mapped.
 function copyFor(n: NotifRow): { title: string; body: string } {
   const status = (n.event || '').replace(/^STATUS_/, '') || n.status;
-  const ref = n.booking?.reference_code || 'your booking';
+  const code = n.booking?.reference_code;
+  const ref = code ? ` ${code}` : '';
   const c = STATUS_COPY[status];
   return c ? { title: c.title, body: c.body(ref) } : { title: n.title, body: n.body || '' };
 }
