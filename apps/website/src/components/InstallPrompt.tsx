@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, MoreVertical, Share, Star, Bookmark, Clock, HousePlus, Plus, Check } from 'lucide-react';
+import { X, Sparkles, MoreVertical, Share, HousePlus } from 'lucide-react';
+import { PhoneHero, BrowserBarArt, MenuListArt, ConfirmCardArt, SafariBarArt, LeafSprig } from './InstallPromptArt';
 
 // Add-to-home-screen guide modal. On Android/Chrome we capture
 // `beforeinstallprompt` and fire the native installer from the green CTA; iOS
 // Safari has no such API, so the modal doubles as an illustrated step guide for
 // both platforms. Shown once (gated on cookie consent so it never stacks with
-// the cookie banner); dismissal is remembered.
-// ponytail: step "screenshots" are icon-built cards, not bespoke SVG art. Swap
-// in real illustration assets if design wants pixel parity with the mockup.
+// the cookie banner); dismissal is remembered. Artwork lives in
+// InstallPromptArt.tsx.
 
 interface BIPEvent extends Event {
   prompt: () => Promise<void>;
@@ -75,8 +75,8 @@ export default function InstallPrompt() {
         </button>
 
         {/* hero */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '4px 24px 20px' }}>
-          <PhoneGlyph />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 20px 20px' }}>
+          <PhoneHero />
           <div>
             <h2 style={{ margin: 0, fontSize: 22, lineHeight: '28px', fontWeight: 700, color: G }}>Add Caresy<br />to your Home screen</h2>
             <p style={{ margin: '8px 0 0', fontSize: 14, lineHeight: '20px', color: MUTED }}>One tap away for faster access and a better experience.</p>
@@ -89,25 +89,26 @@ export default function InstallPrompt() {
             label="For Android (Chrome)"
             badge={<AndroidMark />}
             steps={[
-              { n: 1, cap: <>Tap the <MoreVertical style={ic} /> menu in the top right</>, art: <MenuArt highlight="Add to Home screen" /> },
-              { n: 2, cap: <>Select &ldquo;Add to Home screen&rdquo;</>, art: <ListArt items={[['New tab', Plus], ['Bookmarks', Star], ['Recent tabs', Clock], ['Add to Home screen', HousePlus]]} highlight={3} /> },
-              { n: 3, cap: <>Tap &ldquo;Add&rdquo; to confirm</>, art: <ConfirmArt /> },
+              { n: 1, cap: <>Tap the <MoreVertical style={ic} /> menu in the top right</>, art: <BrowserBarArt /> },
+              { n: 2, cap: <>Select &ldquo;Add to Home screen&rdquo;</>, art: <MenuListArt highlight={3} items={[{ label: 'New tab', icon: 'plus' }, { label: 'Bookmarks', icon: 'star' }, { label: 'Recent tabs', icon: 'clock' }, { label: 'Add to Home screen', icon: 'home' }]} /> },
+              { n: 3, cap: <>Tap &ldquo;Add&rdquo; to confirm</>, art: <ConfirmCardArt title="Add to Home screen" /> },
             ]}
           />
           <PlatformSection
             label="For iPhone (Safari)"
             badge={<AppleMark />}
             steps={[
-              { n: 1, cap: <>Tap the Share <Share style={ic} /> button at the bottom</>, art: <ShareArt /> },
-              { n: 2, cap: <>Select &ldquo;Add to Home Screen&rdquo;</>, art: <ListArt items={[['Add to Reading List', Bookmark], ['Add Bookmark', Bookmark], ['Add to Favorites', Star], ['Add to Home Screen', HousePlus]]} highlight={3} /> },
-              { n: 3, cap: <>Tap &ldquo;Add&rdquo; to confirm</>, art: <ConfirmArt /> },
+              { n: 1, cap: <>Tap the Share <Share style={ic} /> button at the bottom</>, art: <SafariBarArt /> },
+              { n: 2, cap: <>Select &ldquo;Add to Home Screen&rdquo;</>, art: <MenuListArt highlight={3} items={[{ label: 'Add to Reading List', icon: 'ring' }, { label: 'Add Bookmark', icon: 'book' }, { label: 'Add to Favorites', icon: 'star' }, { label: 'Add to Home Screen', icon: 'home' }]} /> },
+              { n: 3, cap: <>Tap &ldquo;Add&rdquo; to confirm</>, art: <ConfirmCardArt title="Add to Home Screen" /> },
             ]}
           />
         </div>
 
         {/* sticky CTA */}
         <div style={{ position: 'sticky', bottom: 0, marginTop: 8, padding: 16, background: 'linear-gradient(0deg, var(--m3-bg,#f2f4ef) 78%, transparent)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, borderRadius: 20, background: '#e7f0ea', border: '1px solid #d3e3d8' }}>
+          <LeafSprig style={{ position: 'absolute', right: 8, bottom: 68, opacity: 0.9, pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 12, padding: 14, borderRadius: 20, background: '#e7f0ea', border: '1px solid #d3e3d8' }}>
             <span style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', background: '#fff', flexShrink: 0 }}>
               <Sparkles style={{ width: 18, height: 18, color: G }} />
             </span>
@@ -139,7 +140,7 @@ function PlatformSection({ label, badge, steps }: { label: string; badge: React.
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
         {steps.map((s) => (
           <div key={s.n}>
-            <div style={{ height: 92, borderRadius: 14, background: '#fff', border: '1px solid var(--m3-line, #e1e3de)', overflow: 'hidden', display: 'grid', placeItems: 'center', padding: 6 }}>{s.art}</div>
+            <div style={{ height: 96, borderRadius: 14, background: '#fff', border: '1px solid var(--m3-line, #e1e3de)', overflow: 'hidden', display: 'grid', placeItems: 'center', padding: 6 }}>{s.art}</div>
             <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
               <span style={{ flexShrink: 0, display: 'grid', placeItems: 'center', width: 18, height: 18, borderRadius: '50%', background: G, color: '#fff', fontSize: 11, fontWeight: 700 }}>{s.n}</span>
               <span style={{ fontSize: 11.5, lineHeight: '15px', color: MUTED }}>{s.cap}</span>
@@ -151,61 +152,17 @@ function PlatformSection({ label, badge, steps }: { label: string; badge: React.
   );
 }
 
-// --- Icon-built step "screenshots" (ponytail: stand-ins for real art) ---
-
-function PhoneGlyph() {
-  return (
-    <div style={{ position: 'relative', flexShrink: 0, width: 76, height: 96, borderRadius: 16, border: `3px solid ${G}`, background: '#fff', display: 'grid', placeItems: 'center' }}>
-      <HousePlus style={{ width: 34, height: 34, color: G }} />
-      <span style={{ position: 'absolute', top: -6, right: -6 }}><Sparkles style={{ width: 18, height: 18, color: 'var(--m3-marigold, #e6a417)' }} /></span>
-    </div>
-  );
-}
-
-function MenuArt({ highlight }: { highlight: string }) {
-  return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#f6f7f5', borderRadius: 8 }}>
-      <MoreVertical style={{ position: 'absolute', top: 6, right: 6, width: 16, height: 16, color: INK }} />
-      <span style={{ position: 'absolute', bottom: 8, left: 8, right: 8, fontSize: 8, color: MUTED }}>{highlight}</span>
-    </div>
-  );
-}
-
-function ListArt({ items, highlight }: { items: [string, React.ComponentType<{ style?: React.CSSProperties }>][]; highlight: number }) {
-  return (
-    <div style={{ width: '100%', display: 'grid', gap: 3, fontSize: 7.5 }}>
-      {items.map(([label, Icon], i) => (
-        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, background: i === highlight ? '#e7f0ea' : 'transparent', color: i === highlight ? G : MUTED, fontWeight: i === highlight ? 700 : 400 }}>
-          <Icon style={{ width: 9, height: 9 }} /> <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ConfirmArt() {
-  return (
-    <div style={{ width: '100%', display: 'grid', gap: 5, placeItems: 'center' }}>
-      <span style={{ display: 'grid', placeItems: 'center', width: 24, height: 24, borderRadius: 7, border: `1.5px solid ${G}`, color: G, fontWeight: 800, fontSize: 12 }}>C</span>
-      <span style={{ fontSize: 8, color: MUTED }}>Caresy</span>
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 8px', borderRadius: 999, background: G, color: '#fff', fontSize: 8, fontWeight: 700 }}><Check style={{ width: 8, height: 8 }} />Add</span>
-    </div>
-  );
-}
-
-function ShareArt() {
-  return (
-    <div style={{ display: 'grid', placeItems: 'center' }}>
-      <span style={{ display: 'grid', placeItems: 'center', width: 34, height: 34, borderRadius: 10, border: `1.5px solid ${G}` }}>
-        <Share style={{ width: 16, height: 16, color: G }} />
-      </span>
-    </div>
-  );
-}
-
 function AndroidMark() {
-  return <span style={{ display: 'grid', placeItems: 'center', width: 20, height: 20, borderRadius: '50%', background: G, color: '#fff', fontSize: 11, fontWeight: 800 }}>▲</span>;
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill={G} aria-hidden="true">
+      <path d="M6 9h12v7a1 1 0 0 1-1 1h-1v3a1 1 0 0 1-2 0v-3h-4v3a1 1 0 0 1-2 0v-3H7a1 1 0 0 1-1-1zM3.5 9a1 1 0 0 1 1 1v4a1 1 0 0 1-2 0v-4a1 1 0 0 1 1-1zm17 0a1 1 0 0 1 1 1v4a1 1 0 0 1-2 0v-4a1 1 0 0 1 1-1zM7.2 7.8A5 5 0 0 1 9.4 4.9l-.9-1.4a.3.3 0 0 1 .5-.3l1 1.5a6 6 0 0 1 4 0l1-1.5a.3.3 0 1 1 .5.3l-.9 1.4a5 5 0 0 1 2.2 2.9zM10 6.6a.7.7 0 1 0 0-1.4.7.7 0 0 0 0 1.4zm4 0a.7.7 0 1 0 0-1.4.7.7 0 0 0 0 1.4z" />
+    </svg>
+  );
 }
 function AppleMark() {
-  return <span style={{ display: 'grid', placeItems: 'center', width: 20, height: 20, borderRadius: '50%', background: INK, color: '#fff', fontSize: 12, fontWeight: 800 }}></span>;
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill={INK} aria-hidden="true">
+      <path d="M16 12.6c0-2.2 1.8-3.3 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.6.8-3.3.8s-1.8-.8-2.9-.8c-1.5 0-2.9.9-3.6 2.2-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 2.8-.7s1.7.7 2.9.7 2-1.1 2.7-2.1c.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.5zM13.9 6c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z" />
+    </svg>
+  );
 }
