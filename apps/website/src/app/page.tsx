@@ -7,6 +7,7 @@ import { createClient } from '@caresy/auth/supabase/client';
 import {
   Bell, Zap, Calendar, CalendarDays, Users, FileText, ArrowRight,
   ClipboardCheck, ChevronRight, BookOpen, BadgeCheck, BriefcaseMedical,
+  MapPin, Clock, User, Navigation,
 } from 'lucide-react';
 
 const SUPPORT_WA = '919717500225';
@@ -15,8 +16,21 @@ const EPILOGUE = 'var(--font-epilogue), sans-serif';
 interface ActiveBookingInfo {
   reference_code: string;
   status: string;
+  scheduled_start_time?: string | null;
+  booking_type?: string | null;
   pickup_location?: { title?: string } | null;
+  patient?: { full_name?: string } | null;
   service_metadata?: { companion?: { name?: string; photo?: string } };
+}
+
+const ACTIVE_STATUS_LABEL: Record<string, string> = {
+  ASSIGNED: 'Companion on the way', IN_PROGRESS: 'Visit in progress',
+};
+
+function fmtWhen(b: ActiveBookingInfo): string {
+  if (b.booking_type === 'INSTANT') return 'Same-day visit';
+  if (!b.scheduled_start_time) return 'Time to be confirmed';
+  return new Date(b.scheduled_start_time).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 function greeting() {
@@ -74,7 +88,7 @@ export default function Home() {
     const supabase = createClient();
     supabase
       .from('bookings')
-      .select('reference_code, status, service_metadata, pickup_location:locations!pickup_location_id (title)')
+      .select('reference_code, status, scheduled_start_time, booking_type, service_metadata, pickup_location:locations!pickup_location_id (title), patient:patients!patient_id (full_name)')
       .in('status', ['ASSIGNED', 'IN_PROGRESS'])
       .order('created_at', { ascending: false })
       .limit(1)
@@ -122,31 +136,52 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Active booking banner — only when a real assigned/in-progress booking exists */}
+          {/* Active booking card — only when a real assigned/in-progress booking exists */}
           {activeBooking && (
-            <Link href="/my-bookings" style={{ textDecoration: 'none' }}>
-              <div role="status" style={{ padding: 16, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div role="status" style={{ padding: 16, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Companion + status */}
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 {companion?.photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={companion.photo} alt={`Companion ${companion.name}`} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }} />
+                  <img src={companion.photo} alt={`Companion ${companion.name}`} style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                 ) : (
                   <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--m3-green)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, flexShrink: 0 }}>
                     {(companion?.name || 'C').charAt(0)}
                   </div>
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)', flexShrink: 0 }} />
-                    <strong style={{ fontSize: 14, color: 'var(--m3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {companion?.name ? `${companion.name} is on the way` : 'Companion assigned'}
-                      {activeBooking.pickup_location?.title ? ` · ${activeBooking.pickup_location.title}` : ''}
-                    </strong>
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--m3-muted)', marginTop: 2 }}>Booking {activeBooking.reference_code}</div>
+                  <strong style={{ display: 'block', fontSize: 15, color: 'var(--m3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {companion?.name || 'Your companion'}
+                  </strong>
+                  <div style={{ fontSize: 12, color: 'var(--m3-muted)', marginTop: 1 }}>Booking {activeBooking.reference_code}</div>
                 </div>
-                <ChevronRight style={{ width: 16, height: 16, color: 'var(--m3-muted)', flexShrink: 0 }} />
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 10px', borderRadius: 999, background: 'var(--success-soft, #e7f0ea)', color: 'var(--m3-green)', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)' }} />
+                  {ACTIVE_STATUS_LABEL[activeBooking.status] || activeBooking.status}
+                </span>
               </div>
-            </Link>
+
+              {/* Details: hospital, patient, time */}
+              <div style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--m3-muted)' }}>
+                {activeBooking.pickup_location?.title && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><MapPin style={{ width: 15, height: 15, flexShrink: 0 }} />{activeBooking.pickup_location.title}</span>
+                )}
+                {activeBooking.patient?.full_name && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><User style={{ width: 15, height: 15, flexShrink: 0 }} />{activeBooking.patient.full_name}</span>
+                )}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Clock style={{ width: 15, height: 15, flexShrink: 0 }} />{fmtWhen(activeBooking)}</span>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <Link href={`/tracking?ref=${activeBooking.reference_code}`} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0', borderRadius: 999, background: 'var(--m3-green)', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+                  <Navigation style={{ width: 16, height: 16 }} />Track live
+                </Link>
+                <Link href="/my-bookings" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 18px', borderRadius: 999, background: 'transparent', border: '1px solid var(--m3-line)', color: 'var(--m3-ink)', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>
+                  Details<ChevronRight style={{ width: 15, height: 15 }} />
+                </Link>
+              </div>
+            </div>
           )}
 
           {/* Primary actions */}
