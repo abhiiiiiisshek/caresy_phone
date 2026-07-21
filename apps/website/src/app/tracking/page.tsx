@@ -11,12 +11,22 @@ const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const SUPPORT_WA = '919717500225';
 
 interface TrackedBooking {
+  id: string;
   reference_code: string;
   status: string;
   scheduled_start_time: string | null;
   created_at: string;
   service_metadata: any;
   pickup_location?: { title?: string } | null;
+}
+
+interface TripPosition { last_lat: number | null; last_lng: number | null; last_location_at: string | null }
+
+// OpenStreetMap embed centred on a point with a marker. No SDK / key / deps.
+function osmEmbed(lat: number, lng: number): string {
+  const d = 0.006;
+  const bbox = [lng - d, lat - d, lng + d, lat + d].join('%2C');
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
 }
 
 function stepsFor(status: string, companionName: string) {
@@ -47,6 +57,7 @@ function TrackingInner() {
   const ref = params.get('ref');
   const { user, isLoading: authLoading } = useAuth();
   const [booking, setBooking] = useState<TrackedBooking | null>(null);
+  const [pos, setPos] = useState<TripPosition | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -55,7 +66,7 @@ function TrackingInner() {
     const supabase = createClient();
     supabase
       .from('bookings')
-      .select('reference_code, status, scheduled_start_time, created_at, service_metadata, pickup_location:locations!pickup_location_id (title)')
+      .select('id, reference_code, status, scheduled_start_time, created_at, service_metadata, pickup_location:locations!pickup_location_id (title)')
       .eq('reference_code', ref)
       .limit(1)
       .then(({ data }) => {
@@ -63,6 +74,23 @@ function TrackingInner() {
         setLoading(false);
       });
   }, [user, authLoading, ref]);
+
+  // Poll the trip's last-known position (companion shares it from their portal).
+  // Trips aren't on a realtime publication, so a light 10s poll is enough.
+  useEffect(() => {
+    if (!booking?.id) return;
+    const supabase = createClient();
+    let alive = true;
+    const tick = () => {
+      supabase.from('trips').select('last_lat, last_lng, last_location_at')
+        .eq('booking_id', booking.id).not('status', 'in', '(completed,cancelled)')
+        .limit(1).maybeSingle()
+        .then(({ data }) => { if (alive) setPos((data as TripPosition) ?? null); });
+    };
+    tick();
+    const id = setInterval(tick, 10_000);
+    return () => { alive = false; clearInterval(id); };
+  }, [booking?.id]);
 
   const share = async () => {
     const url = window.location.href;
@@ -102,9 +130,18 @@ function TrackingInner() {
 
   return (
     <>
-      {/* Map canvas placeholder with companion marker */}
-      {/* ponytail: static stylized canvas, swap for a real map SDK when live GPS coords exist */}
-      <div style={{ position: 'relative', flex: 1, minHeight: 320, background: 'linear-gradient(180deg, #cfe5da 0%, #f1f3f0 40%, #e7ece7 100%)', overflow: 'hidden' }}>
+      {/* Live companion location once they start sharing from the companion portal;
+          stylized placeholder until the first GPS ping arrives. */}
+      {pos?.last_lat != null && pos?.last_lng != null ? (
+        <div style={{ position: 'relative', flex: 1, minHeight: 320, overflow: 'hidden' }}>
+          <iframe title="Companion live location" width="100%" height="100%" loading="lazy" style={{ border: 0, minHeight: 320, display: 'block' }} src={osmEmbed(pos.last_lat, pos.last_lng)} />
+          <span style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', fontSize: 12, fontWeight: 700, color: 'var(--m3-green)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#006971', animation: 'caresy-pulse 1.8s infinite' }} />
+            Live location
+          </span>
+        </div>
+      ) : (
+        <div style={{ position: 'relative', flex: 1, minHeight: 320, background: 'linear-gradient(180deg, #cfe5da 0%, #f1f3f0 40%, #e7ece7 100%)', overflow: 'hidden' }}>
         <div aria-hidden style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(27,77,62,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(27,77,62,0.06) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
         {/* Companion marker */}
         <div style={{ position: 'absolute', left: '38%', top: '42%', filter: 'drop-shadow(0 4px 3px rgba(0,0,0,0.15))' }}>
@@ -124,6 +161,7 @@ function TrackingInner() {
           <span style={{ position: 'absolute', inset: -12, borderRadius: 18, border: '2px solid #006971', animation: 'caresy-pulse 1.8s infinite' }} />
         </div>
       </div>
+      )}
 
       {/* Status panel */}
       <div style={{ margin: '-32px 16px 32px', position: 'relative', zIndex: 1 }}>

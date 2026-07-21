@@ -24,6 +24,7 @@ const DOC_TYPES = [
 ] as const;
 
 import type { ApprovalStatus } from '@caresy/types';
+import LocationShare from '@/components/LocationShare';
 
 interface CompanionRow {
   id: string;
@@ -417,6 +418,7 @@ function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; o
               <div style={{ display: 'grid', gap: 10 }}>
                 {activeMine.map((job) => (
                   <JobCard key={job.id} job={job} showPatient>
+                    <LocationShare bookingId={job.id} />
                     {job.status === 'ACCEPTED' && (
                       <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => setJobStatus(job, 'IN_PROGRESS', { actual_start_time: new Date().toISOString() })}
                         iconLeft={<PlayCircle style={{ width: 15, height: 15 }} />}>Start job</Button>
