@@ -13,6 +13,7 @@ import { Loader2, LogOut, ShieldCheck } from 'lucide-react';
 // whole panel reads as one product. Styles live in app/admin.css (.adm-*).
 
 const LINKS = [
+  { href: '/', label: 'Overview' },
   { href: '/ops', label: 'Dispatch' },
   { href: '/live', label: 'Live map' },
   { href: '/companions', label: 'Companions' },
@@ -31,7 +32,7 @@ export function AdminTopbar() {
   return (
     <header className="adm-topbar">
       <div className="adm-topbar-in">
-        <Link href="/ops" className="adm-brand">
+        <Link href="/" className="adm-brand">
           <span className="adm-brand-dot" />Caresy<span className="adm-brand-sub">Admin</span>
         </Link>
         <nav className="adm-nav">
