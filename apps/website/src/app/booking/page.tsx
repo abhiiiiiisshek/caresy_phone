@@ -8,9 +8,10 @@ import { createClient } from '@caresy/auth/supabase/client';
 import {
   ArrowRight, ArrowLeft, Loader2, Check, CheckCircle2, Stethoscope, Pill,
   Sun, Settings2, Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck,
-  ChevronLeft, ChevronRight, Search, CalendarPlus, Home as HomeIcon, Send,
+  ChevronLeft, ChevronRight, CalendarPlus, Home as HomeIcon, Send,
 } from 'lucide-react';
 import { matchCompanionByDepartment } from '@/data/companions';
+import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 import { Input } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 
@@ -453,15 +454,7 @@ export default function Booking() {
         {!review && step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <StepHeader step={2} title="Select Hospital" sub="Tell us where the visit is happening — we currently serve Noida & Greater Noida." />
-            <div style={{ position: 'relative' }}>
-              <Search style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#707974' }} />
-              <input
-                value={hospital}
-                onChange={(e) => setHospital(e.target.value)}
-                placeholder="Search hospital or clinic..."
-                style={{ width: '100%', padding: '15px 16px 15px 46px', borderRadius: 999, border: 'none', background: '#e1e3de', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', fontSize: 16, color: 'var(--m3-ink)', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
-              />
-            </div>
+            <HospitalAutocomplete value={hospital} onChange={setHospital} />
             <Input
               label="Pincode" name="pincode" required
               inputMode="numeric" maxLength={6} placeholder="201301"
