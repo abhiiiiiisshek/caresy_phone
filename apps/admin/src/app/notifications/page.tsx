@@ -42,6 +42,29 @@ const FILTERS: { key: NotifStatus | 'ALL'; label: string }[] = [
 
 const FETCH_LIMIT = 300;
 
+// Customer-facing copy per booking status. The DB enqueues raw text like
+// "... is now EXPIRED"; we rewrite it here so what's shown and what's sent on
+// WhatsApp reads like a message to a family, not a status enum dump. Falls back
+// to the stored title/body for any status without an entry.
+const STATUS_COPY: Record<string, { title: string; body: (ref: string) => string }> = {
+  PENDING: { title: 'Booking received', body: (r) => `We've received your Caresy booking ${r} and are finding a companion for you.` },
+  ACCEPTED: { title: 'Your booking is confirmed', body: (r) => `Good news — a Caresy companion has accepted booking ${r}. We'll share their details shortly.` },
+  ASSIGNED: { title: 'Companion assigned', body: (r) => `A verified companion has been assigned to your booking ${r}. You can track them live from your bookings page.` },
+  IN_PROGRESS: { title: 'Your visit is in progress', body: (r) => `Your Caresy companion has started the visit for booking ${r}.` },
+  COMPLETED: { title: 'Visit completed', body: (r) => `Your Caresy visit for booking ${r} is complete. Thank you for trusting us — we'd love your feedback.` },
+  CANCELLED: { title: 'Booking cancelled', body: (r) => `Your booking ${r} has been cancelled. If this wasn't expected, just reply here and we'll help.` },
+  EXPIRED: { title: 'Booking could not be confirmed', body: (r) => `We're sorry — we couldn't confirm a companion for booking ${r} in time. Reply here and we'll rebook you right away.` },
+};
+
+// Returns the customer-friendly title/body for a notification, falling back to
+// the raw stored copy when the status isn't mapped.
+function copyFor(n: NotifRow): { title: string; body: string } {
+  const status = (n.event || '').replace(/^STATUS_/, '') || n.status;
+  const ref = n.booking?.reference_code || 'your booking';
+  const c = STATUS_COPY[status];
+  return c ? { title: c.title, body: c.body(ref) } : { title: n.title, body: n.body || '' };
+}
+
 export default function AdminNotifications() {
   return (
     <AdminShell title="Notifications" subtitle="Enqueued on every booking status change. Send each to the customer on WhatsApp, then it's marked done." maxWidth={780}>
@@ -82,7 +105,8 @@ function NotifBody() {
     const phone = (n.booking?.service_metadata?.customerPhone || '').replace(/\D/g, '');
     if (!phone) { show('No customer phone on this booking', 'err'); return; }
     const wa = phone.length === 10 ? `91${phone}` : phone; // default to +91 for bare 10-digit
-    const text = `${n.title}${n.body ? `\n\n${n.body}` : ''}`;
+    const c = copyFor(n);
+    const text = `${c.title}${c.body ? `\n\n${c.body}` : ''}`;
     window.open(`https://wa.me/${wa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
     setStatus(n.id, 'SENT');
   };
@@ -133,8 +157,10 @@ function NotifBody() {
                   {relativeTime(n.created_at)}
                 </span>
               </div>
-              <strong style={{ display: 'block', color: 'var(--ink-teal)', fontSize: '0.92rem', lineHeight: 1.4 }}>{n.title}</strong>
-              {n.body && <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: 'var(--muted)', lineHeight: 1.5 }}>{n.body}</p>}
+              {(() => { const c = copyFor(n); return (<>
+                <strong style={{ display: 'block', color: 'var(--ink-teal)', fontSize: '0.92rem', lineHeight: 1.4 }}>{c.title}</strong>
+                {c.body && <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: 'var(--muted)', lineHeight: 1.5 }}>{c.body}</p>}
+              </>); })()}
 
               {n.status === 'QUEUED' ? (
                 <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
