@@ -8,6 +8,7 @@ import { MessageSquare, Check } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
+import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 
 const DRAFT_KEY = 'caresy_quickhelp_draft';
 
@@ -225,7 +226,12 @@ export default function QuickHelp() {
             <h2>Where is help needed?</h2>
             <div className="form-row">
               <Input label="Patient name" name="patientName" type="text" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} />
-              <Input label="Hospital or area" name="hospital" type="text" placeholder="Max Hospital, Sector 62" required value={hospital} onChange={(e) => setHospital(e.target.value)} />
+              <div>
+                <span style={{ display: 'block', marginBottom: 6, fontSize: '0.82rem', fontWeight: 700, color: 'var(--ink-teal)' }}>
+                  Hospital or clinic<span style={{ color: 'var(--terracotta)' }}> *</span>
+                </span>
+                <HospitalAutocomplete value={hospital} onChange={setHospital} />
+              </div>
             </div>
             <div className="form-row">
               <Input
