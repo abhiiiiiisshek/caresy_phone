@@ -24,9 +24,41 @@ const epilogue = Epilogue({
   variable: '--font-epilogue',
 });
 
+const SITE_DESCRIPTION =
+  'Caresy provides trusted, verified hospital companions in Noida & Greater Noida for families who cannot be physically present. Same-day urgent help or scheduled visits.';
+
 export const metadata: Metadata = {
-  title: 'Caresy | Your Care, Our Priority',
-  description: 'Caresy provides trusted hospital companions for families who cannot be physically present.',
+  metadataBase: new URL('https://caresy.co.in'),
+  title: {
+    default: 'Caresy | Your Care, Our Priority',
+    template: '%s | Caresy',
+  },
+  description: SITE_DESCRIPTION,
+  keywords: [
+    'hospital companion',
+    'patient attendant',
+    'hospital help Noida',
+    'hospital companion Greater Noida',
+    'medical appointment assistance',
+    'elderly hospital support',
+    'patient care services Noida',
+  ],
+  openGraph: {
+    type: 'website',
+    url: 'https://caresy.co.in',
+    siteName: 'Caresy',
+    locale: 'en_IN',
+    title: 'Caresy | Your Care, Our Priority',
+    description: SITE_DESCRIPTION,
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Caresy — trusted hospital companions' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Caresy | Your Care, Our Priority',
+    description: SITE_DESCRIPTION,
+    images: ['/og-image.png'],
+  },
+  robots: { index: true, follow: true },
   appleWebApp: { capable: true, title: 'Caresy', statusBarStyle: 'default' },
 };
 

@@ -2804,7 +2804,7 @@ th {
   border-radius: 12px 12px 0 0;
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -2px rgba(0, 0, 0, 0.1);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr); /* one column per tab: Home, Booking, Support, Profile */
   z-index: 9999;
   padding: 4px 16px 6px;
   box-sizing: border-box;
