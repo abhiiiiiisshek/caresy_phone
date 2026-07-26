@@ -40,6 +40,100 @@ function greeting() {
   return 'Good evening';
 }
 
+// Animated 3D-style emoji gestures (Google Noto, self-hosted) shown beside the
+// greeting. Each header phrase names the gesture that fits it.
+const GESTURES = {
+  namaste: { src: '/assets/emoji-1f64f.webp', alt: 'Namaste' },
+  clap: { src: '/assets/emoji-1f44f.webp', alt: 'Clapping' },
+  wave: { src: '/assets/emoji-1f44b.webp', alt: 'Waving hello' },
+  heart: { src: '/assets/emoji-1faf6.webp', alt: 'Heart hands' },
+  flex: { src: '/assets/emoji-1f4aa.webp', alt: 'Strength' },
+  hug: { src: '/assets/emoji-1f917.webp', alt: 'Hug' },
+  smile: { src: '/assets/emoji-1f60a.webp', alt: 'Warm smile' },
+} as const;
+type GestureKey = keyof typeof GESTURES;
+type Header = [string, GestureKey];
+
+// Short, warm greeting phrases rotated client-side each visit so the header
+// feels personal, each paired with a matching gesture. Pools are time-of-day
+// aware; booking-aware phrases join when a real upcoming visit exists.
+const HEADERS_ANYTIME: Header[] = [
+  ['Stay hydrated,', 'smile'],
+  ['Breathe easy,', 'smile'],
+  ['Take care,', 'heart'],
+  ['Keep well,', 'smile'],
+  ['You’ve got this,', 'flex'],
+  ['Good to see you,', 'wave'],
+  ['Sending strength,', 'flex'],
+  ['Stay strong,', 'flex'],
+  ['Wishing you health,', 'namaste'],
+  ['One step at a time,', 'clap'],
+  ['Here for you,', 'hug'],
+  ['You’re not alone,', 'hug'],
+  ['Hope you’re well,', 'wave'],
+  ['Small steps count,', 'clap'],
+  ['Health comes first,', 'heart'],
+  ['We’re by your side,', 'hug'],
+  ['Stay steady,', 'flex'],
+  ['Be kind to yourself,', 'heart'],
+  ['Every day counts,', 'clap'],
+  ['Healing takes time,', 'heart'],
+  ['Glad you’re here,', 'wave'],
+  ['Welcome back,', 'wave'],
+  ['Care starts here,', 'heart'],
+  ['Your health matters,', 'heart'],
+  ['Proud of you,', 'clap'],
+  ['Well done today,', 'clap'],
+];
+
+const HEADERS_MORNING: Header[] = [
+  ['Good morning,', 'wave'],
+  ['Rise gently,', 'smile'],
+  ['Fresh start,', 'smile'],
+  ['A calm morning,', 'namaste'],
+  ['Morning sunshine,', 'wave'],
+  ['New day, new strength,', 'flex'],
+];
+
+const HEADERS_AFTERNOON: Header[] = [
+  ['Good afternoon,', 'wave'],
+  ['Keep going,', 'flex'],
+  ['Halfway there,', 'clap'],
+  ['Take a breather,', 'smile'],
+  ['Pace yourself,', 'smile'],
+];
+
+const HEADERS_EVENING: Header[] = [
+  ['Good evening,', 'wave'],
+  ['Rest well,', 'smile'],
+  ['Wind down gently,', 'smile'],
+  ['You did enough today,', 'clap'],
+  ['A quiet evening,', 'namaste'],
+  ['Sleep comes soon,', 'smile'],
+];
+
+// Join the pool only when a real upcoming (scheduled, non-instant) booking exists.
+const BOOKING_HEADERS: Header[] = [
+  ['Your visit is set,', 'namaste'],
+  ['See you soon,', 'wave'],
+  ['Your companion’s ready,', 'namaste'],
+  ['All set for your visit,', 'clap'],
+  ['We’re ready for you,', 'hug'],
+  ['Visit day is near,', 'smile'],
+  ['We’ll be there,', 'hug'],
+  ['Everything’s arranged,', 'clap'],
+];
+
+// Second-line fallbacks when we don't know the visitor's name.
+const NO_NAME_LINES = ['welcome.', 'friend.', 'we’re here.', 'take a seat.', 'you matter.'];
+
+function headerPool(hour: number, hasUpcoming: boolean): Header[] {
+  const timePool = hour < 12 ? HEADERS_MORNING : hour < 17 ? HEADERS_AFTERNOON : HEADERS_EVENING;
+  // Double the time-of-day pool so those phrases stay common, not drowned out.
+  const pool = [...HEADERS_ANYTIME, ...timePool, ...timePool];
+  return hasUpcoming ? [...pool, ...BOOKING_HEADERS, ...BOOKING_HEADERS] : pool;
+}
+
 const SERVICE_CHIPS = [
   { icon: Users, label: 'Companions', href: '/booking' },
   { icon: CalendarDays, label: 'Appointments', href: '/booking' },
@@ -57,14 +151,23 @@ function SectionTitle({ children, action, actionHref }: { children: React.ReactN
   );
 }
 
-function ActionCard({ href, bg, ink, btnBg, label, labelIcon: LabelIcon, title, desc, decorIcon: DecorIcon }: {
+function ActionCard({ href, bg, ink, btnBg, label, labelIcon: LabelIcon, title, desc, decorIcon: DecorIcon, img, imgAlt }: {
   href: string; bg: string; ink: string; btnBg: string; label: string;
   labelIcon: React.ElementType; title: string; desc: string; decorIcon: React.ElementType;
+  img?: string; imgAlt?: string;
 }) {
   return (
-    <Link href={href} style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: 20, borderRadius: 'var(--m3-radius-card)', background: bg, overflow: 'hidden', textDecoration: 'none', boxSizing: 'border-box' }}>
-      <DecorIcon aria-hidden style={{ position: 'absolute', right: -16, bottom: -16, width: 128, height: 128, color: ink, opacity: 0.12 }} />
-      <span style={{ display: 'flex', flexDirection: 'column', gap: 4, maxWidth: 250 }}>
+    <Link href={href} style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: 132, padding: 20, borderRadius: 'var(--m3-radius-card)', background: bg, overflow: 'hidden', textDecoration: 'none', boxSizing: 'border-box' }}>
+      {img ? (
+        <>
+          {/* Photo bleeds off the right edge, faded into the card colour so the copy stays legible. */}
+          <span aria-hidden role="img" aria-label={imgAlt} style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '64%', backgroundImage: `url(${img})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          <span aria-hidden style={{ position: 'absolute', inset: 0, background: `linear-gradient(90deg, ${bg} 0%, ${bg} 36%, transparent 84%)` }} />
+        </>
+      ) : (
+        <DecorIcon aria-hidden style={{ position: 'absolute', right: -16, bottom: -16, width: 128, height: 128, color: ink, opacity: 0.12 }} />
+      )}
+      <span style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 4, maxWidth: 210 }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 8, color: ink }}>
           <LabelIcon style={{ width: 18, height: 18 }} />
           <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase' }}>{label}</span>
@@ -72,7 +175,7 @@ function ActionCard({ href, bg, ink, btnBg, label, labelIcon: LabelIcon, title, 
         <span style={{ fontSize: 22, lineHeight: '28px', fontWeight: 700, color: ink }}>{title}</span>
         <span style={{ fontSize: 14, lineHeight: '20px', letterSpacing: '0.25px', color: ink, opacity: 0.9 }}>{desc}</span>
       </span>
-      <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: '50%', background: btnBg, color: '#fff', flexShrink: 0, zIndex: 1 }}>
+      <span style={{ position: 'relative', display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: '50%', background: btnBg, color: '#fff', flexShrink: 0, zIndex: 1 }}>
         <ArrowRight style={{ width: 16, height: 16 }} />
       </span>
     </Link>
@@ -82,6 +185,9 @@ function ActionCard({ href, bg, ink, btnBg, label, labelIcon: LabelIcon, title, 
 export default function Home() {
   const { user, profile } = useAuth();
   const [activeBooking, setActiveBooking] = useState<ActiveBookingInfo | null>(null);
+  const [headerPhrase, setHeaderPhrase] = useState<string | null>(null);
+  const [noNameLine, setNoNameLine] = useState('welcome.');
+  const [avatar, setAvatar] = useState<{ src: string; alt: string } | null>(null);
 
   useEffect(() => {
     if (!user) { setActiveBooking(null); return; }
@@ -103,6 +209,21 @@ export default function Home() {
   const initial = firstName ? firstName.charAt(0).toUpperCase() : 'C';
   const avatarUrl = (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string) || null;
   const companion = activeBooking?.service_metadata?.companion;
+
+  // Pick a rotating greeting phrase client-side (once per load) so the header
+  // feels personal without an SSR/client hydration mismatch. The pool is
+  // time-of-day aware; booking phrases join when a real upcoming visit exists.
+  const hasUpcoming = !!activeBooking?.scheduled_start_time && activeBooking.booking_type !== 'INSTANT';
+  useEffect(() => {
+    const pool = headerPool(new Date().getHours(), hasUpcoming);
+    const [text, gesture] = pool[Math.floor(Math.random() * pool.length)];
+    setHeaderPhrase(text);
+    setAvatar(GESTURES[gesture]);
+    setNoNameLine(NO_NAME_LINES[Math.floor(Math.random() * NO_NAME_LINES.length)]);
+  }, [hasUpcoming]);
+
+  // Falls back to the plain time-of-day greeting on the server / first paint.
+  const header = headerPhrase || `${greeting()},`;
 
   return (
     <main id="main-content" style={{ background: 'var(--m3-bg)', fontFamily: EPILOGUE, minHeight: '100vh', paddingBottom: 96 }}>
@@ -129,11 +250,18 @@ export default function Home() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '16px 16px 0' }}>
 
-          {/* Greeting */}
-          <div style={{ padding: '8px 0 0' }}>
+          {/* Greeting — text left, animated emoji avatar filling the blank space on the right */}
+          <div style={{ padding: '8px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
             <p style={{ margin: 0, fontSize: 32, lineHeight: '40px', color: 'var(--m3-ink)' }}>
-              {greeting()},{firstName ? <><br />{firstName}.</> : <><br />welcome.</>}
+              {header}<br />{firstName ? `${firstName}.` : noNameLine}
             </p>
+            {avatar && (
+              <span style={{ display: 'grid', placeItems: 'center', width: 96, height: 96, borderRadius: '50%', background: 'var(--m3-surface, #eef1ec)', border: '1px solid var(--m3-line, #e1e3de)', flexShrink: 0 }}>
+                {/* Desaturated toward the site's calm palette so the emoji doesn't glare */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={avatar.src} alt={avatar.alt} style={{ width: 72, height: 72, filter: 'saturate(0.65) brightness(0.98)', opacity: 0.95 }} />
+              </span>
+            )}
           </div>
 
           {/* Active booking card — only when a real assigned/in-progress booking exists */}
@@ -193,6 +321,7 @@ export default function Home() {
               title="Urgent Booking"
               desc="Find a companion for last-minute emergencies."
               decorIcon={BriefcaseMedical}
+              img="/assets/caresy-hospital-support.png" imgAlt="Caresy companion assisting a patient in a wheelchair"
             />
             <ActionCard
               href="/booking"
@@ -201,6 +330,7 @@ export default function Home() {
               title="Schedule Appointment"
               desc="Book a companion for a future medical visit."
               decorIcon={CalendarDays}
+              img="/assets/caresy-family-app.png" imgAlt="Care Journey timeline on a phone in a hospital corridor"
             />
           </div>
 
