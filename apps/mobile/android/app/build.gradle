@@ -38,7 +38,7 @@ android {
             // in Firebase console → App Distribution → Testers & Groups.
             firebaseAppDistribution {
                 artifactType = "APK"
-                groups = "testers"
+                groups = "abhishek"
             }
         }
         release {
