@@ -1,0 +1,18 @@
+<!doctype html>
+<!-- Fallback only: the shell loads https://caresy.co.in via capacitor.config server.url.
+     This page shows briefly if the config URL is unreachable. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Caresy</title>
+  <style>
+    body { margin: 0; display: grid; place-items: center; min-height: 100vh; background: #f8faf5; font-family: -apple-system, system-ui, sans-serif; color: #16302b; }
+    p { text-align: center; padding: 0 24px; }
+  </style>
+</head>
+<body>
+  <p>Connecting to Caresy…<br /><small>Check your internet connection.</small></p>
+  <script>location.replace('https://caresy.co.in');</script>
+</body>
+</html>
