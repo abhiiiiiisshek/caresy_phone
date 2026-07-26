@@ -33,7 +33,8 @@ export function AdminTopbar() {
     <header className="adm-topbar">
       <div className="adm-topbar-in">
         <Link href="/" className="adm-brand">
-          <span className="adm-brand-dot" />Caresy<span className="adm-brand-sub">Admin</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/img/caresy-mark.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />Caresy<span className="adm-brand-sub">Admin</span>
         </Link>
         <nav className="adm-nav">
           {LINKS.map((l) => (

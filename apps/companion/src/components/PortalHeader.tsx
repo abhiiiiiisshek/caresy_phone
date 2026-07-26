@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@caresy/auth';
-import { HeartHandshake, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 /** Branded top bar so the portal reads as its own product, not a bare page. */
 export function PortalHeader() {
@@ -10,9 +10,8 @@ export function PortalHeader() {
   return (
     <header style={{ position: 'sticky', top: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 20px', background: 'var(--surface)', borderBottom: '1px solid var(--line)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ display: 'grid', placeItems: 'center', width: 34, height: 34, borderRadius: 10, background: 'var(--teal)', color: '#fff' }}>
-          <HeartHandshake style={{ width: 18, height: 18 }} />
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/img/caresy-mark.png" alt="" style={{ width: 34, height: 34, objectFit: 'contain' }} />
         <div>
           <div style={{ fontWeight: 800, color: 'var(--ink-teal)', lineHeight: 1.1 }}>Caresy</div>
           <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--teal)' }}>Companion portal</div>
