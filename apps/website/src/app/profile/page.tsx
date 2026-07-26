@@ -82,9 +82,15 @@ export default function Profile() {
         <div style={{ maxWidth: 576, margin: '0 auto', padding: 16 }}>
           <h1 style={{ margin: '0 0 16px', fontSize: 28, lineHeight: '34px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>Profile</h1>
           <div style={{ textAlign: 'center', padding: '40px 24px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)' }}>
-            <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 500, color: 'var(--m3-ink)' }}>Sign in to see your profile</h2>
-            <p style={{ margin: '0 0 20px', fontSize: 14, color: 'var(--m3-muted)' }}>Track your bookings, update your details, and reach support faster.</p>
-            <Button variant="primary" onClick={() => openLogin('/profile')}>Sign In / Register</Button>
+            <div style={{ fontSize: '3rem', marginBottom: 12 }}>👋</div>
+            <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 500, color: 'var(--m3-ink)' }}>Your profile lives here</h2>
+            <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: '20px', color: 'var(--m3-muted)' }}>
+              Sign in to save your details for faster booking, keep every visit in one place, and follow companions live. Browsing and booking work without an account.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <Button variant="primary" onClick={() => openLogin('/profile')}>Sign In</Button>
+              <Button variant="outline" onClick={() => router.push('/booking')}>Book Now</Button>
+            </div>
           </div>
         </div>
       </main>

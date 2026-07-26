@@ -15,6 +15,7 @@ const EPILOGUE = 'var(--font-epilogue), sans-serif';
 
 interface ActiveBookingInfo {
   reference_code: string;
+  share_token: string;
   status: string;
   scheduled_start_time?: string | null;
   booking_type?: string | null;
@@ -194,7 +195,7 @@ export default function Home() {
     const supabase = createClient();
     supabase
       .from('bookings')
-      .select('reference_code, status, scheduled_start_time, booking_type, service_metadata, pickup_location:locations!pickup_location_id (title), patient:patients!patient_id (full_name)')
+      .select('reference_code, share_token, status, scheduled_start_time, booking_type, service_metadata, pickup_location:locations!pickup_location_id (title), patient:patients!patient_id (full_name)')
       .in('status', ['ASSIGNED', 'IN_PROGRESS'])
       .order('created_at', { ascending: false })
       .limit(1)
@@ -325,7 +326,7 @@ export default function Home() {
 
               {/* Actions */}
               <div style={{ display: 'flex', gap: 10 }}>
-                <Link href={`/tracking?ref=${activeBooking.reference_code}`} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0', borderRadius: 999, background: 'var(--m3-green)', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+                <Link href={`/tracking?t=${activeBooking.share_token}`} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0', borderRadius: 999, background: 'var(--m3-green)', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
                   <Navigation style={{ width: 16, height: 16 }} />Track live
                 </Link>
                 <Link href="/my-bookings" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 18px', borderRadius: 999, background: 'transparent', border: '1px solid var(--m3-line)', color: 'var(--m3-ink)', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>

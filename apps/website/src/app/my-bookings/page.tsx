@@ -24,6 +24,7 @@ interface CompanionDetails {
 interface BookingRecord {
   id: string;
   reference_code: string;
+  share_token: string;
   status: string;
   created_at: string;
   scheduled_start_time: string | null;
@@ -201,7 +202,7 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
 
       <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
         {trackable ? (
-          <Link href={`/tracking?ref=${booking.reference_code}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '16px 0', borderRadius: 999, background: 'var(--m3-green-deep)', color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', textDecoration: 'none' }}>
+          <Link href={`/tracking?t=${booking.share_token}`} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '16px 0', borderRadius: 999, background: 'var(--m3-green-deep)', color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', textDecoration: 'none' }}>
             <MapPin style={{ width: 15, height: 15 }} />
             Track Companion
           </Link>
@@ -369,6 +370,7 @@ function PageHeader({ initial }: { initial: string }) {
 
 export default function MyBookings() {
   const { user, profile, isLoading: authIsLoading, openLogin } = useAuth();
+  const router = useRouter();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -385,6 +387,7 @@ export default function MyBookings() {
         .select(`
           id,
           reference_code,
+          share_token,
           status,
           created_at,
           scheduled_start_time,
@@ -444,10 +447,15 @@ export default function MyBookings() {
         <div style={{ maxWidth: 576, margin: '0 auto' }}>
           <PageHeader initial={initial} />
           <div style={{ margin: '16px 16px 0', textAlign: 'center', padding: '40px 24px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>🔐</div>
-            <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: 'var(--m3-ink)' }}>Authentication Required</h2>
-            <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--m3-muted)' }}>Please sign in to access your booking dashboard and track companion matches.</p>
-            <Button variant="primary" onClick={() => openLogin()}>Sign In / Register</Button>
+            <div style={{ fontSize: '3rem', marginBottom: 16 }}>📅</div>
+            <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: 'var(--m3-ink)' }}>No bookings yet</h2>
+            <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: '20px', color: 'var(--m3-muted)' }}>
+              Book a verified companion in a couple of minutes — no account needed to start. Sign in later to see your visits here and follow them live.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <Button variant="primary" onClick={() => router.push('/booking')}>Book Now</Button>
+              <Button variant="outline" onClick={() => openLogin('/my-bookings')}>Sign In</Button>
+            </div>
           </div>
         </div>
       </main>

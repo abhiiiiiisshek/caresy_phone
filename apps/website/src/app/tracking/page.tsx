@@ -3,24 +3,25 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import { Star, Phone, Share2, Loader2, HelpCircle } from 'lucide-react';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const SUPPORT_WA = '919717500225';
 
+// Shape of public.get_shared_tracking — deliberately narrower than the bookings
+// row. Customer contact details and care notes never leave the database.
 interface TrackedBooking {
-  id: string;
   reference_code: string;
   status: string;
   scheduled_start_time: string | null;
   created_at: string;
-  service_metadata: any;
-  pickup_location?: { title?: string } | null;
+  pickup_title: string | null;
+  companion: { name?: string; photo?: string; rating?: number; verification?: string; specialty?: string } | null;
+  last_lat: number | null;
+  last_lng: number | null;
+  last_location_at: string | null;
 }
-
-interface TripPosition { last_lat: number | null; last_lng: number | null; last_location_at: string | null }
 
 // OpenStreetMap embed centred on a point with a marker. No SDK / key / deps.
 function osmEmbed(lat: number, lng: number): string {
@@ -54,43 +55,30 @@ function headline(status: string) {
 
 function TrackingInner() {
   const params = useSearchParams();
-  const ref = params.get('ref');
-  const { user, isLoading: authLoading } = useAuth();
+  const token = params.get('t');
   const [booking, setBooking] = useState<TrackedBooking | null>(null);
-  const [pos, setPos] = useState<TripPosition | null>(null);
-  const [loading, setLoading] = useState(true);
+  // No token in the URL means nothing to fetch — start settled, not spinning.
+  const [loading, setLoading] = useState(!!token);
 
+  // No session needed: the link itself is the credential. Family members open
+  // this from WhatsApp. The RPC returns status plus last-known position, so one
+  // poll covers both — trips aren't on a realtime publication and 10s is plenty.
   useEffect(() => {
-    if (authLoading) return;
-    if (!user || !ref) { setLoading(false); return; }
-    const supabase = createClient();
-    supabase
-      .from('bookings')
-      .select('id, reference_code, status, scheduled_start_time, created_at, service_metadata, pickup_location:locations!pickup_location_id (title)')
-      .eq('reference_code', ref)
-      .limit(1)
-      .then(({ data }) => {
-        setBooking((data?.[0] as unknown as TrackedBooking) || null);
-        setLoading(false);
-      });
-  }, [user, authLoading, ref]);
-
-  // Poll the trip's last-known position (companion shares it from their portal).
-  // Trips aren't on a realtime publication, so a light 10s poll is enough.
-  useEffect(() => {
-    if (!booking?.id) return;
+    if (!token) return;
     const supabase = createClient();
     let alive = true;
     const tick = () => {
-      supabase.from('trips').select('last_lat, last_lng, last_location_at')
-        .eq('booking_id', booking.id).not('status', 'in', '(completed,cancelled)')
-        .limit(1).maybeSingle()
-        .then(({ data }) => { if (alive) setPos((data as TripPosition) ?? null); });
+      supabase.rpc('get_shared_tracking', { p_token: token })
+        .then(({ data }) => {
+          if (!alive) return;
+          setBooking((data?.[0] as TrackedBooking) ?? null);
+          setLoading(false);
+        });
     };
     tick();
     const id = setInterval(tick, 10_000);
     return () => { alive = false; clearInterval(id); };
-  }, [booking?.id]);
+  }, [token]);
 
   const share = async () => {
     const url = window.location.href;
@@ -101,7 +89,7 @@ function TrackingInner() {
     }
   };
 
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', padding: '120px 24px' }}>
         <Loader2 className="animate-spin" style={{ width: 40, height: 40, color: 'var(--m3-green)' }} />
@@ -109,7 +97,7 @@ function TrackingInner() {
     );
   }
 
-  const companion = booking?.service_metadata?.companion;
+  const companion = booking?.companion;
   const companionName = companion?.name || 'Your companion';
 
   if (!booking) {
@@ -117,7 +105,7 @@ function TrackingInner() {
       <div style={{ textAlign: 'center', padding: '80px 24px' }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--m3-ink)', margin: '0 0 8px' }}>Nothing to track</h2>
         <p style={{ fontSize: 14, color: 'var(--m3-muted)', margin: '0 0 20px' }}>
-          {user ? 'This booking could not be found.' : 'Sign in to track your booking.'}
+          This tracking link is invalid or the visit has finished.
         </p>
         <Link href="/my-bookings" style={{ padding: '12px 24px', borderRadius: 999, background: 'var(--m3-green)', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Go to My Bookings</Link>
       </div>
@@ -132,9 +120,9 @@ function TrackingInner() {
     <>
       {/* Live companion location once they start sharing from the companion portal;
           stylized placeholder until the first GPS ping arrives. */}
-      {pos?.last_lat != null && pos?.last_lng != null ? (
+      {booking.last_lat != null && booking.last_lng != null ? (
         <div style={{ position: 'relative', flex: 1, minHeight: 320, overflow: 'hidden' }}>
-          <iframe title="Companion live location" width="100%" height="100%" loading="lazy" style={{ border: 0, minHeight: 320, display: 'block' }} src={osmEmbed(pos.last_lat, pos.last_lng)} />
+          <iframe title="Companion live location" width="100%" height="100%" loading="lazy" style={{ border: 0, minHeight: 320, display: 'block' }} src={osmEmbed(booking.last_lat, booking.last_lng)} />
           <span style={{ position: 'absolute', top: 12, left: 12, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', fontSize: 12, fontWeight: 700, color: 'var(--m3-green)' }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#006971', animation: 'caresy-pulse 1.8s infinite' }} />
             Live location
@@ -173,7 +161,7 @@ function TrackingInner() {
             <h2 style={{ margin: 0, fontSize: 22, lineHeight: '28px', fontWeight: 500, color: 'var(--m3-ink)' }}>{headline(booking.status)}</h2>
             <p style={{ margin: '4px 0 0', fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>
               Booking {booking.reference_code}
-              {booking.pickup_location?.title ? ` · ${booking.pickup_location.title}` : ''}
+              {booking.pickup_title ? ` · ${booking.pickup_title}` : ''}
             </p>
           </div>
 
