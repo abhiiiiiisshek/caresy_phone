@@ -264,6 +264,29 @@ export default function Home() {
             )}
           </div>
 
+          {/* Brand hero — the marketing front door, shown only to signed-out visitors */}
+          {!user && (
+            <div style={{ padding: '16px 18px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
+              <p style={{ margin: 0, fontSize: 17, lineHeight: '24px', fontWeight: 700, color: 'var(--m3-ink)' }}>
+                Be there, even when you can’t be.
+              </p>
+              <p style={{ margin: '5px 0 12px', fontSize: 13.5, lineHeight: '20px', color: 'var(--m3-muted)' }}>
+                Verified hospital companions in Noida &amp; Greater Noida — they attend the visit, keep your family updated live, and stay until it’s done.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {[
+                  { icon: BadgeCheck, text: '6-check verified' },
+                  { icon: Navigation, text: 'Live updates' },
+                  { icon: Clock, text: 'Same-day help' },
+                ].map(({ icon: Icon, text }) => (
+                  <span key={text} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 11px', borderRadius: 999, background: 'var(--success-soft, #e7f0ea)', color: 'var(--m3-green)', fontSize: 12, fontWeight: 700 }}>
+                    <Icon style={{ width: 13, height: 13 }} />{text}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Active booking card — only when a real assigned/in-progress booking exists */}
           {activeBooking && (
             <div role="status" style={{ padding: 16, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', display: 'flex', flexDirection: 'column', gap: 14 }}>
