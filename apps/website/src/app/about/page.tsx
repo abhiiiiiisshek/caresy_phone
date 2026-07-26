@@ -8,13 +8,13 @@ const CHECKLIST = ['Trained & Verified Executives', 'On-time & Reliable Support'
 
 const FOUNDERS = [
   {
-    photo: '/assets/caresy-founder-rohan.png',
+    photo: '/assets/caresy-founder-rohan.webp',
     quote: "My mother sat through a full day of scans and queues alone while I was stuck on a flight I couldn't change. Nobody should have to choose between being at work and being there for their family.",
     name: 'Rohan Mehta',
     role: 'Co-founder & CEO',
   },
   {
-    photo: '/assets/caresy-founder-meera.png',
+    photo: '/assets/caresy-founder-meera.webp',
     quote: 'We built the verification pipeline first, before a single booking feature — because trust has to be earned before it\'s asked for. Every companion is Aadhaar- and police-verified before they ever meet a family.',
     name: 'Meera Nair',
     role: 'Co-founder & Head of Trust & Safety',
@@ -33,7 +33,7 @@ export default function About() {
       <section className="section" style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 32, alignItems: 'center' }}>
         <div style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--shadow-2)', background: 'var(--sage)', aspectRatio: '1.3', border: '1px solid var(--line)' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/caresy-hospital-support.png" alt="Caresy companion and elderly patient" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src="/assets/caresy-hospital-support.webp" alt="Caresy companion and elderly patient" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
 
         <div>

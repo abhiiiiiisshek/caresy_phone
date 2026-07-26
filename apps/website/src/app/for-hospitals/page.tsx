@@ -24,7 +24,7 @@ export default function ForHospitals() {
       <section className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
         <div style={{ borderRadius: 'var(--radius-xl)', overflow: 'hidden', boxShadow: 'var(--shadow-2)', background: 'var(--sage)', aspectRatio: '2.2', border: '1px solid var(--line)', marginBottom: 40 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/caresy-hero.png" alt="Hospital support illustration" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src="/assets/caresy-hero.webp" alt="Hospital support illustration" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>

@@ -344,7 +344,7 @@ export default function Home() {
               title="Urgent Booking"
               desc="Find a companion for last-minute emergencies."
               decorIcon={BriefcaseMedical}
-              img="/assets/caresy-hospital-support.png" imgAlt="Caresy companion assisting a patient in a wheelchair"
+              img="/assets/caresy-hospital-support.webp" imgAlt="Caresy companion assisting a patient in a wheelchair"
             />
             <ActionCard
               href="/booking"
@@ -353,7 +353,7 @@ export default function Home() {
               title="Schedule Appointment"
               desc="Book a companion for a future medical visit."
               decorIcon={CalendarDays}
-              img="/assets/caresy-family-app.png" imgAlt="Care Journey timeline on a phone in a hospital corridor"
+              img="/assets/caresy-family-app.webp" imgAlt="Care Journey timeline on a phone in a hospital corridor"
             />
           </div>
 
