@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/profile', '/my-bookings', '/tracking', '/auth', '/api'],
+      disallow: ['/profile', '/my-bookings', '/tracking', '/care', '/auth', '/api'],
     },
     sitemap: 'https://caresy.co.in/sitemap.xml',
   };

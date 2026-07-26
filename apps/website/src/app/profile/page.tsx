@@ -156,7 +156,7 @@ export default function Profile() {
         {/* Activity */}
         <Section icon={ActivityIcon} title="Activity">
           <SettingsRow icon={History} label="Past Bookings" href="/my-bookings" />
-          <SettingsRow icon={ClipboardList} label="Care Logs" href="/my-bookings" />
+          <SettingsRow icon={ClipboardList} label="Care Logs" sub="Timeline, passport and documents" href="/care" />
           <SettingsRow icon={Users} label="Family Members" href={supWa('adding a family member')} />
         </Section>
 

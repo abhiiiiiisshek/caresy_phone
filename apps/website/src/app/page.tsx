@@ -4,10 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
+import HealthTips from '@/components/HealthTips';
 import {
   Bell, Zap, Calendar, CalendarDays, Users, FileText, ArrowRight,
   ClipboardCheck, ChevronRight, BookOpen, BadgeCheck, BriefcaseMedical,
-  MapPin, Clock, User, Navigation,
+  MapPin, Clock, User, Navigation, HeartPulse,
 } from 'lucide-react';
 
 const SUPPORT_WA = '919717500225';
@@ -386,6 +387,19 @@ export default function Home() {
           {/* Recommended */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <SectionTitle>Recommended for you</SectionTitle>
+
+            <HealthTips />
+
+            <Link href="/care" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 17, borderRadius: 12, background: 'var(--m3-card)', textDecoration: 'none' }}>
+              <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: 8, background: 'var(--m3-cyan)', color: 'var(--m3-cyan-ink)', flexShrink: 0 }}>
+                <HeartPulse style={{ width: 20, height: 20 }} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', color: 'var(--m3-ink)' }}>Care timeline</span>
+                <span style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>Visits, medicines and reports in one place</span>
+              </span>
+              <ChevronRight style={{ width: 16, height: 16, color: 'var(--m3-muted)', flexShrink: 0 }} />
+            </Link>
 
             <Link href="/how-it-works" style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 17, borderRadius: 12, background: 'var(--m3-card)', textDecoration: 'none' }}>
               <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: 8, background: 'var(--m3-amber)', color: 'var(--m3-ink)', flexShrink: 0 }}>
