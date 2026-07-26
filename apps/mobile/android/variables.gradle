@@ -1,4 +1,7 @@
 ext {
+    // User-facing version string. Bump by hand; versionCode is derived from
+    // the git commit count in app/build.gradle.
+    appVersionName = '1.0.0'
     minSdkVersion = 23
     compileSdkVersion = 35
     targetSdkVersion = 35
