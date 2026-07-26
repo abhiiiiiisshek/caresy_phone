@@ -68,6 +68,34 @@ export const viewport: Viewport = {
   themeColor: '#16302b',
 };
 
+// LocalBusiness structured data so Google can surface Caresy as a business
+// (logo, area served, contact) in search results.
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': 'https://caresy.co.in/#business',
+  name: 'Caresy',
+  slogan: 'Your Care, Our Priority',
+  description: SITE_DESCRIPTION,
+  url: 'https://caresy.co.in',
+  logo: 'https://caresy.co.in/icon-512.png',
+  image: 'https://caresy.co.in/og-image.png',
+  telephone: '+91-9717500225',
+  areaServed: [
+    { '@type': 'City', name: 'Noida' },
+    { '@type': 'City', name: 'Greater Noida' },
+  ],
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Noida',
+    addressRegion: 'Uttar Pradesh',
+    addressCountry: 'IN',
+  },
+  priceRange: '₹₹',
+  knowsAbout: ['hospital companions', 'patient assistance', 'medical appointment support'],
+  sameAs: ['https://wa.me/919717500225'],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -76,6 +104,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className={`${poppins.className} ${epilogue.variable} min-h-full flex flex-col`}>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         <AuthProvider>
           <a href="#main-content" className="sr-only focus:not-sr-only" style={{ position: 'absolute', left: '-9999px' }}>
             Skip to content
