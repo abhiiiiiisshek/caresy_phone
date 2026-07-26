@@ -7,13 +7,17 @@ import { usePathname } from 'next/navigation';
 // tab — the app design has no floating WhatsApp button there.
 const APP_TABS = ['/', '/my-bookings', '/support', '/profile'];
 
+// Booking flows already carry inline WhatsApp CTAs; the floating button just
+// covers form controls on phones there, so it's desktop-only on these routes.
+const DESKTOP_ONLY = ['/booking', '/quick-help'];
+
 export default function WhatsAppWidget() {
   const pathname = usePathname();
   if (APP_TABS.includes(pathname)) return null;
 
   return (
     <a
-      className="whatsapp-float"
+      className={`whatsapp-float${DESKTOP_ONLY.includes(pathname) ? ' desktop-only' : ''}`}
       href="https://wa.me/919717500225"
       target="_blank"
       rel="noopener"

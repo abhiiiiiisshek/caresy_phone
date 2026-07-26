@@ -10,6 +10,7 @@ const config: CapacitorConfig = {
   webDir: 'www',
   server: {
     url: 'https://caresy.co.in',
+    errorPath: 'error.html',
     allowNavigation: ['caresy.co.in', '*.caresy.co.in', 'accounts.google.com', '*.supabase.co', 'wa.me', 'api.whatsapp.com'],
   },
   backgroundColor: '#f8faf5',
@@ -18,6 +19,14 @@ const config: CapacitorConfig = {
       launchShowDuration: 1200,
       backgroundColor: '#f8faf5',
       showSpinner: false,
+    },
+    StatusBar: {
+      overlaysWebView: false,
+      style: 'LIGHT',
+      backgroundColor: '#f8faf5',
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert'],
     },
   },
 };

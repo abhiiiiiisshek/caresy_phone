@@ -229,8 +229,8 @@ export default function Home() {
     <main id="main-content" style={{ background: 'var(--m3-bg)', fontFamily: EPILOGUE, minHeight: '100vh', paddingBottom: 96 }}>
       <div style={{ maxWidth: 576, margin: '0 auto' }}>
 
-        {/* Top app bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, padding: '0 16px' }}>
+        {/* Top app bar — safe-area padding keeps the bell clear of the status bar in the native app */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minHeight: 64, padding: 'calc(env(safe-area-inset-top, 0px) + 4px) 16px 4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <Link href="/profile" aria-label="Your profile" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', border: '2px solid var(--m3-green)', padding: 2, boxSizing: 'border-box', textDecoration: 'none' }}>
               {avatarUrl ? (

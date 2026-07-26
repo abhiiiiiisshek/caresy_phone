@@ -3687,12 +3687,14 @@ html, body {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 60px;
-  padding: 0 8px 0 4px;
-  max-width: 640px;
-  margin: 0 auto;
+  min-height: 60px;
+  /* Full-width background with content centred to the 640px column — a capped
+     max-width here floated as a cream "notch" over coloured page heroes.
+     Safe-area padding keeps the bar clear of the phone status bar in the app. */
+  padding: env(safe-area-inset-top, 0px) max(8px, calc((100% - 640px) / 2)) 0 max(4px, calc((100% - 640px) / 2));
   background: var(--m3-bg);
   font-family: var(--font-epilogue), sans-serif;
+  box-sizing: border-box;
 }
 .m3-topbar-title {
   flex: 1;
@@ -3791,3 +3793,11 @@ html, body {
 .legal-text-content { color: var(--m3-muted); }
 .legal-text-content h2,
 .legal-text-content h3 { color: var(--m3-ink); }
+
+/* Floating WhatsApp button: desktop-only on booking flows (inline CTAs cover mobile) */
+@media (max-width: 768px) {
+  .whatsapp-float.desktop-only { display: none !important; }
+}
+
+/* Native app safe areas: keep fixed chrome clear of the status bar / home bar */
+.mobile-bottom-nav { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }

@@ -9,6 +9,7 @@ import CookieBanner from '@/components/CookieBanner';
 import AuthModal from '@caresy/auth/modal';
 import RegisterSW from '@/components/RegisterSW';
 import InstallPrompt from '@/components/InstallPrompt';
+import NativeBridge from '@/components/NativeBridge';
 import './globals.css';
 
 const poppins = Poppins({
@@ -66,6 +67,8 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1.0,
   themeColor: '#16302b',
+  // Lets env(safe-area-inset-*) resolve inside the native app webview.
+  viewportFit: 'cover',
 };
 
 // LocalBusiness structured data so Google can surface Caresy as a business
@@ -120,6 +123,7 @@ export default function RootLayout({
           <AuthModal />
           <RegisterSW />
           <InstallPrompt />
+          <NativeBridge />
         </AuthProvider>
       </body>
     </html>
