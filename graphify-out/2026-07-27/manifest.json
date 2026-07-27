@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/booking/page.tsx": {
-    "mtime": 1785156934.1108286,
-    "ast_hash": "ef4943ca5712f3110fe0c7c20a670d27",
+    "mtime": 1785157483.8634472,
+    "ast_hash": "4a8e307210774bdaaea28553a52400dd",
     "semantic_hash": ""
   },
   "apps/website/src/app/for-hospitals/page.tsx": {
@@ -405,8 +405,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/quick-help/page.tsx": {
-    "mtime": 1785043549.893228,
-    "ast_hash": "eca93e95ec44c1ad7753b984c9617ae2",
+    "mtime": 1785157483.864132,
+    "ast_hash": "2e67b4c9f8108617668759783e9f1345",
     "semantic_hash": ""
   },
   "apps/website/src/app/services/page.tsx": {
@@ -1000,8 +1000,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/components/HospitalAutocomplete.tsx": {
-    "mtime": 1785043549.906216,
-    "ast_hash": "29eb2038f75eaf9e4cb485f66f114612",
+    "mtime": 1785157483.8648465,
+    "ast_hash": "f1a292f3449c82e7d8653ce265abc7b7",
     "semantic_hash": ""
   },
   "apps/website/src/components/InstallPrompt.tsx": {
@@ -1025,8 +1025,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/data/hospitals.ts": {
-    "mtime": 1785049243.5774362,
-    "ast_hash": "2b5b1089362752413be9020902f0e048",
+    "mtime": 1785157483.8655717,
+    "ast_hash": "aa67fc258f489aaa3b665653bddfe5ce",
     "semantic_hash": ""
   },
   "apps/website/src/lib/careGuides.check.ts": {
@@ -1437,6 +1437,11 @@
   "apps/website/src/app/apple-icon.png": {
     "mtime": 1785043549.8771598,
     "ast_hash": "b14007c2f5918c71eb23dabc26a8ca5a",
+    "semantic_hash": ""
+  },
+  "apps/website/src/data/hospitals.check.ts": {
+    "mtime": 1785157424.5716965,
+    "ast_hash": "c718886edc8fb2a9f5b5cfa7b7e74078",
     "semantic_hash": ""
   }
 }

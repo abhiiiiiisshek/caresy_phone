@@ -119,6 +119,8 @@ export default function Booking() {
   const [hospital, setHospital] = useState('');
   const [pincode, setPincode] = useState('');
   const [areaStatus, setAreaStatus] = useState<'idle' | 'checking' | 'served' | 'not_served'>('idle');
+  // True while the pincode came from the picked hospital's area rather than typing.
+  const [pinAutoFilled, setPinAutoFilled] = useState(false);
   const [areaLabel, setAreaLabel] = useState('');
   const [department, setDepartment] = useState('');
   const [doctor, setDoctor] = useState('');
@@ -475,22 +477,44 @@ export default function Booking() {
                 // pincode is unambiguous. Still editable — this is a shortcut,
                 // not a lock.
                 const pin = picked && pincodeForArea(picked.area);
-                if (pin) setPincode(pin);
+                if (pin) { setPincode(pin); setPinAutoFilled(true); }
+                else setPinAutoFilled(false);
               }}
             />
-            <Input
-              label="Pincode" name="pincode" required
-              inputMode="numeric" maxLength={6} placeholder="201301"
-              value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-              hint={
-                areaStatus === 'checking' ? 'Checking availability…'
-                : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
-                : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — we currently cover Noida & Greater Noida.'
-                : 'The hospital’s pincode. We use it to confirm the visit is inside our service area.'
-              }
-            />
+            {/* Picking a listed hospital tells us the area, so there is nothing
+                to ask. Collapses to a confirmation line with a way back out for
+                the rare case the hospital's area is wrong. */}
+            {pinAutoFilled ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '13px 16px', borderRadius: 'var(--radius-sm)', background: 'var(--success-soft, #e7f0ea)', border: '1px solid var(--m3-line)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                  <Check style={{ width: 16, height: 16, color: 'var(--m3-green)', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13.5, color: 'var(--m3-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    In our service area — {areaLabel || 'Noida'} · {pincode}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPinAutoFilled(false)}
+                  style={{ flexShrink: 0, border: 'none', background: 'transparent', color: 'var(--m3-green-deep)', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <Input
+                label="Pincode" name="pincode" required
+                inputMode="numeric" maxLength={6} placeholder="201301"
+                value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                hint={
+                  areaStatus === 'checking' ? 'Checking availability…'
+                  : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
+                  : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — we currently cover Noida & Greater Noida.'
+                  : 'The hospital’s pincode. We use it to confirm the visit is inside our service area.'
+                }
+              />
+            )}
 
-            {areaStatus !== 'served' && servedAreas.length > 0 && (
+            {!pinAutoFilled && areaStatus !== 'served' && servedAreas.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: -12 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--m3-muted)' }}>Or pick the area you&rsquo;re visiting</span>
                 <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>

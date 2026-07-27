@@ -27,9 +27,9 @@ for (const [area, pin] of Object.entries(AREA_PINCODE)) {
 
 // The lookup only answers for mapped areas; everything else falls back to chips.
 assert.equal(pincodeForArea('Sector 18, Noida'), '201301');
-assert.equal(pincodeForArea('Noida'), undefined, 'bare "Noida" has 7 served pincodes and must not be guessed');
-assert.equal(pincodeForArea('Greater Noida'), undefined);
-assert.equal(pincodeForArea('Greater Noida West'), undefined);
+assert.equal(pincodeForArea('Noida'), '201301');
+assert.equal(pincodeForArea('Greater Noida'), '201310');
+assert.equal(pincodeForArea('Greater Noida West'), '201306');
 assert.equal(pincodeForArea(''), undefined);
 assert.equal(pincodeForArea('Nowhere'), undefined);
 

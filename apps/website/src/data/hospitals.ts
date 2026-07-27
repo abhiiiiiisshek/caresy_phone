@@ -24,15 +24,20 @@ export interface Hospital {
  * 201313 "Noida (Sector 62 area)", 201305 "Noida / Noida Extension", 201009
  * "Gaur City / Greater Noida West", 203207 "Greater Noida (Kasna)".
  *
- * Deliberately absent: bare "Noida" (7 served pincodes, no way to choose),
- * "Greater Noida" and "Greater Noida West" (3 each), "Noida West", and the
- * one-off sectors above 18. Those keep the quick-pick chips. Add an entry only
- * when you know the pincode — a wrong one puts a wrong address on the booking.
+ * The four broad labels below had several served pincodes each and no way to
+ * choose between them from the data. Abhishek picked these defaults on
+ * 2026-07-27 — they are operational choices, not postal lookups, so correct
+ * them here if a companion is ever sent to the wrong area.
+ *
+ * Still absent: one-off sectors above 18 (Sector 137, 30, 27, 63, 51, 50, 26,
+ * and friends — ~40 hospitals). Those keep the quick-pick chips. Add an entry
+ * only when you know the pincode; a wrong one puts a wrong address on a booking.
  *
  * Safety net: an autofilled pincode still goes through checkPincodeServed, so a
  * mistake here surfaces in the UI as "we don't serve this" rather than silently.
  */
 export const AREA_PINCODE: Record<string, string> = {
+  // Unambiguous — taken straight from the area_name labels in migration 11.
   'Sector 11-12, Noida': '201301',
   'Sector 12, Noida': '201301',
   'Sector 18, Noida': '201301',
@@ -40,6 +45,13 @@ export const AREA_PINCODE: Record<string, string> = {
   'Noida Extension': '201305',
   'Gaur City, Greater Noida West': '201009',
   'Kasna, Greater Noida': '203207',
+
+  // Chosen defaults for the broad labels. See the note above.
+  'Noida': '201301',
+  'Noida West': '201306',
+  'Greater Noida': '201310',
+  'Greater Noida West': '201306',
+  'Bisrakh, Greater Noida West': '201306',
 };
 
 export function pincodeForArea(area: string): string | undefined {
