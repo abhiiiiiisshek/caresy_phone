@@ -29,9 +29,9 @@ export interface Hospital {
  * 2026-07-27 — they are operational choices, not postal lookups, so correct
  * them here if a companion is ever sent to the wrong area.
  *
- * Still absent: one-off sectors above 18 (Sector 137, 30, 27, 63, 51, 50, 26,
- * and friends — ~40 hospitals). Those keep the quick-pick chips. Add an entry
- * only when you know the pincode; a wrong one puts a wrong address on a booking.
+ * Still absent: one-off sectors above 18 (Sector 30, 27, 63, 51, 50, 26, and
+ * friends — ~20 hospitals). Those keep the quick-pick chips. Add an entry only
+ * when you know the pincode; a wrong one puts a wrong address on a booking.
  *
  * Safety net: an autofilled pincode still goes through checkPincodeServed, so a
  * mistake here surfaces in the UI as "we don't serve this" rather than silently.
@@ -43,6 +43,7 @@ export const AREA_PINCODE: Record<string, string> = {
   'Sector 18, Noida': '201301',
   'Sector 62, Noida': '201313',
   'Noida Extension': '201305',
+  'Sector 137, Noida': '201305',
   'Gaur City, Greater Noida West': '201009',
   'Kasna, Greater Noida': '203207',
 
