@@ -13,7 +13,7 @@ import {
 import { matchCompanionByDepartment } from '@/data/companions';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 import { Input } from '@caresy/ui';
-import { checkPincodeServed, isValidPincode } from '@caresy/utils';
+import { checkPincodeServed, isValidPincode, listServedAreas, type ServiceArea } from '@caresy/utils';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const DRAFT_KEY = 'caresy_booking_draft';
@@ -166,6 +166,16 @@ export default function Booking() {
     } catch {
       // ignore malformed/unavailable sessionStorage
     }
+  }, []);
+
+  // The pincodes we cover, offered as quick-picks. People were asked to type a
+  // pincode for a hospital they had just chosen from a list, with no way to know
+  // which ones we accept. Same table the check below reads, so it cannot drift.
+  const [servedAreas, setServedAreas] = useState<ServiceArea[]>([]);
+  useEffect(() => {
+    let alive = true;
+    listServedAreas().then((a) => { if (alive) setServedAreas(a); });
+    return () => { alive = false; };
   }, []);
 
   // Live service-area check as the pincode is typed.
@@ -385,7 +395,9 @@ export default function Booking() {
 
   /* ---------- Wizard ---------- */
   return (
-    <main id="main-content" style={{ background: 'var(--m3-bg)', minHeight: '100vh', fontFamily: EPILOGUE, paddingBottom: 96 }}>
+    // No bottom padding: the tab bar is suppressed on /booking, and the sticky
+    // footer below would otherwise float above 96px of dead space.
+    <main id="main-content" style={{ background: 'var(--m3-bg)', minHeight: '100vh', fontFamily: EPILOGUE }}>
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '32px 16px 0' }}>
 
         {/* Top bar: back + progress + close */}
@@ -463,9 +475,27 @@ export default function Booking() {
                 areaStatus === 'checking' ? 'Checking availability…'
                 : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
                 : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — we currently cover Noida & Greater Noida.'
-                : 'We currently serve Noida & Greater Noida only.'
+                : 'The hospital’s pincode. We use it to confirm the visit is inside our service area.'
               }
             />
+
+            {areaStatus !== 'served' && servedAreas.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: -12 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--m3-muted)' }}>Or pick the area you&rsquo;re visiting</span>
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                  {servedAreas.map((a) => (
+                    <button
+                      key={a.pincode}
+                      type="button"
+                      onClick={() => setPincode(a.pincode)}
+                      style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 999, border: '1px solid var(--m3-line)', background: 'var(--m3-chip)', color: 'var(--m3-ink)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                    >
+                      {a.area_name || a.city} · {a.pincode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Input label="Department" name="department" placeholder="Cardiology" value={department} onChange={(e) => setDepartment(e.target.value)} />
               <Input label="Doctor name" name="doctor" placeholder="Dr. Mehta" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
@@ -597,8 +627,18 @@ export default function Booking() {
           </div>
         )}
 
-        {/* Footer action */}
-        <div style={{ padding: '32px 0 24px' }}>
+        {/* Footer action — sticky so Continue is always reachable. On the longer
+            steps (hospital + pincode + department + doctor) it used to sit below
+            the fold, and people could not tell the form had an end. */}
+        <div
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 2,
+            padding: '16px 0 max(16px, env(safe-area-inset-bottom))',
+            background: 'linear-gradient(to bottom, rgba(242,244,239,0) 0%, var(--m3-bg) 22%)',
+          }}
+        >
           {review ? (
             <button onClick={handleConfirm} disabled={isSubmitting} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, width: '100%', height: 64, borderRadius: 999, border: 'none', background: 'var(--m3-green-deep)', color: '#fff', fontSize: 22, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', opacity: isSubmitting ? 0.7 : 1 }}>
               {isSubmitting ? <><Loader2 className="animate-spin" style={{ width: 22, height: 22 }} /> Confirming…</> : <>Confirm Booking <ArrowRight style={{ width: 16, height: 16 }} /></>}

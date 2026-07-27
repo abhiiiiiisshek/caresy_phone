@@ -20,6 +20,24 @@ export function isValidPincode(pincode: string): boolean {
   return /^\d{6}$/.test(pincode.trim());
 }
 
+/**
+ * Every pincode Caresy currently covers, for offering as quick-picks instead of
+ * making someone type one and guess whether it is in area.
+ *
+ * Same table the authoritative check reads, so the list can never drift from
+ * what enforce_service_area() will accept.
+ */
+export async function listServedAreas(): Promise<ServiceArea[]> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from('service_areas')
+    .select('pincode, area_name, city')
+    .eq('is_active', true)
+    .order('city')
+    .order('pincode');
+  return (data as ServiceArea[]) ?? [];
+}
+
 export async function checkPincodeServed(pincode: string): Promise<PincodeCheck> {
   const pin = pincode.trim();
   if (!isValidPincode(pin)) return { served: false, invalid: true };

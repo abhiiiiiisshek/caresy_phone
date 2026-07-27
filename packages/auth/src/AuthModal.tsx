@@ -17,7 +17,7 @@ function GoogleIcon() {
 }
 
 export default function AuthModal() {
-  const { isOpen, closeLogin, user, profile, signInWithGoogle, saveProfile, onboardingEnabled } = useAuth();
+  const { isOpen, closeLogin, user, profile, isLoading, signInWithGoogle, saveProfile, onboardingEnabled } = useAuth();
 
   const [step, setStep] = useState<'name' | 'age' | 'phone'>('name');
   const [name, setName] = useState('');
@@ -28,7 +28,15 @@ export default function AuthModal() {
 
   // Onboarding only applies on portals that enabled it (the customer site).
   // On admin/companion portals a signed-in user is never asked for name/age.
-  const needsOnboarding = !!user && onboardingEnabled && (!profile || !profile.onboarding_completed);
+  //
+  // `profile` is null both when onboarding is genuinely incomplete AND while the
+  // fetch is still in flight, so this must wait for isLoading to settle. Without
+  // that, any openLogin() during the load window — tapping Confirm Booking, or
+  // the moment after the OAuth redirect — re-asked name/age/phone of someone who
+  // had already given them.
+  const profileResolved = !isLoading;
+  const needsOnboarding = !!user && onboardingEnabled && profileResolved
+    && (!profile || !profile.onboarding_completed);
 
   useEffect(() => {
     if (isOpen && needsOnboarding) {
