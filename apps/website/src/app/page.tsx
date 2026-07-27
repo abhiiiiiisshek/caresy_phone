@@ -415,8 +415,8 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 21, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--m3-ink)' }}>Post-surgery care guide</span>
-                  <span style={{ fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>Essential tips for a smooth recovery</span>
+                  <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--m3-ink)' }}>The first week after surgery</span>
+                  <span style={{ fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>What actually needs watching once you get home</span>
                 </div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/img/care-guide.jpg" alt="" style={{ width: 63, height: 64, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
@@ -424,9 +424,9 @@ export default function Home() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--m3-green-deep)' }}>
                   <BookOpen style={{ width: 16, height: 16 }} />
-                  <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.5px' }}>5 min read</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.5px' }}>4 min read</span>
                 </span>
-                <Link href="/how-it-works" style={{ padding: '6px 16px', borderRadius: 'var(--radius-pill)', background: 'var(--m3-cyan)', color: 'var(--m3-cyan-ink)', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', textDecoration: 'none' }}>Read</Link>
+                <Link href="/guides?a=post-surgery" style={{ padding: '6px 16px', borderRadius: 'var(--radius-pill)', background: 'var(--m3-cyan)', color: 'var(--m3-cyan-ink)', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', textDecoration: 'none' }}>Read</Link>
               </div>
             </div>
           </div>
