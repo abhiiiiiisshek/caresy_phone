@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { matchCompanionByDepartment } from '@/data/companions';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
+import { pincodeForArea } from '@/data/hospitals';
 import { Input } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode, listServedAreas, type ServiceArea } from '@caresy/utils';
 
@@ -466,7 +467,17 @@ export default function Booking() {
         {!review && step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <StepHeader step={2} title="Select Hospital" sub="Tell us where the visit is happening — we currently serve Noida & Greater Noida." />
-            <HospitalAutocomplete value={hospital} onChange={setHospital} />
+            <HospitalAutocomplete
+              value={hospital}
+              onChange={(v, picked) => {
+                setHospital(v);
+                // Only when chosen from the list, and only for areas whose
+                // pincode is unambiguous. Still editable — this is a shortcut,
+                // not a lock.
+                const pin = picked && pincodeForArea(picked.area);
+                if (pin) setPincode(pin);
+              }}
+            />
             <Input
               label="Pincode" name="pincode" required
               inputMode="numeric" maxLength={6} placeholder="201301"

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import { Search, MapPin } from 'lucide-react';
-import { HOSPITALS } from '@/data/hospitals';
+import { HOSPITALS, type Hospital } from '@/data/hospitals';
 
 // Free-text hospital input with a filtered suggestion dropdown backed by the
 // curated HOSPITALS list. Typing is never blocked — suggestions are a shortcut,
@@ -16,7 +16,9 @@ export default function HospitalAutocomplete({
   placeholder = 'Search hospital or clinic...',
 }: {
   value: string;
-  onChange: (v: string) => void;
+  // Second argument is present only when the value came from the list, so the
+  // caller can use the matched entry (e.g. to fill in the pincode).
+  onChange: (v: string, picked?: Hospital) => void;
   label?: string;
   required?: boolean;
   placeholder?: string;
@@ -32,13 +34,13 @@ export default function HospitalAutocomplete({
     return HOSPITALS.filter((h) => `${h.name} ${h.area}`.toLowerCase().includes(q)).slice(0, 8);
   }, [value]);
 
-  const pick = (name: string) => { onChange(name); setOpen(false); setActive(-1); };
+  const pick = (h: Hospital) => { onChange(h.name, h); setOpen(false); setActive(-1); };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (!open || matches.length === 0) return;
     if (e.key === 'ArrowDown') { e.preventDefault(); setActive((a) => (a + 1) % matches.length); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((a) => (a - 1 + matches.length) % matches.length); }
-    else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); pick(matches[active].name); }
+    else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); pick(matches[active]); }
     else if (e.key === 'Escape') { setOpen(false); }
   };
 
@@ -96,7 +98,7 @@ export default function HospitalAutocomplete({
               role="option"
               aria-selected={i === active}
               onMouseEnter={() => setActive(i)}
-              onClick={() => pick(h.name)}
+              onClick={() => pick(h)}
               style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 14, cursor: 'pointer', background: i === active ? '#e7f0ea' : 'transparent' }}
             >
               <MapPin style={{ width: 16, height: 16, color: 'var(--m3-green, #08796f)', flexShrink: 0 }} />

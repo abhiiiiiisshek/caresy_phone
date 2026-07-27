@@ -11,6 +11,41 @@ export interface Hospital {
   area: string;
 }
 
+/**
+ * Area label -> pincode, so choosing a listed hospital fills the pincode in
+ * rather than asking someone to guess it.
+ *
+ * Keyed on `area` rather than hospital name because a pincode IS an area code —
+ * 53 hospitals share "Sector 18, Noida" and all share its pincode. Ten entries
+ * here cover more of the list than thirty hand-entered hospital rows would.
+ *
+ * Every value below is taken from the area_name labels seeded in migration 11
+ * (service_areas), not from guesswork: 201301 is labelled "Noida (Sectors 1–18)",
+ * 201313 "Noida (Sector 62 area)", 201305 "Noida / Noida Extension", 201009
+ * "Gaur City / Greater Noida West", 203207 "Greater Noida (Kasna)".
+ *
+ * Deliberately absent: bare "Noida" (7 served pincodes, no way to choose),
+ * "Greater Noida" and "Greater Noida West" (3 each), "Noida West", and the
+ * one-off sectors above 18. Those keep the quick-pick chips. Add an entry only
+ * when you know the pincode — a wrong one puts a wrong address on the booking.
+ *
+ * Safety net: an autofilled pincode still goes through checkPincodeServed, so a
+ * mistake here surfaces in the UI as "we don't serve this" rather than silently.
+ */
+export const AREA_PINCODE: Record<string, string> = {
+  'Sector 11-12, Noida': '201301',
+  'Sector 12, Noida': '201301',
+  'Sector 18, Noida': '201301',
+  'Sector 62, Noida': '201313',
+  'Noida Extension': '201305',
+  'Gaur City, Greater Noida West': '201009',
+  'Kasna, Greater Noida': '203207',
+};
+
+export function pincodeForArea(area: string): string | undefined {
+  return AREA_PINCODE[area];
+}
+
 export const HOSPITALS: Hospital[] = [
   { name: 'Aarogya India Wellness Hospital', area: 'Noida West' },
   { name: 'Aashirwad Multispeciality Clinic', area: 'Noida West' },

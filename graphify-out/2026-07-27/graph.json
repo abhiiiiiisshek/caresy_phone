@@ -514,7 +514,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page",
-      "community": 82,
+      "community": 0,
       "norm_label": "page.tsx"
     },
     {
@@ -524,7 +524,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_status_order",
-      "community": 82,
+      "community": 0,
       "norm_label": "status_order"
     },
     {
@@ -534,7 +534,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_muted_statuses",
-      "community": 82,
+      "community": 0,
       "norm_label": "muted_statuses"
     },
     {
@@ -544,7 +544,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_stats",
-      "community": 82,
+      "community": 0,
       "norm_label": "stats"
     },
     {
@@ -554,7 +554,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_adminanalytics",
-      "community": 82,
+      "community": 0,
       "norm_label": "adminanalytics()"
     },
     {
@@ -564,7 +564,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_analyticsbody",
-      "community": 82,
+      "community": 0,
       "norm_label": "analyticsbody()"
     },
     {
@@ -1084,7 +1084,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_service_areas_page",
-      "community": 0,
+      "community": 55,
       "norm_label": "page.tsx"
     },
     {
@@ -1094,7 +1094,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_admin_src_app_service_areas_page_arearow",
-      "community": 0,
+      "community": 55,
       "norm_label": "arearow"
     },
     {
@@ -1104,7 +1104,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_admin_src_app_service_areas_page_adminserviceareas",
-      "community": 0,
+      "community": 55,
       "norm_label": "adminserviceareas()"
     },
     {
@@ -1124,7 +1124,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_settings_page",
-      "community": 0,
+      "community": 96,
       "norm_label": "page.tsx"
     },
     {
@@ -1134,7 +1134,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_admin_src_app_settings_page_settingrow",
-      "community": 0,
+      "community": 96,
       "norm_label": "settingrow"
     },
     {
@@ -1144,7 +1144,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_admin_src_app_settings_page_adminsettings",
-      "community": 0,
+      "community": 96,
       "norm_label": "adminsettings()"
     },
     {
@@ -1154,7 +1154,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_admin_src_app_settings_page_settingsbody",
-      "community": 0,
+      "community": 96,
       "norm_label": "settingsbody()"
     },
     {
@@ -1254,7 +1254,7 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "apps_admin_src_components_adminshell_usetoast",
-      "community": 0,
+      "community": 96,
       "norm_label": "usetoast()"
     },
     {
@@ -1314,7 +1314,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_utils_pricing",
-      "community": 82,
+      "community": 0,
       "norm_label": "pricing.ts"
     },
     {
@@ -1324,7 +1324,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "apps_admin_src_utils_pricing_pricedbooking",
-      "community": 82,
+      "community": 0,
       "norm_label": "pricedbooking"
     },
     {
@@ -1334,7 +1334,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_admin_src_utils_pricing_estimatebookingprice",
-      "community": 82,
+      "community": 0,
       "norm_label": "estimatebookingprice()"
     },
     {
@@ -2124,7 +2124,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout",
-      "community": 8,
+      "community": 81,
       "norm_label": "layout.tsx"
     },
     {
@@ -2134,7 +2134,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_poppins",
-      "community": 8,
+      "community": 81,
       "norm_label": "poppins"
     },
     {
@@ -2144,7 +2144,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_metadata",
-      "community": 8,
+      "community": 81,
       "norm_label": "metadata"
     },
     {
@@ -2154,7 +2154,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_viewport",
-      "community": 8,
+      "community": 81,
       "norm_label": "viewport"
     },
     {
@@ -2164,7 +2164,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_rootlayout",
-      "community": 8,
+      "community": 81,
       "norm_label": "rootlayout()"
     },
     {
@@ -2354,7 +2354,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_companion_src_components_portalheader",
-      "community": 8,
+      "community": 81,
       "norm_label": "portalheader.tsx"
     },
     {
@@ -2364,7 +2364,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_companion_src_components_portalheader_portalheader",
-      "community": 8,
+      "community": 81,
       "norm_label": "portalheader()"
     },
     {
@@ -5144,7 +5144,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page",
-      "community": 24,
+      "community": 67,
       "norm_label": "page.tsx"
     },
     {
@@ -5154,7 +5154,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page_checklist",
-      "community": 24,
+      "community": 67,
       "norm_label": "checklist"
     },
     {
@@ -5164,7 +5164,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page_founders",
-      "community": 24,
+      "community": 67,
       "norm_label": "founders"
     },
     {
@@ -5174,7 +5174,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page_about",
-      "community": 24,
+      "community": 67,
       "norm_label": "about()"
     },
     {
@@ -5254,7 +5254,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page",
-      "community": 55,
+      "community": 47,
       "norm_label": "page.tsx"
     },
     {
@@ -5264,7 +5264,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_services",
-      "community": 55,
+      "community": 47,
       "norm_label": "services"
     },
     {
@@ -5274,7 +5274,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_care_needs",
-      "community": 55,
+      "community": 47,
       "norm_label": "care_needs"
     },
     {
@@ -5284,7 +5284,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_time_slots",
-      "community": 55,
+      "community": 47,
       "norm_label": "time_slots"
     },
     {
@@ -5294,7 +5294,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_languages",
-      "community": 55,
+      "community": 47,
       "norm_label": "languages"
     },
     {
@@ -5304,7 +5304,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_fmtslot",
-      "community": 55,
+      "community": 47,
       "norm_label": "fmtslot()"
     },
     {
@@ -5314,7 +5314,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_label",
-      "community": 55,
+      "community": 47,
       "norm_label": "label"
     },
     {
@@ -5324,7 +5324,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_stepheader",
-      "community": 55,
+      "community": 47,
       "norm_label": "stepheader()"
     },
     {
@@ -5344,7 +5344,7 @@
       "source_location": "L107",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_booking",
-      "community": 55,
+      "community": 47,
       "norm_label": "booking()"
     },
     {
@@ -6724,7 +6724,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_trust_page",
-      "community": 47,
+      "community": 67,
       "norm_label": "page.tsx"
     },
     {
@@ -6734,7 +6734,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_website_src_app_trust_page_verification_steps",
-      "community": 47,
+      "community": 67,
       "norm_label": "verification_steps"
     },
     {
@@ -6744,7 +6744,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_website_src_app_trust_page_trust",
-      "community": 47,
+      "community": 55,
       "norm_label": "trust()"
     },
     {
@@ -6914,7 +6914,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_hospitalautocomplete",
-      "community": 105,
+      "community": 47,
       "norm_label": "hospitalautocomplete.tsx"
     },
     {
@@ -6924,7 +6924,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_website_src_components_hospitalautocomplete_hospitalautocomplete",
-      "community": 105,
+      "community": 47,
       "norm_label": "hospitalautocomplete()"
     },
     {
@@ -7114,7 +7114,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge",
-      "community": 81,
+      "community": 55,
       "norm_label": "locationbadge.tsx"
     },
     {
@@ -7124,7 +7124,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge_quick_picks",
-      "community": 81,
+      "community": 55,
       "norm_label": "quick_picks"
     },
     {
@@ -7134,7 +7134,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge_storedlocation",
-      "community": 81,
+      "community": 55,
       "norm_label": "storedlocation"
     },
     {
@@ -7144,7 +7144,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge_badgestate",
-      "community": 81,
+      "community": 55,
       "norm_label": "badgestate"
     },
     {
@@ -7154,7 +7154,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge_readstored",
-      "community": 81,
+      "community": 55,
       "norm_label": "readstored()"
     },
     {
@@ -7164,7 +7164,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge_writestored",
-      "community": 81,
+      "community": 55,
       "norm_label": "writestored()"
     },
     {
@@ -7174,7 +7174,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge_reversegeocode",
-      "community": 81,
+      "community": 55,
       "norm_label": "reversegeocode()"
     },
     {
@@ -7184,7 +7184,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "apps_website_src_components_locationbadge_locationbadge",
-      "community": 81,
+      "community": 55,
       "norm_label": "locationbadge()"
     },
     {
@@ -7374,7 +7374,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals",
-      "community": 105,
+      "community": 47,
       "norm_label": "hospitals.ts"
     },
     {
@@ -7384,7 +7384,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_hospital",
-      "community": 105,
+      "community": 47,
       "norm_label": "hospital"
     },
     {
@@ -7394,7 +7394,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_hospitals",
-      "community": 105,
+      "community": 47,
       "norm_label": "hospitals"
     },
     {
@@ -8794,7 +8794,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "packages_ui_src_badge_badge",
-      "community": 0,
+      "community": 67,
       "norm_label": "badge()"
     },
     {
@@ -8874,7 +8874,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "packages_ui_src_button_button",
-      "community": 0,
+      "community": 55,
       "norm_label": "button()"
     },
     {
@@ -8884,7 +8884,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_ui_src_card",
-      "community": 67,
+      "community": 24,
       "norm_label": "card.tsx"
     },
     {
@@ -8894,7 +8894,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "packages_ui_src_card_cardvariant",
-      "community": 67,
+      "community": 24,
       "norm_label": "cardvariant"
     },
     {
@@ -8904,7 +8904,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "packages_ui_src_card_cardprops",
-      "community": 67,
+      "community": 24,
       "norm_label": "cardprops"
     },
     {
@@ -8914,7 +8914,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "packages_ui_src_card_variants",
-      "community": 67,
+      "community": 24,
       "norm_label": "variants"
     },
     {
@@ -8934,7 +8934,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_ui_src_companioncard",
-      "community": 48,
+      "community": 67,
       "norm_label": "companioncard.tsx"
     },
     {
@@ -8944,7 +8944,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "packages_ui_src_companioncard_companioncardprops",
-      "community": 48,
+      "community": 67,
       "norm_label": "companioncardprops"
     },
     {
@@ -8954,7 +8954,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "packages_ui_src_companioncard_companioncard",
-      "community": 48,
+      "community": 67,
       "norm_label": "companioncard()"
     },
     {
@@ -9034,7 +9034,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "packages_ui_src_input_input",
-      "community": 53,
+      "community": 96,
       "norm_label": "input()"
     },
     {
@@ -9234,7 +9234,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "packages_utils_src_servicearea_servicearea",
-      "community": 55,
+      "community": 47,
       "norm_label": "servicearea"
     },
     {
@@ -9258,10 +9258,20 @@
       "norm_label": "isvalidpincode()"
     },
     {
+      "label": "listServedAreas()",
+      "file_type": "code",
+      "source_file": "packages/utils/src/serviceArea.ts",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "packages_utils_src_servicearea_listservedareas",
+      "community": 47,
+      "norm_label": "listservedareas()"
+    },
+    {
       "label": "checkPincodeServed()",
       "file_type": "code",
       "source_file": "packages/utils/src/serviceArea.ts",
-      "source_location": "L23",
+      "source_location": "L41",
       "_origin": "ast",
       "id": "packages_utils_src_servicearea_checkpincodeserved",
       "community": 55,
@@ -19550,11 +19560,33 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/app/booking/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "apps_website_src_app_booking_page",
+      "target": "packages_utils_src_servicearea_listservedareas",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/app/booking/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "apps_website_src_app_booking_page",
+      "target": "packages_utils_src_servicearea_servicearea",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L311",
+      "source_location": "L321",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "apps_website_src_app_booking_page_fmtslot",
@@ -19577,7 +19609,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L209",
+      "source_location": "L219",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "apps_website_src_data_companions_matchcompanionbydepartment"
@@ -19599,7 +19631,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L230",
+      "source_location": "L240",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -19610,7 +19642,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L176",
+      "source_location": "L186",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_servicearea_checkpincodeserved"
@@ -19621,10 +19653,21 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L173",
+      "source_location": "L183",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_servicearea_isvalidpincode"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/website/src/app/booking/page.tsx",
+      "source_location": "L177",
+      "weight": 1.0,
+      "source": "apps_website_src_app_booking_page_booking",
+      "target": "packages_utils_src_servicearea_listservedareas"
     },
     {
       "relation": "contains",
@@ -24596,9 +24639,20 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "packages/utils/src/serviceArea.ts",
-      "source_location": "L26",
+      "source_location": "L44",
       "weight": 1.0,
       "source": "packages_utils_src_servicearea_checkpincodeserved",
+      "target": "packages_auth_src_supabase_client_createclient"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/utils/src/serviceArea.ts",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "packages_utils_src_servicearea_listservedareas",
       "target": "packages_auth_src_supabase_client_createclient"
     },
     {
@@ -25630,7 +25684,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "packages/utils/src/serviceArea.ts",
-      "source_location": "L23",
+      "source_location": "L41",
       "weight": 1.0,
       "source": "packages_utils_src_servicearea",
       "target": "packages_utils_src_servicearea_checkpincodeserved",
@@ -25644,6 +25698,16 @@
       "weight": 1.0,
       "source": "packages_utils_src_servicearea",
       "target": "packages_utils_src_servicearea_isvalidpincode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "packages/utils/src/serviceArea.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "packages_utils_src_servicearea",
+      "target": "packages_utils_src_servicearea_listservedareas",
       "confidence_score": 1.0
     },
     {
@@ -25671,7 +25735,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "packages/utils/src/serviceArea.ts",
-      "source_location": "L25",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "packages_utils_src_servicearea_checkpincodeserved",
       "target": "packages_utils_src_servicearea_isvalidpincode",
@@ -28604,5 +28668,5 @@
       "source_file": "vanilla-backup/booking.html"
     }
   ],
-  "built_at_commit": "6344cf978fd2b46a4c4b61a9fc76eca8490667fb"
+  "built_at_commit": "c769f1e1952f42a0f668bdc2acb215c2a9bd7722"
 }

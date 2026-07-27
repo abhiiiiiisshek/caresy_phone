@@ -9,6 +9,7 @@ import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
+import { pincodeForArea } from '@/data/hospitals';
 
 const DRAFT_KEY = 'caresy_quickhelp_draft';
 
@@ -262,7 +263,15 @@ export default function QuickHelp() {
               <h2>Where is help needed?</h2>
               <div className="form-row">
                 <Input label="Patient name" name="patientName" type="text" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} />
-                <HospitalAutocomplete label="Hospital or clinic" required value={hospital} onChange={setHospital} />
+                <HospitalAutocomplete
+                  label="Hospital or clinic" required
+                  value={hospital}
+                  onChange={(v, picked) => {
+                    setHospital(v);
+                    const pin = picked && pincodeForArea(picked.area);
+                    if (pin) setPincode(pin);
+                  }}
+                />
               </div>
               <div className="form-row">
                 <Input
