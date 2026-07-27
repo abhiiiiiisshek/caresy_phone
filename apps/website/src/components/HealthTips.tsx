@@ -1,15 +1,31 @@
+'use client';
+
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { CARE_GUIDES } from '@/lib/careGuides';
+import { rotatedGuides, daysSinceEpoch } from '@/lib/careGuides';
+
+const FEATURED = 'post-surgery'; // has its own card directly below this strip
+
+// The home page is statically prerendered, so reading Date during render would
+// bake the build date into the HTML and disagree with the client from the next
+// day onward. useSyncExternalStore is the sanctioned way out: the server (and
+// the hydration pass) sees 0, then the client swaps in today without a mismatch.
+const noopSubscribe = () => () => {};
+const serverDay = () => 0;
+// Stable within a calendar day, so React never sees a changing snapshot.
+const clientDay = () => daysSinceEpoch(Date.now());
 
 /**
  * Quick-info strip on the home screen.
  *
- * No state, no date maths, no client boundary: a CSS scroll-snap row of static
- * cards. Rotating a "guide of the day" would have meant a Date read during
- * render, which mismatches between the statically prerendered HTML and the
- * client. Letting the reader swipe is less code and shows them more than one.
+ * ponytail: rotates once a day, not per visit — a per-visit shuffle would need
+ * either a random value (hydration mismatch) or a stored counter. Swap clientDay
+ * for a per-session seed if the same order within one day starts feeling stale.
  */
 export default function HealthTips() {
+  const day = useSyncExternalStore(noopSubscribe, clientDay, serverDay);
+  const guides = rotatedGuides(day, FEATURED);
+
   return (
     <section aria-labelledby="care-guides-heading" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
@@ -35,8 +51,7 @@ export default function HealthTips() {
           scrollbarWidth: 'none',
         }}
       >
-        {/* post-surgery has its own featured card directly below this strip. */}
-        {CARE_GUIDES.filter((g) => g.slug !== 'post-surgery').map((g) => (
+        {guides.map((g) => (
           <article
             key={g.slug}
             style={{

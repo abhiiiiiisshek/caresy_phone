@@ -222,8 +222,242 @@ export const CARE_GUIDES: CareGuide[] = [
       },
     ],
   },
+  {
+    slug: 'leaving-hospital',
+    emoji: '📋',
+    title: 'Before you leave the hospital',
+    summary: 'The questions worth asking at discharge',
+    minutes: 3,
+    sections: [
+      {
+        paragraphs: [
+          'Discharge is rushed, usually crowded, and the person being discharged is tired. Most readmissions in the following fortnight trace back to something that was explained once, quickly, at exactly that moment.',
+          'Ask these before you leave the ward, and write the answers down.',
+        ],
+      },
+      {
+        heading: 'The six questions',
+        bullets: [
+          'Which of the old medicines do we stop, and which continue?',
+          'What is each new medicine for, and for how many days?',
+          'What should the wound or the recovery look like on day three, and on day seven?',
+          'What would mean we should come back immediately?',
+          'When is the follow-up, and who do we call before then?',
+          'What can they do — stairs, bathing, lifting, driving — and what must wait?',
+        ],
+      },
+      {
+        heading: 'Take the paperwork seriously',
+        paragraphs: [
+          'Photograph the discharge summary and prescription before you leave the building. Paper gets lost between the hospital and home more often than anyone expects, and the summary is what any other doctor will want to see.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'fever-at-home',
+    emoji: '🌡️',
+    title: 'Fever at home',
+    summary: 'What to do, and when it stops being a wait-and-see',
+    minutes: 3,
+    sections: [
+      {
+        paragraphs: [
+          'Most fevers settle on their own. The judgement worth having is not what the number is, but what else is happening alongside it — and that is usually visible without any medical training.',
+        ],
+      },
+      {
+        heading: 'While waiting it out',
+        bullets: [
+          'Fluids, steadily. Fever loses water faster than usual.',
+          'Light clothing and a normally ventilated room. Do not bundle someone up.',
+          'Paracetamol at the dose already prescribed, for comfort rather than to chase the number down.',
+          'Rest, and a record: temperature, the time, and anything else noticed.',
+        ],
+      },
+      {
+        heading: 'Seek care the same day if',
+        bullets: [
+          'Fever lasting beyond three days, or returning after settling.',
+          'Confusion, unusual drowsiness, or difficulty waking the person.',
+          'Breathlessness, chest pain, or fast shallow breathing.',
+          'A rash that does not fade when pressed.',
+          'Persistent vomiting, or no urine for eight hours.',
+          'Fever in someone on chemotherapy, on steroids, or recently operated on — this is urgent, not wait-and-see.',
+        ],
+      },
+      {
+        paragraphs: [
+          'In an elderly person, fever can present as confusion or a fall rather than as heat. A sudden change in how someone is behaving deserves the same attention as a high reading.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'eating-to-recover',
+    emoji: '🍲',
+    title: 'Eating to recover',
+    summary: 'Appetite goes first, and it matters more than people think',
+    minutes: 3,
+    sections: [
+      {
+        paragraphs: [
+          'Illness and surgery both suppress appetite exactly when the body needs building material. Weight lost during a hospital stay is mostly muscle, and muscle is what someone stands up with.',
+        ],
+      },
+      {
+        heading: 'Small and often beats three meals',
+        paragraphs: [
+          'A full plate is discouraging to someone who is not hungry. Six small offerings across the day get more in than three proper meals, and there is less waste.',
+        ],
+      },
+      {
+        heading: 'Protein at every one of them',
+        bullets: [
+          'Dal, rajma, chana — cheap, familiar, and the easiest to increase.',
+          'Curd, paneer, milk, eggs.',
+          'Fish or chicken if the household eats them.',
+          'Peanuts and seeds, if chewing is comfortable.',
+        ],
+      },
+      {
+        heading: 'When swallowing is hard',
+        paragraphs: [
+          'Softer textures and thicker liquids are usually easier than thin water, which is the thing most likely to go down the wrong way. Sitting fully upright to eat, and staying upright for half an hour afterwards, prevents a great deal of trouble.',
+          'Coughing or a wet-sounding voice during meals is worth reporting to a doctor rather than working around.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'blood-pressure-at-home',
+    emoji: '🩺',
+    title: 'Measuring blood pressure at home',
+    summary: 'Most home readings are wrong for avoidable reasons',
+    minutes: 2,
+    sections: [
+      {
+        paragraphs: [
+          'Home monitors are genuinely useful, and most of the readings people bring to appointments are unusable — taken straight after climbing stairs, with the arm hanging down, over a sleeve.',
+        ],
+      },
+      {
+        heading: 'How to get a reading worth having',
+        bullets: [
+          'Sit for five quiet minutes first. No tea, no smoking, no exercise in the half hour before.',
+          'Back supported, feet flat on the floor, legs uncrossed.',
+          'Bare arm resting on a table, cuff at the level of the heart.',
+          'Do not talk during the measurement.',
+          'Take two readings a minute apart and record both.',
+        ],
+      },
+      {
+        heading: 'What to do with the numbers',
+        paragraphs: [
+          'Keep a simple log with date and time — morning and evening is the usual pattern — and take it to appointments. A trend across two weeks tells a doctor far more than any single reading.',
+          'Do not change a dose based on a home reading. That is a conversation, not a decision to make at the table.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'bed-rest-skin',
+    emoji: '🛏️',
+    title: 'Caring for someone in bed',
+    summary: 'Pressure sores form in hours and take months to heal',
+    minutes: 3,
+    sections: [
+      {
+        paragraphs: [
+          'Someone who cannot shift their own weight can develop a pressure sore over a single long night. Prevention is almost entirely mechanical, and it works.',
+        ],
+      },
+      {
+        heading: 'Change position every two hours',
+        paragraphs: [
+          'Alternate between the back and each side. A pillow behind the back holds a side-lying position, and a pillow between the knees keeps bony points apart.',
+          'Heels are the most commonly missed spot. A pillow under the calves to float the heels clear of the mattress prevents most heel sores outright.',
+        ],
+      },
+      {
+        heading: 'Look at the skin daily',
+        paragraphs: [
+          'Check the tailbone, hips, heels, elbows and the back of the head. Redness that does not fade a few minutes after the pressure is relieved is the first stage of a sore — act on it immediately by keeping all weight off that area, and tell a doctor.',
+          'Keep skin clean and dry, particularly after any incontinence. Moisture plus pressure is what breaks skin down.',
+        ],
+      },
+      {
+        heading: 'Keep the body moving anyway',
+        paragraphs: [
+          'Gentle ankle circles, bending and straightening the knees, lifting the arms — a few minutes several times a day preserves joint movement and circulation, even when someone cannot get out of bed.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'dementia-day',
+    emoji: '🧠',
+    title: 'Making the day easier with dementia',
+    summary: 'Routine does more than any argument',
+    minutes: 3,
+    sections: [
+      {
+        paragraphs: [
+          'Memory loss is the part everyone knows about. The part families find hardest is the agitation, the repetition and the resistance at bath time — and those respond to how the day is arranged far more than to explanation.',
+        ],
+      },
+      {
+        heading: 'Keep the shape of the day the same',
+        paragraphs: [
+          'Same waking time, same meal times, same order of things. Predictability does the work that memory no longer can, and a familiar sequence removes dozens of small decisions.',
+          'Put the demanding tasks — bathing, appointments, outings — in the part of the day when they are usually at their best, most often the morning.',
+        ],
+      },
+      {
+        heading: 'Do not correct, redirect',
+        paragraphs: [
+          'Being told they are wrong about a fact does not restore the fact; it produces distress that outlasts the conversation. Acknowledge the feeling, then move to something else — a task, a photograph, going to another room.',
+          'Repeated questions are usually anxiety wearing a factual costume. Answering the worry calms it; answering the question does not.',
+        ],
+      },
+      {
+        heading: 'Reduce what the room demands',
+        bullets: [
+          'One thing at a time — television off during meals and conversation.',
+          'Good lighting, especially late afternoon, when confusion often worsens.',
+          'Clear labels on doors and drawers.',
+          'Something identifying on the person, in case they walk out.',
+        ],
+      },
+      {
+        paragraphs: [
+          'A sudden worsening over days — not months — is often infection, pain or a new medicine rather than the dementia itself. That is worth a doctor, promptly.',
+        ],
+      },
+    ],
+  },
 ];
 
 export function guideBySlug(slug: string | null): CareGuide | undefined {
   return slug ? CARE_GUIDES.find((g) => g.slug === slug) : undefined;
+}
+
+/**
+ * Order for the home strip, rotated by day so it is not the same cards every
+ * time the app opens.
+ *
+ * `dayIndex` is supplied by the caller rather than read from Date here: the home
+ * page is statically prerendered, so a Date read during render would bake in the
+ * build date on the server and disagree with the client on every later day.
+ * The component resolves it hydration-safely and passes it in.
+ */
+export function rotatedGuides(dayIndex: number, exclude?: string): CareGuide[] {
+  const pool = exclude ? CARE_GUIDES.filter((g) => g.slug !== exclude) : CARE_GUIDES;
+  if (pool.length === 0) return pool;
+  const offset = ((dayIndex % pool.length) + pool.length) % pool.length;
+  return [...pool.slice(offset), ...pool.slice(0, offset)];
+}
+
+export function daysSinceEpoch(now: number): number {
+  return Math.floor(now / 86_400_000);
 }
