@@ -1,7 +1,7 @@
 # Graph Report - caresy_m3_worktree  (2026-07-27)
 
 ## Corpus Check
-- 199 files · ~409,483 words
+- 199 files · ~409,422 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

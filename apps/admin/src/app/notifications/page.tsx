@@ -14,7 +14,10 @@ import { MessageCircle, Check, X } from 'lucide-react';
 // Loads the latest 300 once and filters client-side, so switching tabs is
 // instant and each pill shows a live count.
 
-type NotifStatus = 'QUEUED' | 'SENT' | 'FAILED';
+// SKIPPED is written by /api/cron/send-push when a queued row has no reachable
+// device — no recipient resolved, or the user has never opened the app. Without
+// a tab and a tone these rows would silently vanish from this screen.
+type NotifStatus = 'QUEUED' | 'SENT' | 'FAILED' | 'SKIPPED';
 
 interface NotifRow {
   id: string;
@@ -26,11 +29,12 @@ interface NotifRow {
   status: NotifStatus;
   created_at: string;
   sent_at: string | null;
+  error: string | null;
   booking?: { reference_code: string | null; service_metadata: { customerPhone?: string } | null } | null;
 }
 
-const STATUS_TONE: Record<NotifStatus, 'teal' | 'success' | 'urgent'> = {
-  QUEUED: 'teal', SENT: 'success', FAILED: 'urgent',
+const STATUS_TONE: Record<NotifStatus, 'teal' | 'success' | 'urgent' | 'neutral'> = {
+  QUEUED: 'teal', SENT: 'success', FAILED: 'urgent', SKIPPED: 'neutral',
 };
 
 const FILTERS: { key: NotifStatus | 'ALL'; label: string }[] = [
@@ -38,6 +42,7 @@ const FILTERS: { key: NotifStatus | 'ALL'; label: string }[] = [
   { key: 'QUEUED', label: 'Queued' },
   { key: 'SENT', label: 'Sent' },
   { key: 'FAILED', label: 'Failed' },
+  { key: 'SKIPPED', label: 'Skipped' },
 ];
 
 const FETCH_LIMIT = 300;
