@@ -18,10 +18,18 @@ for (const s of SLABS) {
 }
 
 // The rates Abhishek set on 2026-07-28. Wrong numbers here means wrong bills.
-assert.equal(priceForMinutes(60), 29_900);
-assert.equal(priceForMinutes(120), 49_900);
-assert.equal(priceForMinutes(240), 99_900);
-assert.equal(priceForMinutes(480), 159_900);
+// Two slabs plus a meter — the intermediate durations are metered, not slabbed.
+assert.equal(SLABS.length, 2, 'a third slab needs a reason a customer can hear');
+assert.equal(priceForMinutes(60), 29_900, '1 hour');
+assert.equal(priceForMinutes(120), 47_900, '2 hours = 299 + 45 min meter');
+assert.equal(priceForMinutes(240), 95_900, '4 hours = 299 + 165 min meter');
+assert.equal(priceForMinutes(480), 159_900, 'full day');
+assert.equal(priceForMinutes(720), 249_900, '12 hours = full day + 225 min meter');
+
+// The day rate must beat the meter before the day is out, or nobody would ever
+// take it. It starts winning at 6h40m.
+assert.ok(priceForMinutes(400) === 159_900, 'day rate should bind by 6h40m');
+assert.ok(priceForMinutes(399) < 159_900);
 
 // Grace: 15 minutes past a slab is free, minute 16 is not.
 assert.equal(priceForMinutes(60 + GRACE_MINUTES), 29_900, 'grace must be free');
@@ -75,8 +83,16 @@ for (let m = 0; m <= 900; m += 7) {
   assert.equal(explainPrice(m).paise, priceForMinutes(m), `explainPrice disagrees at ${m} min`);
 }
 assert.equal(explainPrice(60).slab.label, '1 hour');
-assert.equal(explainPrice(240).slab.label, '4 hours');
-assert.equal(explainPrice(300).overtimeMinutes, 300 - 240 - GRACE_MINUTES);
+assert.equal(explainPrice(240).slab.label, '1 hour', 'mid durations are metered off the first hour');
+assert.equal(explainPrice(240).overtimeMinutes, 240 - 60 - GRACE_MINUTES);
+
+// Once the day rate caps the bill, the receipt must say "Full day" with no
+// overtime line — charging someone for 404 metered minutes they did not pay for
+// is the fastest way to lose an argument about a bill that was actually fair.
+assert.equal(explainPrice(479).slab.label, 'Full day');
+assert.equal(explainPrice(479).overtimeMinutes, 0);
+assert.equal(explainPrice(540).slab.label, 'Full day');
+assert.equal(explainPrice(540).overtimeMinutes, 540 - 480 - GRACE_MINUTES);
 
 // billableMinutes: null while running, never negative, rounds partial minutes up.
 assert.equal(billableMinutes(null, null), null);

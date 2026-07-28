@@ -14,12 +14,23 @@ export interface Slab {
   label: string;
 }
 
-/** Duration slabs, cheapest first. Rates set by Abhishek, 2026-07-28. */
+/**
+ * Duration slabs, cheapest first. Rates set by Abhishek, 2026-07-28.
+ *
+ * Two, deliberately. The 2-hour and 4-hour slabs were dropped on 2026-07-28
+ * after checking them against the meter: they never moved a bill by more than
+ * ₹40, and every one of them added a boundary a customer could not verify.
+ * Corelatin — the direct competitor in Delhi NCR — quotes a single ₹299/hr and
+ * nothing else, so a formula only has to be short enough to say out loud:
+ *
+ *   "₹299 for the first hour, then ₹4 a minute. Full day is ₹1,599,
+ *    and we always charge whichever is less."
+ *
+ * Add a slab back only if it earns its explanation.
+ */
 export const SLABS: Slab[] = [
   { minutes: 60, paise: 29_900, label: '1 hour' },
-  { minutes: 120, paise: 49_900, label: '2 hours' },
-  { minutes: 240, paise: 99_900, label: '4 hours' },
-  { minutes: 480, paise: 159_900, label: '8 hours' },
+  { minutes: 480, paise: 159_900, label: 'Full day' },
 ];
 
 /**
