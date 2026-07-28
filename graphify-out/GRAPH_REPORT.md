@@ -1,7 +1,7 @@
 # Graph Report - caresy_m3_worktree  (2026-07-27)
 
 ## Corpus Check
-- 200 files · ~410,752 words
+- 200 files · ~410,755 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `eef81f39`
+- Built from commit: `f7c4bd1c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

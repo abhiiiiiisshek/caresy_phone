@@ -164,8 +164,9 @@ CREATE POLICY "Circle and assigned companion write care events"
 -- ============================================================================
 -- 4. Patient documents — prescriptions, reports, receipts
 -- ============================================================================
--- FIRST create the bucket in the dashboard: Storage -> New bucket ->
---   name: patient-docs   |   Public: OFF (private)
+-- The `patient-docs` bucket is created by migration 25 — run that too, or the
+-- policy below guards a bucket that does not exist and uploads fail with
+-- "Bucket not found".
 -- Convention: files live under a folder named after the patient id, e.g.
 --   patient-docs/<patient_id>/report.pdf
 -- Folder is the patient, not the uploader, so the whole circle can read it.

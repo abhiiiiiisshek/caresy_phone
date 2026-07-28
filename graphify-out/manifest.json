@@ -1025,8 +1025,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/data/hospitals.ts": {
-    "mtime": 1785157954.2746508,
-    "ast_hash": "b91b2d765dc65d688ed8f6c62bfb7f4a",
+    "mtime": 1785175706.5354362,
+    "ast_hash": "924bb32b5ce1ff02e6cbe3de5895fa58",
     "semantic_hash": ""
   },
   "apps/website/src/lib/careGuides.check.ts": {
