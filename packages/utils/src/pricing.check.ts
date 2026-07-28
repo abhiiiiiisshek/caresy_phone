@@ -9,6 +9,7 @@
 import { strict as assert } from 'node:assert';
 import {
   SLABS, GRACE_MINUTES, OVERTIME_PAISE_PER_MINUTE,
+  EXTENSIONS, extensionSaving, CANCELLATION_PAISE, cancellationPaise,
   priceForMinutes, billableMinutes, explainPrice, formatINR, upiPayUrl,
 } from './pricing.ts';
 
@@ -104,6 +105,49 @@ assert.equal(billableMinutes('not-a-date', '2026-07-28T10:00:00Z'), null);
 
 assert.equal(formatINR(159_900), '₹1,599');
 assert.equal(formatINR(29_900), '₹299');
+
+// EXTENSIONS. Two properties, both easy to break by editing a price by hand.
+let prevRate = Infinity;
+for (const e of EXTENSIONS) {
+  const meter = e.minutes * OVERTIME_PAISE_PER_MINUTE;
+  // Cheaper than letting the meter run, or nobody accepts the offer and the
+  // bill shock these prevent comes straight back.
+  assert.ok(e.paise < meter, `${e.label} costs more than the meter — nobody would extend`);
+  assert.ok(extensionSaving(e) > 0, `${e.label} shows a negative saving`);
+  // Longer must be cheaper per minute, or the decoy points the wrong way.
+  const rate = e.paise / e.minutes;
+  assert.ok(rate < prevRate, `${e.label} is not better value per minute than the option above it`);
+  prevRate = rate;
+}
+assert.equal(EXTENSIONS.length, 3, 'the middle option stops being obvious past three');
+
+// CANCELLATION. Fixed clock so the windows are checked, not the wall time.
+const NOW = '2026-07-28T12:00:00Z';
+const cancel = (o: Partial<Parameters<typeof cancellationPaise>[0]>) => cancellationPaise({
+  isScheduled: false, companionDispatched: false,
+  bookedAtIso: NOW, startsAtIso: null, nowIso: NOW, ...o,
+});
+
+// Scheduled: free at 6h notice, charged just inside it.
+assert.equal(cancel({ isScheduled: true, startsAtIso: '2026-07-28T18:00:00Z' }), 0, 'exactly 6h is free');
+assert.equal(cancel({ isScheduled: true, startsAtIso: '2026-07-28T23:00:00Z' }), 0);
+assert.equal(cancel({ isScheduled: true, startsAtIso: '2026-07-28T17:59:00Z' }), CANCELLATION_PAISE);
+assert.equal(cancel({ isScheduled: true, startsAtIso: '2026-07-28T12:30:00Z' }), CANCELLATION_PAISE);
+
+// Urgent: free for 30 minutes after booking, charged after.
+assert.equal(cancel({ bookedAtIso: '2026-07-28T11:59:00Z' }), 0);
+assert.equal(cancel({ bookedAtIso: '2026-07-28T11:30:00Z' }), 0, 'exactly 30 min is free');
+assert.equal(cancel({ bookedAtIso: '2026-07-28T11:29:00Z' }), CANCELLATION_PAISE);
+
+// Dispatched beats every free window — the trip is already spent.
+assert.equal(cancel({ companionDispatched: true, bookedAtIso: NOW }), CANCELLATION_PAISE,
+  'dispatched must charge even inside the urgent grace');
+assert.equal(cancel({ companionDispatched: true, isScheduled: true, startsAtIso: '2026-07-29T12:00:00Z' }),
+  CANCELLATION_PAISE, 'dispatched must charge even a day early');
+
+// Missing or unparseable timestamps must not invent a charge.
+assert.equal(cancel({ isScheduled: true, startsAtIso: null }), 0);
+assert.equal(cancel({ bookedAtIso: 'not-a-date' }), 0);
 
 // UPI link: amount is 2dp rupees, and the payee/note survive encoding.
 const url = upiPayUrl({ vpa: 'caresy@ybl', name: 'Caresy', paise: 99_900, ref: 'CR-1042' });

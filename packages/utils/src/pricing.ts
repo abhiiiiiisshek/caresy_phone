@@ -118,6 +118,82 @@ export function explainPrice(actualMinutes: number): { slab: Slab; overtimeMinut
   return { slab, overtimeMinutes: Math.max(0, used - slab.minutes - GRACE_MINUTES), paise };
 }
 
+/**
+ * Extension offers, shown ~10 minutes before the booked time runs out.
+ *
+ * Every one is cheaper per minute than the ₹4/min meter, and they get cheaper
+ * the longer they are. That ordering is the whole point and it is easy to get
+ * backwards: if extending cost MORE than overstaying, nobody would ever accept
+ * one — they would let the meter run and you would keep the bill shock that
+ * these exist to prevent. The meter is the penalty for not deciding; extending
+ * is the discount for deciding early.
+ *
+ * Three, not five. The decoy only works when the middle option is obviously the
+ * value pick, and a phone popup with five prices is a menu, not a decision.
+ * 1 hour is the target: twice the time of the 30-minute option for 1.8x the
+ * price. Add 15-minute and 45-minute rows here if the middle stops winning.
+ */
+export interface Extension {
+  minutes: number;
+  paise: number;
+  label: string;
+}
+
+export const EXTENSIONS: Extension[] = [
+  { minutes: 30, paise: 10_900, label: '30 minutes' },
+  { minutes: 60, paise: 19_500, label: '1 hour' },
+  { minutes: 120, paise: 35_900, label: '2 hours' },
+];
+
+/** What the same minutes would cost on the meter — the "you save" comparison. */
+export function extensionSaving(e: Extension): number {
+  return e.minutes * OVERTIME_PAISE_PER_MINUTE - e.paise;
+}
+
+/**
+ * Cancellation fee, in paise. Set at ₹99 by Abhishek on 2026-07-28.
+ *
+ * Goes to the companion in full, not to Caresy — the Urban Company model. One
+ * policy then covers both the customer's incentive and the companion's dead
+ * trip, and it costs Caresy nothing because Caresy never keeps it.
+ */
+export const CANCELLATION_PAISE = 9_900;
+
+/** Free-cancellation window before a scheduled booking starts. */
+export const SCHEDULED_FREE_HOURS = 6;
+
+/** Grace after placing an urgent booking, during which cancelling is free. */
+export const URGENT_FREE_MINUTES = 30;
+
+/**
+ * Whether cancelling costs the customer ₹99.
+ *
+ * `companionDispatched` overrides everything. Once someone has set out, their
+ * trip is spent no matter which window the clock is in, and that is exactly the
+ * loss the fee exists to cover — so it is checked before the free windows, not
+ * after.
+ */
+export function cancellationPaise(o: {
+  isScheduled: boolean;
+  companionDispatched: boolean;
+  bookedAtIso: string;
+  startsAtIso: string | null;
+  nowIso: string;
+}): number {
+  if (o.companionDispatched) return CANCELLATION_PAISE;
+  const now = Date.parse(o.nowIso);
+  if (o.isScheduled) {
+    const starts = o.startsAtIso ? Date.parse(o.startsAtIso) : NaN;
+    // Unknown start time: treat as inside the window rather than billing
+    // someone on the strength of a missing timestamp.
+    if (!Number.isFinite(starts)) return 0;
+    return starts - now >= SCHEDULED_FREE_HOURS * 3_600_000 ? 0 : CANCELLATION_PAISE;
+  }
+  const booked = Date.parse(o.bookedAtIso);
+  if (!Number.isFinite(booked)) return 0;
+  return now - booked <= URGENT_FREE_MINUTES * 60_000 ? 0 : CANCELLATION_PAISE;
+}
+
 /** ₹1,599 — grouped Indian-style, no paise (every price here is whole rupees). */
 export function formatINR(paise: number): string {
   return `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
