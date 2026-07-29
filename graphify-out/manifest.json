@@ -295,8 +295,8 @@
     "semantic_hash": ""
   },
   "apps/companion/package.json": {
-    "mtime": 1785043549.725914,
-    "ast_hash": "5fb743c655797d893b5a211135b098c5",
+    "mtime": 1785301471.0989587,
+    "ast_hash": "2ad3d22c0dca9116d11bd033573cb091",
     "semantic_hash": ""
   },
   "apps/companion/postcss.config.mjs": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "apps/companion/src/app/page.tsx": {
-    "mtime": 1785043549.7291706,
-    "ast_hash": "b702eabd2be34b12d22cddd5694c86a7",
+    "mtime": 1785306541.7302105,
+    "ast_hash": "cc9b4df58ac0c74f44f0a6bd9dc67106",
     "semantic_hash": ""
   },
   "apps/companion/src/proxy.ts": {
@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/booking/page.tsx": {
-    "mtime": 1785265604.3017032,
-    "ast_hash": "e6e34b252c679092ed583f65278bcb38",
+    "mtime": 1785306541.7310941,
+    "ast_hash": "d75b28e423d837bdaf7116d8b89e2d00",
     "semantic_hash": ""
   },
   "apps/website/src/app/for-hospitals/page.tsx": {
@@ -385,8 +385,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/my-bookings/page.tsx": {
-    "mtime": 1785085463.006377,
-    "ast_hash": "70596aaeecf5f19cac7c80a0e1d77cda",
+    "mtime": 1785301471.1003911,
+    "ast_hash": "e52483c1960bb1bb6ab4e87aef6ff243",
     "semantic_hash": ""
   },
   "apps/website/src/app/page.tsx": {
@@ -1457,6 +1457,16 @@
   "supabase/migrations/25_PATIENT_DOCS_BUCKET.sql": {
     "mtime": 1785176063.3880599,
     "ast_hash": "6d5a9ed04d99d7a46ddd5e335809f84e",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/26_BILLING.sql": {
+    "mtime": 1785301253.0084667,
+    "ast_hash": "a8501a1ba0f4f69ed17059c2814f733f",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/27_TRANSPORT.sql": {
+    "mtime": 1785306372.8293931,
+    "ast_hash": "aaf2d9d69c88cb667adc2ce572cb24b0",
     "semantic_hash": ""
   }
 }

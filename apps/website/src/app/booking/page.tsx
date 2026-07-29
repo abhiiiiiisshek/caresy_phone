@@ -7,7 +7,8 @@ import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import {
   ArrowRight, ArrowLeft, Loader2, Check, CheckCircle2, Stethoscope,
-  Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck,
+  Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck, TestTube,
+  Pill, Sun, HeartPulse, Settings2, UserPlus,
   ChevronLeft, ChevronRight, CalendarPlus, Home as HomeIcon, Send,
 } from 'lucide-react';
 import { matchCompanionByDepartment } from '@/data/companions';
@@ -21,14 +22,34 @@ const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const DRAFT_KEY = 'caresy_booking_draft';
 const TOTAL_STEPS = 4;
 
-// Durations replace the old service tiers (₹499/₹899/₹1,299). Price comes from
-// the shared meter, so the numbers here can never drift from what the bill
-// says. Pickup & drop stopped being a ₹400 tier and became a care need.
+// What they need. Price is by time, not by service, so these carry no tier of
+// their own — but dropping them entirely was wrong: people could not tell
+// whether a scan or a medicine run was even something Caresy does, and a bare
+// "how many hours?" gives nothing to judge the cost against. Each one suggests
+// the duration that visit usually takes, which is where the price comes from.
+const SERVICES = [
+  { key: 'HOSPITAL_COMPANION',    icon: Stethoscope, name: 'Doctor appointment', desc: 'OPD visit — queues, consultation, paperwork, pharmacy.', hours: 2 },
+  { key: 'DIAGNOSTIC_TEST',       icon: TestTube,    name: 'Test or scan',        desc: 'Blood work, X-ray, MRI, ultrasound — including the wait for reports.', hours: 2 },
+  { key: 'MEDICINE_PICKUP',       icon: Pill,        name: 'Medicine pickup',     desc: 'Collect a prescription and deliver it home. No patient needed.', hours: 1 },
+  { key: 'APPOINTMENT_ASSISTANCE',icon: Sun,         name: 'Procedure or day-care', desc: 'Admission, surgery or dialysis — someone stays the whole time.', hours: 8 },
+  { key: 'SAFE_RETURN',           icon: HeartPulse,  name: 'Elderly care visit',  desc: 'Unhurried company for an older parent through a long visit.', hours: 4 },
+  { key: 'DOCUMENTATION',         icon: Settings2,   name: 'Something else',      desc: 'Insurance paperwork, discharge, hospital admin. Tell us below.', hours: 2 },
+] as const;
+
+// Price comes from the shared meter, so the numbers here can never drift from
+// what the bill says.
 const DURATIONS = [1, 2, 4, 6, 8].map((hours) => ({
   hours,
   label: hours === 8 ? 'Full day' : `${hours} hour${hours > 1 ? 's' : ''}`,
   paise: priceForMinutes(hours * 60),
 }));
+
+interface SavedPatient {
+  id: string;
+  full_name: string;
+  age: number | null;
+  emergency_contact_phone: string | null;
+}
 
 const CARE_NEEDS = ['Wheelchair', 'Walking assistance', 'Medicine collection'];
 
@@ -122,9 +143,13 @@ export default function Booking() {
 
   const [step, setStep] = useState(1);
 
-  // Step 1: Duration. 2 hours preselected — the typical OPD visit, and the
-  // middle of the menu.
+  // Step 1: what and how long. 2 hours preselected — the typical OPD visit,
+  // and the middle of the menu.
+  const [serviceKey, setServiceKey] = useState<string>('HOSPITAL_COMPANION');
   const [durationHours, setDurationHours] = useState(2);
+  // Once someone moves the duration slider themselves, picking a different
+  // service must not silently overwrite their choice.
+  const [durationTouched, setDurationTouched] = useState(false);
   const [careNeeds, setCareNeeds] = useState<string[]>([]);
   const [transportMode, setTransportMode] = useState<string>('NONE');
 
@@ -138,7 +163,11 @@ export default function Booking() {
   const [department, setDepartment] = useState('');
   const [doctor, setDoctor] = useState('');
 
-  // Step 3: Patient
+  // Step 3: Patient. selectedPatientId is set when they pick someone they have
+  // booked for before, so the booking attaches to that existing patient record
+  // instead of minting a new one.
+  const [savedPatients, setSavedPatients] = useState<SavedPatient[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [patientName, setPatientName] = useState('');
   const [age, setAge] = useState('');
   const [phone, setPhone] = useState('');
@@ -173,7 +202,9 @@ export default function Booking() {
       setDate(draft.date || '');
       setTime(draft.time || '');
       setLanguage(draft.language || 'No preference');
+      setServiceKey(draft.serviceKey || 'HOSPITAL_COMPANION');
       setDurationHours(draft.durationHours || 2);
+      setDurationTouched(true);   // a restored draft is already their choice
       setCareNeeds(draft.careNeeds || []);
       setTransportMode(draft.transportMode || 'NONE');
       setNotes(draft.notes || '');
@@ -184,6 +215,38 @@ export default function Booking() {
       // ignore malformed/unavailable sessionStorage
     }
   }, []);
+
+  // People they have booked for before. Nobody should retype their mother's
+  // name and age on every visit, and reusing the row is what keeps the care
+  // timeline and documents attached to one person instead of scattering across
+  // a new patient record per booking.
+  useEffect(() => {
+    // No synchronous reset on the signed-out branch: the list starts empty and
+    // a guest never fills it, so clearing here would only be a setState inside
+    // an effect for no observable change.
+    if (!user) return;
+    let alive = true;
+    createClient()
+      .from('patients')
+      .select('id, full_name, age, emergency_contact_phone')
+      .eq('customer_user_id', user.id)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => { if (alive) setSavedPatients((data as SavedPatient[]) ?? []); });
+    return () => { alive = false; };
+  }, [user]);
+
+  const pickPatient = (p: SavedPatient) => {
+    setSelectedPatientId(p.id);
+    setPatientName(p.full_name);
+    setAge(p.age ? String(p.age) : '');
+    setEmergency(p.emergency_contact_phone || '');
+  };
+
+  const clearPatient = () => {
+    setSelectedPatientId(null);
+    setPatientName(''); setAge(''); setEmergency('');
+  };
 
   // The pincodes we cover, offered as quick-picks. People were asked to type a
   // pincode for a hospital they had just chosen from a list, with no way to know
@@ -211,7 +274,9 @@ export default function Booking() {
   const toggleNeed = (need: string) =>
     setCareNeeds(careNeeds.includes(need) ? careNeeds.filter((n) => n !== need) : [...careNeeds, need]);
 
-  const serviceLabel = `${DURATIONS.find((d) => d.hours === durationHours)?.label || `${durationHours} hours`} companion`;
+  const chosenService = SERVICES.find((s) => s.key === serviceKey) || SERVICES[0];
+  const durationLabel = DURATIONS.find((d) => d.hours === durationHours)?.label || `${durationHours} hours`;
+  const serviceLabel = `${chosenService.name} · ${durationLabel}`;
   const basePaise = priceForMinutes(durationHours * 60);
   // ₹99 on 6–8pm starts. Slot strings are the customer's wall clock, so the
   // hour can be read straight off the front of "18:00".
@@ -246,7 +311,8 @@ export default function Booking() {
         sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
           patientName, age, phone, email, emergency,
           hospital, pincode, department, doctor, date, time, language,
-          durationHours, careNeeds, transportMode, notes,
+          serviceKey, durationHours, careNeeds, transportMode, notes,
+          patientId: selectedPatientId,
         }));
       } catch {
         // ignore unavailable sessionStorage
@@ -269,18 +335,35 @@ export default function Booking() {
         return;
       }
 
-      const { data: patientData, error: patientError } = await supabase
-        .from('patients')
-        .insert({
-          customer_user_id: currentUser.id,
-          full_name: patientName,
-          age: age ? parseInt(age) : null,
-          emergency_contact_phone: emergency || null,
-        })
-        .select()
-        .single();
+      // Reuse the existing patient when they picked a saved one. Inserting
+      // unconditionally meant booking for the same parent five times created
+      // five patient records, which fragmented their care timeline and
+      // documents across all of them.
+      let patientId = selectedPatientId;
+      if (patientId) {
+        // Details are editable after picking, so persist any changes.
+        await supabase.from('patients')
+          .update({
+            full_name: patientName,
+            age: age ? parseInt(age) : null,
+            emergency_contact_phone: emergency || null,
+          })
+          .eq('id', patientId);
+      } else {
+        const { data: patientData, error: patientError } = await supabase
+          .from('patients')
+          .insert({
+            customer_user_id: currentUser.id,
+            full_name: patientName,
+            age: age ? parseInt(age) : null,
+            emergency_contact_phone: emergency || null,
+          })
+          .select()
+          .single();
 
-      if (patientError) throw patientError;
+        if (patientError) throw patientError;
+        patientId = patientData.id;
+      }
 
       const { data: locationData, error: locationError } = await supabase
         .from('locations')
@@ -297,18 +380,16 @@ export default function Booking() {
 
       if (locationError) throw locationError;
 
-      // Pickup used to be its own ₹899 tier; now it's transport mode on the
-      // same meter. The enum split is kept so ops can still see which jobs
-      // involve a home pickup leg.
-      const wantsPickup = transportMode !== 'NONE';
-      const serviceEnum = wantsPickup ? 'APPOINTMENT_ASSISTANCE' : 'HOSPITAL_COMPANION';
+      // The service they picked maps straight onto the enum now, so ops sees a
+      // scan as a scan rather than everything arriving as HOSPITAL_COMPANION.
+      const serviceEnum = chosenService.key;
 
       const scheduledStart = new Date(`${date}T${time}:00`);
       const { data: bookingData, error: bookingError } = await supabase
         .from('bookings')
         .insert({
           customer_user_id: currentUser.id,
-          patient_id: patientData.id,
+          patient_id: patientId,
           pickup_location_id: locationData.id,
           service_type: serviceEnum,
           booking_type: 'SCHEDULED',
@@ -450,13 +531,46 @@ export default function Booking() {
 
         {!review && step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <StepHeader step={1} title="How long do you need us?" sub="A verified companion through queues, consultations and paperwork — pay for the time you use." />
+            <StepHeader step={1} title="What do you need?" sub="A verified companion for the visit. You pay for the time used — the price updates as you choose." />
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {SERVICES.map((s) => {
+                const active = serviceKey === s.key;
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => {
+                      setServiceKey(s.key);
+                      // Suggest the usual duration, unless they have already set one.
+                      if (!durationTouched) setDurationHours(s.hours);
+                    }}
+                    style={{ display: 'flex', gap: 14, alignItems: 'flex-start', width: '100%', padding: '15px 17px', borderRadius: 'var(--m3-radius-card)', background: active ? '#fff' : 'var(--m3-chip)', border: active ? '2px solid var(--m3-green-deep)' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', boxShadow: active ? '0 4px 12px rgba(0,0,0,0.07)' : 'none' }}
+                  >
+                    <span style={{ display: 'grid', placeItems: 'center', width: 42, height: 42, borderRadius: 12, background: active ? 'var(--m3-green-deep)' : 'var(--m3-cyan)', color: active ? '#fff' : 'var(--m3-cyan-ink)', flexShrink: 0 }}>
+                      <s.icon style={{ width: 19, height: 19 }} />
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--m3-green-deep)' }}>{s.name}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--m3-ink)', flexShrink: 0 }}>
+                          {formatINR(priceForMinutes(s.hours * 60))}
+                          <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--m3-muted)' }}> / {s.hours}h</span>
+                        </span>
+                      </span>
+                      <span style={{ display: 'block', paddingTop: 3, fontSize: 12.5, lineHeight: '17px', color: 'var(--m3-muted)' }}>{s.desc}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={label}>How long</span>
               {DURATIONS.map((d) => {
                 const active = durationHours === d.hours;
                 const fullDay = d.hours === 8;
                 return (
-                  <button key={d.hours} onClick={() => setDurationHours(d.hours)} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: '17px 20px', borderRadius: 'var(--m3-radius-card)', background: active ? '#fff' : 'var(--m3-chip)', border: active ? '2px solid var(--m3-green-deep)' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', boxShadow: active ? '0 4px 12px rgba(0,0,0,0.08)' : 'none' }}>
+                  <button key={d.hours} onClick={() => { setDurationHours(d.hours); setDurationTouched(true); }} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: '17px 20px', borderRadius: 'var(--m3-radius-card)', background: active ? '#fff' : 'var(--m3-chip)', border: active ? '2px solid var(--m3-green-deep)' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', boxShadow: active ? '0 4px 12px rgba(0,0,0,0.08)' : 'none' }}>
                     <span style={{ display: 'grid', placeItems: 'center', width: 24, height: 24, borderRadius: '50%', border: active ? 'none' : '2px solid #c0c9c3', background: active ? 'var(--m3-green-deep)' : 'transparent', color: '#fff', flexShrink: 0 }}>
                       {active && <Check style={{ width: 13, height: 13 }} />}
                     </span>
@@ -477,11 +591,21 @@ export default function Booking() {
                   </button>
                 );
               })}
+              <p style={{ margin: '-2px 4px 0', fontSize: 12.5, lineHeight: '18px', color: 'var(--m3-muted)' }}>
+                Runs a little over? First {GRACE_MINUTES} minutes are free, then just ₹4 a minute.
+                We always charge whichever is less.
+              </p>
             </div>
-            <p style={{ margin: '-8px 4px 0', fontSize: 12.5, lineHeight: '18px', color: 'var(--m3-muted)' }}>
-              Runs a little over? First {GRACE_MINUTES} minutes are free, then just ₹4 a minute.
-              We always charge whichever is less.
-            </p>
+
+            {/* Cost stays visible while choosing, so nobody reaches step 4
+                still wondering what this will come to. */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '15px 18px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-green-deep)', color: '#fff' }}>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.6px', textTransform: 'uppercase', opacity: 0.75 }}>Estimated</span>
+                <span style={{ display: 'block', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{chosenService.name} · {durationLabel}</span>
+              </span>
+              <strong style={{ fontSize: 24, fontWeight: 700, flexShrink: 0 }}>{formatINR(basePaise)}</strong>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <span style={label}>Getting there</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -598,6 +722,35 @@ export default function Booking() {
         {!review && step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <StepHeader step={3} title="Patient Details" sub="Who will our companion be supporting? We keep this private and secure." />
+
+            {savedPatients.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <span style={label}>Booking for</span>
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                  {savedPatients.map((p) => {
+                    const on = selectedPatientId === p.id;
+                    return (
+                      <button key={p.id} type="button" onClick={() => pickPatient(p)}
+                        style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8, padding: '9px 15px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: on ? 700 : 500,
+                          background: on ? 'var(--m3-green-deep)' : 'var(--m3-chip)',
+                          border: on ? '1px solid transparent' : '1px solid var(--m3-line)',
+                          color: on ? '#fff' : 'var(--m3-ink)' }}>
+                        {on && <Check style={{ width: 13, height: 13 }} />}
+                        {p.full_name}{p.age ? ` · ${p.age}` : ''}
+                      </button>
+                    );
+                  })}
+                  <button type="button" onClick={clearPatient}
+                    style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6, padding: '9px 15px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: 13.5, fontWeight: selectedPatientId ? 500 : 700,
+                      background: selectedPatientId ? 'transparent' : 'var(--m3-chip)',
+                      border: '1px solid var(--m3-line)', color: 'var(--m3-ink)' }}>
+                    <UserPlus style={{ width: 14, height: 14 }} />
+                    Someone else
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 25, borderRadius: 'var(--m3-radius-card)', background: '#fff', border: '1px solid var(--m3-line)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12 }}>
                 <Input label="Patient name" name="patientName" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} />

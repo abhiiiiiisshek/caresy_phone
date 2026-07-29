@@ -4,8 +4,6 @@ import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { rotatedGuides, daysSinceEpoch } from '@/lib/careGuides';
 
-const FEATURED = 'post-surgery'; // has its own card directly below this strip
-
 // The home page is statically prerendered, so reading Date during render would
 // bake the build date into the HTML and disagree with the client from the next
 // day onward. useSyncExternalStore is the sanctioned way out: the server (and
@@ -24,7 +22,10 @@ const clientDay = () => daysSinceEpoch(Date.now());
  */
 export default function HealthTips() {
   const day = useSyncExternalStore(noopSubscribe, clientDay, serverDay);
-  const guides = rotatedGuides(day, FEATURED);
+  // Nothing excluded: post-surgery used to have its own card below this strip,
+  // which gave the home page two separate things to read and made neither feel
+  // like the one to open. The card is gone; the guide belongs back in here.
+  const guides = rotatedGuides(day);
 
   return (
     <section aria-labelledby="care-guides-heading" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
