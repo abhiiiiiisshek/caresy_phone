@@ -1,16 +1,16 @@
-# Graph Report - caresy_m3_worktree  (2026-07-29)
+# Graph Report - caresy_m3_worktree  (2026-07-27)
 
 ## Corpus Check
-- 203 files · ~414,666 words
+- 200 files · ~410,755 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1254 nodes · 1608 edges · 134 communities (79 shown, 55 thin omitted)
+- 1234 nodes · 1563 edges · 133 communities (79 shown, 54 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.72)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c9f752a6`
+- Built from commit: `f7c4bd1c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -80,9 +80,7 @@
 - Trust & Safety Badges (Police Verified, Partner Hospitals, 24/7 Ops)
 - booking_status_enum (DRAFT, PENDING, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED)
 - service_type_enum (HOSPITAL_COMPANION, MEDICINE_PICKUP, DIAGNOSTIC_TEST, ...)
-- page.tsx
 - package.json
-- WhatsAppWidget.tsx
 - page.tsx
 - next.config.ts
 - postcss.config.mjs
@@ -102,6 +100,7 @@
 - InstallPrompt.tsx
 - page.tsx
 - layout.tsx
+- useAuth
 - index.ts
 - page.tsx
 - page.tsx
@@ -139,9 +138,9 @@
 5. `compilerOptions` - 16 edges
 6. `compilerOptions` - 16 edges
 7. `Input()` - 15 edges
-8. `Booking()` - 13 edges
-9. `booking.html - Book Assistance (planned visit) page` - 12 edges
-10. `AdminGuard()` - 11 edges
+8. `booking.html - Book Assistance (planned visit) page` - 12 edges
+9. `AdminGuard()` - 11 edges
+10. `useToast()` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `OverviewBody()` --calls--> `createClient()`  [EXTRACTED]
@@ -150,10 +149,10 @@
   apps/admin/src/app/users/page.tsx → packages/auth/src/supabase/client.ts
 - `LocationShare()` --calls--> `createClient()`  [EXTRACTED]
   apps/companion/src/components/LocationShare.tsx → packages/auth/src/supabase/client.ts
+- `Passport()` --calls--> `createClient()`  [EXTRACTED]
+  apps/website/src/app/care/page.tsx → packages/auth/src/supabase/client.ts
 - `AnalyticsBody()` --calls--> `createClient()`  [EXTRACTED]
   apps/admin/src/app/analytics/page.tsx → packages/auth/src/supabase/client.ts
-- `CompanionRow` --references--> `ApprovalStatus`  [EXTRACTED]
-  apps/admin/src/app/companions/page.tsx → packages/types/src/index.ts
 
 ## Import Cycles
 - None detected.
@@ -162,11 +161,11 @@
 - **Pages sharing identical footer nav template (about/services/trust/faq/quick-help/booking/my-bookings/privacy/terms links)** — vanilla_backup_booking_page, vanilla_backup_faq_page, vanilla_backup_my_bookings_page, vanilla_backup_privacy_page, vanilla_backup_quick_help_page, vanilla_backup_terms_page, vanilla_backup_trust_page [EXTRACTED 1.00]
 - **Pages sharing identical floating WhatsApp widget (+919717500225, same inline SVG)** — vanilla_backup_booking_page, vanilla_backup_faq_page, vanilla_backup_quick_help_page, vanilla_backup_trust_page [EXTRACTED 1.00]
 
-## Communities (134 total, 55 thin omitted)
+## Communities (133 total, 54 thin omitted)
 
 ### Community 0 - "Card"
-Cohesion: 0.16
-Nodes (12): AnalyticsBody(), MUTED_STATUSES, Stats, STATUS_ORDER, ACTIVE_TRIP, CARDS, Counts, OverviewBody() (+4 more)
+Cohesion: 0.10
+Nodes (21): copyFor(), FILTERS, NotifBody(), NotifRow, NotifStatus, STATUS_COPY, STATUS_TONE, ACTIVE_TRIP (+13 more)
 
 ### Community 1 - "createClient"
 Cohesion: 0.04
@@ -254,11 +253,11 @@ Nodes (16): Calendar(), BookingRecord, BookingRow(), CompanionDetails, DetailShe
 
 ### Community 24 - "postcss.config.mjs"
 Cohesion: 0.12
-Nodes (16): ACTIVE_STATUS_LABEL, ActiveBookingInfo, BOOKING_HEADERS, fmtWhen(), GestureKey, GESTURES, greeting(), Header (+8 more)
+Nodes (9): CHECKLIST, FOUNDERS, BENEFITS, STEPS, TESTIMONIALS, Card(), CardProps, CardVariant (+1 more)
 
 ### Community 25 - "route.ts"
-Cohesion: 0.05
-Nodes (36): CHECKLIST, FOUNDERS, BENEFITS, STEPS, PRIVACY_SECTIONS, TERMS_SECTIONS, TESTIMONIALS, APP_TABS (+28 more)
+Cohesion: 0.08
+Nodes (28): SERVICES, Trust(), VERIFICATION_STEPS, APP_TABS, Badge(), BadgeProps, BadgeSize, BadgeTone (+20 more)
 
 ### Community 43 - "Caresy — Developer Handoff"
 Cohesion: 0.06
@@ -277,16 +276,16 @@ Cohesion: 0.14
 Nodes (14): GET, config, proxy(), GET, config, proxy(), GET, config (+6 more)
 
 ### Community 47 - "index.ts"
-Cohesion: 0.21
-Nodes (8): AreaRow, AreasBody(), SettingRow, SettingsBody(), Skels(), useToast(), LocationShare(), Button()
+Cohesion: 0.47
+Nodes (4): Companion, COMPANIONS, findCompanionByName(), matchCompanionByDepartment()
 
 ### Community 48 - "Badge.tsx"
-Cohesion: 0.22
-Nodes (9): CompanionRow, CompanionsBody(), DocRow, FILTERS, ReviewSheet(), STATUS_TONE, statusLabel(), CompanionRow (+1 more)
+Cohesion: 0.27
+Nodes (8): HospitalAutocomplete(), AREA_PINCODE, areas, pct, served, sql, Hospital, HOSPITALS
 
 ### Community 50 - "page.tsx"
-Cohesion: 0.25
-Nodes (7): copyFor(), FILTERS, NotifBody(), NotifRow, NotifStatus, STATUS_COPY, STATUS_TONE
+Cohesion: 0.31
+Nodes (6): AnalyticsBody(), MUTED_STATUSES, Stats, STATUS_ORDER, estimateBookingPrice(), PricedBooking
 
 ### Community 51 - "page.tsx"
 Cohesion: 0.22
@@ -297,36 +296,32 @@ Cohesion: 0.04
 Nodes (42): Client integration (see blueprint (c)), ETA (Edge Function `trip-eta`), Required dashboard step (cannot be done in SQL), Transport model (why two channels), Trip creation & lifecycle (migration 18), Trips & Real-Time Companion Location Tracking, What the migration creates, 1. Update the existing Vercel project (website) (+34 more)
 
 ### Community 53 - "Card.tsx"
-Cohesion: 0.29
-Nodes (6): CHIPS, FaqCategory, FAQS, Support(), supWa(), Input()
+Cohesion: 0.22
+Nodes (7): LocationShare(), CHIPS, FaqCategory, FAQS, Support(), supWa(), Button()
 
 ### Community 54 - "page.tsx"
-Cohesion: 0.22
-Nodes (8): dependencies, @caresy/auth, exports, ./pricing, @caresy/auth, name, private, version
+Cohesion: 0.25
+Nodes (7): dependencies, @caresy/auth, exports, @caresy/auth, name, private, version
 
 ### Community 55 - "page.tsx"
-Cohesion: 0.06
-Nodes (53): PricedBooking, Booking(), CARE_NEEDS, DURATIONS, fmtSlot(), label, LANGUAGES, TIME_SLOTS (+45 more)
-
-### Community 65 - "page.tsx"
-Cohesion: 0.40
-Nodes (3): UserRow, UsersList(), Badge()
+Cohesion: 0.15
+Nodes (24): AreasBody(), Booking(), CARE_NEEDS, fmtSlot(), label, LANGUAGES, SERVICES, TIME_SLOTS (+16 more)
 
 ### Community 66 - "package.json"
 Cohesion: 0.40
 Nodes (4): exports, name, private, version
 
-### Community 67 - "WhatsAppWidget.tsx"
-Cohesion: 0.67
-Nodes (3): APP_TABS, DESKTOP_ONLY, WhatsAppWidget()
+### Community 68 - "page.tsx"
+Cohesion: 0.22
+Nodes (4): PRIVACY_SECTIONS, TERMS_SECTIONS, Input(), InputProps
 
 ### Community 72 - "page.tsx"
-Cohesion: 0.18
-Nodes (13): GuidesPage(), metadata, clientDay(), HealthTips(), noopSubscribe(), serverDay(), CARE_GUIDES, CareGuide (+5 more)
+Cohesion: 0.08
+Nodes (29): GuidesPage(), metadata, ACTIVE_STATUS_LABEL, ActiveBookingInfo, BOOKING_HEADERS, fmtWhen(), GestureKey, GESTURES (+21 more)
 
 ### Community 79 - "page.tsx"
-Cohesion: 0.13
-Nodes (14): AdminTopbar(), ApprovedDashboard(), CompanionPortal(), DOC_TYPES, fmtWhen(), JobCard(), JobRow, LANGUAGE_OPTIONS (+6 more)
+Cohesion: 0.16
+Nodes (10): CompanionRow, CompanionRow, DOC_TYPES, fmtWhen(), JobCard(), JobRow, LANGUAGE_OPTIONS, SPECIALTY_OPTIONS (+2 more)
 
 ### Community 84 - "dependencies"
 Cohesion: 0.06
@@ -357,20 +352,24 @@ Cohesion: 0.16
 Nodes (11): BIPEvent, ic, InstallPrompt(), isStandalone(), BrowserBarArt(), ConfirmCardArt(), Item, LeafSprig() (+3 more)
 
 ### Community 91 - "page.tsx"
-Cohesion: 0.15
-Nodes (13): CareEvent, CareInner(), DOC_TYPES, Documents(), fmt(), KIND_STYLE, Member, Passport() (+5 more)
+Cohesion: 0.13
+Nodes (12): CareEvent, CareInner(), DOC_TYPES, Documents(), fmt(), KIND_STYLE, Member, Passport() (+4 more)
 
 ### Community 92 - "layout.tsx"
 Cohesion: 0.15
-Nodes (11): epilogue, JSON_LD, metadata, poppins, viewport, CookieBanner(), MobileBottomNav(), CapacitorGlobal (+3 more)
+Nodes (11): epilogue, JSON_LD, metadata, poppins, viewport, CookieBanner(), MobileBottomNav(), RegisterSW() (+3 more)
+
+### Community 93 - "useAuth"
+Cohesion: 0.18
+Nodes (10): AdminTopbar(), ApprovedDashboard(), CompanionPortal(), ReapplyButton(), RegistrationForm(), Login(), CapacitorGlobal, NativeBridge() (+2 more)
 
 ### Community 94 - "index.ts"
 Cohesion: 0.24
 Nodes (7): corsHeaders(), isAllowed(), STATIC_ALLOWED, EtaRequest, EtaResponse, LatLng, NOTE: OpenRouteService gives free-flow durations (no live traffic), which is
 
 ### Community 95 - "page.tsx"
-Cohesion: 0.29
-Nodes (8): ACTIVE_STATUSES, fmtEta(), LiveBoard(), osmEmbed(), STATUS_LABEL, TripCard(), TripRow, relativeTime()
+Cohesion: 0.15
+Nodes (14): CompanionsBody(), DocRow, FILTERS, ReviewSheet(), STATUS_TONE, statusLabel(), ACTIVE_STATUSES, fmtEta() (+6 more)
 
 ### Community 96 - "page.tsx"
 Cohesion: 0.22
@@ -405,24 +404,24 @@ Cohesion: 0.83
 Nodes (3): gradlew script, die(), warn()
 
 ## Knowledge Gaps
-- **598 isolated node(s):** `nextConfig`, `name`, `version`, `private`, `dev` (+593 more)
+- **594 isolated node(s):** `nextConfig`, `name`, `version`, `private`, `dev` (+589 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **55 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **54 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createClient()` connect `page.tsx` to `Card`, `page.tsx`, `page.tsx`, `page.tsx`, `LocationBadge.tsx`, `layout.tsx`, `index.ts`, `Badge.tsx`, `page.tsx`, `page.tsx`, `next.config.ts`, `Card.tsx`, `page.tsx`, `postcss.config.mjs`, `layout.tsx`, `page.tsx`?**
-  _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `cookieOptionsFor()` connect `layout.tsx` to `page.tsx`, `index.ts`?**
+- **Why does `createClient()` connect `page.tsx` to `Card`, `page.tsx`, `page.tsx`, `page.tsx`, `LocationBadge.tsx`, `layout.tsx`, `page.tsx`, `page.tsx`, `Card.tsx`, `next.config.ts`, `page.tsx`, `useAuth`, `page.tsx`?**
+  _High betweenness centrality (0.025) - this node is a cross-community bridge._
+- **Why does `cookieOptionsFor()` connect `layout.tsx` to `page.tsx`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **Why does `useAuth()` connect `page.tsx` to `Card`, `LocationBadge.tsx`, `Badge.tsx`, `IconButton.tsx`, `next.config.ts`, `page.tsx`, `postcss.config.mjs`, `page.tsx`, `layout.tsx`?**
+- **Why does `useAuth()` connect `useAuth` to `Card`, `LocationBadge.tsx`, `page.tsx`, `page.tsx`, `IconButton.tsx`, `next.config.ts`, `page.tsx`, `page.tsx`, `layout.tsx`, `page.tsx`?**
   _High betweenness centrality (0.006) - this node is a cross-community bridge._
 - **What connects `nextConfig`, `name`, `version` to the rest of the system?**
-  _598 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _594 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Card` be split into smaller, more focused modules?**
+  _Cohesion score 0.10483870967741936 - nodes in this community are weakly interconnected._
 - **Should `createClient` be split into smaller, more focused modules?**
   _Cohesion score 0.04081632653061224 - nodes in this community are weakly interconnected._
 - **Should `script.js` be split into smaller, more focused modules?**
   _Cohesion score 0.052244897959183675 - nodes in this community are weakly interconnected._
-- **Should `page.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.046511627906976744 - nodes in this community are weakly interconnected._

@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
-import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays } from 'lucide-react';
+import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays, Smartphone, Wallet } from 'lucide-react';
 import { Button } from '@caresy/ui';
+import { formatINR, upiPayUrl } from '@caresy/utils/pricing';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 
@@ -33,6 +34,10 @@ interface BookingRecord {
   service_type: string;
   booking_type: string;
   service_metadata: any;
+  final_amount_paise: number | null;
+  billed_minutes: number | null;
+  payment_status: string;
+  payment_method: string | null;
   patient?: any;
   pickup_location?: any;
 }
@@ -87,6 +92,67 @@ function isPastBooking(b: BookingRecord) {
   if (s === 'completed' || s === 'cancelled' || s === 'expired') return true;
   const when = b.scheduled_start_time ? new Date(b.scheduled_start_time).getTime() : null;
   return when !== null && when < Date.now();
+}
+
+/**
+ * The bill, once the companion has completed the visit.
+ *
+ * Read-only on purpose: the customer cannot mark their own booking paid. A raw
+ * UPI link has no confirmation callback, so somebody has to assert the money
+ * arrived, and it must not be the person who owes it. The companion taps
+ * "received" on their side; this screen just shows what is due and opens the
+ * payment app.
+ */
+function BillPanel({ booking }: { booking: BookingRecord }) {
+  if (booking.payment_status !== 'PENDING' && booking.payment_status !== 'COLLECTED') return null;
+
+  const paid = booking.payment_status === 'COLLECTED';
+  const paise = booking.final_amount_paise ?? 0;
+  const vpa = process.env.NEXT_PUBLIC_UPI_VPA;
+  const upiUrl = !paid && vpa
+    ? upiPayUrl({ vpa, name: 'Caresy', paise, ref: booking.reference_code })
+    : null;
+  const mins = booking.billed_minutes;
+  const timeLabel = mins == null ? null : mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins} min`;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 17, borderRadius: 16, background: paid ? 'var(--m3-chip)' : '#fff', border: `1px solid ${paid ? 'var(--m3-line)' : 'var(--m3-green)'}` }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--m3-muted)' }}>
+            {paid ? `Paid${booking.payment_method ? ` · ${booking.payment_method === 'CASH' ? 'Cash' : 'UPI'}` : ''}` : 'Amount due'}
+          </span>
+          {timeLabel && <span style={{ fontSize: 12, color: 'var(--m3-muted)' }}>{timeLabel} of companion time</span>}
+        </span>
+        <strong style={{ fontSize: 26, fontWeight: 700, color: paid ? 'var(--m3-muted)' : 'var(--m3-green-deep)' }}>{formatINR(paise)}</strong>
+      </div>
+
+      {paid ? (
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--m3-muted)' }}>
+          <Check style={{ width: 14, height: 14 }} /> Payment received. Thank you.
+        </span>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {upiUrl && (
+              // Android hands upi:// to the OS, which offers every installed
+              // UPI app. iOS has no generic handler, hence the VPA line below.
+              <a href={upiUrl} style={{ flex: 1, minWidth: 150, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 0', borderRadius: 999, background: 'var(--m3-green-deep)', color: '#fff', fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>
+                <Smartphone style={{ width: 15, height: 15 }} /> Pay by UPI
+              </a>
+            )}
+            <span style={{ flex: 1, minWidth: 130, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 0', borderRadius: 999, border: '1px solid var(--m3-line)', color: 'var(--m3-muted)', fontSize: 13.5, fontWeight: 600 }}>
+              <Wallet style={{ width: 15, height: 15 }} /> or pay cash
+            </span>
+          </div>
+          <span style={{ fontSize: 11.5, lineHeight: '16px', color: 'var(--m3-muted)' }}>
+            {vpa ? `Paying from another phone? Send to ${vpa}. ` : ''}
+            Your companion confirms the payment on their app.
+          </span>
+        </>
+      )}
+    </div>
+  );
 }
 
 function StatusPill({ status }: { status: string }) {
@@ -199,6 +265,8 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
         <InfoTile icon={Briefcase} label="Service" value={serviceLabel(booking)} />
         <InfoTile icon={CalendarDays} label="Date & time" value={scheduleDate} />
       </div>
+
+      <BillPanel booking={booking} />
 
       <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
         {trackable ? (
@@ -396,6 +464,10 @@ export default function MyBookings() {
           service_type,
           booking_type,
           service_metadata,
+          final_amount_paise,
+          billed_minutes,
+          payment_status,
+          payment_method,
           patient:patients (
             full_name,
             age,

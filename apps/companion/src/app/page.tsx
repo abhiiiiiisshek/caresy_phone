@@ -6,8 +6,9 @@ import { createClient } from '@caresy/auth/supabase/client';
 import { Input, Button, Badge } from '@caresy/ui';
 import {
   ShieldCheck, Clock, CheckCircle2, XCircle, Ban, Upload, FileCheck2,
-  Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox,
+  Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox, Smartphone,
 } from 'lucide-react';
+import { billableMinutes, priceForMinutes, formatINR, upiPayUrl } from '@caresy/utils/pricing';
 
 // Companion portal — one page that branches on the signed-in user's companion
 // record: register -> pending review -> approved (basic dashboard) / rejected
@@ -307,16 +308,21 @@ interface JobRow {
   booking_type: string;
   status: string;
   scheduled_start_time: string | null;
+  actual_start_time: string | null;
   created_at: string;
   special_instructions: string | null;
   service_metadata: { originalService?: string } | null;
   companion_user_id: string | null;
+  final_amount_paise: number | null;
+  billed_minutes: number | null;
+  payment_status: string;
+  payment_method: string | null;
   pickup?: { title: string | null; pincode: string | null; city: string | null } | null;
   patient?: { full_name: string | null } | null;
 }
 
 const JOB_SELECT =
-  'id, reference_code, service_type, booking_type, status, scheduled_start_time, created_at, special_instructions, service_metadata, companion_user_id, pickup:locations!pickup_location_id (title, pincode, city), patient:patients!patient_id (full_name)';
+  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, final_amount_paise, billed_minutes, payment_status, payment_method, pickup:locations!pickup_location_id (title, pincode, city), patient:patients!patient_id (full_name)';
 
 function fmtWhen(iso: string | null): string {
   if (!iso) return 'Flexible';
@@ -327,6 +333,73 @@ function fmtWhen(iso: string | null): string {
 const STATUS_LABEL: Record<string, string> = {
   ACCEPTED: 'Accepted', IN_PROGRESS: 'In progress', COMPLETED: 'Completed', CANCELLED: 'Cancelled', EXPIRED: 'Expired', PENDING: 'Pending',
 };
+
+/**
+ * What the visit has cost so far, ticking every 30 seconds.
+ *
+ * The customer sees the same number on their side. Nobody should discover the
+ * price at the door — a Rs 299 quote settling at Rs 959 with no warning is the
+ * argument this whole screen exists to avoid.
+ */
+function RunningTotal({ startedAt }: { startedAt: string | null }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  if (!startedAt) return null;
+  const mins = billableMinutes(startedAt, new Date(now).toISOString());
+  if (mins === null) return null;
+  const hrs = Math.floor(mins / 60);
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', color: 'var(--muted)' }}>
+      <Clock style={{ width: 14, height: 14 }} />
+      {hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`} · {formatINR(priceForMinutes(mins))} so far
+    </span>
+  );
+}
+
+/**
+ * The collect step. Amount comes from the server's final_amount_paise — never
+ * recomputed here, or a stale client could show a number the database will not
+ * agree with.
+ */
+function CollectPanel({ job, busy, onCollect }: {
+  job: JobRow; busy: boolean; onCollect: (m: 'CASH' | 'UPI') => void;
+}) {
+  const paise = job.final_amount_paise ?? 0;
+  const vpa = process.env.NEXT_PUBLIC_UPI_VPA;
+  const upiUrl = vpa
+    ? upiPayUrl({ vpa, name: 'Caresy', paise, ref: job.reference_code || job.id.slice(0, 8) })
+    : null;
+
+  return (
+    <div style={{ flexBasis: '100%', display: 'grid', gap: 10, marginTop: 4, padding: 14, borderRadius: 'var(--radius-lg)', background: 'var(--success-soft)', border: '1px solid var(--line)' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+          Collect{job.billed_minutes != null ? ` · ${job.billed_minutes} min` : ''}
+        </span>
+        <strong style={{ fontSize: '1.35rem', color: 'var(--ink-teal)' }}>{formatINR(paise)}</strong>
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {upiUrl && (
+          // Android hands upi:// to the OS, which offers every installed UPI
+          // app. iOS has no generic handler — hence the copyable VPA below.
+          <a href={upiUrl} style={{ flex: 1, minWidth: 130, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 14px', borderRadius: 999, background: 'var(--teal)', color: '#fff', fontSize: '0.85rem', fontWeight: 700, textDecoration: 'none' }}>
+            <Smartphone style={{ width: 15, height: 15 }} /> Open UPI app
+          </a>
+        )}
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => onCollect('UPI')}>UPI received</Button>
+        <Button variant="outline" size="sm" disabled={busy} onClick={() => onCollect('CASH')}>Cash received</Button>
+      </div>
+      {vpa ? (
+        <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Or ask them to pay {vpa} — then tap UPI received.</span>
+      ) : (
+        <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>UPI link unavailable — NEXT_PUBLIC_UPI_VPA is not configured.</span>
+      )}
+    </div>
+  );
+}
 
 function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; onChange: () => void }) {
   const { user } = useAuth();
@@ -377,8 +450,32 @@ function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; o
 
   const accept = (job: JobRow) => setJobStatus(job, 'ACCEPTED', { companion_user_id: user!.id });
 
-  const activeMine = myJobs.filter((j) => ['ACCEPTED', 'IN_PROGRESS'].includes(j.status));
-  const pastMine = myJobs.filter((j) => ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(j.status));
+  // Completion goes through the RPC, not a status update: the server reads the
+  // clock and prices the visit itself. A client-sent amount would be a number
+  // the person collecting the money chose.
+  const completeJob = async (job: JobRow) => {
+    setActioning(job.id);
+    const { error } = await createClient().rpc('complete_booking', { p_booking: job.id });
+    setActioning(null);
+    if (error) { alert(error.message); return; }
+    await fetchJobs();
+  };
+
+  const collect = async (job: JobRow, method: 'CASH' | 'UPI') => {
+    setActioning(job.id);
+    const { error } = await createClient().rpc('record_payment', { p_booking: job.id, p_method: method });
+    setActioning(null);
+    if (error) { alert(error.message); return; }
+    await fetchJobs();
+  };
+
+  // A completed job with money still owed stays in the active list — the
+  // companion is standing there and must not have to hunt through History for
+  // the collect button.
+  const activeMine = myJobs.filter((j) =>
+    ['ACCEPTED', 'IN_PROGRESS'].includes(j.status) || j.payment_status === 'PENDING');
+  const pastMine = myJobs.filter((j) =>
+    ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(j.status) && j.payment_status !== 'PENDING');
   const visibleOpen = openJobs.filter((j) => !hidden.has(j.id));
 
   return (
@@ -424,8 +521,14 @@ function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; o
                         iconLeft={<PlayCircle style={{ width: 15, height: 15 }} />}>Start job</Button>
                     )}
                     {job.status === 'IN_PROGRESS' && (
-                      <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => setJobStatus(job, 'COMPLETED', { actual_end_time: new Date().toISOString() })}
-                        iconLeft={<CheckCircle2 style={{ width: 15, height: 15 }} />}>Mark complete</Button>
+                      <>
+                        <RunningTotal startedAt={job.actual_start_time} />
+                        <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => completeJob(job)}
+                          iconLeft={<CheckCircle2 style={{ width: 15, height: 15 }} />}>Complete &amp; bill</Button>
+                      </>
+                    )}
+                    {job.payment_status === 'PENDING' && (
+                      <CollectPanel job={job} busy={actioning === job.id} onCollect={(m) => collect(job, m)} />
                     )}
                   </JobCard>
                 ))}
