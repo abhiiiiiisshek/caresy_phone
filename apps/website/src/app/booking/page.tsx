@@ -30,7 +30,15 @@ const DURATIONS = [1, 2, 4, 6, 8].map((hours) => ({
   paise: priceForMinutes(hours * 60),
 }));
 
-const CARE_NEEDS = ['Wheelchair', 'Walking assistance', 'Medicine collection', 'Home pickup & drop', 'Companion drives your car/bike'];
+const CARE_NEEDS = ['Wheelchair', 'Walking assistance', 'Medicine collection'];
+
+// Getting there. Caresy arranges but never sells the ride — on COMPANION_ARRANGED
+// the companion compares fares, you approve, and you pay the driver directly.
+const TRANSPORT_MODES = [
+  { key: 'NONE', label: 'We’ll make our own way', desc: 'Meet the companion at the hospital.' },
+  { key: 'COMPANION_ARRANGED', label: 'Companion arranges a cab', desc: 'They compare Uber, Rapido and Ola, tell you the fares, and book the one you pick. You pay the driver.' },
+  { key: 'CUSTOMER_VEHICLE', label: 'Companion drives our vehicle', desc: 'Your own car or bike. Only companions with a verified licence are assigned.' },
+] as const;
 const TIME_SLOTS = ['09:00', '10:00', '11:30', '13:00', '14:30', '16:00', '17:00', '18:00', '19:00'];
 const LANGUAGES = ['No preference', 'Hindi', 'English', 'Tamil', 'Telugu', 'Kannada'];
 
@@ -118,6 +126,7 @@ export default function Booking() {
   // middle of the menu.
   const [durationHours, setDurationHours] = useState(2);
   const [careNeeds, setCareNeeds] = useState<string[]>([]);
+  const [transportMode, setTransportMode] = useState<string>('NONE');
 
   // Step 2: Hospital
   const [hospital, setHospital] = useState('');
@@ -166,6 +175,7 @@ export default function Booking() {
       setLanguage(draft.language || 'No preference');
       setDurationHours(draft.durationHours || 2);
       setCareNeeds(draft.careNeeds || []);
+      setTransportMode(draft.transportMode || 'NONE');
       setNotes(draft.notes || '');
       setStep(TOTAL_STEPS);
       setReview(true);
@@ -236,7 +246,7 @@ export default function Booking() {
         sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
           patientName, age, phone, email, emergency,
           hospital, pincode, department, doctor, date, time, language,
-          durationHours, careNeeds, notes,
+          durationHours, careNeeds, transportMode, notes,
         }));
       } catch {
         // ignore unavailable sessionStorage
@@ -287,10 +297,10 @@ export default function Booking() {
 
       if (locationError) throw locationError;
 
-      // Pickup used to be its own ₹899 tier; now it's a care need on the same
-      // meter. The enum split is kept so ops can still see which jobs involve
-      // a home pickup leg.
-      const wantsPickup = careNeeds.includes('Home pickup & drop');
+      // Pickup used to be its own ₹899 tier; now it's transport mode on the
+      // same meter. The enum split is kept so ops can still see which jobs
+      // involve a home pickup leg.
+      const wantsPickup = transportMode !== 'NONE';
       const serviceEnum = wantsPickup ? 'APPOINTMENT_ASSISTANCE' : 'HOSPITAL_COMPANION';
 
       const scheduledStart = new Date(`${date}T${time}:00`);
@@ -303,6 +313,7 @@ export default function Booking() {
           service_type: serviceEnum,
           booking_type: 'SCHEDULED',
           status: 'PENDING',
+          transport_mode: transportMode,
           scheduled_start_time: scheduledStart.toISOString(),
           special_instructions: notes || '',
           estimated_duration_minutes: durationHours * 60,
@@ -471,6 +482,31 @@ export default function Booking() {
               Runs a little over? First {GRACE_MINUTES} minutes are free, then just ₹4 a minute.
               We always charge whichever is less.
             </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <span style={label}>Getting there</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {TRANSPORT_MODES.map((t) => {
+                  const on = transportMode === t.key;
+                  return (
+                    <button key={t.key} onClick={() => setTransportMode(t.key)} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', width: '100%', padding: '14px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', background: on ? '#fff' : 'var(--m3-chip)', border: on ? '2px solid var(--m3-green-deep)' : '2px solid transparent' }}>
+                      <span style={{ display: 'grid', placeItems: 'center', width: 20, height: 20, marginTop: 2, borderRadius: '50%', flexShrink: 0, border: on ? 'none' : '2px solid #c0c9c3', background: on ? 'var(--m3-green-deep)' : 'transparent', color: '#fff' }}>
+                        {on && <Check style={{ width: 11, height: 11 }} />}
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: 'var(--m3-green-deep)' }}>{t.label}</span>
+                        <span style={{ display: 'block', paddingTop: 2, fontSize: 12.5, lineHeight: '17px', color: 'var(--m3-muted)' }}>{t.desc}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {transportMode === 'COMPANION_ARRANGED' && (
+                <p style={{ margin: 0, fontSize: 12, lineHeight: '17px', color: 'var(--m3-muted)' }}>
+                  Caresy doesn&rsquo;t charge for the ride or add anything to the fare — you pay the driver directly, by cash, UPI or card.
+                </p>
+              )}
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <span style={label}>Care needs</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>

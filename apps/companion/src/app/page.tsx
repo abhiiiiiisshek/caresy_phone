@@ -6,7 +6,7 @@ import { createClient } from '@caresy/auth/supabase/client';
 import { Input, Button, Badge } from '@caresy/ui';
 import {
   ShieldCheck, Clock, CheckCircle2, XCircle, Ban, Upload, FileCheck2,
-  Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox, Smartphone,
+  Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox, Smartphone, Car,
 } from 'lucide-react';
 import { billableMinutes, priceForMinutes, formatINR, upiPayUrl } from '@caresy/utils/pricing';
 
@@ -22,6 +22,26 @@ const DOC_TYPES = [
   { key: 'AADHAAR', label: 'Aadhaar card', hint: 'Front side, clearly readable' },
   { key: 'POLICE_VERIFICATION', label: 'Police verification', hint: 'Certificate or acknowledgement' },
   { key: 'PHOTO_ID', label: 'Photo / selfie', hint: 'A recent clear headshot' },
+  // Only needed for jobs where the companion drives the customer's own car or
+  // bike. An admin sets companions.can_drive after checking this; the database
+  // refuses the assignment until they do.
+  { key: 'DRIVING_LICENCE', label: 'Driving licence', hint: 'Only if you want driving jobs. Front side, expiry visible.' },
+] as const;
+
+// Provider-agnostic by design: adding one is a line here, not a migration.
+const RIDE_PROVIDERS = [
+  { key: 'RAPIDO', label: 'Rapido' },
+  { key: 'UBER', label: 'Uber' },
+  { key: 'OLA', label: 'Ola' },
+  { key: 'AUTO', label: 'Auto' },
+  { key: 'LOCAL_TAXI', label: 'Local taxi' },
+  { key: 'OTHER', label: 'Other' },
+] as const;
+
+const RIDE_PAYERS = [
+  { key: 'CUSTOMER', label: 'Customer' },
+  { key: 'FAMILY', label: 'Family' },
+  { key: 'HOSPITAL', label: 'Hospital' },
 ] as const;
 
 import type { ApprovalStatus } from '@caresy/types';
@@ -360,6 +380,145 @@ function RunningTotal({ startedAt }: { startedAt: string | null }) {
 }
 
 /**
+ * Ride log. Caresy arranges the ride and never touches the money — the customer
+ * pays the driver on the provider's own rails — so nothing here feeds the
+ * Caresy bill. It is recorded for one reason: after a few hundred rides this is
+ * a fare map of Noida that no third party will sell you.
+ *
+ * Deliberately not blocking. A companion helping someone out of a car should
+ * not be stuck in a form, so every field is optional and this can be filled in
+ * later from History.
+ */
+function RideLog({ job, onSaved }: { job: JobRow; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [provider, setProvider] = useState<string>('RAPIDO');
+  const [estimate, setEstimate] = useState('');
+  const [finalFare, setFinalFare] = useState('');
+  const [payer, setPayer] = useState<string>('CUSTOMER');
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    const supabase = createClient();
+    let receiptPath: string | null = null;
+
+    if (receipt) {
+      // Folder is the booking id — the storage policy keys off it.
+      const path = `${job.id}/${crypto.randomUUID()}-${receipt.name}`;
+      const { error } = await supabase.storage.from('ride-receipts').upload(path, receipt);
+      // A failed upload must not lose the fares, which are the valuable part.
+      if (!error) receiptPath = path;
+    }
+
+    // Rupees in the box, paise in the column.
+    const toPaise = (v: string) => {
+      const n = parseFloat(v);
+      return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : null;
+    };
+
+    let coords: Record<string, number> = {};
+    try {
+      const pos = await new Promise<GeolocationPosition>((res, rej) =>
+        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 4000 }));
+      coords = { drop_lat: pos.coords.latitude, drop_lng: pos.coords.longitude };
+    } catch {
+      // Hospital basements have no GPS. The fare still matters.
+    }
+
+    const { error } = await supabase.from('booking_transport').insert({
+      booking_id: job.id,
+      provider,
+      estimated_fare_paise: toPaise(estimate),
+      final_fare_paise: toPaise(finalFare),
+      payer,
+      receipt_path: receiptPath,
+      drop_label: job.pickup?.title ?? null,
+      ride_at: new Date().toISOString(),
+      ...coords,
+    });
+    setSaving(false);
+    if (error) { alert(error.message); return; }
+    setOpen(false);
+    setEstimate(''); setFinalFare(''); setReceipt(null);
+    onSaved();
+  };
+
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)} iconLeft={<Car style={{ width: 15, height: 15 }} />}>
+        Log a ride
+      </Button>
+    );
+  }
+
+  const field: React.CSSProperties = { padding: '9px 11px', borderRadius: 10, border: '1px solid var(--line)', fontSize: '0.85rem', width: '100%', fontFamily: 'inherit' };
+
+  return (
+    <div style={{ flexBasis: '100%', display: 'grid', gap: 10, marginTop: 4, padding: 14, borderRadius: 'var(--radius-lg)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
+      <strong style={{ fontSize: '0.85rem', color: 'var(--ink-teal)' }}>Ride details</strong>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {RIDE_PROVIDERS.map((p) => (
+          <button key={p.key} type="button" onClick={() => setProvider(p.key)}
+            style={{ padding: '7px 13px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.8rem', fontWeight: 600,
+              border: provider === p.key ? '1px solid transparent' : '1px solid var(--line)',
+              background: provider === p.key ? 'var(--teal)' : 'transparent',
+              color: provider === p.key ? '#fff' : 'var(--muted)' }}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <label style={{ display: 'grid', gap: 4, fontSize: '0.72rem', color: 'var(--muted)' }}>
+          Quoted ₹
+          <input style={field} inputMode="decimal" placeholder="280" value={estimate} onChange={(e) => setEstimate(e.target.value)} />
+        </label>
+        <label style={{ display: 'grid', gap: 4, fontSize: '0.72rem', color: 'var(--muted)' }}>
+          Receipt ₹
+          <input style={field} inputMode="decimal" placeholder="312" value={finalFare} onChange={(e) => setFinalFare(e.target.value)} />
+        </label>
+      </div>
+      <span style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: -4 }}>
+        Copy the receipt total exactly — do not estimate it.
+      </span>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '0.72rem', color: 'var(--muted)', alignSelf: 'center' }}>Paid by</span>
+        {RIDE_PAYERS.map((p) => (
+          <button key={p.key} type="button" onClick={() => setPayer(p.key)}
+            style={{ padding: '5px 11px', borderRadius: 999, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.78rem',
+              border: payer === p.key ? '1px solid transparent' : '1px solid var(--line)',
+              background: payer === p.key ? 'var(--success-soft)' : 'transparent',
+              color: payer === p.key ? '#1B7A54' : 'var(--muted)', fontWeight: payer === p.key ? 700 : 500 }}>
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <label style={{ display: 'grid', gap: 4, fontSize: '0.72rem', color: 'var(--muted)' }}>
+        Receipt screenshot (optional)
+        <input type="file" accept="image/*,application/pdf" style={{ fontSize: '0.75rem' }}
+          onChange={(e) => setReceipt(e.target.files?.[0] ?? null)} />
+      </label>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Button variant="primary" size="sm" disabled={saving} onClick={save}
+          iconLeft={saving ? <Loader2 className="animate-spin" style={{ width: 14, height: 14 }} /> : undefined}>
+          {saving ? 'Saving…' : 'Save ride'}
+        </Button>
+        <Button variant="ghost" size="sm" disabled={saving} onClick={() => setOpen(false)}>Cancel</Button>
+      </div>
+
+      <span style={{ fontSize: '0.7rem', color: 'var(--muted)' }}>
+        You should never pay for a ride. The customer pays the driver directly.
+      </span>
+    </div>
+  );
+}
+
+/**
  * The collect step. Amount comes from the server's final_amount_paise — never
  * recomputed here, or a stale client could show a number the database will not
  * agree with.
@@ -523,6 +682,7 @@ function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; o
                     {job.status === 'IN_PROGRESS' && (
                       <>
                         <RunningTotal startedAt={job.actual_start_time} />
+                        <RideLog job={job} onSaved={fetchJobs} />
                         <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => completeJob(job)}
                           iconLeft={<CheckCircle2 style={{ width: 15, height: 15 }} />}>Complete &amp; bill</Button>
                       </>
