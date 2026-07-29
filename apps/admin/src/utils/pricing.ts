@@ -1,7 +1,12 @@
-// Service prices aren't stored on bookings (payments aren't built yet — see
-// DEVELOPER_HANDOFF.md §6-F), so this estimates revenue for the analytics
-// dashboard from service_type + duration, mirroring the price rules already
-// used in booking/page.tsx and quick-help/page.tsx (getServicePrice()).
+// Revenue estimate for the analytics dashboard. Final amounts aren't stored on
+// bookings yet, so this projects them from the booked duration using the same
+// meter the customer sees (@caresy/utils/pricing) — no more hand-copied rules.
+//
+// Legacy wrinkle: bookings made before the duration ladder shipped carry
+// estimated_duration_minutes of 240/480 from the old tier mapping; the meter
+// prices those fine too. Evening surcharge is skipped here — created_at is not
+// the start time, and analytics doesn't select scheduled_start_time.
+import { priceForMinutes } from '@caresy/utils/pricing';
 
 interface PricedBooking {
   service_type: string;
@@ -9,8 +14,5 @@ interface PricedBooking {
 }
 
 export function estimateBookingPrice(b: PricedBooking): number {
-  if (b.service_type === 'MEDICINE_PICKUP') return 299;
-  if (b.service_type === 'APPOINTMENT_ASSISTANCE' || b.service_type === 'SAFE_RETURN' || b.service_type === 'DIAGNOSTIC_TEST') return 899;
-  if (b.estimated_duration_minutes != null && b.estimated_duration_minutes >= 480) return 1299;
-  return 499;
+  return Math.round(priceForMinutes(b.estimated_duration_minutes ?? 60) / 100); // whole rupees
 }

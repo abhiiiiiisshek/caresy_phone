@@ -10,6 +10,7 @@ import { strict as assert } from 'node:assert';
 import {
   SLABS, GRACE_MINUTES, OVERTIME_PAISE_PER_MINUTE,
   EXTENSIONS, extensionSaving, CANCELLATION_PAISE, cancellationPaise,
+  EVENING_SURCHARGE_PAISE, eveningSurchargePaise,
   priceForMinutes, billableMinutes, explainPrice, formatINR, upiPayUrl,
 } from './pricing.ts';
 
@@ -148,6 +149,13 @@ assert.equal(cancel({ companionDispatched: true, isScheduled: true, startsAtIso:
 // Missing or unparseable timestamps must not invent a charge.
 assert.equal(cancel({ isScheduled: true, startsAtIso: null }), 0);
 assert.equal(cancel({ bookedAtIso: 'not-a-date' }), 0);
+
+// EVENING SURCHARGE: 6pm inclusive to 8pm exclusive, local hours only.
+assert.equal(eveningSurchargePaise(17), 0);
+assert.equal(eveningSurchargePaise(18), EVENING_SURCHARGE_PAISE, '6pm start pays');
+assert.equal(eveningSurchargePaise(19), EVENING_SURCHARGE_PAISE);
+assert.equal(eveningSurchargePaise(20), 0, 'nothing starts at 8pm — no charge to invent');
+assert.equal(eveningSurchargePaise(9), 0);
 
 // UPI link: amount is 2dp rupees, and the payee/note survive encoding.
 const url = upiPayUrl({ vpa: 'caresy@ybl', name: 'Caresy', paise: 99_900, ref: 'CR-1042' });

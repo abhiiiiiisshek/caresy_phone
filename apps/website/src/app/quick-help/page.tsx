@@ -8,6 +8,7 @@ import { MessageSquare, Check, ArrowLeft, ChevronRight } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
+import { eveningSurchargePaise } from '@caresy/utils/pricing';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 import { pincodeForArea } from '@/data/hospitals';
 
@@ -154,6 +155,9 @@ export default function QuickHelp() {
             email,
             urgency,
             category: service,
+            // Urgent bookings start now, so the surcharge window is the wall
+            // clock at submit time (6–8pm = ₹99).
+            eveningSurchargePaise: eveningSurchargePaise(new Date().getHours()),
           },
         })
         .select()

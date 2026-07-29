@@ -194,6 +194,28 @@ export function cancellationPaise(o: {
   return now - booked <= URGENT_FREE_MINUTES * 60_000 ? 0 : CANCELLATION_PAISE;
 }
 
+/**
+ * Evening surcharge: ₹99 flat on bookings that START between 6pm and 8pm,
+ * urgent or scheduled. Services stop at 8pm, so this is the last-slots premium
+ * — companions heading out at dinner time, returning after dark.
+ *
+ * Flat, not a percentage, for the same reason the rest of the sheet is one
+ * sentence: "₹99 extra for evening slots" survives being said out loud.
+ */
+export const EVENING_SURCHARGE_PAISE = 9_900;
+export const EVENING_FROM_HOUR = 18; // 6pm, inclusive
+export const EVENING_TO_HOUR = 20;   // 8pm, exclusive — nothing starts at 8
+
+/**
+ * Surcharge for a booking starting at the given LOCAL hour (0–23). Callers pass
+ * the customer's wall-clock hour — the booking form's "18:00" slot string, or
+ * the current hour for an urgent booking — never a UTC hour, which would be
+ * 5½ hours off in India and surcharge the lunch slots.
+ */
+export function eveningSurchargePaise(startHour: number): number {
+  return startHour >= EVENING_FROM_HOUR && startHour < EVENING_TO_HOUR ? EVENING_SURCHARGE_PAISE : 0;
+}
+
 /** ₹1,599 — grouped Indian-style, no paise (every price here is whole rupees). */
 export function formatINR(paise: number): string {
   return `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;

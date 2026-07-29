@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import {
-  ArrowRight, ArrowLeft, Loader2, Check, CheckCircle2, Stethoscope, Pill,
-  Sun, Settings2, Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck,
+  ArrowRight, ArrowLeft, Loader2, Check, CheckCircle2, Stethoscope,
+  Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck,
   ChevronLeft, ChevronRight, CalendarPlus, Home as HomeIcon, Send,
 } from 'lucide-react';
 import { matchCompanionByDepartment } from '@/data/companions';
@@ -15,20 +15,23 @@ import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 import { pincodeForArea } from '@/data/hospitals';
 import { Input } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode, listServedAreas, type ServiceArea } from '@caresy/utils';
+import { priceForMinutes, formatINR, eveningSurchargePaise, GRACE_MINUTES } from '@caresy/utils/pricing';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const DRAFT_KEY = 'caresy_booking_draft';
 const TOTAL_STEPS = 4;
 
-const SERVICES = [
-  { name: 'Hospital Companion', price: '₹499', icon: Stethoscope, desc: 'A verified companion accompanies the patient through the entire hospital visit — queues, consultation, and paperwork.' },
-  { name: 'Hospital Companion + Pickup', price: '₹899', icon: Pill, desc: 'Everything in Hospital Companion, plus safe pickup from home and drop-back after the visit.' },
-  { name: 'Full Day Companion', price: '₹1,299', icon: Sun, desc: 'Dedicated full-day support for long procedures, multiple appointments, or day-care admissions.' },
-  { name: 'Custom Support', price: 'Quote after review', icon: Settings2, desc: 'Tell us what you need — our care team designs a plan and shares a quote before you commit.' },
-];
+// Durations replace the old service tiers (₹499/₹899/₹1,299). Price comes from
+// the shared meter, so the numbers here can never drift from what the bill
+// says. Pickup & drop stopped being a ₹400 tier and became a care need.
+const DURATIONS = [1, 2, 4, 6, 8].map((hours) => ({
+  hours,
+  label: hours === 8 ? 'Full day' : `${hours} hour${hours > 1 ? 's' : ''}`,
+  paise: priceForMinutes(hours * 60),
+}));
 
-const CARE_NEEDS = ['Wheelchair', 'Walking assistance', 'Medicine collection'];
-const TIME_SLOTS = ['09:00', '10:00', '11:30', '13:00', '14:30', '16:00'];
+const CARE_NEEDS = ['Wheelchair', 'Walking assistance', 'Medicine collection', 'Home pickup & drop', 'Companion drives your car/bike'];
+const TIME_SLOTS = ['09:00', '10:00', '11:30', '13:00', '14:30', '16:00', '17:00', '18:00', '19:00'];
 const LANGUAGES = ['No preference', 'Hindi', 'English', 'Tamil', 'Telugu', 'Kannada'];
 
 function fmtSlot(t: string) {
@@ -111,8 +114,9 @@ export default function Booking() {
 
   const [step, setStep] = useState(1);
 
-  // Step 1: Service
-  const [service, setService] = useState('Hospital Companion');
+  // Step 1: Duration. 2 hours preselected — the typical OPD visit, and the
+  // middle of the menu.
+  const [durationHours, setDurationHours] = useState(2);
   const [careNeeds, setCareNeeds] = useState<string[]>([]);
 
   // Step 2: Hospital
@@ -160,7 +164,7 @@ export default function Booking() {
       setDate(draft.date || '');
       setTime(draft.time || '');
       setLanguage(draft.language || 'No preference');
-      setService(draft.service || 'Hospital Companion');
+      setDurationHours(draft.durationHours || 2);
       setCareNeeds(draft.careNeeds || []);
       setNotes(draft.notes || '');
       setStep(TOTAL_STEPS);
@@ -197,10 +201,15 @@ export default function Booking() {
   const toggleNeed = (need: string) =>
     setCareNeeds(careNeeds.includes(need) ? careNeeds.filter((n) => n !== need) : [...careNeeds, need]);
 
-  const servicePrice = SERVICES.find((s) => s.name === service)?.price || '₹499';
+  const serviceLabel = `${DURATIONS.find((d) => d.hours === durationHours)?.label || `${durationHours} hours`} companion`;
+  const basePaise = priceForMinutes(durationHours * 60);
+  // ₹99 on 6–8pm starts. Slot strings are the customer's wall clock, so the
+  // hour can be read straight off the front of "18:00".
+  const eveningPaise = time ? eveningSurchargePaise(parseInt(time, 10)) : 0;
+  const totalPaise = basePaise + eveningPaise;
 
   const isStepValid = (s: number) => {
-    if (s === 1) return service !== '';
+    if (s === 1) return durationHours > 0;
     if (s === 2) return hospital.trim() !== '' && areaStatus === 'served';
     if (s === 3) return patientName.trim() !== '' && phone.trim() !== '' && email.trim() !== '';
     if (s === 4) return date !== '' && time !== '';
@@ -227,7 +236,7 @@ export default function Booking() {
         sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
           patientName, age, phone, email, emergency,
           hospital, pincode, department, doctor, date, time, language,
-          service, careNeeds, notes,
+          durationHours, careNeeds, notes,
         }));
       } catch {
         // ignore unavailable sessionStorage
@@ -278,8 +287,11 @@ export default function Booking() {
 
       if (locationError) throw locationError;
 
-      let serviceEnum = 'HOSPITAL_COMPANION';
-      if (service.includes('Pickup')) serviceEnum = 'APPOINTMENT_ASSISTANCE';
+      // Pickup used to be its own ₹899 tier; now it's a care need on the same
+      // meter. The enum split is kept so ops can still see which jobs involve
+      // a home pickup leg.
+      const wantsPickup = careNeeds.includes('Home pickup & drop');
+      const serviceEnum = wantsPickup ? 'APPOINTMENT_ASSISTANCE' : 'HOSPITAL_COMPANION';
 
       const scheduledStart = new Date(`${date}T${time}:00`);
       const { data: bookingData, error: bookingError } = await supabase
@@ -293,7 +305,7 @@ export default function Booking() {
           status: 'PENDING',
           scheduled_start_time: scheduledStart.toISOString(),
           special_instructions: notes || '',
-          estimated_duration_minutes: service.includes('Full Day') ? 480 : 240,
+          estimated_duration_minutes: durationHours * 60,
           service_metadata: {
             customerEmail: email,
             customerPhone: phone,
@@ -301,7 +313,9 @@ export default function Booking() {
             department,
             language,
             careNeeds,
-            originalService: service,
+            originalService: serviceLabel,
+            quotedPaise: totalPaise,
+            eveningSurchargePaise: eveningPaise,
           },
         })
         .select()
@@ -349,7 +363,7 @@ export default function Booking() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               {[
-                { icon: Stethoscope, bg: '#baeed9', label: 'Service Type', value: service },
+                { icon: Stethoscope, bg: '#baeed9', label: 'Service', value: serviceLabel },
                 { icon: Building2, bg: 'var(--m3-cyan)', label: 'Hospital', value: hospital },
                 { icon: Clock, bg: 'var(--m3-cyan)', label: 'Schedule', value: whenLabel },
               ].map((row) => (
@@ -425,31 +439,38 @@ export default function Booking() {
 
         {!review && step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <StepHeader step={1} title="Select Service" sub="Choose the care plan that best fits your current needs." />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {SERVICES.map((s) => {
-                const active = service === s.name;
+            <StepHeader step={1} title="How long do you need us?" sub="A verified companion through queues, consultations and paperwork — pay for the time you use." />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {DURATIONS.map((d) => {
+                const active = durationHours === d.hours;
+                const fullDay = d.hours === 8;
                 return (
-                  <button key={s.name} onClick={() => setService(s.name)} style={{ display: 'flex', gap: 16, alignItems: 'flex-start', width: '100%', padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)', border: active ? '2px solid var(--m3-green-deep)' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
-                    <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: 12, background: 'var(--m3-cyan)', color: 'var(--m3-cyan-ink)', flexShrink: 0 }}>
-                      <s.icon style={{ width: 22, height: 22 }} />
+                  <button key={d.hours} onClick={() => setDurationHours(d.hours)} style={{ display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: '17px 20px', borderRadius: 'var(--m3-radius-card)', background: active ? '#fff' : 'var(--m3-chip)', border: active ? '2px solid var(--m3-green-deep)' : '2px solid transparent', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', boxShadow: active ? '0 4px 12px rgba(0,0,0,0.08)' : 'none' }}>
+                    <span style={{ display: 'grid', placeItems: 'center', width: 24, height: 24, borderRadius: '50%', border: active ? 'none' : '2px solid #c0c9c3', background: active ? 'var(--m3-green-deep)' : 'transparent', color: '#fff', flexShrink: 0 }}>
+                      {active && <Check style={{ width: 13, height: 13 }} />}
                     </span>
                     <span style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, paddingBottom: 4 }}>
-                        <span style={{ fontSize: 22, lineHeight: '28px', fontWeight: 500, color: 'var(--m3-green-deep)' }}>{s.name}</span>
-                        {active && (
-                          <span style={{ display: 'grid', placeItems: 'center', width: 24, height: 24, borderRadius: '50%', background: 'var(--m3-green-deep)', color: '#fff', flexShrink: 0 }}>
-                            <Check style={{ width: 12, height: 12 }} />
-                          </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 17, fontWeight: 700, color: 'var(--m3-green-deep)' }}>{d.label}</span>
+                        {fullDay && (
+                          <span style={{ padding: '2px 10px', borderRadius: 999, background: 'var(--m3-cyan)', color: 'var(--m3-cyan-ink)', fontSize: 11, fontWeight: 700, letterSpacing: '0.3px', textTransform: 'uppercase' }}>Best value</span>
                         )}
                       </span>
-                      <span style={{ display: 'block', fontSize: 14, lineHeight: '20px', letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>{s.desc}</span>
-                      <span style={{ display: 'block', paddingTop: 8, fontSize: 14, fontWeight: 700, color: 'var(--m3-green-deep)' }}>{s.price}</span>
+                      {fullDay && (
+                        <span style={{ display: 'block', paddingTop: 2, fontSize: 12.5, color: 'var(--m3-muted)' }}>
+                          2 extra hours for {formatINR(d.paise - priceForMinutes(6 * 60))} more than 6 hours
+                        </span>
+                      )}
                     </span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--m3-ink)', flexShrink: 0 }}>{formatINR(d.paise)}</span>
                   </button>
                 );
               })}
             </div>
+            <p style={{ margin: '-8px 4px 0', fontSize: 12.5, lineHeight: '18px', color: 'var(--m3-muted)' }}>
+              Runs a little over? First {GRACE_MINUTES} minutes are free, then just ₹4 a minute.
+              We always charge whichever is less.
+            </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <span style={label}>Care needs</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -567,10 +588,16 @@ export default function Booking() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <span style={label}>Available times</span>
               <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-                {TIME_SLOTS.map((t) => (
-                  <button key={t} onClick={() => setTime(t)} style={chip(time === t)}>{fmtSlot(t)}</button>
-                ))}
+                {TIME_SLOTS.map((t) => {
+                  const evening = eveningSurchargePaise(parseInt(t, 10)) > 0;
+                  return (
+                    <button key={t} onClick={() => setTime(t)} style={chip(time === t)}>
+                      {fmtSlot(t)}{evening ? ' · +₹99' : ''}
+                    </button>
+                  );
+                })}
               </div>
+              <p style={{ margin: '0 4px', fontSize: 12, color: 'var(--m3-muted)' }}>Evening slots (6–8pm) carry a ₹99 surcharge. Services end at 8pm.</p>
             </div>
             {date && time && (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 25, borderRadius: 'var(--m3-radius-card)', background: '#fff', border: '1px solid rgba(192,201,195,0.3)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.15)' }}>
@@ -590,7 +617,7 @@ export default function Booking() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)', border: '1px solid rgba(192,201,195,0.3)', boxShadow: '0 1px 1px rgba(0,0,0,0.05)' }}>
               <div>
                 <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.6px', textTransform: 'uppercase', color: 'var(--m3-muted)' }}>Booking summary</span>
-                <h2 style={{ margin: '4px 0 0', fontSize: 28, lineHeight: '35px', fontWeight: 600, color: 'var(--m3-green-deep)' }}>{service}</h2>
+                <h2 style={{ margin: '4px 0 0', fontSize: 28, lineHeight: '35px', fontWeight: 600, color: 'var(--m3-green-deep)', textTransform: 'capitalize' }}>{serviceLabel}</h2>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>
@@ -638,19 +665,31 @@ export default function Booking() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>
-                    <span style={{ display: 'block', fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-ink)' }}>Service Fee</span>
-                    <span style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>{service}</span>
+                    <span style={{ display: 'block', fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-ink)' }}>Companion time</span>
+                    <span style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)', textTransform: 'capitalize' }}>{serviceLabel}</span>
                   </span>
-                  <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--m3-ink)' }}>{servicePrice}</span>
+                  <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--m3-ink)' }}>{formatINR(basePaise)}</span>
                 </div>
+                {eveningPaise > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>
+                      <span style={{ display: 'block', fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-ink)' }}>Evening slot</span>
+                      <span style={{ display: 'block', fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>Bookings starting 6–8pm</span>
+                    </span>
+                    <span style={{ fontSize: 16, fontWeight: 500, color: 'var(--m3-ink)' }}>{formatINR(eveningPaise)}</span>
+                  </div>
+                )}
                 <div style={{ borderTop: '1px solid rgba(192,201,195,0.5)' }} />
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 }}>
                   <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.55px', textTransform: 'uppercase', color: 'var(--m3-green-deep)' }}>Total</span>
                   <span style={{ textAlign: 'right' }}>
-                    <span style={{ display: 'block', fontSize: 28, lineHeight: '36px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>{servicePrice}</span>
-                    <span style={{ display: 'block', fontSize: 12, fontStyle: 'italic', letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>Pay only after a companion is confirmed</span>
+                    <span style={{ display: 'block', fontSize: 28, lineHeight: '36px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>{formatINR(totalPaise)}</span>
+                    <span style={{ display: 'block', fontSize: 12, fontStyle: 'italic', letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>Pay after your visit — cash or UPI</span>
                   </span>
                 </div>
+                <span style={{ fontSize: 12, letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>
+                  Runs over? First {GRACE_MINUTES} min free, then ₹4/min — never more than the next duration up.
+                </span>
               </div>
             </div>
 

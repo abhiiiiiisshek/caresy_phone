@@ -32,8 +32,8 @@ const TERMS_SECTIONS = [
   {
     id: 'bookings-canc',
     title: '4. Bookings & Cancellation',
-    content: 'All service requests are subject to dispatcher review, location limits, and companion availability.\n\n• Urgent bookings (Same-Day): Average callback time is 6 minutes, companion dispatch within 45 minutes of booking confirmation.\n• Planned bookings: Scheduled companion profile details are shared 12 hours prior to the appointment.\n• Cancellation Policy: Cancellations made within 4 hours of the scheduled start time will incur a convenience/late fee of ₹150. This fee is automatically charged to cover companion travel and availability costs.',
-    summary: 'Same-day dispatch starts within 45 minutes. Future bookings share profiles 12 hours early. Canceling less than 4 hours before the visit costs a ₹150 cancellation fee.'
+    content: 'All service requests are subject to dispatcher review, location limits, and companion availability.\n\n• Urgent bookings (Same-Day): Average callback time is 6 minutes, companion dispatch within 45 minutes of booking confirmation.\n• Planned bookings: Scheduled companion profile details are shared 12 hours prior to the appointment.\n• Cancellation Policy: Scheduled bookings may be cancelled free of charge until 6 hours before the scheduled start time. Urgent bookings may be cancelled free of charge within 30 minutes of placing them. Outside these windows — or at any time after a companion has already set out for your booking — a cancellation fee of ₹99 applies. This fee is paid to the companion in full to cover their travel and reserved time.',
+    summary: 'Same-day dispatch starts within 45 minutes. Future bookings share profiles 12 hours early. Cancel free until 6 hours before a scheduled visit (30 minutes after placing an urgent one); after that, or once a companion is on the way, a ₹99 fee applies and goes to the companion.'
   },
   {
     id: 'user-resp',
@@ -44,8 +44,8 @@ const TERMS_SECTIONS = [
   {
     id: 'billing',
     title: '6. Fees & Billing',
-    content: 'Service fees are structured based on the service duration and package selected:\n\n• Standard Hospital Companion: Starts from ₹499 (pricing scales with duration).\n• Home Pickup & Hospital Return: Starts from ₹899 (scales with travel distance).\n• Full-Day Support: Starts from ₹1,299.\n• All payments must be made securely online. Companions are strictly prohibited from receiving cash gratuities or handling personal payments directly.',
-    summary: 'Fees range from ₹499 (standard) to ₹1,299+ (full day). Pay securely online; do not pay cash tips or billing rates directly to the companions.'
+    content: 'Service fees are based on the time a companion actually spends with the patient, measured from the companion’s arrival to the end of the visit:\n\n• First hour: ₹299 (minimum charge per visit).\n• After the first hour: ₹4 per minute, with the first 15 minutes past any booked duration free of charge.\n• Full day: ₹1,599 for up to 8 hours. You are always charged the lower of the metered amount and the full-day rate.\n• Evening bookings: visits starting between 6:00 pm and 8:00 pm carry a flat ₹99 evening surcharge. Services conclude by 8:00 pm.\n• Payment is collected after the visit, by cash or UPI, against the bill shown in the app. Companions may accept these official payments; they remain prohibited from soliciting tips, gratuities, or any amount beyond the app-issued bill.\n• If the companion drives during the service, they drive the customer’s own vehicle; fuel and vehicle running costs remain the customer’s.',
+    summary: '₹299 for the first hour, then ₹4/minute; full day ₹1,599 — you always pay whichever is less. 15 minutes of grace past booked time. Evening starts (6–8pm) add ₹99. Pay after the visit by cash or UPI against the in-app bill; companions cannot ask for anything beyond it.'
   },
   {
     id: 'liability',
