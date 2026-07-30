@@ -16,6 +16,19 @@ supabase/
   migrations/  SQL run manually against the shared Supabase project
 ```
 
+## Docs
+
+| | |
+|---|---|
+| [CLAUDE.md](CLAUDE.md) | Coding standards — read before writing code |
+| [AGENTS.md](AGENTS.md) | AI workflow + doc map |
+| [docs/CURRENT.md](docs/CURRENT.md) | What's in flight and known-broken right now |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Module ownership, request flow, environments |
+| [docs/ADR/](docs/ADR/README.md) | Why the big choices were made |
+| [docs/DATABASE.md](docs/DATABASE.md) | Migration ledger, tables, enforcement functions |
+| [docs/SECURITY.md](docs/SECURITY.md) | RLS model, secrets, buckets, open gaps |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Symptom index + deploy/rollback |
+
 ## Live tracking
 
 Real-time companion location tracking spans this repo (Supabase backend) and the
