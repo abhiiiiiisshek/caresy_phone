@@ -4,6 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { X, Loader2 } from 'lucide-react';
 import { Button, Input } from '@caresy/ui';
+// utils/phone is a leaf: pure functions, no imports of its own. @caresy/utils
+// also lists @caresy/auth (serviceArea needs the Supabase client), so the two
+// manifests reference each other — but the module graph stays acyclic, which is
+// what the bundler follows. Import from the subpath, never the package root.
+import { isValidIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
 
 function GoogleIcon() {
   return (
@@ -84,13 +89,16 @@ export default function AuthModal() {
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone.trim()) {
-      setError('Phone number is required.');
+    // A non-empty check let nine-digit numbers through, so accounts existed
+    // that operations could not call.
+    if (!isValidIndianMobile(phone)) {
+      setError('Enter a valid 10-digit Indian mobile number.');
       return;
     }
     setIsSubmitting(true);
     setError('');
-    const res = await saveProfile({ full_name: name.trim(), age: parseInt(age, 10), phone: phone.trim() });
+    // Stored as +919876543210 so every screen reads one shape.
+    const res = await saveProfile({ full_name: name.trim(), age: parseInt(age, 10), phone: toE164(phone)! });
     setIsSubmitting(false);
     if (!res.success) {
       setError(res.error || 'Failed to save profile.');
@@ -179,9 +187,12 @@ export default function AuthModal() {
                 type="tel"
                 required
                 autoFocus
-                placeholder="+91 98765 43210"
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="98765 43210"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                hint={mobileHint(phone) ?? '+91 — we only need the 10 digits'}
               />
             </div>
             <Button type="submit" variant="primary" full shape="pill" size="lg" disabled={isSubmitting}>

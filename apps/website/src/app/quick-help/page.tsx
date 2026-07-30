@@ -9,6 +9,7 @@ import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import { eveningSurchargePaise } from '@caresy/utils/pricing';
+import { isValidIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 import { pincodeForArea } from '@/data/hospitals';
 
@@ -37,7 +38,7 @@ export default function QuickHelp() {
   const TOTAL_STEPS = 3;
   const [step, setStep] = useState(1);
   const isStepValid = (s: number) => {
-    if (s === 1) return customerName.trim() !== '' && phone.trim() !== '' && /\S+@\S+\.\S+/.test(email);
+    if (s === 1) return customerName.trim() !== '' && isValidIndianMobile(phone) && /\S+@\S+\.\S+/.test(email);
     if (s === 2) return patientName.trim() !== '' && hospital.trim() !== '' && areaStatus === 'served';
     return true;
   };
@@ -151,7 +152,7 @@ export default function QuickHelp() {
           special_instructions: notes || '',
           service_metadata: {
             customerName,
-            phone,
+            phone: toE164(phone),
             email,
             urgency,
             category: service,
@@ -254,7 +255,13 @@ export default function QuickHelp() {
               <h2>Contact details</h2>
               <div className="form-row">
                 <Input label="Your name" name="customerName" type="text" placeholder="Ananya Rao" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-                <Input label="Mobile number" name="phone" type="tel" placeholder="+91 97175 00225" required value={phone} onChange={(e) => setPhone(e.target.value)} />
+                <Input
+                  label="Mobile number" name="phone" type="tel" required
+                  inputMode="numeric" maxLength={10} placeholder="98765 43210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  hint={mobileHint(phone) ?? '+91 — we call this number back'}
+                />
               </div>
               <div className="form-row">
                 <Input label="Email address" name="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />

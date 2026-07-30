@@ -43,6 +43,27 @@ export default function InstallPrompt() {
     return () => { window.removeEventListener('beforeinstallprompt', onBIP); if (t) clearTimeout(t); };
   }, []);
 
+  // Freeze the page behind the sheet. Without this, scrolling the guide also
+  // scrolls the home page underneath it, which reads as two things moving at
+  // once. position:fixed rather than overflow:hidden because iOS Safari ignores
+  // overflow on body — and it needs the scroll position restored on close, or
+  // dismissing the sheet jumps you back to the top.
+  useEffect(() => {
+    if (!open) return;
+    const y = window.scrollY;
+    const { body } = document;
+    const prev = { position: body.style.position, top: body.style.top, width: body.style.width };
+    body.style.position = 'fixed';
+    body.style.top = `-${y}px`;
+    body.style.width = '100%';
+    return () => {
+      body.style.position = prev.position;
+      body.style.top = prev.top;
+      body.style.width = prev.width;
+      window.scrollTo(0, y);
+    };
+  }, [open]);
+
   const close = () => { localStorage.setItem(SEEN_KEY, '1'); setOpen(false); };
 
   const install = async () => {
@@ -64,7 +85,9 @@ export default function InstallPrompt() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: 440, maxHeight: '92vh', overflowY: 'auto', background: 'var(--m3-bg, #f2f4ef)', borderRadius: '28px 28px 0 0', position: 'relative', boxShadow: '0 -8px 40px rgba(0,0,0,0.25)' }}
+        // overscrollBehavior stops the scroll chaining to whatever is behind
+        // once this panel hits its end.
+        style={{ width: '100%', maxWidth: 440, maxHeight: '92vh', overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--m3-bg, #f2f4ef)', borderRadius: '28px 28px 0 0', position: 'relative', boxShadow: '0 -8px 40px rgba(0,0,0,0.25)' }}
       >
         {/* grab handle + close */}
         <div style={{ position: 'sticky', top: 0, zIndex: 2, display: 'flex', justifyContent: 'center', padding: '12px 0 4px', background: 'linear-gradient(180deg, var(--m3-bg,#f2f4ef) 70%, transparent)' }}>

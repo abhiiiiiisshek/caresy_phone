@@ -17,6 +17,7 @@ import { pincodeForArea } from '@/data/hospitals';
 import { Input } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode, listServedAreas, type ServiceArea } from '@caresy/utils';
 import { priceForMinutes, formatINR, eveningSurchargePaise, GRACE_MINUTES } from '@caresy/utils/pricing';
+import { isValidIndianMobile, normalizeIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const DRAFT_KEY = 'caresy_booking_draft';
@@ -240,7 +241,8 @@ export default function Booking() {
     setSelectedPatientId(p.id);
     setPatientName(p.full_name);
     setAge(p.age ? String(p.age) : '');
-    setEmergency(p.emergency_contact_phone || '');
+    // Stored as +91……; the field holds the 10 national digits.
+    setEmergency(normalizeIndianMobile(p.emergency_contact_phone || '') || '');
   };
 
   const clearPatient = () => {
@@ -286,7 +288,11 @@ export default function Booking() {
   const isStepValid = (s: number) => {
     if (s === 1) return durationHours > 0;
     if (s === 2) return hospital.trim() !== '' && areaStatus === 'served';
-    if (s === 3) return patientName.trim() !== '' && phone.trim() !== '' && email.trim() !== '';
+    // A nine-digit number passed the old check and produced a booking nobody
+    // could be dispatched to. Emergency contact is optional, but must be
+    // reachable if given at all.
+    if (s === 3) return patientName.trim() !== '' && isValidIndianMobile(phone) && email.trim() !== ''
+      && (emergency.trim() === '' || isValidIndianMobile(emergency));
     if (s === 4) return date !== '' && time !== '';
     return true;
   };
@@ -346,7 +352,7 @@ export default function Booking() {
           .update({
             full_name: patientName,
             age: age ? parseInt(age) : null,
-            emergency_contact_phone: emergency || null,
+            emergency_contact_phone: toE164(emergency),
           })
           .eq('id', patientId);
       } else {
@@ -356,7 +362,7 @@ export default function Booking() {
             customer_user_id: currentUser.id,
             full_name: patientName,
             age: age ? parseInt(age) : null,
-            emergency_contact_phone: emergency || null,
+            emergency_contact_phone: toE164(emergency),
           })
           .select()
           .single();
@@ -400,7 +406,7 @@ export default function Booking() {
           estimated_duration_minutes: durationHours * 60,
           service_metadata: {
             customerEmail: email,
-            customerPhone: phone,
+            customerPhone: toE164(phone),
             doctor,
             department,
             language,
@@ -756,9 +762,21 @@ export default function Booking() {
                 <Input label="Patient name" name="patientName" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} />
                 <Input label="Age" name="age" type="number" min={1} max={120} placeholder="68" value={age} onChange={(e) => setAge(e.target.value)} />
               </div>
-              <Input label="Customer mobile" name="phone" type="tel" placeholder="+91 97175 00225" required value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input
+                label="Customer mobile" name="phone" type="tel" required
+                inputMode="numeric" maxLength={10} placeholder="98765 43210"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                hint={mobileHint(phone) ?? '+91 — this is the number our companion will call'}
+              />
               <Input label="Customer email" name="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-              <Input label="Emergency contact" name="emergency" type="tel" placeholder="+91 99887 77665" value={emergency} onChange={(e) => setEmergency(e.target.value)} />
+              <Input
+                label="Emergency contact" name="emergency" type="tel"
+                inputMode="numeric" maxLength={10} placeholder="99887 77665"
+                value={emergency}
+                onChange={(e) => setEmergency(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                hint={mobileHint(emergency) ?? 'Optional — someone else we can reach'}
+              />
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 14, fontWeight: 600, color: 'var(--m3-ink)' }}>
                 Preferred language
                 <select name="language" value={language} onChange={(e) => setLanguage(e.target.value)} style={{ padding: '12px 14px', borderRadius: 12, border: '1px solid #c0c9c3', background: '#fff', fontSize: 15, fontFamily: 'inherit', color: 'var(--m3-ink)' }}>
