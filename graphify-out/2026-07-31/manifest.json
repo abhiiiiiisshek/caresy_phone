@@ -65,18 +65,18 @@
     "semantic_hash": "1ff1ebd63aa03a670191f9ac5a40690a"
   },
   "AGENTS.md": {
-    "mtime": 1785043549.7149036,
-    "ast_hash": "9e09241799026ac05be315a2f0b50055",
-    "semantic_hash": "9e09241799026ac05be315a2f0b50055"
+    "mtime": 1785438820.6668959,
+    "ast_hash": "233862864618034c8280981f4fdbd6f4",
+    "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1785043549.7150939,
-    "ast_hash": "03e3d38ba74cf8886d3d8fc322d9da8a",
-    "semantic_hash": "03e3d38ba74cf8886d3d8fc322d9da8a"
+    "mtime": 1785438560.7176733,
+    "ast_hash": "c515b965927693284bc15a402cdab20a",
+    "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1785043549.715286,
-    "ast_hash": "76566db52f04d01f6c89c708ac1bd4a2",
+    "mtime": 1785438829.7190676,
+    "ast_hash": "2272cc50c2b7d5a2f3b6325029ebb725",
     "semantic_hash": ""
   },
   "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "apps/admin/src/app/analytics/page.tsx": {
-    "mtime": 1785043549.7174058,
-    "ast_hash": "56a33338eb9766e732fd50ae3093030e",
+    "mtime": 1785440315.4867358,
+    "ast_hash": "205f7c6f039d65a383ddd4f3724e2db2",
     "semantic_hash": ""
   },
   "apps/admin/src/app/auth/callback/route.ts": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "apps/admin/src/utils/pricing.ts": {
-    "mtime": 1785265604.3007438,
-    "ast_hash": "bf9e69665cc5f24f1d8350192793aae0",
+    "mtime": 1785440276.6522293,
+    "ast_hash": "1cb34fd3d08f72120ab99310224edf5b",
     "semantic_hash": ""
   },
   "apps/admin/tsconfig.json": {
@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/booking/page.tsx": {
-    "mtime": 1785306541.7310941,
-    "ast_hash": "d75b28e423d837bdaf7116d8b89e2d00",
+    "mtime": 1785420549.926156,
+    "ast_hash": "b4528823cb2937f1206484bf1857c7ae",
     "semantic_hash": ""
   },
   "apps/website/src/app/for-hospitals/page.tsx": {
@@ -390,8 +390,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/page.tsx": {
-    "mtime": 1785129797.2512708,
-    "ast_hash": "6ac35a9c954d98ce3bdc4e943cff56da",
+    "mtime": 1785337959.2931254,
+    "ast_hash": "8b4f5c62c16603d4a8dda9b5f46bf83e",
     "semantic_hash": ""
   },
   "apps/website/src/app/privacy/page.tsx": {
@@ -405,8 +405,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/quick-help/page.tsx": {
-    "mtime": 1785265604.3023615,
-    "ast_hash": "452fd518f5bab37c074e5687a9d4b150",
+    "mtime": 1785420549.9268534,
+    "ast_hash": "84b12fddb1b073cf592663cb20800d1e",
     "semantic_hash": ""
   },
   "apps/website/src/app/services/page.tsx": {
@@ -415,8 +415,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/app/support/page.tsx": {
-    "mtime": 1785043549.8990333,
-    "ast_hash": "8927572ddcd50bc0ad85774f3211997f",
+    "mtime": 1785420612.8404462,
+    "ast_hash": "5cedc47fe52ffe9efe5686998d0abb58",
     "semantic_hash": ""
   },
   "apps/website/src/app/terms/page.tsx": {
@@ -485,8 +485,8 @@
     "semantic_hash": ""
   },
   "packages/auth/package.json": {
-    "mtime": 1785043550.0118492,
-    "ast_hash": "97ffa51267f83d26602899a35f0f8a98",
+    "mtime": 1785420549.9301333,
+    "ast_hash": "8650a3c9150d4580baf7007a121ab106",
     "semantic_hash": ""
   },
   "packages/auth/src/AuthContext.tsx": {
@@ -495,8 +495,8 @@
     "semantic_hash": ""
   },
   "packages/auth/src/AuthModal.tsx": {
-    "mtime": 1785156934.1116214,
-    "ast_hash": "a7e60917f220f62a706f8923486c2dbd",
+    "mtime": 1785420549.9307203,
+    "ast_hash": "c11ef9ceddbaafb211f05af5289dbf84",
     "semantic_hash": ""
   },
   "packages/auth/src/supabase/client.ts": {
@@ -580,8 +580,8 @@
     "semantic_hash": ""
   },
   "packages/utils/package.json": {
-    "mtime": 1785260905.8464465,
-    "ast_hash": "d81218d1a7759c22719a4bae8d7dd1da",
+    "mtime": 1785420549.9311948,
+    "ast_hash": "9996227a510bee918a38fd547b253c04",
     "semantic_hash": ""
   },
   "packages/utils/src/serviceArea.ts": {
@@ -625,8 +625,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/OPS_METRICS_AND_CONTACT.sql": {
-    "mtime": 1785043550.0280242,
-    "ast_hash": "9b90b09e0d3e25896f38df233d69afd4",
+    "mtime": 1785420549.9317126,
+    "ast_hash": "22b607c78fe44b329e1704bb2ccc569c",
     "semantic_hash": ""
   },
   "supabase/migrations/PROFILES_TABLE.sql": {
@@ -690,8 +690,8 @@
     "semantic_hash": ""
   },
   "apps/admin/src/components/AdminShell.tsx": {
-    "mtime": 1785050307.747415,
-    "ast_hash": "2a877201457b6bd093caa39d8cea5d5d",
+    "mtime": 1785440250.7661152,
+    "ast_hash": "d4b50dc42dc59af375d70350a085d21b",
     "semantic_hash": ""
   },
   "apps/companion/src/components/LocationShare.tsx": {
@@ -995,8 +995,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/components/HealthTips.tsx": {
-    "mtime": 1785130070.0170903,
-    "ast_hash": "c02fcfd97ee02a6f5bbfbd2fda2cd6a2",
+    "mtime": 1785337931.9367878,
+    "ast_hash": "6c7b81e85774aca8faa97c099a630cba",
     "semantic_hash": ""
   },
   "apps/website/src/components/HospitalAutocomplete.tsx": {
@@ -1005,8 +1005,8 @@
     "semantic_hash": ""
   },
   "apps/website/src/components/InstallPrompt.tsx": {
-    "mtime": 1785043549.9068074,
-    "ast_hash": "2e6781526d65b066e372284c4ccc6290",
+    "mtime": 1785420549.9280813,
+    "ast_hash": "e10e5a38a1dc4d940036ef67ac22417a",
     "semantic_hash": ""
   },
   "apps/website/src/components/InstallPromptArt.tsx": {
@@ -1065,7 +1065,7 @@
     "semantic_hash": ""
   },
   "supabase/migrations/16_TRIPS_AND_LIVE_TRACKING.sql": {
-    "mtime": 1785043550.0266712,
+    "mtime": 1785436402.4529297,
     "ast_hash": "f88ad211b4b1894005e2aab4942ff6a4",
     "semantic_hash": ""
   },
@@ -1090,8 +1090,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/21_PUSH_TOKENS.sql": {
-    "mtime": 1785055015.812303,
-    "ast_hash": "7f870b7c410c045d14c44a3026db85ef",
+    "mtime": 1785436402.4730027,
+    "ast_hash": "54386a2a95113e5a520ee1934ec26c79",
     "semantic_hash": ""
   },
   "supabase/migrations/22_PUBLIC_TRACKING.sql": {
@@ -1105,7 +1105,7 @@
     "semantic_hash": ""
   },
   "supabase/migrations/24_PUSH_DELIVERY.sql": {
-    "mtime": 1785130567.211035,
+    "mtime": 1785436402.4315896,
     "ast_hash": "16cea543de2a779e2079dc6d8ad985ec",
     "semantic_hash": ""
   },
@@ -1465,8 +1465,103 @@
     "semantic_hash": ""
   },
   "supabase/migrations/27_TRANSPORT.sql": {
-    "mtime": 1785306372.8293931,
-    "ast_hash": "aaf2d9d69c88cb667adc2ce572cb24b0",
+    "mtime": 1785436402.4309115,
+    "ast_hash": "25af84fc84af121de14990b24ae30b25",
+    "semantic_hash": ""
+  },
+  "apps/admin/src/app/payments/page.tsx": {
+    "mtime": 1785440246.1810691,
+    "ast_hash": "f88863f82fd122c712229e95fb639756",
+    "semantic_hash": ""
+  },
+  "packages/utils/src/phone.check.ts": {
+    "mtime": 1785420096.434358,
+    "ast_hash": "49b5497011b9c0fb3112c2bd2f380490",
+    "semantic_hash": ""
+  },
+  "packages/utils/src/phone.ts": {
+    "mtime": 1785420084.316234,
+    "ast_hash": "f9f4d0f05c5d9c5e7f14e765aebb373f",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/28_CONTACT_AND_METRICS.sql": {
+    "mtime": 1785420133.4466767,
+    "ast_hash": "fea98ca719564822992a2ea96f37c40e",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0000-template.md": {
+    "mtime": 1785438620.8728027,
+    "ast_hash": "ba4b387e14474397585f40bc2b71f515",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0001-supabase-as-backend.md": {
+    "mtime": 1785438633.6958063,
+    "ast_hash": "7c36f2e9ba5028493a73d90f350a556b",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0002-npm-workspaces-monorepo.md": {
+    "mtime": 1785438645.2216823,
+    "ast_hash": "583de8064d3c19ef97c10df06127eb34",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0003-postgres-schedulers-not-vercel-cron.md": {
+    "mtime": 1785438658.360087,
+    "ast_hash": "e2c71b520eacd140a5b200c12ae87345",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0004-capacitor-remote-url-shell.md": {
+    "mtime": 1785438668.6958091,
+    "ast_hash": "1faeeca0018c9ffe40684dc7d6387435",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0005-gatewayless-payments.md": {
+    "mtime": 1785438681.950574,
+    "ast_hash": "92b6b0da865e29ffd31f61c1f93fcba9",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0006-transport-is-facilitated-not-billed.md": {
+    "mtime": 1785438691.507626,
+    "ast_hash": "7405886e17b9fa5618fd63392b2198d8",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0007-share-token-for-guest-tracking.md": {
+    "mtime": 1785438700.3431454,
+    "ast_hash": "9b74c99bab2e3f5e28ee8ace2546e778",
+    "semantic_hash": ""
+  },
+  "docs/ADR/0008-assert-selfchecks-no-test-framework.md": {
+    "mtime": 1785438713.7552276,
+    "ast_hash": "3a979e53e069d85883206eb20241faae",
+    "semantic_hash": ""
+  },
+  "docs/ADR/README.md": {
+    "mtime": 1785438615.462208,
+    "ast_hash": "f4c7ab833ebaa1bcf8a57c7a86158bac",
+    "semantic_hash": ""
+  },
+  "docs/ARCHITECTURE.md": {
+    "mtime": 1785440369.0422409,
+    "ast_hash": "be11d45c5ca765f496e37f818b9424bd",
+    "semantic_hash": ""
+  },
+  "docs/CURRENT.md": {
+    "mtime": 1785440386.1052952,
+    "ast_hash": "1809d672a07ac97d3a1a14c734fe39cd",
+    "semantic_hash": ""
+  },
+  "docs/DATABASE.md": {
+    "mtime": 1785438746.76634,
+    "ast_hash": "39dc837540d6bd7ffbd009feddb17072",
+    "semantic_hash": ""
+  },
+  "docs/SECURITY.md": {
+    "mtime": 1785438767.998048,
+    "ast_hash": "b25dedc479bc37dcef4307bce6fba1ed",
+    "semantic_hash": ""
+  },
+  "docs/TROUBLESHOOTING.md": {
+    "mtime": 1785438806.610889,
+    "ast_hash": "a9f359ae08fd0356466c74d1dc454f70",
     "semantic_hash": ""
   }
 }

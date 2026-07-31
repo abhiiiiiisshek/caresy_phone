@@ -8,7 +8,7 @@ import {
   ShieldCheck, Clock, CheckCircle2, XCircle, Ban, Upload, FileCheck2,
   Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox, Smartphone, Car,
 } from 'lucide-react';
-import { billableMinutes, priceForMinutes, formatINR, upiPayUrl } from '@caresy/utils/pricing';
+import { runningTotalPaise, formatINR, upiPayUrl } from '@caresy/utils/pricing';
 
 // Companion portal — one page that branches on the signed-in user's companion
 // record: register -> pending review -> approved (basic dashboard) / rejected
@@ -331,7 +331,9 @@ interface JobRow {
   actual_start_time: string | null;
   created_at: string;
   special_instructions: string | null;
-  service_metadata: { originalService?: string } | null;
+  // eveningSurchargePaise is the quote stored at booking time; complete_booking()
+  // reads the same field back rather than recomputing, so the meter must too.
+  service_metadata: { originalService?: string; eveningSurchargePaise?: number | null } | null;
   companion_user_id: string | null;
   final_amount_paise: number | null;
   billed_minutes: number | null;
@@ -361,20 +363,25 @@ const STATUS_LABEL: Record<string, string> = {
  * price at the door — a Rs 299 quote settling at Rs 959 with no warning is the
  * argument this whole screen exists to avoid.
  */
-function RunningTotal({ startedAt }: { startedAt: string | null }) {
+// The customer sees the same numbers from the same helper on my-bookings. This
+// used to call priceForMinutes() directly and so omitted the evening surcharge,
+// reading ₹99 under the real bill on every 6-8pm visit.
+function RunningTotal({ startedAt, eveningSurchargePaise }: {
+  startedAt: string | null;
+  eveningSurchargePaise?: number | null;
+}) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
-  if (!startedAt) return null;
-  const mins = billableMinutes(startedAt, new Date(now).toISOString());
-  if (mins === null) return null;
-  const hrs = Math.floor(mins / 60);
+  const running = runningTotalPaise(startedAt, new Date(now).toISOString(), eveningSurchargePaise);
+  if (!running) return null;
+  const hrs = Math.floor(running.minutes / 60);
   return (
     <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.82rem', color: 'var(--muted)' }}>
       <Clock style={{ width: 14, height: 14 }} />
-      {hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`} · {formatINR(priceForMinutes(mins))} so far
+      {hrs > 0 ? `${hrs}h ${running.minutes % 60}m` : `${running.minutes}m`} · {formatINR(running.paise)} so far
     </span>
   );
 }
@@ -681,7 +688,8 @@ function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; o
                     )}
                     {job.status === 'IN_PROGRESS' && (
                       <>
-                        <RunningTotal startedAt={job.actual_start_time} />
+                        <RunningTotal startedAt={job.actual_start_time}
+                          eveningSurchargePaise={job.service_metadata?.eveningSurchargePaise ?? 0} />
                         <RideLog job={job} onSaved={fetchJobs} />
                         <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => completeJob(job)}
                           iconLeft={<CheckCircle2 style={{ width: 15, height: 15 }} />}>Complete &amp; bill</Button>

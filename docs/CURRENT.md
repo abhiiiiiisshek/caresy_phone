@@ -14,6 +14,11 @@ Read this first after a `/clear`.
 - **Billing pipeline (migration 26) is shipped but never exercised end to end by
   a human.** The happy path — book → accept → Start → Complete & bill → collect
   — needs one real run before it can be trusted.
+- **Live meter now shows on both sides.** `runningTotalPaise` in
+  `packages/utils/src/pricing.ts` is the single source; the companion's
+  `RunningTotal` and the customer's `LiveMeter` on `my-bookings` both call it, so
+  the two screens cannot drift. It includes the evening surcharge — the
+  companion's old copy did not and read ₹99 light on every 6–8pm visit.
 - **Admin coverage for the newer data model is partial.** `/payments` now exists
   (owed / collected today / collected all-time, filter by state, waive a bill)
   and Analytics revenue uses `final_amount_paise` where billing wrote one. Still

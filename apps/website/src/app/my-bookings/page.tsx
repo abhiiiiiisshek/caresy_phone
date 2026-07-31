@@ -7,7 +7,7 @@ import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays, Smartphone, Wallet } from 'lucide-react';
 import { Button } from '@caresy/ui';
-import { formatINR, upiPayUrl } from '@caresy/utils/pricing';
+import { formatINR, upiPayUrl, runningTotalPaise } from '@caresy/utils/pricing';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 
@@ -34,6 +34,7 @@ interface BookingRecord {
   service_type: string;
   booking_type: string;
   service_metadata: any;
+  actual_start_time: string | null;
   final_amount_paise: number | null;
   billed_minutes: number | null;
   payment_status: string;
@@ -103,7 +104,59 @@ function isPastBooking(b: BookingRecord) {
  * "received" on their side; this screen just shows what is due and opens the
  * payment app.
  */
+/**
+ * The meter, while the visit is still running.
+ *
+ * The companion has watched this number climb since billing shipped; the
+ * customer — the one actually paying — saw nothing until Complete, then a final
+ * figure with no warning. Same helper as the companion's RunningTotal, so the
+ * two screens cannot drift, and the same evening surcharge the server will add.
+ *
+ * Deliberately hedged wording. The amount owed is whatever complete_booking()
+ * computes from the server clock; this is a browser guess a minute or two behind
+ * and must never read as the final bill.
+ */
+function LiveMeter({ booking }: { booking: BookingRecord }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const running = runningTotalPaise(
+    booking.actual_start_time,
+    new Date(now).toISOString(),
+    booking.service_metadata?.eveningSurchargePaise ?? 0,
+  );
+  if (!running) return null;
+
+  const hrs = Math.floor(running.minutes / 60);
+  const elapsed = hrs > 0 ? `${hrs}h ${running.minutes % 60}m` : `${running.minutes} min`;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 17, borderRadius: 16, background: '#fff', border: '1px solid var(--m3-green)' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--m3-green-deep)' }}>
+            <Activity style={{ width: 13, height: 13 }} /> Visit in progress
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--m3-muted)' }}>{elapsed} of companion time so far</span>
+        </span>
+        <strong style={{ fontSize: 26, fontWeight: 700, color: 'var(--m3-green-deep)' }}>{formatINR(running.paise)}</strong>
+      </div>
+      <span style={{ fontSize: 11.5, lineHeight: '16px', color: 'var(--m3-muted)' }}>
+        Running total, updated every 30 seconds. Your companion confirms the final
+        amount when the visit ends, and you pay then — by cash or UPI.
+      </span>
+    </div>
+  );
+}
+
 function BillPanel({ booking }: { booking: BookingRecord }) {
+  // Before the bill exists, show the meter instead of nothing.
+  if (booking.payment_status === 'UNBILLED') {
+    return booking.status === 'IN_PROGRESS' ? <LiveMeter booking={booking} /> : null;
+  }
   if (booking.payment_status !== 'PENDING' && booking.payment_status !== 'COLLECTED') return null;
 
   const paid = booking.payment_status === 'COLLECTED';
@@ -445,8 +498,10 @@ export default function MyBookings() {
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
   const [detail, setDetail] = useState<BookingRecord | null>(null);
 
-  const fetchBookings = async () => {
-    setIsLoading(true);
+  // `quiet` skips the full-page loader so the live-visit poll below can refresh
+  // in place instead of blanking the screen every minute.
+  const fetchBookings = async (quiet = false) => {
+    if (!quiet) setIsLoading(true);
     setError(null);
     const supabase = createClient();
     try {
@@ -464,6 +519,7 @@ export default function MyBookings() {
           service_type,
           booking_type,
           service_metadata,
+          actual_start_time,
           final_amount_paise,
           billed_minutes,
           payment_status,
@@ -486,7 +542,7 @@ export default function MyBookings() {
       console.error('Error fetching bookings:', err);
       setError(err.message || 'Failed to connect to the database. Please check configuration.');
     } finally {
-      setIsLoading(false);
+      if (!quiet) setIsLoading(false);
     }
   };
 
@@ -498,6 +554,17 @@ export default function MyBookings() {
       setIsLoading(false);
     }
   }, [user, authIsLoading]);
+
+  // Status and payment_status only change with a fetch, so without this the
+  // meter would keep climbing after the companion tapped Complete — the one
+  // reading a customer would take as a bill still running up. Only polls while
+  // a visit is actually live, and stops on its own once it isn't.
+  const hasLiveVisit = bookings.some((b) => b.status === 'IN_PROGRESS');
+  useEffect(() => {
+    if (!hasLiveVisit) return;
+    const id = setInterval(() => { fetchBookings(true); }, 60_000);
+    return () => clearInterval(id);
+  }, [hasLiveVisit]);
 
   const displayName = profile?.full_name || (user?.user_metadata?.full_name as string) || (user?.user_metadata?.name as string);
   const initial = displayName ? displayName.charAt(0).toUpperCase() : 'C';

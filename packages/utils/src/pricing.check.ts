@@ -12,6 +12,7 @@ import {
   EXTENSIONS, extensionSaving, CANCELLATION_PAISE, cancellationPaise,
   EVENING_SURCHARGE_PAISE, eveningSurchargePaise,
   priceForMinutes, billableMinutes, explainPrice, formatINR, upiPayUrl,
+  runningTotalPaise,
 } from './pricing.ts';
 
 // Exact slab durations bill exactly the slab price — no overtime leaking in.
@@ -165,5 +166,37 @@ assert.equal(p.get('am'), '999.00', 'UPI amount must be 2dp rupees, not paise');
 assert.equal(p.get('pa'), 'caresy@ybl');
 assert.equal(p.get('cu'), 'INR');
 assert.equal(p.get('tr'), 'CR-1042', 'reference rides into the bank narration');
+
+// RUNNING TOTAL: the live meter both apps show mid-visit. It must agree with
+// what complete_booking() will charge, or the meter becomes the thing customers
+// argue with.
+const START = '2026-07-31T10:00:00Z';
+const at = (mins: number) => new Date(Date.parse(START) + mins * 60_000).toISOString();
+
+assert.equal(runningTotalPaise(null, at(30)), null, 'no meter before Start is tapped');
+assert.equal(runningTotalPaise(START, at(30))!.paise, priceForMinutes(30));
+assert.equal(runningTotalPaise(START, at(30))!.minutes, 30);
+
+// The meter must never disagree with the final bill for the same elapsed time —
+// that mismatch is the whole reason this helper is shared instead of copied.
+for (const m of [0, 1, 59, 60, 75, 76, 120, 240, 479, 480, 720]) {
+  assert.equal(runningTotalPaise(START, at(m))!.paise, priceForMinutes(m),
+    `meter at ${m} min must equal the bill for ${m} min`);
+}
+
+// Evening surcharge rides along, exactly as 26_BILLING.sql adds it.
+assert.equal(runningTotalPaise(START, at(60), EVENING_SURCHARGE_PAISE)!.paise,
+  priceForMinutes(60) + EVENING_SURCHARGE_PAISE, 'evening visit must include the ₹99');
+
+// service_metadata is client-written, so only the one real surcharge counts.
+// Anything else is a tampered or stale quote and must be ignored, matching the
+// server's `IF v_evening NOT IN (0, 9900)` clamp.
+for (const bogus of [1, 500_000, -9_900, 9_901, null]) {
+  assert.equal(runningTotalPaise(START, at(60), bogus as number | null)!.paise,
+    priceForMinutes(60), `surcharge ${bogus} must be clamped away, not billed`);
+}
+
+// Clock skew: a "now" before the start must not produce a negative meter.
+assert.equal(runningTotalPaise(at(10), START), null, 'end before start yields no meter, not a negative one');
 
 console.log(`pricing: ok (${SLABS.length} slabs, ₹${OVERTIME_PAISE_PER_MINUTE / 100}/min overtime, ${GRACE_MINUTES} min grace)`);

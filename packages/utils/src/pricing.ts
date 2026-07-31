@@ -100,6 +100,34 @@ export function billableMinutes(startIso: string | null, endIso: string | null):
 }
 
 /**
+ * What the visit has cost so far, for the meter both apps show while a job is
+ * IN_PROGRESS. Returns null before the companion has tapped Start.
+ *
+ * Mirrors complete_booking() in 26_BILLING.sql, including the evening
+ * surcharge — the first version of the companion's RunningTotal left the
+ * surcharge out and so ran ₹99 under the real bill for every evening visit,
+ * which is exactly the surprise this meter exists to prevent.
+ *
+ * `eveningSurchargePaise` comes from the quote stored in
+ * `bookings.service_metadata`, which is client-written, so anything other than
+ * the one surcharge that exists is treated as zero. The server clamps
+ * identically; keep the two in step.
+ *
+ * Still only an estimate: the amount owed is whatever the server computes from
+ * its own clock at Complete. Label it as running, never as final.
+ */
+export function runningTotalPaise(
+  startedAtIso: string | null,
+  nowIso: string,
+  eveningSurchargePaise: number | null = 0,
+): { minutes: number; paise: number } | null {
+  const minutes = billableMinutes(startedAtIso, nowIso);
+  if (minutes === null) return null;
+  const evening = eveningSurchargePaise === EVENING_SURCHARGE_PAISE ? EVENING_SURCHARGE_PAISE : 0;
+  return { minutes, paise: priceForMinutes(minutes) + evening };
+}
+
+/**
  * A plain-language breakdown for the bill screen.
  *
  * When the cap wins — the customer stayed long enough that a longer slab is
