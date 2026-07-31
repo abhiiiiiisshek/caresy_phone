@@ -46,6 +46,7 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 26 | `26_BILLING.sql` | money columns + `complete_booking` / `record_payment` ([ADR-0005](ADR/0005-gatewayless-payments.md)) | ✅ |
 | 27 | `27_TRANSPORT.sql` | `booking_transport` fare log ([ADR-0006](ADR/0006-transport-is-facilitated-not-billed.md)) | ✅ |
 | 28 | `28_CONTACT_AND_METRICS.sql` | `contact_messages`, `ops_metrics` | ✅ |
+| 29 | `29_FIX_AUDIT_RLS.sql` | `trigger_audit_bookings` → `SECURITY DEFINER`; its RLS-blocked insert was aborting every booking UPDATE | ✅ |
 
 ## Core tables
 
