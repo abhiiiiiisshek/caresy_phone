@@ -64,24 +64,35 @@ CREATE TRIGGER audit_bookings_changes
 -- ---------------------------------------------------------------------------
 -- Check: fail loudly here rather than the next time someone assigns a job.
 -- ---------------------------------------------------------------------------
-DO $$
-DECLARE
-    v_secdef BOOLEAN;
-    v_insert_policies INTEGER;
+-- Written with RAISE EXCEPTION over ASSERT, and with no local variables: the
+-- first draft used `ASSERT v_secdef` and the Supabase SQL editor rejected it
+-- with 42P01 relation "v_secdef" does not exist. A catalog EXISTS test needs
+-- neither, and the tag is $check$ rather than $$ so it can never collide with
+-- the function body's own quoting above.
+DO $check$
 BEGIN
-    SELECT prosecdef INTO v_secdef
-      FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-     WHERE n.nspname = 'public' AND p.proname = 'trigger_audit_bookings';
-
-    ASSERT v_secdef, 'trigger_audit_bookings must be SECURITY DEFINER or dispatch stays broken';
+    IF NOT EXISTS (
+        SELECT 1
+          FROM pg_proc p
+          JOIN pg_namespace n ON n.oid = p.pronamespace
+         WHERE n.nspname = 'public'
+           AND p.proname = 'trigger_audit_bookings'
+           AND p.prosecdef
+    ) THEN
+        RAISE EXCEPTION
+            'trigger_audit_bookings is not SECURITY DEFINER - dispatch will stay broken';
+    END IF;
 
     -- Guards the tempting "just add a policy" regression: if an INSERT policy
     -- ever appears on audit_logs, someone has made the log forgeable.
-    SELECT count(*) INTO v_insert_policies
-      FROM pg_policies
-     WHERE schemaname = 'public' AND tablename = 'audit_logs'
-       AND cmd IN ('INSERT', 'ALL');
-
-    ASSERT v_insert_policies = 0,
-        'audit_logs has an INSERT policy - the trigger does not need one and it makes the log forgeable';
-END $$;
+    IF EXISTS (
+        SELECT 1
+          FROM pg_policies
+         WHERE schemaname = 'public'
+           AND tablename = 'audit_logs'
+           AND cmd IN ('INSERT', 'ALL')
+    ) THEN
+        RAISE EXCEPTION
+            'audit_logs has an INSERT policy - the trigger does not need one and it makes the log forgeable';
+    END IF;
+END $check$;
