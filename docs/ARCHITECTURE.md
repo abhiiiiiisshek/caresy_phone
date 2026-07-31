@@ -42,6 +42,7 @@ second copy somewhere else.
 | Booking creation & lifecycle | `apps/website` + migrations 13, 14 | enum + expiry sweep |
 | Job feed, accept, collect | `apps/companion` + migration 26 | companion is the only writer of payment |
 | Approvals, dispatch, service areas, analytics | `apps/admin` | migrations 10, 11, 15, 19 |
+| Payment ledger + waiving a bill | `apps/admin/payments` | reads migration 26 columns; waive relies on the trigger's `is_admin()` exemption |
 | Live tracking + share links | migrations 16–18, 22; `apps/website/tracking` | `share_token`, no account needed |
 | Notifications | migrations 13, 20, 21, 24; `api/cron/send-push` | enqueue in DB, drain over HTTP |
 | Transport facilitation | migration 27 | recorded, never billed (ADR-0006) |

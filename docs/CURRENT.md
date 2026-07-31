@@ -14,10 +14,11 @@ Read this first after a `/clear`.
 - **Billing pipeline (migration 26) is shipped but never exercised end to end by
   a human.** The happy path — book → accept → Start → Complete & bill → collect
   — needs one real run before it can be trusted.
-- **Admin has no coverage for the newer data model.** No unpaid-bills view, no
-  `can_drive` verification screen, nothing renders `transport_fare_reference`.
-  Grepping `apps/admin/src` for `payment_status`, `final_amount`,
-  `booking_transport`, `can_drive` returns zero hits.
+- **Admin coverage for the newer data model is partial.** `/payments` now exists
+  (owed / collected today / collected all-time, filter by state, waive a bill)
+  and Analytics revenue uses `final_amount_paise` where billing wrote one. Still
+  missing: a `can_drive` verification screen, and nothing renders
+  `transport_fare_reference`.
 - **Play Store**: personal-account registration needs 12 testers × 14 continuous
   days before production. Keystore + tester list not started.
 
@@ -33,12 +34,12 @@ Read this first after a `/clear`.
 
 ## Next up (rough order)
 
-1. Run the money loop end to end on a real phone.
-2. Admin Payments page — pending / collected / totals, mark-waived.
-3. Driving verification on the companion detail page.
-4. Set the two missing env vars.
-5. Duplicate-patient merge script.
-6. Play Store keystore + testers.
+1. Run the money loop end to end on a real phone — `/payments` is the place to
+   confirm the bill landed, and it has never been looked at with real rows in it.
+2. Driving verification on the companion detail page.
+3. Set the two missing env vars.
+4. Duplicate-patient merge script.
+5. Play Store keystore + testers.
 
 ## Stale docs
 

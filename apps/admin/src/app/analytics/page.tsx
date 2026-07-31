@@ -4,13 +4,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@caresy/auth/supabase/client';
 import { AdminShell, AdminGuard } from '@/components/AdminShell';
-import { estimateBookingPrice } from '@/utils/pricing';
+import { bookingRevenueRupees, isBilled } from '@/utils/pricing';
 import { ClipboardList, Users, CalendarClock, IndianRupee } from 'lucide-react';
 
 // Admin analytics. All counts come from queries admins already have RLS access
-// to (bookings, companions) — no new RPC needed. Revenue is an estimate: prices
-// aren't stored on bookings yet (payments aren't built), so it's derived via
-// estimateBookingPrice().
+// to (bookings, companions) — no new RPC needed. Revenue now uses the real
+// final_amount_paise where billing wrote one and only projects the rest, so the
+// tile says how many rows are still projections instead of quietly mixing them.
+// Per-booking money detail lives on /payments.
 
 const STATUS_ORDER = ['DRAFT', 'PENDING', 'ACCEPTED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
 const MUTED_STATUSES = new Set(['CANCELLED', 'EXPIRED']);
@@ -21,12 +22,13 @@ interface Stats {
   todayBookings: number;
   activeCompanions: number;
   onlineCompanions: number;
-  estimatedRevenue: number;
+  revenue: number;
+  projectedCount: number;
 }
 
 export default function AdminAnalytics() {
   return (
-    <AdminShell title="Analytics" subtitle="Snapshot of demand and supply. Revenue is an estimate — payments aren't wired up yet." maxWidth={900}>
+    <AdminShell title="Analytics" subtitle="Snapshot of demand and supply. Revenue uses the billed amount where there is one. Payment detail lives under Payments." maxWidth={900}>
       <AdminGuard purpose="view analytics">
         <AnalyticsBody />
       </AdminGuard>
@@ -45,7 +47,7 @@ function AnalyticsBody() {
       startOfToday.setHours(0, 0, 0, 0);
 
       const [bookingsRes, companionsRes] = await Promise.all([
-        supabase.from('bookings').select('status, service_type, estimated_duration_minutes, created_at').is('deleted_at', null),
+        supabase.from('bookings').select('status, service_type, estimated_duration_minutes, final_amount_paise, created_at').is('deleted_at', null),
         supabase.from('companions').select('approval_status, is_online').is('deleted_at', null),
       ]);
       if (!alive) return;
@@ -55,17 +57,21 @@ function AnalyticsBody() {
 
       const byStatus: Record<string, number> = {};
       let todayBookings = 0;
-      let estimatedRevenue = 0;
+      let revenue = 0;
+      let projectedCount = 0;
       for (const b of bookings) {
         byStatus[b.status] = (byStatus[b.status] || 0) + 1;
         if (new Date(b.created_at) >= startOfToday) todayBookings += 1;
-        if (b.status === 'COMPLETED') estimatedRevenue += estimateBookingPrice(b);
+        if (b.status === 'COMPLETED') {
+          revenue += bookingRevenueRupees(b);
+          if (!isBilled(b)) projectedCount += 1;
+        }
       }
 
       const activeCompanions = companions.filter((c) => c.approval_status === 'APPROVED').length;
       const onlineCompanions = companions.filter((c) => c.approval_status === 'APPROVED' && c.is_online).length;
 
-      setStats({ byStatus, totalBookings: bookings.length, todayBookings, activeCompanions, onlineCompanions, estimatedRevenue });
+      setStats({ byStatus, totalBookings: bookings.length, todayBookings, activeCompanions, onlineCompanions, revenue, projectedCount });
     })();
     return () => { alive = false; };
   }, [supabase]);
@@ -87,7 +93,13 @@ function AnalyticsBody() {
     { Icon: CalendarClock, n: String(stats.todayBookings), label: 'Requests today' },
     { Icon: ClipboardList, n: String(stats.totalBookings), label: 'Total requests' },
     { Icon: Users, n: `${stats.onlineCompanions} / ${stats.activeCompanions}`, label: 'Companions online / approved' },
-    { Icon: IndianRupee, n: `₹${stats.estimatedRevenue.toLocaleString('en-IN')}`, label: 'Estimated revenue (completed)' },
+    {
+      Icon: IndianRupee,
+      n: `₹${stats.revenue.toLocaleString('en-IN')}`,
+      label: stats.projectedCount > 0
+        ? `Revenue, completed (${stats.projectedCount} projected)`
+        : 'Revenue, completed (billed)',
+    },
   ];
 
   const visibleStatuses = STATUS_ORDER.filter((s) => stats.byStatus[s]);

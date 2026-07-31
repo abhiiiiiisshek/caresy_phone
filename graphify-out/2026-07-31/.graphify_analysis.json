@@ -1,0 +1,697 @@
+{
+  "communities": {
+    "0": [
+      "src_app_about_page",
+      "src_app_about_page_about",
+      "src_app_about_page_checklist",
+      "src_app_about_page_founders",
+      "src_app_for_hospitals_page",
+      "src_app_for_hospitals_page_benefits",
+      "src_app_for_hospitals_page_forhospitals",
+      "src_app_how_it_works_page",
+      "src_app_how_it_works_page_howitworks",
+      "src_app_how_it_works_page_steps",
+      "src_app_services_page",
+      "src_app_services_page_services",
+      "src_app_testimonials_page",
+      "src_app_testimonials_page_testimonials",
+      "src_app_trust_page",
+      "src_app_trust_page_trust",
+      "src_app_trust_page_verification_steps",
+      "src_components_ds_badge",
+      "src_components_ds_badge_badge",
+      "src_components_ds_badge_badgeprops",
+      "src_components_ds_badge_badgesize",
+      "src_components_ds_badge_badgetone",
+      "src_components_ds_badge_sizes",
+      "src_components_ds_badge_tones",
+      "src_components_ds_button",
+      "src_components_ds_button_button",
+      "src_components_ds_button_buttonprops",
+      "src_components_ds_button_buttonshape",
+      "src_components_ds_button_buttonsize",
+      "src_components_ds_button_buttonvariant",
+      "src_components_ds_button_sizes",
+      "src_components_ds_button_variants",
+      "src_components_ds_card",
+      "src_components_ds_card_card",
+      "src_components_ds_card_cardprops",
+      "src_components_ds_card_cardvariant",
+      "src_components_ds_card_variants",
+      "src_components_ds_companioncard",
+      "src_components_ds_companioncard_companioncard",
+      "src_components_ds_companioncard_companioncardprops",
+      "src_components_ds_iconbutton",
+      "src_components_ds_iconbutton_iconbutton",
+      "src_components_ds_iconbutton_iconbuttonprops",
+      "src_components_ds_iconbutton_iconbuttonvariant",
+      "src_components_ds_iconbutton_variants",
+      "src_components_ds_index",
+      "src_components_ds_input",
+      "src_components_ds_input_inputprops",
+      "src_components_ds_servicecard",
+      "src_components_ds_servicecard_servicecard",
+      "src_components_ds_servicecard_servicecardprops",
+      "src_components_ds_statcard",
+      "src_components_ds_statcard_statcard",
+      "src_components_ds_statcard_statcardprops",
+      "src_components_ds_stepitem",
+      "src_components_ds_stepitem_stepitem",
+      "src_components_ds_stepitem_stepitemprops",
+      "src_components_footer",
+      "src_components_footer_app_tabs",
+      "src_components_footer_footer"
+    ],
+    "1": [
+      "src_app_admin_companions_page",
+      "src_app_admin_companions_page_admincompanions",
+      "src_app_admin_companions_page_approvalstatus",
+      "src_app_admin_companions_page_companionrow",
+      "src_app_admin_companions_page_detail",
+      "src_app_admin_companions_page_docrow",
+      "src_app_admin_companions_page_filters",
+      "src_app_admin_companions_page_reviewsheet",
+      "src_app_admin_companions_page_status_tone",
+      "src_app_companion_page",
+      "src_app_companion_page_approvalstatus",
+      "src_app_companion_page_approveddashboard",
+      "src_app_companion_page_companionportal",
+      "src_app_companion_page_companionrow",
+      "src_app_companion_page_doc_types",
+      "src_app_companion_page_emptystate",
+      "src_app_companion_page_fmtwhen",
+      "src_app_companion_page_jobcard",
+      "src_app_companion_page_jobrow",
+      "src_app_companion_page_language_options",
+      "src_app_companion_page_reapplybutton",
+      "src_app_companion_page_registrationform",
+      "src_app_companion_page_sectiontitle",
+      "src_app_companion_page_specialty_options",
+      "src_app_companion_page_status_label",
+      "src_app_companion_page_statuscard",
+      "src_app_layout",
+      "src_app_layout_metadata",
+      "src_app_layout_poppins",
+      "src_app_layout_rootlayout",
+      "src_app_layout_viewport",
+      "src_app_profile_page",
+      "src_app_profile_page_inforow",
+      "src_app_profile_page_profile",
+      "src_app_profile_page_stattile",
+      "src_components_authmodal",
+      "src_components_authmodal_authmodal",
+      "src_components_authmodal_googleicon",
+      "src_components_cookiebanner",
+      "src_components_cookiebanner_cookiebanner",
+      "src_components_header",
+      "src_components_header_header",
+      "src_components_mobilebottomnav",
+      "src_components_mobilebottomnav_mobilebottomnav",
+      "src_components_whatsappwidget",
+      "src_components_whatsappwidget_app_tabs",
+      "src_components_whatsappwidget_whatsappwidget",
+      "src_context_authcontext",
+      "src_context_authcontext_authcontext",
+      "src_context_authcontext_authcontexttype",
+      "src_context_authcontext_authprovider",
+      "src_context_authcontext_profile",
+      "src_context_authcontext_useauth"
+    ],
+    "2": [
+      "vanilla_backup_script",
+      "vanilla_backup_script_api_base",
+      "vanilla_backup_script_bookingform",
+      "vanilla_backup_script_bookingid",
+      "vanilla_backup_script_bookingstatus",
+      "vanilla_backup_script_caresy_stats",
+      "vanilla_backup_script_checkandverifyotp",
+      "vanilla_backup_script_companiondatabase",
+      "vanilla_backup_script_dateinput",
+      "vanilla_backup_script_initcookiebanner",
+      "vanilla_backup_script_initdispatcherstatus",
+      "vanilla_backup_script_initglobalfeatures",
+      "vanilla_backup_script_initlegalsearch",
+      "vanilla_backup_script_initmobileaccordions",
+      "vanilla_backup_script_initmobilemultistepform",
+      "vanilla_backup_script_initmobileswipers",
+      "vanilla_backup_script_injectauthdom",
+      "vanilla_backup_script_injectfooter",
+      "vanilla_backup_script_injectnavigation",
+      "vanilla_backup_script_inputdept",
+      "vanilla_backup_script_inputhospital",
+      "vanilla_backup_script_inputpatientname",
+      "vanilla_backup_script_matcheravatar",
+      "vanilla_backup_script_matcherlang",
+      "vanilla_backup_script_matchername",
+      "vanilla_backup_script_matcherrating",
+      "vanilla_backup_script_matcherresult",
+      "vanilla_backup_script_matcherspecialty",
+      "vanilla_backup_script_matcherstatus",
+      "vanilla_backup_script_navtoggle",
+      "vanilla_backup_script_previewdept",
+      "vanilla_backup_script_previewhospital",
+      "vanilla_backup_script_previewnextstep",
+      "vanilla_backup_script_previewpatient",
+      "vanilla_backup_script_previewservice",
+      "vanilla_backup_script_profilecards",
+      "vanilla_backup_script_quickhelpform",
+      "vanilla_backup_script_revealitems",
+      "vanilla_backup_script_safestorage",
+      "vanilla_backup_script_savebookingtolocalstorage",
+      "vanilla_backup_script_selectservice",
+      "vanilla_backup_script_setupauthevents",
+      "vanilla_backup_script_simulatorpanels",
+      "vanilla_backup_script_simulatortabs",
+      "vanilla_backup_script_starttimer",
+      "vanilla_backup_script_triggerotperror",
+      "vanilla_backup_script_triggersmstoast",
+      "vanilla_backup_script_updatebookingpreview",
+      "vanilla_backup_script_updatedynamicstats",
+      "vanilla_backup_script_updateheaderauth"
+    ],
+    "3": [
+      "src_app_admin_service_areas_page",
+      "src_app_admin_service_areas_page_adminserviceareas",
+      "src_app_admin_service_areas_page_arearow",
+      "src_app_booking_page",
+      "src_app_booking_page_booking",
+      "src_app_booking_page_steps",
+      "src_app_privacy_page",
+      "src_app_privacy_page_privacy_sections",
+      "src_app_privacy_page_privacypolicy",
+      "src_app_quick_help_page",
+      "src_app_quick_help_page_quickhelp",
+      "src_app_support_page",
+      "src_app_support_page_categories",
+      "src_app_support_page_faqitem",
+      "src_app_support_page_faqs",
+      "src_app_support_page_sectionhead",
+      "src_app_support_page_support",
+      "src_app_support_page_supwa",
+      "src_app_terms_page",
+      "src_app_terms_page_terms_sections",
+      "src_app_terms_page_termsofservice",
+      "src_components_ds_input_input",
+      "src_components_locationbadge",
+      "src_components_locationbadge_badgestate",
+      "src_components_locationbadge_locationbadge",
+      "src_components_locationbadge_quick_picks",
+      "src_components_locationbadge_readstored",
+      "src_components_locationbadge_reversegeocode",
+      "src_components_locationbadge_storedlocation",
+      "src_components_locationbadge_writestored",
+      "src_hooks_uselivemetrics",
+      "src_hooks_uselivemetrics_uselivemetrics",
+      "src_utils_servicearea",
+      "src_utils_servicearea_checkpincodeserved",
+      "src_utils_servicearea_isvalidpincode",
+      "src_utils_servicearea_pincodecheck",
+      "src_utils_servicearea_servicearea",
+      "src_utils_supabase_client",
+      "src_utils_supabase_client_createclient"
+    ],
+    "4": [
+      "docs_04_customer_app_customer_home_screen_companions_carousel",
+      "docs_04_customer_app_customer_home_screen_design_philosophy",
+      "docs_04_customer_app_customer_home_screen_services_section",
+      "docs_04_customer_app_customer_home_screen_trust_safety_badges",
+      "docs_08_database_booking_engine_schema_bookings_table",
+      "docs_08_database_booking_engine_schema_locations_table",
+      "docs_08_database_booking_engine_schema_patients_table",
+      "docs_08_database_booking_engine_schema_service_type_enum",
+      "vanilla_backup_about_page",
+      "vanilla_backup_admin_ops_checkauth",
+      "vanilla_backup_admin_ops_companions_data",
+      "vanilla_backup_admin_ops_loadallbookings",
+      "vanilla_backup_admin_ops_page",
+      "vanilla_backup_admin_ops_renderboard",
+      "vanilla_backup_admin_ops_showtoast",
+      "vanilla_backup_booking_booking_form",
+      "vanilla_backup_booking_matcher_widget",
+      "vanilla_backup_booking_page",
+      "vanilla_backup_faq_filterfaqs",
+      "vanilla_backup_faq_page",
+      "vanilla_backup_index_page",
+      "vanilla_backup_index_services_grid",
+      "vanilla_backup_my_bookings_getlocalbookings",
+      "vanilla_backup_my_bookings_loaddashboard",
+      "vanilla_backup_my_bookings_mergeandrender",
+      "vanilla_backup_my_bookings_page",
+      "vanilla_backup_my_bookings_renderbookings",
+      "vanilla_backup_privacy_page",
+      "vanilla_backup_quick_help_form",
+      "vanilla_backup_quick_help_page",
+      "vanilla_backup_services_page",
+      "vanilla_backup_terms_page",
+      "vanilla_backup_testimonials_page",
+      "vanilla_backup_trust_companion_profiles",
+      "vanilla_backup_trust_page",
+      "vanilla_backup_trust_verification_timeline"
+    ],
+    "5": [
+      "package",
+      "package_dependencies",
+      "package_dependencies_lucide_react",
+      "package_dependencies_next",
+      "package_dependencies_react",
+      "package_dependencies_react_dom",
+      "package_dependencies_supabase_ssr",
+      "package_dependencies_supabase_supabase_js",
+      "package_dependencies_vercel_speed_insights",
+      "package_devdependencies",
+      "package_devdependencies_eslint",
+      "package_devdependencies_eslint_config_next",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_tailwindcss_postcss",
+      "package_devdependencies_types_node",
+      "package_devdependencies_types_react",
+      "package_devdependencies_types_react_dom",
+      "package_devdependencies_typescript",
+      "package_name",
+      "package_private",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_lint",
+      "package_scripts_start",
+      "package_version"
+    ],
+    "6": [
+      "tsconfig",
+      "tsconfig_compileroptions",
+      "tsconfig_compileroptions_allowjs",
+      "tsconfig_compileroptions_esmoduleinterop",
+      "tsconfig_compileroptions_incremental",
+      "tsconfig_compileroptions_isolatedmodules",
+      "tsconfig_compileroptions_jsx",
+      "tsconfig_compileroptions_lib",
+      "tsconfig_compileroptions_module",
+      "tsconfig_compileroptions_moduleresolution",
+      "tsconfig_compileroptions_noemit",
+      "tsconfig_compileroptions_paths",
+      "tsconfig_compileroptions_plugins",
+      "tsconfig_compileroptions_resolvejsonmodule",
+      "tsconfig_compileroptions_skiplibcheck",
+      "tsconfig_compileroptions_strict",
+      "tsconfig_compileroptions_target",
+      "tsconfig_exclude",
+      "tsconfig_include",
+      "tsconfig_paths"
+    ],
+    "7": [
+      "vanilla_backup_server",
+      "vanilla_backup_server_activeotps",
+      "vanilla_backup_server_adminsessions",
+      "vanilla_backup_server_app",
+      "vanilla_backup_server_callotpservice",
+      "vanilla_backup_server_cors",
+      "vanilla_backup_server_db_dir",
+      "vanilla_backup_server_db_file",
+      "vanilla_backup_server_express",
+      "vanilla_backup_server_fs",
+      "vanilla_backup_server_getadminemail",
+      "vanilla_backup_server_htmlpages",
+      "vanilla_backup_server_https",
+      "vanilla_backup_server_parsecookies",
+      "vanilla_backup_server_path",
+      "vanilla_backup_server_readdb",
+      "vanilla_backup_server_writedb"
+    ],
+    "8": [
+      "src_app_admin_ops_page",
+      "src_app_admin_ops_page_adminops",
+      "src_app_admin_ops_page_bookingrecord",
+      "src_app_admin_ops_page_status_options",
+      "src_app_page",
+      "src_app_page_activebookinginfo",
+      "src_app_page_app_services",
+      "src_app_page_home",
+      "src_app_page_sectionhead",
+      "src_app_page_trust_items",
+      "src_data_companions",
+      "src_data_companions_companion",
+      "src_data_companions_companions",
+      "src_data_companions_findcompanionbyname",
+      "src_data_companions_matchcompanionbydepartment",
+      "src_data_companions_ratinglabel"
+    ],
+    "9": [
+      "src_app_my_bookings_page",
+      "src_app_my_bookings_page_bookingcard",
+      "src_app_my_bookings_page_bookingrecord",
+      "src_app_my_bookings_page_companiondetails",
+      "src_app_my_bookings_page_detailsheet",
+      "src_app_my_bookings_page_emptybookings",
+      "src_app_my_bookings_page_formatdate",
+      "src_app_my_bookings_page_getstatusinfo",
+      "src_app_my_bookings_page_ispaststatus",
+      "src_app_my_bookings_page_maillink",
+      "src_app_my_bookings_page_metarow",
+      "src_app_my_bookings_page_mybookings",
+      "src_app_my_bookings_page_status_style",
+      "src_app_my_bookings_page_statuspill",
+      "src_app_my_bookings_page_timeline",
+      "src_app_my_bookings_page_walink"
+    ],
+    "10": [
+      "vanilla_backup_package",
+      "vanilla_backup_package_dependencies",
+      "vanilla_backup_package_dependencies_cors",
+      "vanilla_backup_package_dependencies_express",
+      "vanilla_backup_package_description",
+      "vanilla_backup_package_main",
+      "vanilla_backup_package_name",
+      "vanilla_backup_package_scripts",
+      "vanilla_backup_package_scripts_dev",
+      "vanilla_backup_package_scripts_start",
+      "vanilla_backup_package_version"
+    ],
+    "11": [
+      "vanilla_backup_patch_about_faq",
+      "vanilla_backup_patch_about_faq_aboutcontent",
+      "vanilla_backup_patch_about_faq_aboutfile",
+      "vanilla_backup_patch_about_faq_faqcontent",
+      "vanilla_backup_patch_about_faq_faqfile",
+      "vanilla_backup_patch_about_faq_fs",
+      "vanilla_backup_patch_about_faq_path"
+    ],
+    "12": [
+      "src_proxy",
+      "src_proxy_config",
+      "src_proxy_proxy",
+      "src_utils_supabase_middleware",
+      "src_utils_supabase_middleware_updatesession"
+    ],
+    "13": [
+      "vanilla_backup_patch_index",
+      "vanilla_backup_patch_index_content",
+      "vanilla_backup_patch_index_file",
+      "vanilla_backup_patch_index_fs",
+      "vanilla_backup_patch_index_path"
+    ],
+    "14": [
+      "vanilla_backup_patch_quickhelp",
+      "vanilla_backup_patch_quickhelp_content",
+      "vanilla_backup_patch_quickhelp_file",
+      "vanilla_backup_patch_quickhelp_fs",
+      "vanilla_backup_patch_quickhelp_path"
+    ],
+    "15": [
+      "vanilla_backup_patch_services",
+      "vanilla_backup_patch_services_content",
+      "vanilla_backup_patch_services_file",
+      "vanilla_backup_patch_services_fs",
+      "vanilla_backup_patch_services_path"
+    ],
+    "16": [
+      "vanilla_backup_patch_trust",
+      "vanilla_backup_patch_trust_content",
+      "vanilla_backup_patch_trust_file",
+      "vanilla_backup_patch_trust_fs",
+      "vanilla_backup_patch_trust_path"
+    ],
+    "17": [
+      "src_app_auth_callback_route",
+      "src_app_auth_callback_route_get",
+      "src_utils_supabase_server",
+      "src_utils_supabase_server_createclient"
+    ],
+    "18": [
+      "vanilla_backup_update_html",
+      "vanilla_backup_update_html_files",
+      "vanilla_backup_update_html_fs",
+      "vanilla_backup_update_html_path"
+    ],
+    "19": [
+      "vanilla_backup_contact_form",
+      "vanilla_backup_contact_page",
+      "vanilla_backup_for_hospitals_page"
+    ],
+    "20": [
+      "agents_nextjs_breaking_changes",
+      "claude_project_instructions"
+    ],
+    "21": [
+      "docs_04_customer_app_customer_home_screen_active_booking_banner",
+      "docs_08_database_booking_engine_schema_booking_status_enum"
+    ],
+    "22": [
+      "eslint_config",
+      "eslint_config_eslintconfig"
+    ],
+    "23": [
+      "next_config",
+      "next_config_nextconfig"
+    ],
+    "24": [
+      "postcss_config",
+      "postcss_config_config"
+    ],
+    "25": [
+      "src_app_api_cron_expire_bookings_route",
+      "src_app_api_cron_expire_bookings_route_get"
+    ],
+    "26": [
+      "claude_graphify_rules"
+    ],
+    "27": [
+      "docs_04_customer_app_customer_home_screen_accessibility_wcag"
+    ],
+    "28": [
+      "docs_04_customer_app_customer_home_screen_app_bar"
+    ],
+    "29": [
+      "docs_04_customer_app_customer_home_screen_bottom_nav"
+    ],
+    "30": [
+      "docs_04_customer_app_customer_home_screen_hero_intent_selector"
+    ],
+    "31": [
+      "docs_04_customer_app_customer_home_screen_micro_animations"
+    ],
+    "32": [
+      "docs_04_customer_app_customer_home_screen_responsive_design"
+    ],
+    "33": [
+      "docs_04_customer_app_customer_home_screen_spacing_typography"
+    ],
+    "34": [
+      "docs_04_customer_app_customer_home_screen_wireframe_layout"
+    ],
+    "35": [
+      "docs_08_database_booking_engine_schema_audit_logs_table"
+    ],
+    "36": [
+      "docs_08_database_booking_engine_schema_booking_type_enum"
+    ],
+    "37": [
+      "docs_08_database_booking_engine_schema_erd"
+    ],
+    "38": [
+      "docs_08_database_booking_engine_schema_indexes"
+    ],
+    "39": [
+      "docs_08_database_booking_engine_schema_trigger_audit_bookings"
+    ],
+    "40": [
+      "docs_08_database_booking_engine_schema_trigger_set_timestamp"
+    ],
+    "41": [
+      "readme_nextjs_project"
+    ],
+    "42": [
+      "vanilla_backup_how_it_works_page"
+    ]
+  },
+  "cohesion": {
+    "0": 0.05480225988700565,
+    "1": 0.055152394775036286,
+    "2": 0.052244897959183675,
+    "3": 0.11470985155195682,
+    "4": 0.06031746031746032,
+    "5": 0.07692307692307693,
+    "6": 0.1,
+    "7": 0.125,
+    "8": 0.19166666666666668,
+    "9": 0.2,
+    "10": 0.18181818181818182,
+    "11": 0.2857142857142857,
+    "12": 0.6,
+    "13": 0.4,
+    "14": 0.4,
+    "15": 0.4,
+    "16": 0.4,
+    "17": 0.8333333333333334,
+    "18": 0.5,
+    "19": 0.6666666666666666,
+    "20": 1.0,
+    "21": 1.0,
+    "22": 1.0,
+    "23": 1.0,
+    "24": 1.0,
+    "25": 1.0,
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0,
+    "29": 1.0,
+    "30": 1.0,
+    "31": 1.0,
+    "32": 1.0,
+    "33": 1.0,
+    "34": 1.0,
+    "35": 1.0,
+    "36": 1.0,
+    "37": 1.0,
+    "38": 1.0,
+    "39": 1.0,
+    "40": 1.0,
+    "41": 1.0,
+    "42": 1.0
+  },
+  "gods": [
+    {
+      "id": "src_utils_supabase_client_createclient",
+      "label": "createClient()",
+      "degree": 33
+    },
+    {
+      "id": "src_context_authcontext_useauth",
+      "label": "useAuth()",
+      "degree": 29
+    },
+    {
+      "id": "tsconfig_compileroptions",
+      "label": "compilerOptions",
+      "degree": 16
+    },
+    {
+      "id": "src_components_ds_button_button",
+      "label": "Button()",
+      "degree": 14
+    },
+    {
+      "id": "src_components_ds_input_input",
+      "label": "Input()",
+      "degree": 13
+    },
+    {
+      "id": "vanilla_backup_booking_page",
+      "label": "booking.html - Book Assistance (planned visit) page",
+      "degree": 12
+    },
+    {
+      "id": "src_utils_servicearea_isvalidpincode",
+      "label": "isValidPincode()",
+      "degree": 10
+    },
+    {
+      "id": "vanilla_backup_script_initglobalfeatures",
+      "label": "initGlobalFeatures()",
+      "degree": 10
+    },
+    {
+      "id": "src_components_ds_badge_badge",
+      "label": "Badge()",
+      "degree": 9
+    },
+    {
+      "id": "src_utils_servicearea_checkpincodeserved",
+      "label": "checkPincodeServed()",
+      "degree": 9
+    }
+  ],
+  "surprises": [
+    {
+      "source": "Design Philosophy & Theme (Deep Ink Teal, Marigold, Vermilion, Sage)",
+      "target": "index.html - Caresy homepage (Your Care, Our Priority)",
+      "source_files": [
+        "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+        "vanilla-backup/index.html"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "Services Section (Hospital Companion, Medicine Pickup, Diagnostic Test, Safe Return)",
+      "target": "Our Services grid (Hospital Assistance, Pick-up & Drop, Elderly Care, Full-day Concierge)",
+      "source_files": [
+        "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+        "vanilla-backup/index.html"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "Verified Companions Carousel (name, rating, languages, badge)",
+      "target": "Companion profile cards (Priya Sharma, Anil Kumar, Sarah Mathews)",
+      "source_files": [
+        "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+        "vanilla-backup/trust.html"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "Trust & Safety Badges (Police Verified, Partner Hospitals, 24/7 Ops)",
+      "target": "6-step verification timeline (Aadhaar, Police, Address, Photo, Training, Background check)",
+      "source_files": [
+        "docs/04_Customer_App/CUSTOMER_HOME_SCREEN.md",
+        "vanilla-backup/trust.html"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    },
+    {
+      "source": "service_type_enum (HOSPITAL_COMPANION, MEDICINE_PICKUP, DIAGNOSTIC_TEST, ...)",
+      "target": "#bookingForm (patient details, appointment details, support needed)",
+      "source_files": [
+        "docs/08_Database/BOOKING_ENGINE_SCHEMA.md",
+        "vanilla-backup/booking.html"
+      ],
+      "confidence": "INFERRED",
+      "relation": "semantically_similar_to",
+      "why": "inferred connection - not explicitly stated in source; connects across different repos/directories; semantically similar concepts with no structural link"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `createClient()` connect `Community 3` to `Community 8`, `Community 1`, `Community 9`?",
+      "why": "High betweenness centrality (0.020) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `useAuth()` connect `Community 1` to `Community 8`, `Community 9`, `Community 3`?",
+      "why": "High betweenness centrality (0.014) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `Button()` connect `Community 0` to `Community 8`, `Community 1`, `Community 3`, `Community 9`?",
+      "why": "High betweenness centrality (0.006) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `eslintConfig`, `nextConfig`, `name` to the rest of the system?",
+      "why": "210 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 0` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.05480225988700565 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 1` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.055152394775036286 - nodes in this community are weakly interconnected."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Community 2` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.052244897959183675 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

@@ -18,6 +18,7 @@ const LINKS = [
   { href: '/live', label: 'Live map' },
   { href: '/companions', label: 'Companions' },
   { href: '/service-areas', label: 'Service areas' },
+  { href: '/payments', label: 'Payments' },
   { href: '/users', label: 'Users' },
   { href: '/analytics', label: 'Analytics' },
   { href: '/settings', label: 'Settings' },
