@@ -11,6 +11,7 @@ import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import { eveningSurchargePaise } from '@caresy/utils/pricing';
 import { isValidIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
+import MeetingPoint, { type Coords } from '@/components/MeetingPoint';
 import { pincodeForArea } from '@/data/hospitals';
 
 const DRAFT_KEY = 'caresy_quickhelp_draft';
@@ -26,6 +27,8 @@ export default function QuickHelp() {
   const [pincode, setPincode] = useState('');
   const [areaStatus, setAreaStatus] = useState<'idle' | 'checking' | 'served' | 'not_served'>('idle');
   const [areaLabel, setAreaLabel] = useState('');
+  const [meetAddress, setMeetAddress] = useState('');
+  const [meetCoords, setMeetCoords] = useState<Coords | null>(null);
   const [service, setService] = useState('Appointment today');
   const [urgency, setUrgency] = useState('Call now');
   const [notes, setNotes] = useState('');
@@ -130,10 +133,12 @@ export default function QuickHelp() {
         .insert({
           customer_user_id: currentUser.id,
           title: hospital,
-          address_line_1: hospital,
+          address_line_1: meetAddress.trim() || hospital,
           city: areaLabel || 'Noida',
           state: 'Uttar Pradesh',
           pincode: pincode.trim(),
+          latitude: meetCoords?.lat ?? null,
+          longitude: meetCoords?.lng ?? null,
         })
         .select()
         .single();
@@ -295,6 +300,14 @@ export default function QuickHelp() {
                     : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — Noida & Greater Noida only.'
                     : 'We currently serve Noida & Greater Noida only.'
                   }
+                />
+              </div>
+              {/* Matters more here than on a scheduled booking: an urgent job
+                  dispatches within minutes, so a gate number saves real time. */}
+              <div className="form-row">
+                <MeetingPoint
+                  address={meetAddress} coords={meetCoords}
+                  onAddressChange={setMeetAddress} onCoordsChange={setMeetCoords}
                 />
               </div>
               <label>What is happening now?

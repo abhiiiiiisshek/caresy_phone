@@ -7,6 +7,7 @@ import { Input, Button, Badge } from '@caresy/ui';
 import {
   ShieldCheck, Clock, CheckCircle2, XCircle, Ban, Upload, FileCheck2,
   Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox, Smartphone, Car,
+  Navigation,
 } from 'lucide-react';
 import { runningTotalPaise, formatINR, upiPayUrl } from '@caresy/utils/pricing';
 
@@ -339,12 +340,19 @@ interface JobRow {
   billed_minutes: number | null;
   payment_status: string;
   payment_method: string | null;
-  pickup?: { title: string | null; pincode: string | null; city: string | null } | null;
+  pickup?: {
+    title: string | null;
+    address_line_1: string | null;
+    pincode: string | null;
+    city: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
   patient?: { full_name: string | null } | null;
 }
 
 const JOB_SELECT =
-  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, final_amount_paise, billed_minutes, payment_status, payment_method, pickup:locations!pickup_location_id (title, pincode, city), patient:patients!patient_id (full_name)';
+  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, final_amount_paise, billed_minutes, payment_status, payment_method, pickup:locations!pickup_location_id (title, address_line_1, pincode, city, latitude, longitude), patient:patients!patient_id (full_name)';
 
 function fmtWhen(iso: string | null): string {
   if (!iso) return 'Flexible';
@@ -363,6 +371,29 @@ const STATUS_LABEL: Record<string, string> = {
  * price at the door — a Rs 299 quote settling at Rs 959 with no warning is the
  * argument this whole screen exists to avoid.
  */
+/**
+ * Turn-by-turn link for the pickup, or null when there is nothing to navigate to.
+ *
+ * Exact coordinates win when the customer shared them — a gate on a hospital
+ * campus is a hundred metres from the pin a name search returns, which is the
+ * whole point of the share button. Otherwise fall back to a text search over
+ * whatever address parts exist.
+ *
+ * `maps.google.com/?api=1` rather than a `geo:` URI: geo: is unsupported on iOS
+ * and dead on desktop, while this universal link opens the Google Maps app on
+ * both phones and degrades to the browser everywhere else.
+ */
+function directionsUrl(p: JobRow['pickup']): string | null {
+  if (!p) return null;
+  if (p.latitude != null && p.longitude != null) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}`;
+  }
+  // Deduped: address_line_1 equals title on every booking made before the
+  // meeting-point field existed, and "Max Hospital, Max Hospital" searches worse.
+  const query = [...new Set([p.address_line_1, p.title, p.pincode, p.city].filter(Boolean))].join(', ');
+  return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : null;
+}
+
 // The customer sees the same numbers from the same helper on my-bookings. This
 // used to call priceForMinutes() directly and so omitted the evening surcharge,
 // reading ₹99 under the real bill on every 6-8pm visit.
@@ -768,6 +799,22 @@ function JobCard({ job, children, showPatient, muted }: { job: JobRow; children?
       </div>
       <div style={{ display: 'grid', gap: 4, margin: '10px 0', fontSize: '0.82rem', color: 'var(--muted)' }}>
         {job.pickup?.title && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MapPin style={{ width: 13, height: 13 }} />{job.pickup.title}{job.pickup.pincode ? ` · ${job.pickup.pincode}` : ''}</span>}
+        {/* The meeting point the customer typed. Only when it differs from the
+            hospital name — both booking flows wrote the hospital into
+            address_line_1 before this field existed, so old rows would echo. */}
+        {job.pickup?.address_line_1 && job.pickup.address_line_1 !== job.pickup.title && (
+          <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 6 }}>
+            <Navigation style={{ width: 13, height: 13, flexShrink: 0, marginTop: 2 }} />
+            {job.pickup.address_line_1}
+          </span>
+        )}
+        {directionsUrl(job.pickup) && (
+          <a href={directionsUrl(job.pickup)!} target="_blank" rel="noopener"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--teal-deep, #08796f)', fontWeight: 700, textDecoration: 'none', width: 'fit-content' }}>
+            <Navigation style={{ width: 13, height: 13 }} />
+            {job.pickup?.latitude != null ? 'Directions to exact spot' : 'Directions'}
+          </a>
+        )}
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock style={{ width: 13, height: 13 }} />{job.booking_type === 'INSTANT' ? 'Same-day' : fmtWhen(job.scheduled_start_time)}</span>
         {showPatient && job.patient?.full_name && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CheckCircle2 style={{ width: 13, height: 13 }} />Patient: {job.patient.full_name}</span>}
         {job.special_instructions && <span style={{ fontStyle: 'italic' }}>“{job.special_instructions}”</span>}

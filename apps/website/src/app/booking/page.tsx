@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { matchCompanionByDepartment } from '@/data/companions';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
+import MeetingPoint, { type Coords } from '@/components/MeetingPoint';
 import { pincodeForArea } from '@/data/hospitals';
 import { Input } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode, listServedAreas, type ServiceArea } from '@caresy/utils';
@@ -163,6 +164,9 @@ export default function Booking() {
   const [areaLabel, setAreaLabel] = useState('');
   const [department, setDepartment] = useState('');
   const [doctor, setDoctor] = useState('');
+  // Meeting point: a typed landmark and/or the exact GPS point, both optional.
+  const [meetAddress, setMeetAddress] = useState('');
+  const [meetCoords, setMeetCoords] = useState<Coords | null>(null);
 
   // Step 3: Patient. selectedPatientId is set when they pick someone they have
   // booked for before, so the booking attaches to that existing patient record
@@ -200,6 +204,8 @@ export default function Booking() {
       setPincode(draft.pincode || '');
       setDepartment(draft.department || '');
       setDoctor(draft.doctor || '');
+      setMeetAddress(draft.meetAddress || '');
+      setMeetCoords(draft.meetCoords || null);
       setDate(draft.date || '');
       setTime(draft.time || '');
       setLanguage(draft.language || 'No preference');
@@ -318,6 +324,7 @@ export default function Booking() {
           patientName, age, phone, email, emergency,
           hospital, pincode, department, doctor, date, time, language,
           serviceKey, durationHours, careNeeds, transportMode, notes,
+          meetAddress, meetCoords,
           patientId: selectedPatientId,
         }));
       } catch {
@@ -376,10 +383,16 @@ export default function Booking() {
         .insert({
           customer_user_id: currentUser.id,
           title: hospital,
-          address_line_1: hospital,
+          // The meeting point if they gave one, else the hospital — the column is
+          // NOT NULL and "Max Hospital" is still better than failing the insert.
+          address_line_1: meetAddress.trim() || hospital,
           city: areaLabel || 'Noida',
           state: 'Uttar Pradesh',
           pincode: pincode.trim(),
+          // Read by the companion's Open in Maps link, and by
+          // get_trip_destination() for the ETA (migrations 17, 18).
+          latitude: meetCoords?.lat ?? null,
+          longitude: meetCoords?.lng ?? null,
         })
         .select()
         .single();
@@ -722,6 +735,10 @@ export default function Booking() {
               <Input label="Department" name="department" placeholder="Cardiology" value={department} onChange={(e) => setDepartment(e.target.value)} />
               <Input label="Doctor name" name="doctor" placeholder="Dr. Mehta" value={doctor} onChange={(e) => setDoctor(e.target.value)} />
             </div>
+            <MeetingPoint
+              address={meetAddress} coords={meetCoords}
+              onAddressChange={setMeetAddress} onCoordsChange={setMeetCoords}
+            />
           </div>
         )}
 
