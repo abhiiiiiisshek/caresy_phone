@@ -7,7 +7,7 @@ import { Input, Button, Badge } from '@caresy/ui';
 import {
   ShieldCheck, Clock, CheckCircle2, XCircle, Ban, Upload, FileCheck2,
   Loader2, LogIn, Power, MapPin, Briefcase, PlayCircle, Inbox, Smartphone, Car,
-  Navigation,
+  Navigation, Phone,
 } from 'lucide-react';
 import { runningTotalPaise, formatINR, upiPayUrl } from '@caresy/utils/pricing';
 
@@ -334,8 +334,19 @@ interface JobRow {
   special_instructions: string | null;
   // eveningSurchargePaise is the quote stored at booking time; complete_booking()
   // reads the same field back rather than recomputing, so the meter must too.
-  service_metadata: { originalService?: string; eveningSurchargePaise?: number | null } | null;
+  // The two phone keys are not a mistake: /booking writes customerPhone and
+  // /quick-help writes phone, and an urgent request is exactly the one where
+  // the number has to be reachable.
+  service_metadata: {
+    originalService?: string;
+    eveningSurchargePaise?: number | null;
+    customerPhone?: string | null;
+    phone?: string | null;
+    customerName?: string | null;
+    language?: string | null;
+  } | null;
   companion_user_id: string | null;
+  transport_mode: string | null;
   final_amount_paise: number | null;
   billed_minutes: number | null;
   payment_status: string;
@@ -348,11 +359,11 @@ interface JobRow {
     latitude: number | null;
     longitude: number | null;
   } | null;
-  patient?: { full_name: string | null } | null;
+  patient?: { full_name: string | null; emergency_contact_phone: string | null } | null;
 }
 
 const JOB_SELECT =
-  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, final_amount_paise, billed_minutes, payment_status, payment_method, pickup:locations!pickup_location_id (title, address_line_1, pincode, city, latitude, longitude), patient:patients!patient_id (full_name)';
+  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, transport_mode, final_amount_paise, billed_minutes, payment_status, payment_method, pickup:locations!pickup_location_id (title, address_line_1, pincode, city, latitude, longitude), patient:patients!patient_id (full_name, emergency_contact_phone)';
 
 function fmtWhen(iso: string | null): string {
   if (!iso) return 'Flexible';
@@ -785,6 +796,37 @@ function EmptyState({ text }: { text: string }) {
   return <div style={{ padding: 22, textAlign: 'center', color: 'var(--muted)', fontSize: '0.86rem', border: '1px dashed var(--line-strong)', borderRadius: 'var(--radius-lg)' }}>{text}</div>;
 }
 
+/**
+ * Who to call, as tappable numbers.
+ *
+ * Both booking flows already stored the customer's mobile — /booking under
+ * `customerPhone`, /quick-help under `phone` — and neither was ever rendered
+ * here. The emergency contact is the fallback when the person who booked is not
+ * the person at the hospital, which on an elderly-care visit is usual.
+ */
+function ContactRow({ job }: { job: JobRow }) {
+  const meta = job.service_metadata;
+  const numbers: { label: string; value: string }[] = [];
+  const customer = meta?.customerPhone || meta?.phone;
+  if (customer) numbers.push({ label: meta?.customerName || 'Customer', value: customer });
+  if (job.patient?.emergency_contact_phone && job.patient.emergency_contact_phone !== customer) {
+    numbers.push({ label: 'Emergency', value: job.patient.emergency_contact_phone });
+  }
+  if (numbers.length === 0) return null;
+
+  return (
+    <span style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 2 }}>
+      {numbers.map((n) => (
+        <a key={n.value} href={`tel:${n.value}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 11px', borderRadius: 999, background: 'var(--teal-soft)', color: 'var(--teal-deep, #08796f)', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}>
+          <Phone style={{ width: 12, height: 12 }} />
+          {n.label} · {n.value}
+        </a>
+      ))}
+    </span>
+  );
+}
+
 function JobCard({ job, children, showPatient, muted }: { job: JobRow; children?: React.ReactNode; showPatient?: boolean; muted?: boolean }) {
   const service = job.service_metadata?.originalService || job.service_type.replace(/_/g, ' ').toLowerCase();
   const tone = job.status === 'COMPLETED' ? 'success' : job.status === 'IN_PROGRESS' ? 'teal' : job.status === 'EXPIRED' || job.status === 'CANCELLED' ? 'neutral' : 'teal';
@@ -799,6 +841,20 @@ function JobCard({ job, children, showPatient, muted }: { job: JobRow; children?
       </div>
       <div style={{ display: 'grid', gap: 4, margin: '10px 0', fontSize: '0.82rem', color: 'var(--muted)' }}>
         {job.pickup?.title && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MapPin style={{ width: 13, height: 13 }} />{job.pickup.title}{job.pickup.pincode ? ` · ${job.pickup.pincode}` : ''}</span>}
+        {/* The database refuses this job to anyone without a verified licence,
+            and used to say so only as an alert() after tapping Accept. */}
+        {job.transport_mode === 'CUSTOMER_VEHICLE' && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--terracotta-deep, #9a4a33)', fontWeight: 700 }}>
+            <Car style={{ width: 13, height: 13 }} />
+            You drive the customer&rsquo;s vehicle — needs a verified licence
+          </span>
+        )}
+        {job.transport_mode === 'COMPANION_ARRANGED' && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Car style={{ width: 13, height: 13 }} />
+            You book the cab; the customer pays the driver
+          </span>
+        )}
         {/* The meeting point the customer typed. Only when it differs from the
             hospital name — both booking flows wrote the hospital into
             address_line_1 before this field existed, so old rows would echo. */}
@@ -817,6 +873,10 @@ function JobCard({ job, children, showPatient, muted }: { job: JobRow; children?
         )}
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Clock style={{ width: 13, height: 13 }} />{job.booking_type === 'INSTANT' ? 'Same-day' : fmtWhen(job.scheduled_start_time)}</span>
         {showPatient && job.patient?.full_name && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CheckCircle2 style={{ width: 13, height: 13 }} />Patient: {job.patient.full_name}</span>}
+        {/* Only on jobs this companion holds — patient PII stays off the open
+            feed. Until now the number was in the row and simply never drawn, so
+            a companion standing at the gate had no way to call the family. */}
+        {showPatient && <ContactRow job={job} />}
         {job.special_instructions && <span style={{ fontStyle: 'italic' }}>“{job.special_instructions}”</span>}
       </div>
       {children && <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>{children}</div>}

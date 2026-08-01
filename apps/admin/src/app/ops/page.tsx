@@ -34,6 +34,7 @@ const BOOKING_SELECT = `
   booking_type,
   service_metadata,
   companion_user_id,
+  transport_mode,
   patient:patients (
     full_name,
     age,
@@ -56,9 +57,16 @@ interface BookingRecord {
   booking_type: string;
   service_metadata: any;
   companion_user_id: string | null;
+  transport_mode: string | null;
   patient?: any;
   pickup_location?: any;
 }
+
+const TRANSPORT_LABEL: Record<string, string> = {
+  CUSTOMER_ARRANGED: 'Family arranges the ride',
+  COMPANION_ARRANGED: 'Companion books a cab',
+  CUSTOMER_VEHICLE: 'Companion drives their vehicle',
+};
 
 interface ApprovedCompanion {
   id: string;
@@ -284,11 +292,26 @@ function JobCard({
 
       <dl className="adm-kv">
         <div><dt>Date/Time</dt><dd>{when}</dd></div>
-        <div><dt>Cust phone</dt><dd>{meta.customerPhone || '—'}</dd></div>
-        <div><dt>Cust email</dt><dd>{meta.customerEmail || '—'}</dd></div>
+        {/* /booking writes customerPhone/customerEmail, /quick-help writes
+            phone/email. Reading only the first pair showed "—" for every urgent
+            request — the one kind of booking that has to be called back. */}
+        <div><dt>Cust phone</dt><dd>{meta.customerPhone || meta.phone || '—'}</dd></div>
+        <div><dt>Cust email</dt><dd>{meta.customerEmail || meta.email || '—'}</dd></div>
         <div><dt>Emergency</dt><dd>{b.patient?.emergency_contact_phone || '—'}</dd></div>
         <div><dt>Plan</dt><dd>{meta.originalService || b.service_type}</dd></div>
+        {b.transport_mode && b.transport_mode !== 'NONE' && (
+          <div><dt>Transport</dt><dd>{TRANSPORT_LABEL[b.transport_mode] || b.transport_mode}</dd></div>
+        )}
       </dl>
+
+      {/* The database refuses this assignment outright unless the companion has
+          a verified, unexpired licence, and says so only as a save error. Better
+          to warn before the dropdown than after. */}
+      {b.transport_mode === 'CUSTOMER_VEHICLE' && (
+        <div className="adm-job-note">
+          <strong>Driving job:</strong> only a companion verified under Companions → Driving licence can be assigned.
+        </div>
+      )}
 
       {b.special_instructions && <div className="adm-job-note"><strong>Note:</strong> {b.special_instructions}</div>}
 

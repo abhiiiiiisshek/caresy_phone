@@ -6,7 +6,7 @@ import { createClient } from '@caresy/auth/supabase/client';
 import { Button, Badge, Input } from '@caresy/ui';
 import { AdminShell, AdminGuard, Skels, useToast, relativeTime } from '@/components/AdminShell';
 import {
-  Check, X, Ban, RotateCcw, FileText, Phone, MapPin, Clock,
+  Check, X, Ban, RotateCcw, FileText, Phone, MapPin, Clock, Car,
 } from 'lucide-react';
 
 // Admin approval queue. Lists companion applications, shows their KYC documents
@@ -34,6 +34,15 @@ interface CompanionRow {
   rejection_reason: string | null;
   is_online: boolean;
   created_at: string;
+  // Driving eligibility (migration 27). can_drive defaults FALSE and only an
+  // admin may set it, so without this screen every CUSTOMER_VEHICLE booking was
+  // undispatchable — the database rejected the assignment and nothing in the
+  // product could ever clear it.
+  driving_licence_number: string | null;
+  driving_licence_expiry: string | null;
+  driving_licence_class: string | null;
+  can_drive: boolean;
+  drive_verified_at: string | null;
 }
 
 interface DocRow { id: string; doc_type: string; file_path: string; status: string; }
@@ -179,7 +188,12 @@ function CompanionsBody() {
 
       {active && (
         <ReviewSheet companion={active} supabase={supabase}
-          onClose={() => setActive(null)} onAction={applyStatus} />
+          onClose={() => setActive(null)} onAction={applyStatus}
+          onDrivingSaved={(patch) => {
+            setAll((cur) => (cur ?? []).map((c) => c.id === active.id ? { ...c, ...patch } : c));
+            setActive((cur) => (cur ? { ...cur, ...patch } : cur));
+          }}
+          onToast={show} />
       )}
 
       {toastNode}
@@ -190,12 +204,14 @@ function CompanionsBody() {
 // ---------------------------------------------------------------------------
 
 function ReviewSheet({
-  companion, supabase, onClose, onAction,
+  companion, supabase, onClose, onAction, onDrivingSaved, onToast,
 }: {
   companion: CompanionRow;
   supabase: ReturnType<typeof createClient>;
   onClose: () => void;
   onAction: (c: CompanionRow, status: ApprovalStatus, rejection?: string) => void;
+  onDrivingSaved: (patch: Partial<CompanionRow>) => void;
+  onToast: (msg: string, kind?: 'ok' | 'err') => void;
 }) {
   const [docs, setDocs] = useState<(DocRow & { signedUrl?: string })[]>([]);
   const [loadingDocs, setLoadingDocs] = useState(true);
@@ -263,6 +279,8 @@ function ReviewSheet({
           </div>
         )}
 
+        <DrivingPanel companion={s} supabase={supabase} onSaved={onDrivingSaved} onToast={onToast} />
+
         <div className="adm-actions">
           {rejecting ? (
             <div className="adm-reject-form">
@@ -300,6 +318,92 @@ function ReviewSheet({
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Driving verification — the gate that had no door.
+ *
+ * `companions.can_drive` defaults FALSE and a database trigger refuses to
+ * assign a CUSTOMER_VEHICLE booking to anyone it is false for. Nothing in any
+ * app could set it, so a customer choosing "companion drives our vehicle" made
+ * a booking that could never be dispatched, and the only symptom was a raw
+ * Postgres error when someone tried.
+ *
+ * Expiry is stored, not just eyeballed: companion_may_drive() re-checks it at
+ * assignment time, so a licence that lapses next month stops working by itself.
+ */
+function DrivingPanel({
+  companion, supabase, onSaved, onToast,
+}: {
+  companion: CompanionRow;
+  supabase: ReturnType<typeof createClient>;
+  onSaved: (patch: Partial<CompanionRow>) => void;
+  onToast: (msg: string, kind?: 'ok' | 'err') => void;
+}) {
+  const { user } = useAuth();
+  const [number, setNumber] = useState(companion.driving_licence_number ?? '');
+  const [expiry, setExpiry] = useState(companion.driving_licence_expiry ?? '');
+  const [cls, setCls] = useState(companion.driving_licence_class ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const expired = expiry !== '' && new Date(expiry) < new Date(new Date().toDateString());
+
+  const write = async (canDrive: boolean) => {
+    setSaving(true);
+    const patch = {
+      driving_licence_number: number.trim() || null,
+      driving_licence_expiry: expiry || null,
+      driving_licence_class: cls.trim() || null,
+      can_drive: canDrive,
+      drive_verified_by: canDrive ? user?.id ?? null : null,
+      drive_verified_at: canDrive ? new Date().toISOString() : null,
+    };
+    const { error } = await supabase.from('companions').update(patch).eq('id', companion.id);
+    setSaving(false);
+    if (error) { onToast(error.message, 'err'); return; }
+    onSaved(patch as Partial<CompanionRow>);
+    onToast(canDrive ? `${companion.full_name} cleared for driving jobs.` : 'Driving clearance removed.');
+  };
+
+  return (
+    <>
+      <h3 className="adm-sec">Driving licence</h3>
+      <p className="adm-hint" style={{ display: 'block', marginBottom: 12 }}>
+        Only needed for bookings where the companion drives the customer&rsquo;s own car or bike.
+        Check the uploaded licence against these fields before clearing anyone — an invalid
+        licence can void the customer&rsquo;s own-damage claim.
+      </p>
+
+      {companion.can_drive && (
+        <div className="adm-live-chip" style={{ marginBottom: 12 }}>
+          <span className="dot" /> Cleared for driving jobs
+          {companion.drive_verified_at ? ` · ${relativeTime(companion.drive_verified_at)}` : ''}
+        </div>
+      )}
+
+      <div className="adm-details">
+        <Input label="Licence number" value={number} onChange={(e) => setNumber(e.target.value)} placeholder="UP16 2019 0001234" />
+        <Input label="Expiry" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)}
+          hint={expired ? 'Expired — assignment will be refused.' : undefined} />
+        <Input label="Class" value={cls} onChange={(e) => setCls(e.target.value)} placeholder="LMV" />
+      </div>
+
+      <div className="adm-action-row" style={{ marginTop: 12 }}>
+        {companion.can_drive ? (
+          <Button variant="ghost" style={{ color: 'var(--terracotta)' }} disabled={saving} onClick={() => write(false)}
+            iconLeft={<Ban style={{ width: 16, height: 16 }} />}>Remove driving clearance</Button>
+        ) : (
+          <Button variant="primary" disabled={saving || !number.trim() || !expiry || expired || companion.approval_status !== 'APPROVED'}
+            onClick={() => write(true)} iconLeft={<Car style={{ width: 16, height: 16 }} />}>
+            {saving ? 'Saving…' : 'Clear for driving jobs'}
+          </Button>
+        )}
+      </div>
+      {companion.approval_status !== 'APPROVED' && !companion.can_drive && (
+        <span className="adm-hint">Approve the companion first — driving clearance requires an approved account.</span>
+      )}
+    </>
   );
 }
 

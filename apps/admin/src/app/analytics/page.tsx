@@ -26,6 +26,23 @@ interface Stats {
   projectedCount: number;
 }
 
+// What rides between these areas have actually cost — the payoff of every fare
+// the companions logged (migration 27). Nothing rendered it, so the data sat in
+// a view nobody could read without opening the SQL editor. This is what tells
+// ops whether "about ₹300 to Kailash" is true before quoting it to a customer.
+interface FareRow {
+  provider: string;
+  drop_label: string;
+  ride_hour: number;
+  rides: number;
+  avg_fare_paise: number;
+  min_fare_paise: number;
+  max_fare_paise: number;
+}
+
+const rupees = (paise: number) => `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
+const hourLabel = (h: number) => `${((h + 11) % 12) + 1}${h < 12 ? 'am' : 'pm'}`;
+
 export default function AdminAnalytics() {
   return (
     <AdminShell title="Analytics" subtitle="Snapshot of demand and supply. Revenue uses the billed amount where there is one. Payment detail lives under Payments." maxWidth={900}>
@@ -39,6 +56,7 @@ export default function AdminAnalytics() {
 function AnalyticsBody() {
   const supabase = useMemo(() => createClient(), []);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [fares, setFares] = useState<FareRow[]>([]);
 
   useEffect(() => {
     let alive = true;
@@ -46,14 +64,16 @@ function AnalyticsBody() {
       const startOfToday = new Date();
       startOfToday.setHours(0, 0, 0, 0);
 
-      const [bookingsRes, companionsRes] = await Promise.all([
+      const [bookingsRes, companionsRes, faresRes] = await Promise.all([
         supabase.from('bookings').select('status, service_type, estimated_duration_minutes, final_amount_paise, created_at').is('deleted_at', null),
         supabase.from('companions').select('approval_status, is_online').is('deleted_at', null),
+        supabase.from('transport_fare_reference').select('*').order('rides', { ascending: false }).limit(20),
       ]);
       if (!alive) return;
 
       const bookings = bookingsRes.data ?? [];
       const companions = companionsRes.data ?? [];
+      setFares((faresRes.data ?? []) as FareRow[]);
 
       const byStatus: Record<string, number> = {};
       let todayBookings = 0;
@@ -135,6 +155,28 @@ function AnalyticsBody() {
           );
         })}
       </div>
+
+      {fares.length > 0 && (
+        <>
+          <h2 className="adm-sec">Ride fares actually paid</h2>
+          <p className="adm-hint" style={{ display: 'block', marginBottom: 12 }}>
+            From the fares companions logged. Never billed to the customer — reference only.
+          </p>
+          <div className="adm-list" style={{ gap: 8, overflowX: 'auto' }}>
+            {fares.map((f) => (
+              <div key={`${f.provider}-${f.drop_label}-${f.ride_hour}`} className="adm-bar-row" style={{ cursor: 'default' }}>
+                <span className="adm-bar-label" style={{ flex: 1 }}>
+                  {f.drop_label} · {f.provider} · {hourLabel(f.ride_hour)}
+                </span>
+                <span className="adm-hint">
+                  {rupees(f.min_fare_paise)}–{rupees(f.max_fare_paise)} over {f.rides} {f.rides === 1 ? 'ride' : 'rides'}
+                </span>
+                <span className="adm-bar-n">{rupees(f.avg_fare_paise)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }

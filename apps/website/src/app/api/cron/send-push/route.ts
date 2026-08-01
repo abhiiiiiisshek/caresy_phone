@@ -13,7 +13,8 @@ import { mapLimit } from '@/lib/mapLimit';
 //   • Vercel Cron — Pro only; Hobby caps cron at once a day.
 //
 // Env: CRON_SECRET (shared with the other cron route), SUPABASE_SERVICE_ROLE_KEY,
-// FIREBASE_SERVICE_ACCOUNT.
+// FIREBASE_SERVICE_ACCOUNT, and OPS_WEBHOOK_URL for the ADMIN-role rows (see
+// pageOps below) — without it nothing reaches ops except the /admin/ops badge.
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,37 @@ interface QueuedRow {
   booking_id: string | null;
   patient_id: string | null;
   recipient_user_id: string | null;
+  recipient_role: string | null;
+}
+
+// Where ops is paged. Any endpoint that accepts a JSON POST — a Slack or Discord
+// incoming webhook, a Zapier/n8n hook, a WhatsApp gateway — because the one
+// thing that must not happen on day one is a new booking nobody sees.
+// ponytail: no retry/backoff. A missed page is visible at /admin/ops, which is
+// watched anyway; add a retry column if that stops being true.
+async function pageOps(rows: QueuedRow[], url: string) {
+  const results = await Promise.all(rows.map(async (r) => {
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          // `text` and `content` are what Slack and Discord read; the rest is
+          // for anything that wants the structure.
+          text: `${r.title}\n${r.body ?? ''}`,
+          content: `${r.title}\n${r.body ?? ''}`,
+          event: r.event,
+          booking_id: r.booking_id,
+        }),
+      });
+      return res.ok
+        ? { id: r.id, status: 'SENT', error: null }
+        : { id: r.id, status: 'FAILED', error: `webhook ${res.status}`.slice(0, 500) };
+    } catch (e) {
+      return { id: r.id, status: 'FAILED', error: (e as Error).message.slice(0, 500) };
+    }
+  }));
+  return results;
 }
 
 export async function GET(request: Request) {
@@ -53,7 +85,7 @@ export async function GET(request: Request) {
 
   const { data: rows, error: readErr } = await supabase
     .from('notifications')
-    .select('id, event, title, body, booking_id, patient_id, recipient_user_id')
+    .select('id, event, title, body, booking_id, patient_id, recipient_user_id, recipient_role')
     .eq('status', 'QUEUED')
     .order('created_at', { ascending: true })
     .limit(MAX_ROWS);
@@ -61,7 +93,28 @@ export async function GET(request: Request) {
   if (readErr) return NextResponse.json({ error: readErr.message }, { status: 500 });
   if (!rows?.length) return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ranAt: new Date().toISOString() });
 
-  const queued = rows as QueuedRow[];
+  const all = rows as QueuedRow[];
+
+  // Rows addressed to ops, not to a person: "a new request needs a companion".
+  // These used to fall into the resolve-to-the-booking-owner branch below, which
+  // pushed an internal dispatch instruction to the customer and left ops — the
+  // only party who can act on it — never told at all.
+  const opsRows = all.filter((r) => r.recipient_role === 'ADMIN' && !r.recipient_user_id);
+  const opsWebhook = process.env.OPS_WEBHOOK_URL;
+  const opsOutcomes = opsWebhook && opsRows.length ? await pageOps(opsRows, opsWebhook) : [];
+  // With no webhook configured they stay QUEUED on purpose: /admin/ops counts
+  // them, and that badge is the only ops signal left.
+  for (const o of opsOutcomes) {
+    await supabase
+      .from('notifications')
+      .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? new Date().toISOString() : null })
+      .eq('id', o.id);
+  }
+
+  const queued = all.filter((r) => !opsRows.includes(r));
+  if (!queued.length) {
+    return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ops: opsRows.length, ranAt: new Date().toISOString() });
+  }
 
   // Booking-status rows predate recipient_user_id (13_LIFECYCLE enqueues by role
   // only). Resolve those to the customer who placed the booking so they deliver
@@ -87,7 +140,7 @@ export async function GET(request: Request) {
 
   const deliverable = queued.filter((r) => r.recipient_user_id);
   if (!deliverable.length) {
-    return NextResponse.json({ sent: 0, failed: 0, skipped: undeliverable.length, ranAt: new Date().toISOString() });
+    return NextResponse.json({ sent: 0, failed: 0, skipped: undeliverable.length, ops: opsRows.length, ranAt: new Date().toISOString() });
   }
 
   const { data: tokenRows, error: tokErr } = await supabase
@@ -171,6 +224,8 @@ export async function GET(request: Request) {
     sent,
     failed,
     skipped: undeliverable.length + noDevice,
+    ops: opsRows.length,
+    opsPaged: opsOutcomes.filter((o) => o.status === 'SENT').length,
     retiredTokens: retire.size,
     ranAt: now,
   });

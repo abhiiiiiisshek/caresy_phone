@@ -19,6 +19,7 @@ import { Input } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode, listServedAreas, type ServiceArea } from '@caresy/utils';
 import { priceForMinutes, formatINR, eveningSurchargePaise, GRACE_MINUTES } from '@caresy/utils/pricing';
 import { isValidIndianMobile, normalizeIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
+import { availableSlots } from '@caresy/utils/slots';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const DRAFT_KEY = 'caresy_booking_draft';
@@ -62,7 +63,6 @@ const TRANSPORT_MODES = [
   { key: 'COMPANION_ARRANGED', label: 'Companion arranges a cab', desc: 'They compare Uber, Rapido and Ola, tell you the fares, and book the one you pick. You pay the driver.' },
   { key: 'CUSTOMER_VEHICLE', label: 'Companion drives our vehicle', desc: 'Your own car or bike. Only companions with a verified licence are assigned.' },
 ] as const;
-const TIME_SLOTS = ['09:00', '10:00', '11:30', '13:00', '14:30', '16:00', '17:00', '18:00', '19:00'];
 const LANGUAGES = ['No preference', 'Hindi', 'English', 'Tamil', 'Telugu', 'Kannada'];
 
 function fmtSlot(t: string) {
@@ -290,6 +290,7 @@ export default function Booking() {
   // hour can be read straight off the front of "18:00".
   const eveningPaise = time ? eveningSurchargePaise(parseInt(time, 10)) : 0;
   const totalPaise = basePaise + eveningPaise;
+  const slots = availableSlots(date);
 
   const isStepValid = (s: number) => {
     if (s === 1) return durationHours > 0;
@@ -297,9 +298,13 @@ export default function Booking() {
     // A nine-digit number passed the old check and produced a booking nobody
     // could be dispatched to. Emergency contact is optional, but must be
     // reachable if given at all.
-    if (s === 3) return patientName.trim() !== '' && isValidIndianMobile(phone) && email.trim() !== ''
+    // A typo'd email is the only way we can reach them with the invoice, and
+    // the field was previously satisfied by a single space.
+    if (s === 3) return patientName.trim() !== '' && isValidIndianMobile(phone) && /\S+@\S+\.\S+/.test(email)
       && (emergency.trim() === '' || isValidIndianMobile(emergency));
-    if (s === 4) return date !== '' && time !== '';
+    // Re-checked on every render, so a slot that lapses while the form is open
+    // stops being valid rather than submitting a visit in the past.
+    if (s === 4) return date !== '' && time !== '' && availableSlots(date).includes(time);
     return true;
   };
 
@@ -337,6 +342,17 @@ export default function Booking() {
   };
 
   const submitBookingRequest = async () => {
+    // The review screen can sit open for a long time, and a sign-in round trip
+    // restores a draft straight onto it. Re-check the slot here rather than
+    // trusting the one that was valid when it was picked.
+    if (!availableSlots(date).includes(time)) {
+      alert('That time has passed. Please pick a new slot.');
+      setTime('');
+      setReview(false);
+      setStep(TOTAL_STEPS);
+      return;
+    }
+
     setIsSubmitting(true);
     const supabase = createClient();
 
@@ -808,19 +824,36 @@ export default function Booking() {
         {!review && step === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <StepHeader step={4} title="When do you need care?" sub="Select a date and time for your booking." />
-            <Calendar value={date} onChange={setDate} />
+            <Calendar
+              value={date}
+              onChange={(iso) => {
+                setDate(iso);
+                // Moving to a date that no longer offers the chosen slot must
+                // not silently keep it selected.
+                if (time && !availableSlots(iso).includes(time)) setTime('');
+              }}
+            />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <span style={label}>Available times</span>
-              <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-                {TIME_SLOTS.map((t) => {
-                  const evening = eveningSurchargePaise(parseInt(t, 10)) > 0;
-                  return (
-                    <button key={t} onClick={() => setTime(t)} style={chip(time === t)}>
-                      {fmtSlot(t)}{evening ? ' · +₹99' : ''}
-                    </button>
-                  );
-                })}
-              </div>
+              {slots.length === 0 ? (
+                <p style={{ margin: '0 4px', fontSize: 13.5, lineHeight: '19px', color: 'var(--m3-muted)' }}>
+                  No slots left today — we need about an hour to brief a companion.
+                  Pick tomorrow above, or{' '}
+                  <Link href="/quick-help" style={{ color: 'var(--m3-green-deep)', fontWeight: 700 }}>ask for urgent help</Link>{' '}
+                  and we&rsquo;ll call you back.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+                  {slots.map((t) => {
+                    const evening = eveningSurchargePaise(parseInt(t, 10)) > 0;
+                    return (
+                      <button key={t} onClick={() => setTime(t)} style={chip(time === t)}>
+                        {fmtSlot(t)}{evening ? ' · +₹99' : ''}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               <p style={{ margin: '0 4px', fontSize: 12, color: 'var(--m3-muted)' }}>Evening slots (6–8pm) carry a ₹99 surcharge. Services end at 8pm.</p>
             </div>
             {date && time && (

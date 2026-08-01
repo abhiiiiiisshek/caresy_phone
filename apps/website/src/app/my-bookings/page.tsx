@@ -5,11 +5,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
-import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays, Smartphone, Wallet } from 'lucide-react';
+import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays, Smartphone, Wallet, Phone } from 'lucide-react';
 import { Button } from '@caresy/ui';
 import { formatINR, upiPayUrl, runningTotalPaise } from '@caresy/utils/pricing';
+import { MIN_LEAD_MINUTES } from '@caresy/utils/slots';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
+
+/** Statuses a customer may still cancel or move themselves (migration 31). */
+const CHANGEABLE = new Set(['PENDING', 'ACCEPTED', 'ASSIGNED']);
 
 interface CompanionDetails {
   name: string;
@@ -20,6 +24,10 @@ interface CompanionDetails {
   specialty: string;
   color?: string;
   photo?: string;
+  // Stamped by the database whenever a booking gains a companion (migration 30),
+  // so it is present however the assignment happened. Customers cannot read the
+  // companions table directly.
+  phone?: string | null;
 }
 
 interface BookingRecord {
@@ -69,7 +77,10 @@ function getStatusInfo(status: string) {
   const s = status.toLowerCase();
   if (s === 'pending' || s === 'draft') return { label: 'Pending Assignment', cls: 'pending' };
   if (s.includes('review')) return { label: 'Under Review', cls: 'review' };
-  if (s.includes('assigned')) return { label: 'Confirmed', cls: 'assigned' };
+  // ACCEPTED is what a companion self-accepting writes (migration 12); ASSIGNED
+  // is what the admin board writes. Only the second was handled, so the common
+  // path fell through to the default and showed the customer a raw "ACCEPTED".
+  if (s.includes('assigned') || s.includes('accepted')) return { label: 'Confirmed', cls: 'assigned' };
   if (s.includes('progress') || s === 'active') return { label: 'Active Visit', cls: 'active' };
   if (s === 'completed') return { label: 'Completed', cls: 'completed' };
   if (s === 'cancelled') return { label: 'Cancelled', cls: 'completed' };
@@ -288,7 +299,9 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
   const customMeta = booking.service_metadata || {};
   const companion: CompanionDetails | null = customMeta.companion || null;
   const scheduleDate = booking.scheduled_start_time ? formatDate(booking.scheduled_start_time) : formatDate(booking.created_at, false);
-  const trackable = ['assigned', 'in_progress', 'active'].some((k) => booking.status.toLowerCase().includes(k));
+  // Same vocabulary gap as getStatusInfo: without 'accepted' the Track button
+  // never appeared on a job a companion had picked up themselves.
+  const trackable = ['assigned', 'accepted', 'in_progress', 'active'].some((k) => booking.status.toLowerCase().includes(k));
 
   return (
     <article style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 24, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)', border: '1px solid #e1e3de', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
@@ -320,6 +333,18 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
       </div>
 
       <BillPanel booking={booking} />
+
+      {/* The single thing a family wants on the day: the number of the person
+          meeting them. Nothing rendered it before, on either side. */}
+      {companion?.phone && trackable && (
+        <a href={`tel:${companion.phone}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', borderRadius: 16, background: '#fff', border: '1px solid var(--m3-green)', color: 'var(--m3-green-deep)', textDecoration: 'none' }}>
+          <Phone style={{ width: 16, height: 16, flexShrink: 0 }} />
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--m3-muted)' }}>Call your companion</span>
+            <span style={{ display: 'block', fontSize: 15, fontWeight: 700 }}>{companion.name} · {companion.phone}</span>
+          </span>
+        </a>
+      )}
 
       <div style={{ display: 'flex', gap: 12, paddingTop: 8 }}>
         {trackable ? (
@@ -368,18 +393,100 @@ function BookingRow({ booking, onDetails }: { booking: BookingRecord; onDetails:
   );
 }
 
-function DetailSheet({ booking, onClose }: { booking: BookingRecord | null; onClose: () => void }) {
+/** <input type="datetime-local"> wants a local "YYYY-MM-DDTHH:MM", not a UTC one. */
+function localInputValue(ms: number) {
+  const d = new Date(ms);
+  return new Date(ms - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+/**
+ * Cancel and move, done by the customer instead of by a support message.
+ *
+ * Both go through the RPCs in migration 31 — the customer's session cannot write
+ * `status` or `scheduled_start_time` directly, and the server re-checks the lead
+ * window and the status, so a stale sheet cannot cancel a visit already running.
+ */
+function PlanChange({ booking, onChanged }: { booking: BookingRecord; onChanged: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const [when, setWhen] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Read once when the sheet opens: the clock is not a render input.
+  const [min] = useState(() => localInputValue(Date.now() + MIN_LEAD_MINUTES * 60_000));
+
+  const call = async (fn: 'cancel_booking' | 'reschedule_booking', args: Record<string, unknown>) => {
+    setBusy(true);
+    setError(null);
+    const { error: rpcError } = await createClient().rpc(fn, args);
+    setBusy(false);
+    if (rpcError) { setError(rpcError.message); return; }
+    onChanged();
+  };
+
+  const cancel = () => {
+    if (!window.confirm('Cancel this visit? Your companion is told straight away.')) return;
+    call('cancel_booking', { p_booking: booking.id, p_reason: null });
+  };
+
+  const reschedule = () => {
+    if (!when) return;
+    const picked = new Date(when);
+    if (picked.getTime() < Date.now() + MIN_LEAD_MINUTES * 60_000) {
+      setError(`Pick a time at least ${MIN_LEAD_MINUTES} minutes from now.`);
+      return;
+    }
+    call('reschedule_booking', { p_booking: booking.id, p_start: picked.toISOString() });
+  };
+
+  return (
+    <div style={{ display: 'grid', gap: 8, marginTop: 2 }}>
+      {moving ? (
+        <div style={{ display: 'grid', gap: 8, padding: 12, borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
+          <label htmlFor="reschedule-at" style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>New date &amp; time</label>
+          <input
+            id="reschedule-at"
+            type="datetime-local"
+            value={when}
+            min={min}
+            onChange={(e) => setWhen(e.target.value)}
+            style={{ padding: '11px 12px', borderRadius: 12, border: '1px solid var(--line)', fontFamily: 'inherit', fontSize: '0.9rem', color: 'var(--ink)', background: 'var(--m3-bg)' }}
+          />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="primary" full disabled={busy || !when} onClick={reschedule}>
+              {busy ? 'Moving…' : 'Confirm new time'}
+            </Button>
+            <Button variant="ghost" full disabled={busy} onClick={() => { setMoving(false); setError(null); }}>Back</Button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button variant="outline" full disabled={busy} onClick={() => setMoving(true)} iconLeft={<CalendarClock style={{ width: 16, height: 16 }} />}>Reschedule</Button>
+          <Button variant="ghost" full disabled={busy} onClick={cancel} style={{ color: 'var(--terracotta)' }} iconLeft={<XCircle style={{ width: 16, height: 16 }} />}>
+            {busy ? 'Cancelling…' : 'Cancel'}
+          </Button>
+        </div>
+      )}
+      {error && <p style={{ margin: 0, fontSize: '0.76rem', color: 'var(--terracotta)' }}>{error}</p>}
+    </div>
+  );
+}
+
+function DetailSheet({ booking, onClose, onChanged }: { booking: BookingRecord | null; onClose: () => void; onChanged: () => void }) {
   if (!booking) return null;
   const customMeta = booking.service_metadata || {};
   const companion: CompanionDetails | null = customMeta.companion || null;
   const careNeeds: string[] = customMeta.careNeeds || [];
   const scheduleDate = booking.scheduled_start_time ? formatDate(booking.scheduled_start_time) : formatDate(booking.created_at, false);
-  const upcoming = !isPastBooking(booking);
+  // The same window migration 31 enforces: a visit that has started has time on
+  // the clock and a bill to settle, so that one goes through support.
+  const changeable = !isPastBooking(booking) && CHANGEABLE.has(booking.status.toUpperCase());
 
   const rows: [React.ElementType, string, React.ReactNode][] = [
     [Hash, 'Booking reference', booking.reference_code],
     [Activity, 'Service', serviceLabel(booking)],
     ...(companion ? [[User, 'Companion', companion.name] as [React.ElementType, string, React.ReactNode]] : []),
+    ...(companion?.phone ? [[Phone, 'Companion phone', <a key="cp" href={`tel:${companion.phone}`} style={{ color: 'var(--teal)' }}>{companion.phone}</a>] as [React.ElementType, string, React.ReactNode]] : []),
     [Calendar, 'Date', scheduleDate],
     [MapPin, 'Address', booking.pickup_location?.title || '—'],
     [ShieldCheck, 'Status', getStatusInfo(booking.status).label],
@@ -441,13 +548,12 @@ function DetailSheet({ booking, onClose }: { booking: BookingRecord | null; onCl
           <a href={mailLink(booking.reference_code)} style={{ textDecoration: 'none' }}>
             <Button variant="secondary" full iconLeft={<Mail style={{ width: 16, height: 16 }} />}>Email Support instead</Button>
           </a>
-          {upcoming && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
-              <Button variant="outline" full onClick={onClose} iconLeft={<CalendarClock style={{ width: 16, height: 16 }} />}>Reschedule</Button>
-              <Button variant="ghost" full onClick={onClose} style={{ color: 'var(--terracotta)' }} iconLeft={<XCircle style={{ width: 16, height: 16 }} />}>Cancel</Button>
-            </div>
-          )}
-          <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--muted)', margin: '6px 0 0' }}>Reschedule &amp; cancellation are handled by our support team for now.</p>
+          {changeable && <PlanChange booking={booking} onChanged={onChanged} />}
+          <p style={{ textAlign: 'center', fontSize: '0.72rem', color: 'var(--muted)', margin: '6px 0 0' }}>
+            {changeable
+              ? 'Free to change until your companion starts the visit. After that, message support.'
+              : 'Need to change something? Message support and we will sort it out.'}
+          </p>
         </div>
       </div>
     </div>
@@ -662,7 +768,11 @@ export default function MyBookings() {
         </div>
       </div>
 
-      <DetailSheet booking={detail} onClose={() => setDetail(null)} />
+      <DetailSheet
+        booking={detail}
+        onClose={() => setDetail(null)}
+        onChanged={() => { setDetail(null); fetchBookings(); }}
+      />
     </main>
   );
 }

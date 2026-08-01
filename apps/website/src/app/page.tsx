@@ -25,8 +25,11 @@ interface ActiveBookingInfo {
   service_metadata?: { companion?: { name?: string; photo?: string } };
 }
 
+// ACCEPTED is what a companion self-accepting writes; ASSIGNED is the admin
+// board's word for the same thing. Only the second was listed, so the normal
+// path left the home screen with no live card at all.
 const ACTIVE_STATUS_LABEL: Record<string, string> = {
-  ASSIGNED: 'Companion on the way', IN_PROGRESS: 'Visit in progress',
+  ACCEPTED: 'Companion confirmed', ASSIGNED: 'Companion on the way', IN_PROGRESS: 'Visit in progress',
 };
 
 function fmtWhen(b: ActiveBookingInfo): string {
@@ -197,7 +200,7 @@ export default function Home() {
     supabase
       .from('bookings')
       .select('reference_code, share_token, status, scheduled_start_time, booking_type, service_metadata, pickup_location:locations!pickup_location_id (title), patient:patients!patient_id (full_name)')
-      .in('status', ['ASSIGNED', 'IN_PROGRESS'])
+      .in('status', ['ACCEPTED', 'ASSIGNED', 'IN_PROGRESS'])
       .order('created_at', { ascending: false })
       .limit(1)
       .then(({ data }) => {

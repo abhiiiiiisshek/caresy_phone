@@ -47,6 +47,9 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 27 | `27_TRANSPORT.sql` | `booking_transport` fare log ([ADR-0006](ADR/0006-transport-is-facilitated-not-billed.md)) | ✅ |
 | 28 | `28_CONTACT_AND_METRICS.sql` | `contact_messages`, `ops_metrics` | ✅ |
 | 29 | `29_FIX_AUDIT_RLS.sql` | `trigger_audit_bookings` → `SECURITY DEFINER`; its RLS-blocked insert was aborting every booking UPDATE | ✅ |
+| 30 | `30_LAUNCH_FIXES.sql` | same-day bookings no longer born expired; `service_metadata.companion` stamped by the DB; `can_drive` closed to self-service; new-booking notification | ⬜ |
+| 31 | `31_CUSTOMER_ACTIONS.sql` | `cancel_booking` / `reschedule_booking`, and the guard that makes them the only way a customer changes a visit; `min_lead_minutes` setting | ⬜ |
+| 32 | `32_MERGE_DUPLICATE_PATIENTS.sql` | one-off data fix: merges the patient rows `/quick-help` duplicated, soft-deleting the losers | ⬜ |
 
 ## Core tables
 
@@ -76,10 +79,14 @@ plus `CANCELLED`, `EXPIRED`.
 | `is_admin()` | admin allowlist; STABLE for RLS performance |
 | `is_pincode_served(text)` | serviceability; mirrored client-side in `packages/utils` |
 | `enforce_service_area()` | rejects out-of-area bookings on INSERT |
-| `set_booking_expiry()` / `expire_stale_bookings()` | nothing stays PENDING forever |
+| `set_booking_expiry()` / `expire_stale_bookings()` | nothing stays PENDING forever, and nothing arrives already expired |
 | `enqueue_booking_notification()` | a row per status change |
-| `guard_companion_privileged_fields()` | no companion self-approval |
+| `enqueue_new_booking_notification()` | a row when a booking is created — ops's only automatic signal |
+| `stamp_companion_on_booking()` | the customer learns who is coming, however the assignment happened |
+| `guard_companion_privileged_fields()` | no companion self-approval, and no self-certified driving licence |
 | `complete_booking()` / `record_payment()` | the **only** writers of money columns |
+| `cancel_booking()` / `reschedule_booking()` | the **only** way a customer changes a visit; lead window and status window enforced server-side |
+| `guard_customer_booking_columns()` | a customer's own session cannot PATCH `status`, `companion_user_id`, `scheduled_start_time` or `expires_at` directly |
 | `admin_list_users()` | reads `auth.users` email that anon/authenticated cannot |
 
 ## Gotchas

@@ -63,6 +63,8 @@ export default function QuickHelp() {
       setService(draft.service || 'Appointment today');
       setUrgency(draft.urgency || 'Call now');
       setNotes(draft.notes || '');
+      setMeetAddress(draft.meetAddress || '');
+      setMeetCoords(draft.meetCoords || null);
       sessionStorage.removeItem(DRAFT_KEY);
     } catch {
       // ignore malformed/unavailable sessionStorage
@@ -94,6 +96,9 @@ export default function QuickHelp() {
       try {
         sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
           customerName, phone, email, patientName, hospital, pincode, service, urgency, notes,
+          // Dropped before: the sign-in round trip threw away the meeting point
+          // they had just pinned, on the flow where finding them fast matters most.
+          meetAddress, meetCoords,
         }));
       } catch {
         // ignore unavailable sessionStorage
@@ -117,16 +122,32 @@ export default function QuickHelp() {
         return;
       }
 
-      const { data: patientData, error: patientError } = await supabase
+      // Reuse the patient if this customer has already asked for help for them.
+      // /booking learned this from a picker; here there is no picker and every
+      // urgent request minted another row, so the same parent ended up with a
+      // care timeline and documents split across five records.
+      const { data: existing } = await supabase
         .from('patients')
-        .insert({
-          customer_user_id: currentUser.id,
-          full_name: patientName,
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('customer_user_id', currentUser.id)
+        .ilike('full_name', patientName.trim())
+        .is('deleted_at', null)
+        .limit(1);
 
-      if (patientError) throw patientError;
+      let patientId = existing?.[0]?.id as string | undefined;
+      if (!patientId) {
+        const { data: patientData, error: patientError } = await supabase
+          .from('patients')
+          .insert({
+            customer_user_id: currentUser.id,
+            full_name: patientName.trim(),
+          })
+          .select()
+          .single();
+
+        if (patientError) throw patientError;
+        patientId = patientData.id;
+      }
 
       const { data: locationData, error: locationError } = await supabase
         .from('locations')
@@ -149,7 +170,7 @@ export default function QuickHelp() {
         .from('bookings')
         .insert({
           customer_user_id: currentUser.id,
-          patient_id: patientData.id,
+          patient_id: patientId,
           pickup_location_id: locationData.id,
           service_type: 'HOSPITAL_COMPANION',
           booking_type: 'INSTANT',

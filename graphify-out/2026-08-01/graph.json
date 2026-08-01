@@ -514,7 +514,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page",
-      "community": 47,
+      "community": 24,
       "norm_label": "page.tsx"
     },
     {
@@ -524,7 +524,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_status_order",
-      "community": 47,
+      "community": 24,
       "norm_label": "status_order"
     },
     {
@@ -534,7 +534,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_muted_statuses",
-      "community": 47,
+      "community": 24,
       "norm_label": "muted_statuses"
     },
     {
@@ -544,7 +544,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_stats",
-      "community": 47,
+      "community": 24,
       "norm_label": "stats"
     },
     {
@@ -554,7 +554,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_adminanalytics",
-      "community": 47,
+      "community": 24,
       "norm_label": "adminanalytics()"
     },
     {
@@ -564,7 +564,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_admin_src_app_analytics_page_analyticsbody",
-      "community": 47,
+      "community": 24,
       "norm_label": "analyticsbody()"
     },
     {
@@ -694,7 +694,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_layout",
-      "community": 8,
+      "community": 23,
       "norm_label": "layout.tsx"
     },
     {
@@ -704,7 +704,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_admin_src_app_layout_poppins",
-      "community": 8,
+      "community": 23,
       "norm_label": "poppins"
     },
     {
@@ -714,7 +714,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_admin_src_app_layout_metadata",
-      "community": 8,
+      "community": 23,
       "norm_label": "metadata"
     },
     {
@@ -724,7 +724,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_admin_src_app_layout_viewport",
-      "community": 8,
+      "community": 23,
       "norm_label": "viewport"
     },
     {
@@ -734,7 +734,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_admin_src_app_layout_rootlayout",
-      "community": 8,
+      "community": 23,
       "norm_label": "rootlayout()"
     },
     {
@@ -834,7 +834,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page",
-      "community": 67,
+      "community": 95,
       "norm_label": "page.tsx"
     },
     {
@@ -844,7 +844,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_notifstatus",
-      "community": 67,
+      "community": 95,
       "norm_label": "notifstatus"
     },
     {
@@ -854,7 +854,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_notifrow",
-      "community": 67,
+      "community": 95,
       "norm_label": "notifrow"
     },
     {
@@ -864,7 +864,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_status_tone",
-      "community": 67,
+      "community": 95,
       "norm_label": "status_tone"
     },
     {
@@ -874,7 +874,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_filters",
-      "community": 67,
+      "community": 95,
       "norm_label": "filters"
     },
     {
@@ -884,7 +884,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_status_copy",
-      "community": 67,
+      "community": 95,
       "norm_label": "status_copy"
     },
     {
@@ -894,7 +894,7 @@
       "source_location": "L69",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_copyfor",
-      "community": 67,
+      "community": 95,
       "norm_label": "copyfor()"
     },
     {
@@ -904,7 +904,7 @@
       "source_location": "L77",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_adminnotifications",
-      "community": 67,
+      "community": 95,
       "norm_label": "adminnotifications()"
     },
     {
@@ -914,7 +914,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "apps_admin_src_app_notifications_page_notifbody",
-      "community": 67,
+      "community": 95,
       "norm_label": "notifbody()"
     },
     {
@@ -924,7 +924,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page",
-      "community": 0,
+      "community": 69,
       "norm_label": "page.tsx"
     },
     {
@@ -934,7 +934,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_status_options",
-      "community": 0,
+      "community": 69,
       "norm_label": "status_options"
     },
     {
@@ -944,7 +944,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_bookingrecord",
-      "community": 0,
+      "community": 69,
       "norm_label": "bookingrecord"
     },
     {
@@ -954,7 +954,7 @@
       "source_location": "L63",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_approvedcompanion",
-      "community": 0,
+      "community": 69,
       "norm_label": "approvedcompanion"
     },
     {
@@ -964,7 +964,7 @@
       "source_location": "L73",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_opsmetrics",
-      "community": 0,
+      "community": 69,
       "norm_label": "opsmetrics"
     },
     {
@@ -974,7 +974,7 @@
       "source_location": "L75",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_initials",
-      "community": 0,
+      "community": 69,
       "norm_label": "initials()"
     },
     {
@@ -984,7 +984,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_columns",
-      "community": 0,
+      "community": 69,
       "norm_label": "columns"
     },
     {
@@ -994,7 +994,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_adminops",
-      "community": 0,
+      "community": 69,
       "norm_label": "adminops()"
     },
     {
@@ -1004,7 +1004,7 @@
       "source_location": "L101",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_opsboard",
-      "community": 0,
+      "community": 69,
       "norm_label": "opsboard()"
     },
     {
@@ -1014,7 +1014,7 @@
       "source_location": "L257",
       "_origin": "ast",
       "id": "apps_admin_src_app_ops_page_jobcard",
-      "community": 0,
+      "community": 69,
       "norm_label": "jobcard()"
     },
     {
@@ -1024,7 +1024,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_page",
-      "community": 0,
+      "community": 55,
       "norm_label": "page.tsx"
     },
     {
@@ -1034,7 +1034,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_admin_src_app_page_active_trip",
-      "community": 0,
+      "community": 55,
       "norm_label": "active_trip"
     },
     {
@@ -1044,7 +1044,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_admin_src_app_page_counts",
-      "community": 0,
+      "community": 55,
       "norm_label": "counts"
     },
     {
@@ -1054,7 +1054,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_admin_src_app_page_cards",
-      "community": 0,
+      "community": 55,
       "norm_label": "cards"
     },
     {
@@ -1064,7 +1064,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_admin_src_app_page_adminoverview",
-      "community": 0,
+      "community": 55,
       "norm_label": "adminoverview()"
     },
     {
@@ -1074,7 +1074,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_admin_src_app_page_overviewbody",
-      "community": 0,
+      "community": 55,
       "norm_label": "overviewbody()"
     },
     {
@@ -1084,7 +1084,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page",
-      "community": 95,
+      "community": 0,
       "norm_label": "page.tsx"
     },
     {
@@ -1094,7 +1094,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_paymentstatus",
-      "community": 95,
+      "community": 0,
       "norm_label": "paymentstatus"
     },
     {
@@ -1104,7 +1104,7 @@
       "source_location": "L38",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_paymentrow",
-      "community": 95,
+      "community": 0,
       "norm_label": "paymentrow"
     },
     {
@@ -1114,7 +1114,7 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_filters",
-      "community": 95,
+      "community": 0,
       "norm_label": "filters"
     },
     {
@@ -1124,7 +1124,7 @@
       "source_location": "L57",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_filterkey",
-      "community": 95,
+      "community": 0,
       "norm_label": "filterkey"
     },
     {
@@ -1134,7 +1134,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_status_tone",
-      "community": 95,
+      "community": 0,
       "norm_label": "status_tone"
     },
     {
@@ -1144,7 +1144,7 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_startoftoday",
-      "community": 95,
+      "community": 0,
       "norm_label": "startoftoday()"
     },
     {
@@ -1154,7 +1154,7 @@
       "source_location": "L72",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_adminpayments",
-      "community": 95,
+      "community": 0,
       "norm_label": "adminpayments()"
     },
     {
@@ -1164,7 +1164,7 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_paymentsledger",
-      "community": 95,
+      "community": 0,
       "norm_label": "paymentsledger()"
     },
     {
@@ -1174,7 +1174,7 @@
       "source_location": "L224",
       "_origin": "ast",
       "id": "apps_admin_src_app_payments_page_ledgerrow",
-      "community": 95,
+      "community": 24,
       "norm_label": "ledgerrow()"
     },
     {
@@ -1214,7 +1214,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_admin_src_app_service_areas_page_areasbody",
-      "community": 83,
+      "community": 0,
       "norm_label": "areasbody()"
     },
     {
@@ -1264,7 +1264,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_app_users_page",
-      "community": 83,
+      "community": 0,
       "norm_label": "page.tsx"
     },
     {
@@ -1274,7 +1274,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "apps_admin_src_app_users_page_userrow",
-      "community": 83,
+      "community": 0,
       "norm_label": "userrow"
     },
     {
@@ -1284,7 +1284,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_admin_src_app_users_page_adminusers",
-      "community": 83,
+      "community": 0,
       "norm_label": "adminusers()"
     },
     {
@@ -1294,7 +1294,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "apps_admin_src_app_users_page_userslist",
-      "community": 83,
+      "community": 0,
       "norm_label": "userslist()"
     },
     {
@@ -1324,7 +1324,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_admin_src_components_adminshell_admintopbar",
-      "community": 8,
+      "community": 57,
       "norm_label": "admintopbar()"
     },
     {
@@ -1414,7 +1414,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_admin_src_utils_pricing",
-      "community": 47,
+      "community": 24,
       "norm_label": "pricing.ts"
     },
     {
@@ -1424,7 +1424,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_admin_src_utils_pricing_pricedbooking",
-      "community": 47,
+      "community": 24,
       "norm_label": "pricedbooking"
     },
     {
@@ -1434,7 +1434,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_admin_src_utils_pricing_bookingrevenuerupees",
-      "community": 47,
+      "community": 24,
       "norm_label": "bookingrevenuerupees()"
     },
     {
@@ -1444,7 +1444,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_admin_src_utils_pricing_isbilled",
-      "community": 47,
+      "community": 24,
       "norm_label": "isbilled()"
     },
     {
@@ -2254,7 +2254,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout",
-      "community": 8,
+      "community": 23,
       "norm_label": "layout.tsx"
     },
     {
@@ -2264,7 +2264,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_poppins",
-      "community": 8,
+      "community": 23,
       "norm_label": "poppins"
     },
     {
@@ -2274,7 +2274,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_metadata",
-      "community": 8,
+      "community": 23,
       "norm_label": "metadata"
     },
     {
@@ -2284,7 +2284,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_viewport",
-      "community": 8,
+      "community": 23,
       "norm_label": "viewport"
     },
     {
@@ -2294,7 +2294,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_companion_src_app_layout_rootlayout",
-      "community": 8,
+      "community": 23,
       "norm_label": "rootlayout()"
     },
     {
@@ -2311,7 +2311,7 @@
       "label": "LANGUAGE_OPTIONS",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_language_options",
       "community": 79,
@@ -2321,7 +2321,7 @@
       "label": "SPECIALTY_OPTIONS",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_specialty_options",
       "community": 79,
@@ -2331,7 +2331,7 @@
       "label": "DOC_TYPES",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L21",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_doc_types",
       "community": 79,
@@ -2341,7 +2341,7 @@
       "label": "RIDE_PROVIDERS",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L32",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_ride_providers",
       "community": 79,
@@ -2351,7 +2351,7 @@
       "label": "RIDE_PAYERS",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L41",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_ride_payers",
       "community": 79,
@@ -2361,7 +2361,7 @@
       "label": "CompanionRow",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L50",
+      "source_location": "L51",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_companionrow",
       "community": 79,
@@ -2371,27 +2371,27 @@
       "label": "CompanionPortal()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L58",
+      "source_location": "L59",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_companionportal",
-      "community": 79,
+      "community": 57,
       "norm_label": "companionportal()"
     },
     {
       "label": "RegistrationForm()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L116",
+      "source_location": "L117",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_registrationform",
-      "community": 79,
+      "community": 57,
       "norm_label": "registrationform()"
     },
     {
       "label": "StatusCard()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L279",
+      "source_location": "L280",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_statuscard",
       "community": 79,
@@ -2401,17 +2401,17 @@
       "label": "ReapplyButton()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L303",
+      "source_location": "L304",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_reapplybutton",
-      "community": 79,
+      "community": 57,
       "norm_label": "reapplybutton()"
     },
     {
       "label": "JobRow",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L324",
+      "source_location": "L325",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_jobrow",
       "community": 79,
@@ -2421,7 +2421,7 @@
       "label": "fmtWhen()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L349",
+      "source_location": "L357",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_fmtwhen",
       "community": 79,
@@ -2431,17 +2431,27 @@
       "label": "STATUS_LABEL",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L355",
+      "source_location": "L363",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_status_label",
       "community": 79,
       "norm_label": "status_label"
     },
     {
+      "label": "directionsUrl()",
+      "file_type": "code",
+      "source_file": "apps/companion/src/app/page.tsx",
+      "source_location": "L386",
+      "_origin": "ast",
+      "id": "apps_companion_src_app_page_directionsurl",
+      "community": 79,
+      "norm_label": "directionsurl()"
+    },
+    {
       "label": "RunningTotal()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L369",
+      "source_location": "L400",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_runningtotal",
       "community": 24,
@@ -2451,7 +2461,7 @@
       "label": "RideLog()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L399",
+      "source_location": "L430",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_ridelog",
       "community": 79,
@@ -2461,7 +2471,7 @@
       "label": "CollectPanel()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L533",
+      "source_location": "L564",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_collectpanel",
       "community": 24,
@@ -2471,17 +2481,17 @@
       "label": "ApprovedDashboard()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L570",
+      "source_location": "L601",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_approveddashboard",
-      "community": 79,
+      "community": 57,
       "norm_label": "approveddashboard()"
     },
     {
       "label": "SectionTitle()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L744",
+      "source_location": "L775",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_sectiontitle",
       "community": 79,
@@ -2491,7 +2501,7 @@
       "label": "EmptyState()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L753",
+      "source_location": "L784",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_emptystate",
       "community": 79,
@@ -2501,7 +2511,7 @@
       "label": "JobCard()",
       "file_type": "code",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L757",
+      "source_location": "L788",
       "_origin": "ast",
       "id": "apps_companion_src_app_page_jobcard",
       "community": 79,
@@ -2514,7 +2524,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_companion_src_components_locationshare",
-      "community": 83,
+      "community": 55,
       "norm_label": "locationshare.tsx"
     },
     {
@@ -2524,7 +2534,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_companion_src_components_locationshare_locationshare",
-      "community": 83,
+      "community": 55,
       "norm_label": "locationshare()"
     },
     {
@@ -2534,7 +2544,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_companion_src_components_portalheader",
-      "community": 8,
+      "community": 23,
       "norm_label": "portalheader.tsx"
     },
     {
@@ -2544,7 +2554,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_companion_src_components_portalheader_portalheader",
-      "community": 8,
+      "community": 23,
       "norm_label": "portalheader()"
     },
     {
@@ -5304,7 +5314,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page",
-      "community": 25,
+      "community": 157,
       "norm_label": "page.tsx"
     },
     {
@@ -5314,7 +5324,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page_checklist",
-      "community": 25,
+      "community": 157,
       "norm_label": "checklist"
     },
     {
@@ -5324,7 +5334,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page_founders",
-      "community": 25,
+      "community": 157,
       "norm_label": "founders"
     },
     {
@@ -5334,7 +5344,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_website_src_app_about_page_about",
-      "community": 25,
+      "community": 157,
       "norm_label": "about()"
     },
     {
@@ -5414,124 +5424,124 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page",
-      "community": 8,
+      "community": 53,
       "norm_label": "page.tsx"
     },
     {
       "label": "SERVICES",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L31",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_services",
-      "community": 8,
+      "community": 53,
       "norm_label": "services"
     },
     {
       "label": "DURATIONS",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L42",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_durations",
-      "community": 8,
+      "community": 53,
       "norm_label": "durations"
     },
     {
       "label": "SavedPatient",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L48",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_savedpatient",
-      "community": 8,
+      "community": 53,
       "norm_label": "savedpatient"
     },
     {
       "label": "CARE_NEEDS",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L55",
+      "source_location": "L56",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_care_needs",
-      "community": 8,
+      "community": 53,
       "norm_label": "care_needs"
     },
     {
       "label": "TRANSPORT_MODES",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L59",
+      "source_location": "L60",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_transport_modes",
-      "community": 8,
+      "community": 53,
       "norm_label": "transport_modes"
     },
     {
       "label": "TIME_SLOTS",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L64",
+      "source_location": "L65",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_time_slots",
-      "community": 8,
+      "community": 53,
       "norm_label": "time_slots"
     },
     {
       "label": "LANGUAGES",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L65",
+      "source_location": "L66",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_languages",
-      "community": 8,
+      "community": 53,
       "norm_label": "languages"
     },
     {
       "label": "fmtSlot()",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L67",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_fmtslot",
-      "community": 8,
+      "community": 53,
       "norm_label": "fmtslot()"
     },
     {
       "label": "label",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L73",
+      "source_location": "L74",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_label",
-      "community": 8,
+      "community": 53,
       "norm_label": "label"
     },
     {
       "label": "StepHeader()",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L75",
+      "source_location": "L76",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_stepheader",
-      "community": 8,
+      "community": 53,
       "norm_label": "stepheader()"
     },
     {
       "label": "Calendar()",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L85",
+      "source_location": "L86",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_calendar",
-      "community": 23,
+      "community": 24,
       "norm_label": "calendar()"
     },
     {
       "label": "Booking()",
       "file_type": "code",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L141",
+      "source_location": "L142",
       "_origin": "ast",
       "id": "apps_website_src_app_booking_page_booking",
       "community": 8,
@@ -5744,7 +5754,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_for_hospitals_page",
-      "community": 25,
+      "community": 65,
       "norm_label": "page.tsx"
     },
     {
@@ -5754,7 +5764,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_website_src_app_for_hospitals_page_benefits",
-      "community": 25,
+      "community": 65,
       "norm_label": "benefits"
     },
     {
@@ -5764,7 +5774,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_website_src_app_for_hospitals_page_forhospitals",
-      "community": 25,
+      "community": 65,
       "norm_label": "forhospitals()"
     },
     {
@@ -5834,7 +5844,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_how_it_works_page",
-      "community": 25,
+      "community": 65,
       "norm_label": "page.tsx"
     },
     {
@@ -5844,7 +5854,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_website_src_app_how_it_works_page_steps",
-      "community": 25,
+      "community": 65,
       "norm_label": "steps"
     },
     {
@@ -5854,7 +5864,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_website_src_app_how_it_works_page_howitworks",
-      "community": 25,
+      "community": 65,
       "norm_label": "howitworks()"
     },
     {
@@ -5864,7 +5874,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_layout",
-      "community": 90,
+      "community": 47,
       "norm_label": "layout.tsx"
     },
     {
@@ -5874,7 +5884,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "apps_website_src_app_layout_poppins",
-      "community": 90,
+      "community": 47,
       "norm_label": "poppins"
     },
     {
@@ -5884,7 +5894,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "apps_website_src_app_layout_epilogue",
-      "community": 90,
+      "community": 47,
       "norm_label": "epilogue"
     },
     {
@@ -5894,7 +5904,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "apps_website_src_app_layout_metadata",
-      "community": 90,
+      "community": 47,
       "norm_label": "metadata"
     },
     {
@@ -5904,7 +5914,7 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "apps_website_src_app_layout_viewport",
-      "community": 90,
+      "community": 47,
       "norm_label": "viewport"
     },
     {
@@ -5914,7 +5924,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "apps_website_src_app_layout_json_ld",
-      "community": 90,
+      "community": 47,
       "norm_label": "json_ld"
     },
     {
@@ -5924,7 +5934,7 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "apps_website_src_app_layout_rootlayout",
-      "community": 90,
+      "community": 47,
       "norm_label": "rootlayout()"
     },
     {
@@ -5934,7 +5944,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_login_page",
-      "community": 8,
+      "community": 57,
       "norm_label": "page.tsx"
     },
     {
@@ -5944,7 +5954,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_website_src_app_login_page_googlemark",
-      "community": 8,
+      "community": 57,
       "norm_label": "googlemark()"
     },
     {
@@ -5954,7 +5964,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "apps_website_src_app_login_page_login",
-      "community": 8,
+      "community": 57,
       "norm_label": "login()"
     },
     {
@@ -5984,7 +5994,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page",
-      "community": 23,
+      "community": 24,
       "norm_label": "page.tsx"
     },
     {
@@ -5994,7 +6004,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_companiondetails",
-      "community": 23,
+      "community": 24,
       "norm_label": "companiondetails"
     },
     {
@@ -6004,7 +6014,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_bookingrecord",
-      "community": 23,
+      "community": 24,
       "norm_label": "bookingrecord"
     },
     {
@@ -6014,7 +6024,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_walink",
-      "community": 23,
+      "community": 24,
       "norm_label": "walink()"
     },
     {
@@ -6024,7 +6034,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_maillink",
-      "community": 23,
+      "community": 24,
       "norm_label": "maillink()"
     },
     {
@@ -6034,7 +6044,7 @@
       "source_location": "L60",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_status_style",
-      "community": 23,
+      "community": 24,
       "norm_label": "status_style"
     },
     {
@@ -6044,7 +6054,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_getstatusinfo",
-      "community": 23,
+      "community": 24,
       "norm_label": "getstatusinfo()"
     },
     {
@@ -6054,7 +6064,7 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_prettyservice",
-      "community": 23,
+      "community": 24,
       "norm_label": "prettyservice()"
     },
     {
@@ -6064,7 +6074,7 @@
       "source_location": "L85",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_servicelabel",
-      "community": 23,
+      "community": 24,
       "norm_label": "servicelabel()"
     },
     {
@@ -6074,7 +6084,7 @@
       "source_location": "L91",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_ispastbooking",
-      "community": 23,
+      "community": 24,
       "norm_label": "ispastbooking()"
     },
     {
@@ -6104,7 +6114,7 @@
       "source_location": "L211",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_statuspill",
-      "community": 23,
+      "community": 24,
       "norm_label": "statuspill()"
     },
     {
@@ -6114,7 +6124,7 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_timeline",
-      "community": 23,
+      "community": 24,
       "norm_label": "timeline()"
     },
     {
@@ -6124,7 +6134,7 @@
       "source_location": "L268",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_formatdate",
-      "community": 23,
+      "community": 24,
       "norm_label": "formatdate()"
     },
     {
@@ -6134,7 +6144,7 @@
       "source_location": "L275",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_infotile",
-      "community": 23,
+      "community": 24,
       "norm_label": "infotile()"
     },
     {
@@ -6144,7 +6154,7 @@
       "source_location": "L287",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_primarybookingcard",
-      "community": 23,
+      "community": 24,
       "norm_label": "primarybookingcard()"
     },
     {
@@ -6154,7 +6164,7 @@
       "source_location": "L344",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_bookingrow",
-      "community": 23,
+      "community": 24,
       "norm_label": "bookingrow()"
     },
     {
@@ -6164,7 +6174,7 @@
       "source_location": "L371",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_detailsheet",
-      "community": 23,
+      "community": 24,
       "norm_label": "detailsheet()"
     },
     {
@@ -6174,7 +6184,7 @@
       "source_location": "L457",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_emptybookings",
-      "community": 23,
+      "community": 24,
       "norm_label": "emptybookings()"
     },
     {
@@ -6184,7 +6194,7 @@
       "source_location": "L475",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_pageheader",
-      "community": 23,
+      "community": 24,
       "norm_label": "pageheader()"
     },
     {
@@ -6194,7 +6204,7 @@
       "source_location": "L492",
       "_origin": "ast",
       "id": "apps_website_src_app_my_bookings_page_mybookings",
-      "community": 23,
+      "community": 24,
       "norm_label": "mybookings()"
     },
     {
@@ -6454,7 +6464,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_profile_page",
-      "community": 8,
+      "community": 142,
       "norm_label": "page.tsx"
     },
     {
@@ -6464,7 +6474,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_website_src_app_profile_page_supwa",
-      "community": 8,
+      "community": 142,
       "norm_label": "supwa()"
     },
     {
@@ -6474,7 +6484,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_website_src_app_profile_page_settingsrow",
-      "community": 8,
+      "community": 142,
       "norm_label": "settingsrow()"
     },
     {
@@ -6484,7 +6494,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "apps_website_src_app_profile_page_section",
-      "community": 8,
+      "community": 142,
       "norm_label": "section()"
     },
     {
@@ -6494,7 +6504,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "apps_website_src_app_profile_page_inforow",
-      "community": 8,
+      "community": 142,
       "norm_label": "inforow()"
     },
     {
@@ -6504,7 +6514,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "apps_website_src_app_profile_page_profile",
-      "community": 8,
+      "community": 142,
       "norm_label": "profile()"
     },
     {
@@ -6521,7 +6531,7 @@
       "label": "QuickHelp()",
       "file_type": "code",
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "apps_website_src_app_quick_help_page_quickhelp",
       "community": 8,
@@ -6764,7 +6774,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_terms_page",
-      "community": 156,
+      "community": 158,
       "norm_label": "page.tsx"
     },
     {
@@ -6774,7 +6784,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_website_src_app_terms_page_terms_sections",
-      "community": 156,
+      "community": 158,
       "norm_label": "terms_sections"
     },
     {
@@ -6784,7 +6794,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "apps_website_src_app_terms_page_termsofservice",
-      "community": 156,
+      "community": 158,
       "norm_label": "termsofservice()"
     },
     {
@@ -6824,7 +6834,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_testimonials_page",
-      "community": 25,
+      "community": 65,
       "norm_label": "page.tsx"
     },
     {
@@ -6834,7 +6844,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_website_src_app_testimonials_page_testimonials",
-      "community": 25,
+      "community": 65,
       "norm_label": "testimonials"
     },
     {
@@ -6944,7 +6954,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_app_trust_page",
-      "community": 25,
+      "community": 75,
       "norm_label": "page.tsx"
     },
     {
@@ -6954,7 +6964,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "apps_website_src_app_trust_page_verification_steps",
-      "community": 25,
+      "community": 75,
       "norm_label": "verification_steps"
     },
     {
@@ -6964,7 +6974,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "apps_website_src_app_trust_page_trust",
-      "community": 25,
+      "community": 75,
       "norm_label": "trust()"
     },
     {
@@ -6974,7 +6984,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_cookiebanner",
-      "community": 90,
+      "community": 47,
       "norm_label": "cookiebanner.tsx"
     },
     {
@@ -6984,7 +6994,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "apps_website_src_components_cookiebanner_cookiebanner",
-      "community": 90,
+      "community": 47,
       "norm_label": "cookiebanner()"
     },
     {
@@ -7024,7 +7034,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_header",
-      "community": 90,
+      "community": 143,
       "norm_label": "header.tsx"
     },
     {
@@ -7034,7 +7044,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_website_src_components_header_titles",
-      "community": 90,
+      "community": 143,
       "norm_label": "titles"
     },
     {
@@ -7044,7 +7054,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_website_src_components_header_app_tabs",
-      "community": 90,
+      "community": 143,
       "norm_label": "app_tabs"
     },
     {
@@ -7054,7 +7064,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "apps_website_src_components_header_standalone",
-      "community": 90,
+      "community": 143,
       "norm_label": "standalone"
     },
     {
@@ -7064,7 +7074,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_website_src_components_header_titlefor",
-      "community": 90,
+      "community": 143,
       "norm_label": "titlefor()"
     },
     {
@@ -7074,7 +7084,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "apps_website_src_components_header_header",
-      "community": 90,
+      "community": 143,
       "norm_label": "header()"
     },
     {
@@ -7134,7 +7144,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_hospitalautocomplete",
-      "community": 8,
+      "community": 67,
       "norm_label": "hospitalautocomplete.tsx"
     },
     {
@@ -7144,7 +7154,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "apps_website_src_components_hospitalautocomplete_hospitalautocomplete",
-      "community": 8,
+      "community": 67,
       "norm_label": "hospitalautocomplete()"
     },
     {
@@ -7408,13 +7418,53 @@
       "norm_label": "locationbadge()"
     },
     {
+      "label": "MeetingPoint.tsx",
+      "file_type": "code",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "apps_website_src_components_meetingpoint",
+      "community": 53,
+      "norm_label": "meetingpoint.tsx"
+    },
+    {
+      "label": "Coords",
+      "file_type": "code",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "apps_website_src_components_meetingpoint_coords",
+      "community": 53,
+      "norm_label": "coords"
+    },
+    {
+      "label": "round()",
+      "file_type": "code",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "apps_website_src_components_meetingpoint_round",
+      "community": 53,
+      "norm_label": "round()"
+    },
+    {
+      "label": "MeetingPoint()",
+      "file_type": "code",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "apps_website_src_components_meetingpoint_meetingpoint",
+      "community": 53,
+      "norm_label": "meetingpoint()"
+    },
+    {
       "label": "MobileBottomNav.tsx",
       "file_type": "code",
       "source_file": "apps/website/src/components/MobileBottomNav.tsx",
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_mobilebottomnav",
-      "community": 8,
+      "community": 47,
       "norm_label": "mobilebottomnav.tsx"
     },
     {
@@ -7424,7 +7474,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_website_src_components_mobilebottomnav_mobilebottomnav",
-      "community": 8,
+      "community": 47,
       "norm_label": "mobilebottomnav()"
     },
     {
@@ -7434,7 +7484,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_nativebridge",
-      "community": 90,
+      "community": 57,
       "norm_label": "nativebridge.tsx"
     },
     {
@@ -7444,7 +7494,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_website_src_components_nativebridge_capacitorglobal",
-      "community": 90,
+      "community": 57,
       "norm_label": "capacitorglobal"
     },
     {
@@ -7454,7 +7504,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "apps_website_src_components_nativebridge_window",
-      "community": 90,
+      "community": 57,
       "norm_label": "window"
     },
     {
@@ -7464,7 +7514,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "apps_website_src_components_nativebridge_nativebridge",
-      "community": 90,
+      "community": 57,
       "norm_label": "nativebridge()"
     },
     {
@@ -7474,7 +7524,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_registersw",
-      "community": 90,
+      "community": 47,
       "norm_label": "registersw.tsx"
     },
     {
@@ -7484,7 +7534,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "apps_website_src_components_registersw_registersw",
-      "community": 90,
+      "community": 47,
       "norm_label": "registersw()"
     },
     {
@@ -7494,7 +7544,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_components_whatsappwidget",
-      "community": 90,
+      "community": 47,
       "norm_label": "whatsappwidget.tsx"
     },
     {
@@ -7504,7 +7554,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "apps_website_src_components_whatsappwidget_app_tabs",
-      "community": 90,
+      "community": 47,
       "norm_label": "app_tabs"
     },
     {
@@ -7514,7 +7564,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "apps_website_src_components_whatsappwidget_desktop_only",
-      "community": 90,
+      "community": 47,
       "norm_label": "desktop_only"
     },
     {
@@ -7524,7 +7574,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "apps_website_src_components_whatsappwidget_whatsappwidget",
-      "community": 90,
+      "community": 47,
       "norm_label": "whatsappwidget()"
     },
     {
@@ -7534,7 +7584,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_data_companions",
-      "community": 8,
+      "community": 75,
       "norm_label": "companions.ts"
     },
     {
@@ -7544,7 +7594,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_website_src_data_companions_companion",
-      "community": 8,
+      "community": 75,
       "norm_label": "companion"
     },
     {
@@ -7554,7 +7604,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "apps_website_src_data_companions_companions",
-      "community": 8,
+      "community": 75,
       "norm_label": "companions"
     },
     {
@@ -7564,7 +7614,7 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "apps_website_src_data_companions_ratinglabel",
-      "community": 8,
+      "community": 75,
       "norm_label": "ratinglabel()"
     },
     {
@@ -7574,7 +7624,7 @@
       "source_location": "L79",
       "_origin": "ast",
       "id": "apps_website_src_data_companions_matchcompanionbydepartment",
-      "community": 8,
+      "community": 75,
       "norm_label": "matchcompanionbydepartment()"
     },
     {
@@ -7584,7 +7634,7 @@
       "source_location": "L86",
       "_origin": "ast",
       "id": "apps_website_src_data_companions_findcompanionbyname",
-      "community": 8,
+      "community": 75,
       "norm_label": "findcompanionbyname()"
     },
     {
@@ -7594,7 +7644,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_check",
-      "community": 8,
+      "community": 67,
       "norm_label": "hospitals.check.ts"
     },
     {
@@ -7604,7 +7654,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_check_sql",
-      "community": 8,
+      "community": 67,
       "norm_label": "sql"
     },
     {
@@ -7614,7 +7664,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_check_served",
-      "community": 8,
+      "community": 67,
       "norm_label": "served"
     },
     {
@@ -7624,7 +7674,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_check_areas",
-      "community": 8,
+      "community": 67,
       "norm_label": "areas"
     },
     {
@@ -7634,7 +7684,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_check_pct",
-      "community": 8,
+      "community": 67,
       "norm_label": "pct"
     },
     {
@@ -7644,7 +7694,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals",
-      "community": 8,
+      "community": 67,
       "norm_label": "hospitals.ts"
     },
     {
@@ -7654,7 +7704,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_hospital",
-      "community": 8,
+      "community": 67,
       "norm_label": "hospital"
     },
     {
@@ -7664,7 +7714,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_area_pincode",
-      "community": 8,
+      "community": 67,
       "norm_label": "area_pincode"
     },
     {
@@ -7684,7 +7734,7 @@
       "source_location": "L62",
       "_origin": "ast",
       "id": "apps_website_src_data_hospitals_hospitals",
-      "community": 8,
+      "community": 67,
       "norm_label": "hospitals"
     },
     {
@@ -7694,7 +7744,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "apps_website_src_hooks_uselivemetrics",
-      "community": 25,
+      "community": 55,
       "norm_label": "uselivemetrics.ts"
     },
     {
@@ -7704,7 +7754,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "apps_website_src_hooks_uselivemetrics_uselivemetrics",
-      "community": 25,
+      "community": 55,
       "norm_label": "uselivemetrics()"
     },
     {
@@ -8704,7 +8754,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_auth_src_authcontext",
-      "community": 8,
+      "community": 23,
       "norm_label": "authcontext.tsx"
     },
     {
@@ -8714,7 +8764,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "packages_auth_src_authcontext_profile",
-      "community": 8,
+      "community": 23,
       "norm_label": "profile"
     },
     {
@@ -8724,7 +8774,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "packages_auth_src_authcontext_authcontexttype",
-      "community": 8,
+      "community": 23,
       "norm_label": "authcontexttype"
     },
     {
@@ -8734,7 +8784,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "packages_auth_src_authcontext_authcontext",
-      "community": 8,
+      "community": 23,
       "norm_label": "authcontext"
     },
     {
@@ -8744,7 +8794,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "packages_auth_src_authcontext_authprovider",
-      "community": 8,
+      "community": 23,
       "norm_label": "authprovider()"
     },
     {
@@ -8754,7 +8804,7 @@
       "source_location": "L188",
       "_origin": "ast",
       "id": "packages_auth_src_authcontext_useauth",
-      "community": 8,
+      "community": 57,
       "norm_label": "useauth()"
     },
     {
@@ -8814,7 +8864,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_auth_src_supabase_client",
-      "community": 83,
+      "community": 55,
       "norm_label": "client.ts"
     },
     {
@@ -8824,7 +8874,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "packages_auth_src_supabase_client_createclient",
-      "community": 83,
+      "community": 55,
       "norm_label": "createclient()"
     },
     {
@@ -9064,7 +9114,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_ui_src_badge",
-      "community": 25,
+      "community": 96,
       "norm_label": "badge.tsx"
     },
     {
@@ -9074,7 +9124,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "packages_ui_src_badge_badgetone",
-      "community": 25,
+      "community": 96,
       "norm_label": "badgetone"
     },
     {
@@ -9084,7 +9134,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "packages_ui_src_badge_badgesize",
-      "community": 25,
+      "community": 96,
       "norm_label": "badgesize"
     },
     {
@@ -9094,7 +9144,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "packages_ui_src_badge_badgeprops",
-      "community": 25,
+      "community": 96,
       "norm_label": "badgeprops"
     },
     {
@@ -9104,7 +9154,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "packages_ui_src_badge_tones",
-      "community": 25,
+      "community": 96,
       "norm_label": "tones"
     },
     {
@@ -9114,7 +9164,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "packages_ui_src_badge_sizes",
-      "community": 25,
+      "community": 96,
       "norm_label": "sizes"
     },
     {
@@ -9124,7 +9174,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "packages_ui_src_badge_badge",
-      "community": 25,
+      "community": 0,
       "norm_label": "badge()"
     },
     {
@@ -9204,7 +9254,7 @@
       "source_location": "L40",
       "_origin": "ast",
       "id": "packages_ui_src_button_button",
-      "community": 0,
+      "community": 55,
       "norm_label": "button()"
     },
     {
@@ -9214,7 +9264,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_ui_src_card",
-      "community": 25,
+      "community": 65,
       "norm_label": "card.tsx"
     },
     {
@@ -9224,7 +9274,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "packages_ui_src_card_cardvariant",
-      "community": 25,
+      "community": 65,
       "norm_label": "cardvariant"
     },
     {
@@ -9234,7 +9284,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "packages_ui_src_card_cardprops",
-      "community": 25,
+      "community": 65,
       "norm_label": "cardprops"
     },
     {
@@ -9244,7 +9294,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "packages_ui_src_card_variants",
-      "community": 25,
+      "community": 65,
       "norm_label": "variants"
     },
     {
@@ -9254,7 +9304,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "packages_ui_src_card_card",
-      "community": 25,
+      "community": 65,
       "norm_label": "card()"
     },
     {
@@ -9264,7 +9314,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_ui_src_companioncard",
-      "community": 25,
+      "community": 96,
       "norm_label": "companioncard.tsx"
     },
     {
@@ -9274,7 +9324,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "packages_ui_src_companioncard_companioncardprops",
-      "community": 25,
+      "community": 96,
       "norm_label": "companioncardprops"
     },
     {
@@ -9284,7 +9334,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "packages_ui_src_companioncard_companioncard",
-      "community": 25,
+      "community": 96,
       "norm_label": "companioncard()"
     },
     {
@@ -9344,7 +9394,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "packages_ui_src_input",
-      "community": 156,
+      "community": 25,
       "norm_label": "input.tsx"
     },
     {
@@ -9354,7 +9404,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "packages_ui_src_input_inputprops",
-      "community": 156,
+      "community": 25,
       "norm_label": "inputprops"
     },
     {
@@ -9364,7 +9414,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "packages_ui_src_input_input",
-      "community": 156,
+      "community": 53,
       "norm_label": "input()"
     },
     {
@@ -11194,7 +11244,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "claude",
-      "community": 92,
+      "community": 56,
       "norm_label": "claude.md"
     },
     {
@@ -11694,7 +11744,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_08_database_trips_and_live_tracking",
-      "community": 56,
+      "community": 93,
       "norm_label": "trips_and_live_tracking.md"
     },
     {
@@ -11834,7 +11884,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_adr_0001_supabase_as_backend",
-      "community": 80,
+      "community": 49,
       "norm_label": "0001-supabase-as-backend.md"
     },
     {
@@ -11844,7 +11894,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_adr_0001_supabase_as_backend_adr_0001_supabase_postgres_rls_is_the_backend_no_custom_api_tier",
-      "community": 80,
+      "community": 149,
       "norm_label": "adr-0001: supabase (postgres + rls) is the backend; no custom api tier"
     },
     {
@@ -11854,7 +11904,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "docs_adr_0001_supabase_as_backend_context",
-      "community": 80,
+      "community": 149,
       "norm_label": "context"
     },
     {
@@ -11864,7 +11914,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "docs_adr_0001_supabase_as_backend_decision",
-      "community": 80,
+      "community": 149,
       "norm_label": "decision"
     },
     {
@@ -11874,7 +11924,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "docs_adr_0001_supabase_as_backend_alternatives_rejected",
-      "community": 80,
+      "community": 149,
       "norm_label": "alternatives rejected"
     },
     {
@@ -11884,7 +11934,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "docs_adr_0001_supabase_as_backend_consequences",
-      "community": 80,
+      "community": 149,
       "norm_label": "consequences"
     },
     {
@@ -12134,7 +12184,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_adr_0006_transport_is_facilitated_not_billed",
-      "community": 80,
+      "community": 146,
       "norm_label": "0006-transport-is-facilitated-not-billed.md"
     },
     {
@@ -12194,7 +12244,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_adr_0007_share_token_for_guest_tracking",
-      "community": 80,
+      "community": 49,
       "norm_label": "0007-share-token-for-guest-tracking.md"
     },
     {
@@ -12254,7 +12304,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_adr_0008_assert_selfchecks_no_test_framework",
-      "community": 148,
+      "community": 49,
       "norm_label": "0008-assert-selfchecks-no-test-framework.md"
     },
     {
@@ -12264,7 +12314,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_adr_0008_assert_selfchecks_no_test_framework_adr_0008_assert_based_self_checks_instead_of_a_test_framework",
-      "community": 148,
+      "community": 154,
       "norm_label": "adr-0008: `assert`-based self-checks instead of a test framework"
     },
     {
@@ -12274,7 +12324,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "docs_adr_0008_assert_selfchecks_no_test_framework_context",
-      "community": 148,
+      "community": 154,
       "norm_label": "context"
     },
     {
@@ -12284,7 +12334,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "docs_adr_0008_assert_selfchecks_no_test_framework_decision",
-      "community": 148,
+      "community": 154,
       "norm_label": "decision"
     },
     {
@@ -12294,7 +12344,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "docs_adr_0008_assert_selfchecks_no_test_framework_alternatives_rejected",
-      "community": 148,
+      "community": 154,
       "norm_label": "alternatives rejected"
     },
     {
@@ -12304,7 +12354,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "docs_adr_0008_assert_selfchecks_no_test_framework_consequences",
-      "community": 148,
+      "community": 154,
       "norm_label": "consequences"
     },
     {
@@ -12334,7 +12384,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_architecture",
-      "community": 105,
+      "community": 56,
       "norm_label": "architecture.md"
     },
     {
@@ -12534,7 +12584,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_database",
-      "community": 80,
+      "community": 49,
       "norm_label": "database.md"
     },
     {
@@ -12614,7 +12664,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_deployment",
-      "community": 141,
+      "community": 56,
       "norm_label": "deployment.md"
     },
     {
@@ -13024,7 +13074,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_dev_onboarding",
-      "community": 56,
+      "community": 93,
       "norm_label": "dev_onboarding.md"
     },
     {
@@ -13144,7 +13194,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_live_tracking_handoff",
-      "community": 56,
+      "community": 93,
       "norm_label": "live_tracking_handoff.md"
     },
     {
@@ -13244,7 +13294,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "docs_security",
-      "community": 80,
+      "community": 49,
       "norm_label": "security.md"
     },
     {
@@ -18050,7 +18100,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L570",
+      "source_location": "L601",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_approveddashboard",
@@ -18060,7 +18110,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L533",
+      "source_location": "L564",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_collectpanel",
@@ -18070,7 +18120,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L58",
+      "source_location": "L59",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_companionportal",
@@ -18080,7 +18130,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_companionrow",
@@ -18090,7 +18140,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L21",
+      "source_location": "L386",
+      "weight": 1.0,
+      "source": "apps_companion_src_app_page",
+      "target": "apps_companion_src_app_page_directionsurl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/companion/src/app/page.tsx",
+      "source_location": "L22",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_doc_types",
@@ -18100,7 +18160,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L753",
+      "source_location": "L784",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_emptystate",
@@ -18110,7 +18170,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L349",
+      "source_location": "L357",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_fmtwhen",
@@ -18120,7 +18180,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L757",
+      "source_location": "L788",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_jobcard",
@@ -18130,7 +18190,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L324",
+      "source_location": "L325",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_jobrow",
@@ -18140,7 +18200,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_language_options",
@@ -18150,7 +18210,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L303",
+      "source_location": "L304",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_reapplybutton",
@@ -18160,7 +18220,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L116",
+      "source_location": "L117",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_registrationform",
@@ -18170,7 +18230,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L41",
+      "source_location": "L42",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_ride_payers",
@@ -18180,7 +18240,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_ride_providers",
@@ -18190,7 +18250,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L399",
+      "source_location": "L430",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_ridelog",
@@ -18200,7 +18260,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L369",
+      "source_location": "L400",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_runningtotal",
@@ -18210,7 +18270,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L744",
+      "source_location": "L775",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_sectiontitle",
@@ -18220,7 +18280,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_specialty_options",
@@ -18230,7 +18290,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L355",
+      "source_location": "L363",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_status_label",
@@ -18240,7 +18300,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L279",
+      "source_location": "L280",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_app_page_statuscard",
@@ -18251,7 +18311,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L48",
+      "source_location": "L49",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "apps_companion_src_components_locationshare",
@@ -18306,7 +18366,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L47",
+      "source_location": "L48",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "packages_types_src_index",
@@ -18317,7 +18377,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L47",
+      "source_location": "L48",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "packages_types_src_index_approvalstatus",
@@ -18372,7 +18432,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "packages_utils_src_pricing",
@@ -18383,7 +18443,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "packages_utils_src_pricing_formatinr",
@@ -18394,7 +18454,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "packages_utils_src_pricing_runningtotalpaise",
@@ -18405,7 +18465,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "source": "apps_companion_src_app_page",
       "target": "packages_utils_src_pricing_upipayurl",
@@ -18416,7 +18476,7 @@
       "context": "field",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_companionrow",
       "target": "packages_types_src_index_approvalstatus",
@@ -18428,7 +18488,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L59",
+      "source_location": "L60",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_companionportal",
       "target": "packages_auth_src_authcontext_useauth"
@@ -18439,7 +18499,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L65",
+      "source_location": "L66",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_companionportal",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -18450,7 +18510,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L117",
+      "source_location": "L118",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_registrationform",
       "target": "packages_auth_src_authcontext_useauth"
@@ -18461,7 +18521,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L144",
+      "source_location": "L145",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_registrationform",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -18472,7 +18532,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L304",
+      "source_location": "L305",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_reapplybutton",
       "target": "packages_auth_src_authcontext_useauth"
@@ -18483,7 +18543,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L309",
+      "source_location": "L310",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_reapplybutton",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -18493,7 +18553,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L771",
+      "source_location": "L818",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_jobcard",
       "target": "apps_companion_src_app_page_fmtwhen",
@@ -18503,9 +18563,20 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
+      "source_file": "apps/companion/src/app/page.tsx",
+      "source_location": "L811",
+      "weight": 1.0,
+      "source": "apps_companion_src_app_page_jobcard",
+      "target": "apps_companion_src_app_page_directionsurl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L384",
+      "source_location": "L415",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_runningtotal",
       "target": "packages_utils_src_pricing_formatinr"
@@ -18516,7 +18587,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L378",
+      "source_location": "L409",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_runningtotal",
       "target": "packages_utils_src_pricing_runningtotalpaise"
@@ -18527,7 +18598,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L410",
+      "source_location": "L441",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_ridelog",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -18538,7 +18609,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L548",
+      "source_location": "L579",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_collectpanel",
       "target": "packages_utils_src_pricing_formatinr"
@@ -18549,7 +18620,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L539",
+      "source_location": "L570",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_collectpanel",
       "target": "packages_utils_src_pricing_upipayurl"
@@ -18560,7 +18631,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L571",
+      "source_location": "L602",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_approveddashboard",
       "target": "packages_auth_src_authcontext_useauth"
@@ -18571,7 +18642,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/companion/src/app/page.tsx",
-      "source_location": "L582",
+      "source_location": "L613",
       "weight": 1.0,
       "source": "apps_companion_src_app_page_approveddashboard",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -21516,7 +21587,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L141",
+      "source_location": "L142",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_booking",
@@ -21526,7 +21597,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L85",
+      "source_location": "L86",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_calendar",
@@ -21536,7 +21607,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L55",
+      "source_location": "L56",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_care_needs",
@@ -21546,7 +21617,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_durations",
@@ -21556,7 +21627,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L67",
+      "source_location": "L68",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_fmtslot",
@@ -21566,7 +21637,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L73",
+      "source_location": "L74",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_label",
@@ -21576,7 +21647,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L65",
+      "source_location": "L66",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_languages",
@@ -21586,7 +21657,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L48",
+      "source_location": "L49",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_savedpatient",
@@ -21596,7 +21667,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_services",
@@ -21606,7 +21677,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L75",
+      "source_location": "L76",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_stepheader",
@@ -21616,7 +21687,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L64",
+      "source_location": "L65",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_time_slots",
@@ -21626,7 +21697,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L59",
+      "source_location": "L60",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_app_booking_page_transport_modes",
@@ -21641,6 +21712,28 @@
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_components_hospitalautocomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/app/booking/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "apps_website_src_app_booking_page",
+      "target": "apps_website_src_components_meetingpoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/app/booking/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "apps_website_src_app_booking_page",
+      "target": "apps_website_src_components_meetingpoint_coords",
       "confidence_score": 1.0
     },
     {
@@ -21670,7 +21763,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_data_hospitals",
@@ -21681,7 +21774,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "apps_website_src_data_hospitals_pincodeforarea",
@@ -21736,7 +21829,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_ui_src_index",
@@ -21747,7 +21840,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_ui_src_input_input",
@@ -21758,7 +21851,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_phone",
@@ -21769,7 +21862,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_phone_isvalidindianmobile",
@@ -21780,7 +21873,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_phone_mobilehint",
@@ -21791,7 +21884,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_phone_normalizeindianmobile",
@@ -21802,7 +21895,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_phone_toe164",
@@ -21813,7 +21906,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_pricing",
@@ -21824,7 +21917,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_pricing_eveningsurchargepaise",
@@ -21835,7 +21928,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_pricing_formatinr",
@@ -21846,7 +21939,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_pricing_priceforminutes",
@@ -21857,7 +21950,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_servicearea",
@@ -21868,7 +21961,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_servicearea_checkpincodeserved",
@@ -21879,7 +21972,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_servicearea_isvalidpincode",
@@ -21890,7 +21983,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_servicearea_listservedareas",
@@ -21901,7 +21994,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page",
       "target": "packages_utils_src_servicearea_servicearea",
@@ -21913,7 +22006,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L280",
+      "source_location": "L286",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "apps_website_src_app_booking_page_durations"
@@ -21923,7 +22016,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L436",
+      "source_location": "L449",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "apps_website_src_app_booking_page_fmtslot",
@@ -21946,7 +22039,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L312",
+      "source_location": "L318",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "apps_website_src_data_companions_matchcompanionbydepartment"
@@ -21957,7 +22050,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L666",
+      "source_location": "L679",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "apps_website_src_data_hospitals_pincodeforarea"
@@ -21968,7 +22061,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L142",
+      "source_location": "L143",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_auth_src_authcontext_useauth"
@@ -21979,7 +22072,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L230",
+      "source_location": "L236",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -21990,7 +22083,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L294",
+      "source_location": "L300",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_phone_isvalidindianmobile"
@@ -22001,7 +22094,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L770",
+      "source_location": "L787",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_phone_mobilehint"
@@ -22012,7 +22105,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L245",
+      "source_location": "L251",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_phone_normalizeindianmobile"
@@ -22023,7 +22116,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L355",
+      "source_location": "L362",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_phone_toe164"
@@ -22034,7 +22127,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L285",
+      "source_location": "L291",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_pricing_eveningsurchargepaise"
@@ -22045,7 +22138,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L562",
+      "source_location": "L575",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_pricing_formatinr"
@@ -22056,7 +22149,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L282",
+      "source_location": "L288",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_pricing_priceforminutes"
@@ -22067,7 +22160,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L268",
+      "source_location": "L274",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_servicearea_checkpincodeserved"
@@ -22078,7 +22171,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L265",
+      "source_location": "L271",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_servicearea_isvalidpincode"
@@ -22089,7 +22182,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/booking/page.tsx",
-      "source_location": "L259",
+      "source_location": "L265",
       "weight": 1.0,
       "source": "apps_website_src_app_booking_page_booking",
       "target": "packages_utils_src_servicearea_listservedareas"
@@ -23885,7 +23978,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page",
       "target": "apps_website_src_app_quick_help_page_quickhelp",
@@ -23910,7 +24003,7 @@
       "source_location": "L14",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page",
-      "target": "apps_website_src_data_hospitals",
+      "target": "apps_website_src_components_meetingpoint",
       "confidence_score": 1.0
     },
     {
@@ -23919,6 +24012,28 @@
       "confidence": "EXTRACTED",
       "source_file": "apps/website/src/app/quick-help/page.tsx",
       "source_location": "L14",
+      "weight": 1.0,
+      "source": "apps_website_src_app_quick_help_page",
+      "target": "apps_website_src_components_meetingpoint_coords",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/app/quick-help/page.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "apps_website_src_app_quick_help_page",
+      "target": "apps_website_src_data_hospitals",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/app/quick-help/page.tsx",
+      "source_location": "L15",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page",
       "target": "apps_website_src_data_hospitals_pincodeforarea",
@@ -24128,7 +24243,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L282",
+      "source_location": "L287",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "apps_website_src_data_hospitals_pincodeforarea"
@@ -24139,7 +24254,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L35",
+      "source_location": "L38",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "apps_website_src_hooks_uselivemetrics_uselivemetrics"
@@ -24150,7 +24265,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_auth_src_authcontext_useauth"
@@ -24161,7 +24276,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L107",
+      "source_location": "L110",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_auth_src_supabase_client_createclient"
@@ -24172,7 +24287,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L41",
+      "source_location": "L44",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_utils_src_phone_isvalidindianmobile"
@@ -24183,7 +24298,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L263",
+      "source_location": "L268",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_utils_src_phone_mobilehint"
@@ -24194,7 +24309,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L155",
+      "source_location": "L160",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_utils_src_phone_toe164"
@@ -24205,7 +24320,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L161",
+      "source_location": "L166",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_utils_src_pricing_eveningsurchargepaise"
@@ -24216,7 +24331,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L74",
+      "source_location": "L77",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_utils_src_servicearea_checkpincodeserved"
@@ -24227,7 +24342,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/website/src/app/quick-help/page.tsx",
-      "source_location": "L71",
+      "source_location": "L74",
       "weight": 1.0,
       "source": "apps_website_src_app_quick_help_page_quickhelp",
       "target": "packages_utils_src_servicearea_isvalidpincode"
@@ -25781,6 +25896,58 @@
       "weight": 1.0,
       "source": "apps_website_src_components_locationbadge_locationbadge",
       "target": "packages_utils_src_servicearea_isvalidpincode"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "apps_website_src_components_meetingpoint",
+      "target": "apps_website_src_components_meetingpoint_coords",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "apps_website_src_components_meetingpoint",
+      "target": "apps_website_src_components_meetingpoint_meetingpoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "apps_website_src_components_meetingpoint",
+      "target": "apps_website_src_components_meetingpoint_round",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "apps_website_src_components_meetingpoint",
+      "target": "packages_ui_src_index",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/website/src/components/MeetingPoint.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "apps_website_src_components_meetingpoint",
+      "target": "packages_ui_src_input_input",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -33408,5 +33575,5 @@
       "source_file": "vanilla-backup/booking.html"
     }
   ],
-  "built_at_commit": "3d888b1bc2206d347d24f2faeb74919f33489b26"
+  "built_at_commit": "1fa82cfb0fbc343f84df2a577b6d1b80812c40c0"
 }

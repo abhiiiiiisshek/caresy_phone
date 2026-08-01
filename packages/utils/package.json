@@ -5,7 +5,8 @@
   "exports": {
     ".": "./src/serviceArea.ts",
     "./pricing": "./src/pricing.ts",
-    "./phone": "./src/phone.ts"
+    "./phone": "./src/phone.ts",
+    "./slots": "./src/slots.ts"
   },
   "dependencies": {
     "@caresy/auth": "*"
