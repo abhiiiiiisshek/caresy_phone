@@ -83,17 +83,24 @@ Read this first after a `/clear`.
 |---|---|---|
 | `NEXT_PUBLIC_UPI_VPA` unset | UPI buttons hidden, cash-only | set in Vercel env (website + companion) |
 | `SUPABASE_SERVICE_ROLE_KEY` unset | push delivery dead; `notifications` queue grows unread | set on website server env |
-| `OPS_WEBHOOK_URL` unset | ADMIN rows stay `QUEUED`; nobody is paged when a booking arrives — **watch `/admin/ops` by hand on day one** | point it at any JSON endpoint (Slack/Discord incoming webhook is a two-minute setup) |
-| Nothing *runs* the push cron | `/api/cron/send-push` exists but is not scheduled | external uptime cron every minute with `Authorization: Bearer $CRON_SECRET` |
+| A `FAILED` notification is never retried | one bad run strands the row; requeue by hand with `update notifications set status='QUEUED', error=null where …` | add a retry counter if it happens twice |
 | Duplicate patient rows | old ones from before `/quick-help` reused patients | run `32_MERGE_DUPLICATE_PATIENTS.sql`; it skips any duplicate that owns documents, so re-run the query at its foot afterwards |
 | `patient-docs` bucket | must be created by hand in the dashboard | migration 25 only adds policies |
 
+## Live in production (2026-08-02)
+
+Both cron routes run on cron-job.org every 1 min (push drain) and 5 min (expiry
+sweep), authenticated with `CRON_SECRET`. `OPS_WEBHOOK_URL` points at an
+**ntfy.sh** topic — no workspace account, the topic string is the only secret, and
+the phone app is the pager. A new booking, a cancellation and a reschedule all
+buzz the ops phone within a minute. Two traps, both hit once already: the URL
+must have no `www.` and no trailing slash (either gives a 308 that cron-job.org
+counts as failure), and a Vercel env var does nothing until the next redeploy.
+
 ## Next up (rough order)
 
-1. Schedule the two cron routes (expiry sweep, push drain) and set
-   `OPS_WEBHOOK_URL` — the queue now has somewhere to go and nothing calls it.
-2. Play Store keystore + testers.
-3. Walk cancel and reschedule on two phones — both are shipped and neither has
+1. Play Store keystore + testers.
+2. Walk cancel and reschedule on two phones — both are shipped and neither has
    been run by a human.
 
 ## Stale docs
