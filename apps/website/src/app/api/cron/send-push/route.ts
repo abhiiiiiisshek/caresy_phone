@@ -35,15 +35,35 @@ interface QueuedRow {
   recipient_role: string | null;
 }
 
+// Header values are latin-1 only, and a booking title is otherwise free text.
+const asciiOnly = (s: string) => s.replace(/[^\x20-\x7E]/g, '').slice(0, 200);
+
 // Where ops is paged. Any endpoint that accepts a JSON POST — a Slack or Discord
 // incoming webhook, a Zapier/n8n hook, a WhatsApp gateway — because the one
 // thing that must not happen on day one is a new booking nobody sees.
+//
+// ntfy.sh is the exception, and the one worth having: no account, no workspace,
+// just a phone app subscribed to a topic. It treats the POST body as the message
+// verbatim, so sending it JSON puts a wall of escaped braces on the lock screen.
+// It gets plain text and the title as a header instead.
+//
 // ponytail: no retry/backoff. A missed page is visible at /admin/ops, which is
 // watched anyway; add a retry column if that stops being true.
 async function pageOps(rows: QueuedRow[], url: string) {
+  let ntfy = false;
+  try {
+    ntfy = new URL(url).hostname.endsWith('ntfy.sh');
+  } catch {
+    // A malformed URL fails per row below, with the reason on the row.
+  }
+
   const results = await Promise.all(rows.map(async (r) => {
     try {
-      const res = await fetch(url, {
+      const res = await fetch(url, ntfy ? {
+        method: 'POST',
+        headers: { Title: asciiOnly(r.title), Tags: 'hospital' },
+        body: r.body ?? r.title,
+      } : {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
