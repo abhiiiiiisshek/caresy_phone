@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
@@ -415,6 +415,13 @@ function PlanChange({ booking, onChanged }: { booking: BookingRecord; onChanged:
   // Read once when the sheet opens: the clock is not a render input.
   const [min] = useState(() => localInputValue(Date.now() + MIN_LEAD_MINUTES * 60_000));
 
+  // The picker replaces the buttons at the very bottom of a scrollable sheet, so
+  // on a phone it opens below the fold and reads as "the button disappeared".
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (moving) panel.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [moving]);
+
   const call = async (fn: 'cancel_booking' | 'reschedule_booking', args: Record<string, unknown>) => {
     setBusy(true);
     setError(null);
@@ -440,7 +447,7 @@ function PlanChange({ booking, onChanged }: { booking: BookingRecord; onChanged:
   };
 
   return (
-    <div style={{ display: 'grid', gap: 8, marginTop: 2 }}>
+    <div ref={panel} style={{ display: 'grid', gap: 8, marginTop: 2 }}>
       {moving ? (
         <div style={{ display: 'grid', gap: 8, padding: 12, borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)' }}>
           <label htmlFor="reschedule-at" style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>New date &amp; time</label>
@@ -495,7 +502,9 @@ function DetailSheet({ booking, onClose, onChanged }: { booking: BookingRecord |
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(22,48,43,0.5)', backdropFilter: 'blur(2px)', display: 'flex', alignItems: 'flex-end', fontFamily: EPILOGUE }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto', background: 'var(--m3-bg)', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: '10px 0 24px', animation: 'caresy-sheet-up 0.28s var(--ease-out)' }}>
+      {/* Bottom padding clears the phone's gesture bar; without it the last
+          button sits under the home indicator on iOS. */}
+      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 640, margin: '0 auto', maxHeight: '86vh', overflowY: 'auto', background: 'var(--m3-bg)', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: '10px 0 calc(24px + env(safe-area-inset-bottom))', animation: 'caresy-sheet-up 0.28s var(--ease-out)' }}>
         <div style={{ width: 40, height: 4, borderRadius: 999, background: 'var(--line-strong)', margin: '8px auto 12px' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 20px 16px' }}>
           <div style={{ flex: 1 }}>
