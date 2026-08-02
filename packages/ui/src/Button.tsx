@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { canHover } from './canHover';
 
 export type ButtonVariant = 'primary' | 'urgent' | 'secondary' | 'outline' | 'ghost' | 'glass';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -78,7 +79,7 @@ export function Button({
         ...v,
         ...style,
       }}
-      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseEnter={(e) => { if (!disabled && canHover()) e.currentTarget.style.transform = 'translateY(-2px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
       {...rest}
     >

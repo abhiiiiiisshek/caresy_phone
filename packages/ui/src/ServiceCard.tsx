@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { canHover } from './canHover';
 
 export interface ServiceCardProps {
   icon?: React.ReactNode;
@@ -48,7 +49,7 @@ export function ServiceCard({
         transition: 'transform var(--dur) var(--ease-out), box-shadow var(--dur) ease, border-color var(--dur) ease',
         ...style,
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-2)'; }}
+      onMouseEnter={(e) => { if (!canHover()) return; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-2)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = dark ? '0 20px 50px rgba(0,0,0,0.18)' : 'var(--shadow-1)'; }}
     >
       <div style={{

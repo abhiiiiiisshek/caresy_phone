@@ -358,9 +358,13 @@ p {
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
-.intent-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+/* A card that lifts on tap and stays lifted is a touchscreen artefact, not
+   feedback — the lift is for pointers only. */
+@media (hover: hover) and (pointer: fine) {
+  .intent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+  }
 }
 
 .intent-card span {
@@ -451,9 +455,11 @@ p {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-2);
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2);
+  }
 }
 
 .btn-primary {
@@ -594,9 +600,11 @@ p {
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
-.decision-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 30px 80px rgba(33, 48, 44, 0.22);
+@media (hover: hover) and (pointer: fine) {
+  .decision-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 80px rgba(33, 48, 44, 0.22);
+  }
 }
 
 .decision-card span {
@@ -1212,7 +1220,7 @@ dd {
   background: var(--surface);
   border: 2px solid var(--line);
   color: var(--muted);
-  transition: all 200ms ease;
+  transition: background 200ms ease, border-color 200ms ease, color 200ms ease;
 }
 
 .wizard-progress-step.active .wizard-progress-dot,
@@ -1444,12 +1452,21 @@ th {
 
 .footer-col a {
   color: rgba(245, 244, 238, 0.7);
-  transition: color 180ms ease, padding-left 180ms ease;
+  /* transform, not padding-left: the same 4px nudge without a layout pass. */
+  transition: color 180ms ease, transform 180ms ease;
+  display: inline-block;
 }
 
 .footer-col a:hover {
   color: var(--marigold);
-  padding-left: 4px;
+}
+
+/* The movement is gated, the colour is not: on a touchscreen :hover sticks
+   after a tap, and a link left nudged 4px out of line reads as a rendering bug. */
+@media (hover: hover) and (pointer: fine) {
+  .footer-col a:hover {
+    transform: translateX(4px);
+  }
 }
 
 .footer-col .ops-link {
@@ -1526,13 +1543,18 @@ th {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.06);
   color: rgba(245, 244, 238, 0.75);
-  transition: all 180ms ease;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
 .footer-socials a:hover {
   background: var(--marigold);
   color: var(--ink-teal);
-  transform: translateY(-2px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-socials a:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .footer-bottom {
@@ -1929,9 +1951,14 @@ th {
 }
 
 .whatsapp-float:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
   color: white;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .whatsapp-float:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  }
 }
 
 .whatsapp-icon {
@@ -1969,7 +1996,7 @@ th {
   border-radius: 16px;
   cursor: pointer;
   text-align: left;
-  transition: all 180ms ease;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .simulator-tab:hover {
@@ -1993,7 +2020,7 @@ th {
   font-size: 0.84rem;
   font-weight: 800;
   color: var(--ink);
-  transition: all 180ms ease;
+  transition: background 180ms ease, color 180ms ease;
 }
 
 .simulator-tab.active .tab-num {
@@ -2022,7 +2049,9 @@ th {
 
 .simulator-panel {
   display: none;
-  animation: fadeIn 300ms ease-in-out forwards;
+  /* ease-out, not ease-in-out: an entrance should be quickest at the moment the
+     eye arrives, and 220ms is the ceiling for a panel this size. */
+  animation: fadeIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .simulator-panel.active {
@@ -2133,7 +2162,7 @@ th {
 
 /* Companion profiles styles */
 .profile-card {
-  transition: all 250ms ease;
+  transition: background 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
   border-color: rgba(33, 48, 44, 0.08);
 }
 
@@ -2215,7 +2244,7 @@ th {
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 600;
-  transition: all 180ms ease;
+  transition: color 180ms ease, border-left-color 180ms ease;
   line-height: 1.4;
 }
 
@@ -2268,7 +2297,7 @@ th {
   cursor: pointer;
   inset: 0;
   background-color: rgba(33, 48, 44, 0.15);
-  transition: 200ms ease;
+  transition: background-color 200ms ease;
   border-radius: 34px;
 }
 
@@ -2280,7 +2309,9 @@ th {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  transition: 200ms ease;
+  /* The knob only ever moves — naming transform keeps a toggle spammed by a
+     bored thumb off the layout path. */
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
@@ -2352,7 +2383,7 @@ th {
   border-radius: 20px;
   padding: 22px;
   align-self: start;
-  transition: all 250ms ease;
+  transition: opacity 250ms ease, filter 250ms ease;
 }
 
 .plain-english-card.hidden {
@@ -2777,7 +2808,7 @@ th {
   font-size: 0.95rem;
   border: 1px solid rgba(231, 163, 62, 0.15);
   box-shadow: var(--shadow-1);
-  transition: all 0.2s ease;
+  transition: background 200ms ease, color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
   cursor: default;
   display: inline-block;
 }
@@ -2785,8 +2816,13 @@ th {
 .tag-pill:hover {
   background: var(--primary);
   color: #fff;
-  transform: translateY(-2px);
   box-shadow: var(--shadow-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tag-pill:hover {
+    transform: translateY(-2px);
+  }
 }
 
 /* ==========================================
@@ -3041,7 +3077,7 @@ body {
   place-items: center;
   z-index: 2;
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: background 300ms ease, border-color 300ms ease, color 300ms ease;
 }
 
 .timeline-step.completed .timeline-icon-ring {

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { canHover } from './canHover';
 
 export type CardVariant = 'surface' | 'sunken' | 'dark' | 'elevated';
 
@@ -46,6 +47,7 @@ export function Card({
         ...style,
       }}
       onMouseEnter={interactive ? (e) => {
+        if (!canHover()) return;
         e.currentTarget.style.transform = 'translateY(-4px)';
         e.currentTarget.style.boxShadow = 'var(--shadow-2)';
         e.currentTarget.style.borderColor = 'var(--border-hover, rgba(13,122,102,0.32))';

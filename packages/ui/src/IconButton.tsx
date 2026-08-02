@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { canHover } from './canHover';
 
 export type IconButtonVariant = 'soft' | 'urgent' | 'solid' | 'ghost' | 'glass';
 
@@ -50,7 +51,7 @@ export function IconButton({
         ...v,
         ...style,
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+      onMouseEnter={(e) => { if (canHover()) e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
       {...rest}
     >
