@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
-import { Phone, Mail, LogOut, CalendarCheck, Loader2, ShieldCheck, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog } from 'lucide-react';
+import { Phone, Mail, LogOut, CalendarCheck, Loader2, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog } from 'lucide-react';
 import { Button } from '@caresy/ui';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
@@ -57,7 +57,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
 }
 
 export default function Profile() {
-  const { user, profile, isAdmin, isLoading: authIsLoading, openLogin, signOut } = useAuth();
+  const { user, profile, isLoading: authIsLoading, openLogin, signOut } = useAuth();
   const router = useRouter();
   const [showInfo, setShowInfo] = useState(false);
 
@@ -150,7 +150,13 @@ export default function Profile() {
           )}
           <SettingsRow icon={CreditCard} label="Payment Methods" href={supWa('payment methods')} />
           <SettingsRow icon={HeartHandshake} label="Companion Preferences" href={supWa('my companion preferences')} />
-          {isAdmin && <SettingsRow icon={ShieldCheck} label="Admin Operations" href="https://admin.caresy.co.in/ops" />}
+          {/* No admin shortcut here. It was gated on is_admin(), and the database
+              agrees only two accounts are admins, but it rendered for a companion
+              account anyway — a stale session in a shared browser is the likely
+              cause and not worth chasing on launch week. The two people who need
+              the dispatch board can bookmark admin.caresy.co.in; a customer
+              reading "Admin Operations" on their own profile cannot. Nothing here
+              ever granted access: RLS re-checks is_admin() on every query. */}
         </Section>
 
         {/* Activity */}
