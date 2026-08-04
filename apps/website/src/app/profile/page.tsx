@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { Phone, Mail, LogOut, CalendarCheck, Loader2, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog } from 'lucide-react';
 import { Button } from '@caresy/ui';
+import { isValidIndianMobile } from '@caresy/utils/phone';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const SUPPORT_WA = '919717500225';
@@ -144,11 +145,27 @@ export default function Profile() {
           {showInfo && (
             <div style={{ borderRadius: 12, background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', overflow: 'hidden' }}>
               <InfoRow icon={Mail} label="Email" value={user.email || '—'} />
-              {profile?.phone && <div style={{ borderTop: '1px solid var(--m3-line)' }}><InfoRow icon={Phone} label="Mobile" value={profile.phone} /></div>}
+              {/* Google gives us no phone number, so a profile can carry a
+                  placeholder from an older build. Showing "00000000" as the
+                  number a companion will ring is worse than showing nothing:
+                  it looks answered. Anything that is not a real Indian mobile
+                  is treated as absent, with a way to fix it. */}
+              <div style={{ borderTop: '1px solid var(--m3-line)' }}>
+                {isValidIndianMobile(profile?.phone || '')
+                  ? <InfoRow icon={Phone} label="Mobile" value={profile!.phone!} />
+                  : (
+                    <a href={supWa('adding my mobile number to my profile')} target="_blank" rel="noopener" style={{ display: 'block', textDecoration: 'none' }}>
+                      <InfoRow icon={Phone} label="Mobile" value="Not added — tap to add" />
+                    </a>
+                  )}
+              </div>
               {profile?.age && <div style={{ borderTop: '1px solid var(--m3-line)' }}><InfoRow icon={CalendarCheck} label="Age" value={String(profile.age)} /></div>}
             </div>
           )}
-          <SettingsRow icon={CreditCard} label="Payment Methods" href={supWa('payment methods')} />
+          {/* Says what it is rather than promising a settings screen: there is
+              nothing to configure — every visit is settled in cash or UPI at the
+              end, and the row used to open WhatsApp with no explanation. */}
+          <SettingsRow icon={CreditCard} label="Payment Methods" sub="Cash or UPI, paid after the visit" href="/support" />
           <SettingsRow icon={HeartHandshake} label="Companion Preferences" href={supWa('my companion preferences')} />
           {/* No admin shortcut here. It was gated on is_admin(), and the database
               agrees only two accounts are admins, but it rendered for a companion

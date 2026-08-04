@@ -8,7 +8,7 @@ const TERMS_SECTIONS = [
   {
     id: 'intro',
     title: 'Introduction & Agreement',
-    content: 'These Terms of Service ("Terms") govern your use of the website caresy.co, our booking interfaces, and the companion care coordination services provided by Caresy Care Services Private Limited ("Caresy", "we", "us", "our").\n\nBy creating a booking request (planned or urgent), submitting callback forms, or registering a patient profile, you agree to be bound by these Terms. If you are acting on behalf of a patient, you warrant that you have obtained their full consent and authorization to agree to these Terms on their behalf.',
+    content: 'These Terms of Service ("Terms") govern your use of the website caresy.co.in, our booking interfaces, and the companion care coordination services provided by Caresy Care Services Private Limited ("Caresy", "we", "us", "our").\n\nBy creating a booking request (planned or urgent), submitting callback forms, or registering a patient profile, you agree to be bound by these Terms. If you are acting on behalf of a patient, you warrant that you have obtained their full consent and authorization to agree to these Terms on their behalf.',
     summary: 'By booking a companion on Caresy, you agree to these legal rules. If you are booking for a family member, you confirm that you have their permission to do so.'
   },
   {
@@ -62,8 +62,8 @@ const TERMS_SECTIONS = [
   {
     id: 'contact',
     title: '9. Grievance & Amendments',
-    content: 'We reserve the right to amend these Terms at any time. The updated Terms will be published on caresy.co/terms.html with a revised effective date.\n\nFor questions or requests, contact our corporate office:\n\nCaresy Legal Department\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: support@caresy.co or legal@caresy.co',
-    summary: 'We may update these terms occasionally. For any legal inquiries, write to legal@caresy.co or our HSR Layout office.'
+    content: 'We reserve the right to amend these Terms at any time. The updated Terms will be published on caresy.co.in/terms with a revised effective date.\n\nFor questions or requests, contact our corporate office:\n\nCaresy Legal Department\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: support@caresy.co.in or legal@caresy.co.in',
+    summary: 'We may update these terms occasionally. For any legal inquiries, write to legal@caresy.co.in or our HSR Layout office.'
   }
 ];
 

@@ -9,7 +9,7 @@ const PRIVACY_SECTIONS = [
   {
     id: 'intro',
     title: 'Introduction',
-    content: 'At Caresy (operated by Caresy Care Services Private Limited, "we", "us", "our"), we value the trust you place in us to accompany your family members during their hospital visits. This Privacy Policy explains how we collect, use, store, and safeguard personal and sensitive information when you access our website caresy.co, use our booking widgets, or coordinate companion services.\n\nWe are fully committed to protecting your privacy in compliance with the Information Technology Act, 2000, and the Digital Personal Data Protection (DPDP) Act, 2023 of India.',
+    content: 'At Caresy (operated by Caresy Care Services Private Limited, "we", "us", "our"), we value the trust you place in us to accompany your family members during their hospital visits. This Privacy Policy explains how we collect, use, store, and safeguard personal and sensitive information when you access our website caresy.co.in, use our booking widgets, or coordinate companion services.\n\nWe are fully committed to protecting your privacy in compliance with the Information Technology Act, 2000, and the Digital Personal Data Protection (DPDP) Act, 2023 of India.',
     summary: 'Caresy respects your privacy. We strictly follow Indian data protection laws when collecting and handling information for arranging companions for your hospital visits.'
   },
   {
@@ -57,8 +57,8 @@ const PRIVACY_SECTIONS = [
   {
     id: 'contact',
     title: '8. Grievance & Contact',
-    content: 'If you have any questions about this Privacy Policy, wish to exercise your data rights, or want to register a concern regarding how we handle customer data, please write to our designated Grievance Officer:\n\nCaresy Grievance Officer\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: privacy@caresy.co or support@caresy.co',
-    summary: 'For any questions or concerns about data privacy, email our Grievance Officer at privacy@caresy.co or write to our office in HSR Layout, Bengaluru.'
+    content: 'If you have any questions about this Privacy Policy, wish to exercise your data rights, or want to register a concern regarding how we handle customer data, please write to our designated Grievance Officer:\n\nCaresy Grievance Officer\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: privacy@caresy.co.in or support@caresy.co.in',
+    summary: 'For any questions or concerns about data privacy, email our Grievance Officer at privacy@caresy.co.in or write to our office in HSR Layout, Bengaluru.'
   }
 ];
 

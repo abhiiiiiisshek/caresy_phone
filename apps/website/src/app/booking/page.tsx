@@ -308,6 +308,34 @@ export default function Booking() {
     return true;
   };
 
+  // Why Continue is greyed out, in the user's words.
+  //
+  // Step 2 was the trap QA fell into: a served pincode shows a green tick, so
+  // the screen looks finished, but the step also needs a hospital and said so
+  // nowhere. A disabled button with no reason is a dead end — the person cannot
+  // tell whether the form is broken or they are.
+  const blockingReason = (s: number): string | null => {
+    if (isStepValid(s)) return null;
+    if (s === 1) return 'Choose how long you need a companion for.';
+    if (s === 2) {
+      if (!hospital.trim()) return 'Pick the hospital or clinic you are going to.';
+      if (areaStatus === 'checking') return 'Checking that pincode…';
+      if (areaStatus === 'not_served') return 'We do not cover that pincode yet — Noida and Greater Noida only.';
+      return 'Add the pincode of the hospital.';
+    }
+    if (s === 3) {
+      if (!patientName.trim()) return 'Add the name of the person the companion is meeting.';
+      if (!isValidIndianMobile(phone)) return 'A 10-digit mobile number is needed — the companion calls it on the day.';
+      if (!/\S+@\S+\.\S+/.test(email)) return 'That email address looks incomplete. The booking confirmation goes there.';
+      return 'The emergency contact must be a 10-digit mobile, or left empty.';
+    }
+    if (s === 4) {
+      if (!date || !time) return 'Pick a date and a time slot.';
+      return 'That slot has just passed. Pick another time.';
+    }
+    return null;
+  };
+
   const goNext = () => {
     if (!isStepValid(step)) return;
     if (step < TOTAL_STEPS) setStep(step + 1);
@@ -980,7 +1008,12 @@ export default function Booking() {
                 {step === TOTAL_STEPS ? 'Review Booking' : 'Continue'}
                 <ChevronRight style={{ width: 14, height: 14 }} />
               </button>
-              <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-muted)' }}>You can change your selection later</span>
+              <span
+                role={blockingReason(step) ? 'status' : undefined}
+                style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', textAlign: 'center', color: blockingReason(step) ? 'var(--terracotta, #c45543)' : 'var(--m3-muted)' }}
+              >
+                {blockingReason(step) || 'You can change your selection later'}
+              </span>
             </div>
           )}
         </div>

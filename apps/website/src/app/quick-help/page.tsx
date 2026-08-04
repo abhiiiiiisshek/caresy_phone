@@ -9,7 +9,7 @@ import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import { eveningSurchargePaise } from '@caresy/utils/pricing';
-import { isValidIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
+import { isValidIndianMobile, normalizeIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 import MeetingPoint, { type Coords } from '@/components/MeetingPoint';
 import { pincodeForArea } from '@/data/hospitals';
@@ -17,7 +17,7 @@ import { pincodeForArea } from '@/data/hospitals';
 const DRAFT_KEY = 'caresy_quickhelp_draft';
 
 export default function QuickHelp() {
-  const { user, openLogin } = useAuth();
+  const { user, profile, openLogin } = useAuth();
 
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -70,6 +70,23 @@ export default function QuickHelp() {
       // ignore malformed/unavailable sessionStorage
     }
   }, []);
+
+  // Somebody already signed in should not retype their own name and email while
+  // trying to get help urgently. Only fills blanks — a restored draft, or
+  // anything they typed for a patient who is not them, wins.
+  useEffect(() => {
+    if (!user) return;
+    const name = (profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name) as string | undefined;
+    // The session arrives asynchronously, after these fields have rendered, so
+    // seeding them is a genuine effect rather than derived state. Each setter
+    // keeps whatever is already there, so it cannot fight the typist.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (name) setCustomerName((v) => v || name);
+    if (user.email) setEmail((v) => v || user.email!);
+    if (profile?.phone && isValidIndianMobile(profile.phone)) {
+      setPhone((v) => v || normalizeIndianMobile(profile.phone!) || '');
+    }
+  }, [user, profile]);
 
   // Live service-area check as the pincode is typed.
   useEffect(() => {

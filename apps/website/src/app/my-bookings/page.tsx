@@ -15,6 +15,9 @@ const EPILOGUE = 'var(--font-epilogue), sans-serif';
 /** Statuses a customer may still cancel or move themselves (migration 31). */
 const CHANGEABLE = new Set(['PENDING', 'ACCEPTED', 'ASSIGNED']);
 
+/** Statuses worth naming on a list row — "Completed" and "Cancelled" differ. */
+const TERMINAL = new Set(['CANCELLED', 'EXPIRED', 'COMPLETED']);
+
 interface CompanionDetails {
   name: string;
   avatar: string;
@@ -388,9 +391,21 @@ function BookingRow({ booking, onDetails }: { booking: BookingRecord; onDetails:
           </span>
         </span>
       </span>
+      {/* The hero card shows a status pill and these rows did not, so the same
+          cancelled booking read as cancelled in one place and fine in the other. */}
+      {TERMINAL.has(booking.status.toUpperCase()) && (
+        <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--m3-muted)' }}>
+          {getStatusInfo(booking.status).label}
+        </span>
+      )}
       <ChevronRight style={{ width: 14, height: 14, color: 'var(--m3-muted)', flexShrink: 0 }} />
     </button>
   );
+}
+
+/** The companion's name, when one is attached — the cancel warning names them. */
+function companionName(b: BookingRecord): string | null {
+  return (b.service_metadata?.companion?.name as string) || null;
 }
 
 /** <input type="datetime-local"> wants a local "YYYY-MM-DDTHH:MM", not a UTC one. */
@@ -408,7 +423,11 @@ function localInputValue(ms: number) {
  */
 function PlanChange({ booking, onChanged }: { booking: BookingRecord; onChanged: () => void }) {
   const [busy, setBusy] = useState(false);
-  const [moving, setMoving] = useState(false);
+  // 'confirm' is a real step, not a nicety: one stray tap here calls off a
+  // hospital visit somebody's family is relying on. It replaces a window.confirm,
+  // which an in-app webview can suppress outright.
+  const [mode, setMode] = useState<'idle' | 'moving' | 'confirm'>('idle');
+  const moving = mode === 'moving';
   const [when, setWhen] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -419,8 +438,8 @@ function PlanChange({ booking, onChanged }: { booking: BookingRecord; onChanged:
   // on a phone it opens below the fold and reads as "the button disappeared".
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (moving) panel.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, [moving]);
+    if (mode !== 'idle') panel.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [mode]);
 
   const call = async (fn: 'cancel_booking' | 'reschedule_booking', args: Record<string, unknown>) => {
     setBusy(true);
@@ -431,10 +450,7 @@ function PlanChange({ booking, onChanged }: { booking: BookingRecord; onChanged:
     onChanged();
   };
 
-  const cancel = () => {
-    if (!window.confirm('Cancel this visit? Your companion is told straight away.')) return;
-    call('cancel_booking', { p_booking: booking.id, p_reason: null });
-  };
+  const cancel = () => call('cancel_booking', { p_booking: booking.id, p_reason: null });
 
   const reschedule = () => {
     if (!when) return;
@@ -463,14 +479,29 @@ function PlanChange({ booking, onChanged }: { booking: BookingRecord; onChanged:
             <Button variant="primary" full disabled={busy || !when} onClick={reschedule}>
               {busy ? 'Moving…' : 'Confirm new time'}
             </Button>
-            <Button variant="ghost" full disabled={busy} onClick={() => { setMoving(false); setError(null); }}>Back</Button>
+            <Button variant="ghost" full disabled={busy} onClick={() => { setMode('idle'); setError(null); }}>Back</Button>
+          </div>
+        </div>
+      ) : mode === 'confirm' ? (
+        <div style={{ display: 'grid', gap: 10, padding: 14, borderRadius: 'var(--radius)', background: 'var(--terracotta-soft, #fdeeea)', border: '1px solid var(--terracotta)' }}>
+          <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--terracotta-deep, var(--terracotta))' }}>Cancel this visit?</span>
+          <span style={{ fontSize: '0.78rem', lineHeight: '18px', color: 'var(--ink)' }}>
+            {companionName(booking)
+              ? `${companionName(booking)} is told straight away and the slot is released. Booking it again means starting over.`
+              : 'The request is withdrawn and the slot released. Booking it again means starting over.'}
+          </span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="ghost" full disabled={busy} onClick={() => setMode('idle')}>Keep it</Button>
+            <Button variant="primary" full disabled={busy} onClick={cancel} style={{ background: 'var(--terracotta)' }}>
+              {busy ? 'Cancelling…' : 'Yes, cancel'}
+            </Button>
           </div>
         </div>
       ) : (
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button variant="outline" full disabled={busy} onClick={() => setMoving(true)} iconLeft={<CalendarClock style={{ width: 16, height: 16 }} />}>Reschedule</Button>
-          <Button variant="ghost" full disabled={busy} onClick={cancel} style={{ color: 'var(--terracotta)' }} iconLeft={<XCircle style={{ width: 16, height: 16 }} />}>
-            {busy ? 'Cancelling…' : 'Cancel'}
+          <Button variant="outline" full disabled={busy} onClick={() => setMode('moving')} iconLeft={<CalendarClock style={{ width: 16, height: 16 }} />}>Reschedule</Button>
+          <Button variant="ghost" full disabled={busy} onClick={() => setMode('confirm')} style={{ color: 'var(--terracotta)' }} iconLeft={<XCircle style={{ width: 16, height: 16 }} />}>
+            Cancel
           </Button>
         </div>
       )}
