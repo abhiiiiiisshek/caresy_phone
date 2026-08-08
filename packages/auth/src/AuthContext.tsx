@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from './supabase/client';
+import { getMsg91AccessToken, msg91Configured } from './msg91';
 import { User } from '@supabase/supabase-js';
 
 interface Profile {
@@ -22,6 +23,11 @@ interface AuthContextType {
   openLogin: (next?: string) => void;
   closeLogin: () => void;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  /** Whether this portal offers OTP sign-in (website only — see msg91Configured). */
+  phoneSignInEnabled: boolean;
+  /** Opens the MSG91 widget and, on a verified OTP, establishes a session. Throws on failure. */
+  signInWithPhone: () => Promise<void>;
   saveProfile: (data: { full_name: string; age: number; phone: string }) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -123,19 +129,45 @@ export function AuthProvider({
     setIsOpen(false);
   };
 
-  const signInWithGoogle = async () => {
+  // Subdomain logins route through the apex callback: Supabase's allowlist
+  // never matches *.caresy.co.in entries (see cookies.ts), but the Site URL
+  // origin is always accepted. Cookies are parent-domain scoped, so the apex
+  // can complete the PKCE exchange and hop back here with `next`.
+  const oauthRedirectTo = () => {
     const { origin, hostname } = window.location;
-    // Subdomain logins route through the apex callback: Supabase's allowlist
-    // never matches *.caresy.co.in entries (see cookies.ts), but the Site URL
-    // origin is always accepted. Cookies are parent-domain scoped, so the apex
-    // can complete the PKCE exchange and hop back here with `next`.
-    const redirectTo = hostname.endsWith('.caresy.co.in')
+    return hostname.endsWith('.caresy.co.in')
       ? `https://caresy.co.in/auth/callback?next=${encodeURIComponent(`${origin}${nextPath || '/'}`)}`
       : `${origin}/auth/callback?next=${encodeURIComponent(nextPath || '/')}`;
+  };
+
+  const signInWithGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo },
+      options: { redirectTo: oauthRedirectTo() },
     });
+  };
+
+  const signInWithApple = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: oauthRedirectTo() },
+    });
+  };
+
+  // No OAuth redirect here: the widget verifies the OTP in place, the server
+  // trades that for a one-shot magic-link hash, and verifyOtp turns it into a
+  // session on this same page. onAuthStateChange picks it up from there.
+  const signInWithPhone = async () => {
+    const accessToken = await getMsg91AccessToken();
+    const response = await fetch('/api/auth/phone', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken }),
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || 'Phone sign-in failed.');
+    const { error } = await supabase.auth.verifyOtp({ token_hash: body.tokenHash, type: 'email' });
+    if (error) throw new Error(error.message);
   };
 
   const saveProfile = async (data: { full_name: string; age: number; phone: string }) => {
@@ -176,6 +208,9 @@ export function AuthProvider({
         openLogin,
         closeLogin,
         signInWithGoogle,
+        signInWithApple,
+        phoneSignInEnabled: msg91Configured(),
+        signInWithPhone,
         saveProfile,
         signOut
       }}

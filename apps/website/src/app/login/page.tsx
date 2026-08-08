@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { Loader2, ShieldCheck, Smartphone } from 'lucide-react';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 
@@ -19,9 +19,32 @@ function GoogleMark() {
   );
 }
 
+function AppleMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 384 512" aria-hidden fill="#fff">
+      <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+    </svg>
+  );
+}
+
 export default function Login() {
-  const { user, profile, isLoading, signInWithGoogle } = useAuth();
+  const { user, profile, isLoading, signInWithGoogle, signInWithApple, signInWithPhone, phoneSignInEnabled } = useAuth();
   const router = useRouter();
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const handlePhoneClick = async () => {
+    setOtpBusy(true);
+    setError('');
+    try {
+      // On success the effect above redirects; onboarding then asks for a name
+      // and age only, since the verified number is already on the profile.
+      await signInWithPhone();
+    } catch (err: any) {
+      setError(err?.message || 'Phone sign-in failed.');
+    }
+    setOtpBusy(false);
+  };
 
   useEffect(() => {
     if (!isLoading && user) router.replace('/');
@@ -72,6 +95,30 @@ export default function Login() {
             {isLoading ? <Loader2 className="animate-spin" style={{ width: 18, height: 18 }} /> : <GoogleMark />}
             Continue with Google
           </button>
+
+          <button
+            onClick={() => signInWithApple()}
+            disabled={isLoading}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, width: '100%', padding: '16px 24px', borderRadius: 999, border: 'none', background: '#000', color: '#fff', fontSize: 14, fontWeight: 500, letterSpacing: '0.1px', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', marginTop: -8 }}
+          >
+            {isLoading ? <Loader2 className="animate-spin" style={{ width: 18, height: 18 }} /> : <AppleMark />}
+            Continue with Apple
+          </button>
+
+          {phoneSignInEnabled && (
+            <button
+              onClick={handlePhoneClick}
+              disabled={isLoading || otpBusy}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, width: '100%', padding: '16px 24px', borderRadius: 999, border: '1px solid #c0c9c3', background: '#fff', color: 'var(--m3-ink)', fontSize: 14, fontWeight: 500, letterSpacing: '0.1px', cursor: 'pointer', fontFamily: 'inherit', marginTop: -8 }}
+            >
+              {otpBusy ? <Loader2 className="animate-spin" style={{ width: 18, height: 18 }} /> : <Smartphone style={{ width: 18, height: 18, color: 'var(--m3-green)' }} />}
+              Continue with phone number
+            </button>
+          )}
+
+          {error && (
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 500, color: '#b3261e', textAlign: 'center' }} role="alert">{error}</p>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <span style={{ flex: 1, height: 1, background: '#c0c9c3' }} />
