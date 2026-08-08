@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
-import { Phone, Mail, LogOut, CalendarCheck, Loader2, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog } from 'lucide-react';
+import { Phone, Mail, LogOut, CalendarCheck, Loader2, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog, Trash2 } from 'lucide-react';
 import { Button } from '@caresy/ui';
 import { isValidIndianMobile } from '@caresy/utils/phone';
 
@@ -195,6 +195,12 @@ export default function Profile() {
           <LogOut style={{ width: 18, height: 18 }} />
           Log Out
         </button>
+
+        {/* Account deletion — required in-app by App Store (5.1.1(v)) and Play. */}
+        <Link href="/account/delete" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', textDecoration: 'none', color: 'var(--m3-muted)', fontSize: 14, fontWeight: 500 }}>
+          <Trash2 style={{ width: 15, height: 15 }} />
+          Delete Account
+        </Link>
         <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--m3-muted)', margin: '-16px 0 0' }}>Caresy v2.0 · Made with care in India</p>
       </div>
     </main>
