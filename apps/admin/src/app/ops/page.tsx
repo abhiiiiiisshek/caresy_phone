@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createClient } from '@caresy/auth/supabase/client';
 import { Button, Input } from '@caresy/ui';
 import { AdminShell, AdminGuard, useToast } from '@/components/AdminShell';
-import { Inbox, Activity, CheckCircle2, Loader2 } from 'lucide-react';
+import { Inbox, Activity, CheckCircle2, Loader2, Zap } from 'lucide-react';
 
 // Dispatch board. Loads every booking (with patient + pickup joins), approved
 // companions for assignment, and the editable "Live Operations Desk" numbers.
@@ -197,6 +197,16 @@ function OpsBoard() {
 
   const columns = useMemo(() => COLUMNS.map((col) => {
     let rows = (bookings ?? []).filter((b) => (col.statuses as readonly string[]).includes(b.status));
+    if (col.key === 'pend') {
+      // Urgent (INSTANT) requests first, then longest-waiting first — the desk
+      // has to call these back within minutes.
+      rows = [...rows].sort((a, b) => {
+        const au = a.booking_type === 'INSTANT' ? 0 : 1;
+        const bu = b.booking_type === 'INSTANT' ? 0 : 1;
+        if (au !== bu) return au - bu;
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+    }
     if (col.key === 'act') {
       // Soonest visit first (instant jobs — no scheduled time — sort by creation).
       rows = [...rows].sort((a, b) =>
@@ -273,19 +283,27 @@ function JobCard({
   onSave: () => void;
 }) {
   const meta = b.service_metadata || {};
+  const isUrgent = b.booking_type === 'INSTANT';
   const when = b.scheduled_start_time
     ? new Date(b.scheduled_start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     : 'INSTANT';
   const dirty = edit.status !== b.status || edit.companionId !== (b.companion_user_id || '');
 
   return (
-    <article className="adm-job">
+    <article className={`adm-job${isUrgent ? ' adm-job-urgent' : ''}`}>
       <div className="adm-job-top">
         <div>
           <strong>{b.patient?.full_name || '—'}</strong>
           <span className="adm-job-sub">Age {b.patient?.age ?? '—'} · {meta.language || 'No preference'}</span>
         </div>
-        <span className="adm-job-ref">{b.reference_code}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          {isUrgent && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 999, background: '#c45543', color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              <Zap style={{ width: 12, height: 12 }} /> Urgent
+            </span>
+          )}
+          <span className="adm-job-ref">{b.reference_code}</span>
+        </div>
       </div>
 
       <div className="adm-job-hosp">{b.pickup_location?.title || '—'} <em>({meta.department || 'General'})</em></div>
