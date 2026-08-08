@@ -7,8 +7,8 @@ import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import {
   ArrowRight, ArrowLeft, Loader2, Check, CheckCircle2, Stethoscope,
-  Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck, TestTube,
-  Pill, Sun, HeartPulse, Settings2, UserPlus,
+  Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck,
+  Pill, Sun, HeartPulse, UserPlus,
   ChevronLeft, ChevronRight, CalendarPlus, Home as HomeIcon, Send,
 } from 'lucide-react';
 import { matchCompanionByDepartment } from '@/data/companions';
@@ -32,11 +32,9 @@ const TOTAL_STEPS = 4;
 // the duration that visit usually takes, which is where the price comes from.
 const SERVICES = [
   { key: 'HOSPITAL_COMPANION',    icon: Stethoscope, name: 'Doctor appointment', desc: 'OPD visit — queues, consultation, paperwork, pharmacy.', hours: 2 },
-  { key: 'DIAGNOSTIC_TEST',       icon: TestTube,    name: 'Test or scan',        desc: 'Blood work, X-ray, MRI, ultrasound — including the wait for reports.', hours: 2 },
   { key: 'MEDICINE_PICKUP',       icon: Pill,        name: 'Medicine pickup',     desc: 'Collect a prescription and deliver it home. No patient needed.', hours: 1 },
   { key: 'APPOINTMENT_ASSISTANCE',icon: Sun,         name: 'Procedure or day-care', desc: 'Admission, surgery or dialysis — someone stays the whole time.', hours: 8 },
   { key: 'SAFE_RETURN',           icon: HeartPulse,  name: 'Elderly care visit',  desc: 'Unhurried company for an older parent through a long visit.', hours: 4 },
-  { key: 'DOCUMENTATION',         icon: Settings2,   name: 'Something else',      desc: 'Insurance paperwork, discharge, hospital admin. Tell us below.', hours: 2 },
 ] as const;
 
 // Price comes from the shared meter, so the numbers here can never drift from
@@ -262,7 +260,7 @@ export default function Booking() {
   const [servedAreas, setServedAreas] = useState<ServiceArea[]>([]);
   useEffect(() => {
     let alive = true;
-    listServedAreas().then((a) => { if (alive) setServedAreas(a); });
+    listServedAreas(createClient()).then((a) => { if (alive) setServedAreas(a); });
     return () => { alive = false; };
   }, []);
 
@@ -271,7 +269,7 @@ export default function Booking() {
     if (!isValidPincode(pincode)) { setAreaStatus('idle'); setAreaLabel(''); return; }
     let cancelled = false;
     setAreaStatus('checking');
-    checkPincodeServed(pincode).then(({ served, area }) => {
+    checkPincodeServed(createClient(), pincode).then(({ served, area }) => {
       if (cancelled) return;
       setAreaStatus(served ? 'served' : 'not_served');
       setAreaLabel(area?.area_name || area?.city || '');
