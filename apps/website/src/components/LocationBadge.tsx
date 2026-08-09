@@ -98,7 +98,7 @@ export default function LocationBadge() {
           setSheetOpen(true);
           return;
         }
-        const { served, area: match } = await checkPincodeServed(postcode);
+        const { served, area: match } = await checkPincodeServed(createClient(), postcode);
         const label = match?.area_name || area || `Pincode ${postcode}`;
         const loc: StoredLocation = { area: label, pincode: postcode, served, manual: false, ts: Date.now() };
         writeStored(loc);
@@ -148,7 +148,7 @@ export default function LocationBadge() {
       setManualError('Enter a valid 6-digit pincode.');
       return;
     }
-    const { served, area } = await checkPincodeServed(pin);
+    const { served, area } = await checkPincodeServed(createClient(), pin);
     const loc: StoredLocation = {
       area: area?.area_name || `Pincode ${pin}`,
       pincode: pin,

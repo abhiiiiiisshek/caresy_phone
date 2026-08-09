@@ -50,6 +50,7 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 30 | `30_LAUNCH_FIXES.sql` | same-day bookings no longer born expired; `service_metadata.companion` stamped by the DB; `can_drive` closed to self-service; new-booking notification | ⬜ |
 | 31 | `31_CUSTOMER_ACTIONS.sql` | `cancel_booking` / `reschedule_booking`, and the guard that makes them the only way a customer changes a visit; `min_lead_minutes` setting | ⬜ |
 | 32 | `32_MERGE_DUPLICATE_PATIENTS.sql` | one-off data fix: merges the patient rows `/quick-help` duplicated, soft-deleting the losers | ⬜ |
+| 33 | `33_PHONE_SIGNIN.sql` | `find_user_by_phone()` (service-role only) — matches an MSG91 OTP number against `profiles.phone` AND `auth.users.phone` so OTP sign-in reuses the existing account | ⬜ |
 
 ## Core tables
 

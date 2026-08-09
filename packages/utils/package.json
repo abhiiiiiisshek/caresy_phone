@@ -9,6 +9,6 @@
     "./slots": "./src/slots.ts"
   },
   "dependencies": {
-    "@caresy/auth": "*"
+    "@supabase/supabase-js": "^2.110.0"
   }
 }

@@ -1,6 +1,6 @@
 # ADR-0004: The Android app is a Capacitor shell pointing at the live site
 
-- **Status:** Accepted
+- **Status:** ⚠️ Superseded by [ADR-0009](0009-expo-native-mobile.md) on 2026-08-07
 - **Date:** 2026-07-26
 - **Code:** `apps/mobile/capacitor.config.ts`
 

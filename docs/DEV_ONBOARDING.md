@@ -1,5 +1,9 @@
 # Caresy Live Tracking — Developer Onboarding
 
+> ⚠️ **History.** This describes the two-repo / Expo era, before the monorepo.
+> For onboarding, read [`ENGINEER_ONBOARDING.md`](ENGINEER_ONBOARDING.md).
+> Kept for the live-tracking design notes in sections 1–3 only.
+
 Read this first. It explains what was built, how to get it running on your
 machine, the rules to keep in mind, and what to do next. The feature spans **two
 GitHub repos** that share **one Supabase project**.

@@ -16,8 +16,9 @@ header comment of the migration that implements them. The ADR is the index.
 | [0001](0001-supabase-as-backend.md) | Supabase (Postgres + RLS) instead of a custom API tier | Accepted | 2026-07-10 |
 | [0002](0002-npm-workspaces-monorepo.md) | npm workspaces monorepo, three Next apps, no build orchestrator | Accepted | 2026-07-04 |
 | [0003](0003-postgres-schedulers-not-vercel-cron.md) | pg_cron + pg_net in Postgres, not Vercel Cron | Accepted | 2026-07-27 |
-| [0004](0004-capacitor-remote-url-shell.md) | Capacitor shell pointing at the live site | Accepted | 2026-07-26 |
+| [0004](0004-capacitor-remote-url-shell.md) | Capacitor shell pointing at the live site | Superseded by 0009 | 2026-07-26 |
 | [0005](0005-gatewayless-payments.md) | Cash/UPI collected at completion; no payment gateway | Accepted | 2026-07-28 |
 | [0006](0006-transport-is-facilitated-not-billed.md) | Transport fares recorded, never billed | Accepted | 2026-07-29 |
 | [0007](0007-share-token-for-guest-tracking.md) | Separate `share_token` for guest tracking links | Accepted | 2026-07-26 |
 | [0008](0008-assert-selfchecks-no-test-framework.md) | `assert`-based self-checks instead of a test framework | Accepted | 2026-07-29 |
+| [0009](0009-expo-native-mobile.md) | Native mobile with Expo / React Native, not a WebView shell | Accepted | 2026-08-07 |
