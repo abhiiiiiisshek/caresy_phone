@@ -21,12 +21,13 @@ const LANGUAGE_OPTIONS = ['Hindi', 'English', 'Punjabi', 'Bengali', 'Tamil', 'Te
 const SPECIALTY_OPTIONS = ['Elderly care', 'Cardiology', 'Orthopedics', 'Oncology', 'Diagnostics', 'Post-surgery', 'Maternity', 'General'];
 const DOC_TYPES = [
   { key: 'AADHAAR', label: 'Aadhaar card', hint: 'Front side, clearly readable' },
-  { key: 'POLICE_VERIFICATION', label: 'Police verification', hint: 'Certificate or acknowledgement' },
+  // Optional at signup — can be added later before an admin approves.
+  { key: 'POLICE_VERIFICATION', label: 'Police verification', hint: 'Certificate or acknowledgement', optional: true },
   { key: 'PHOTO_ID', label: 'Photo / selfie', hint: 'A recent clear headshot' },
   // Only needed for jobs where the companion drives the customer's own car or
   // bike. An admin sets companions.can_drive after checking this; the database
   // refuses the assignment until they do.
-  { key: 'DRIVING_LICENCE', label: 'Driving licence', hint: 'Only if you want driving jobs. Front side, expiry visible.' },
+  { key: 'DRIVING_LICENCE', label: 'Driving licence', hint: 'Only if you want driving jobs. Front side, expiry visible.', optional: true },
 ] as const;
 
 // Provider-agnostic by design: adding one is a line here, not a migration.
@@ -59,6 +60,7 @@ interface CompanionRow {
 export default function CompanionPortal() {
   const { user, isLoading, openLogin, profile } = useAuth();
   const [companion, setCompanion] = useState<CompanionRow | null>(null);
+  const [pendingDocs, setPendingDocs] = useState<string[]>([]);
   const [loadingRow, setLoadingRow] = useState(true);
 
   const fetchCompanion = useCallback(async () => {
@@ -70,6 +72,15 @@ export default function CompanionPortal() {
       .eq('id', user.id)
       .maybeSingle();
     setCompanion((data as CompanionRow) ?? null);
+    if (data) {
+      // Which optional docs (police verification, driving licence) are not yet on file.
+      const { data: docs } = await supabase
+        .from('companion_documents')
+        .select('doc_type')
+        .eq('companion_id', user.id);
+      const uploaded = new Set((docs ?? []).map((d) => d.doc_type as string));
+      setPendingDocs(DOC_TYPES.filter((d) => 'optional' in d && !uploaded.has(d.key)).map((d) => d.label));
+    }
     setLoadingRow(false);
   }, [user]);
 
@@ -106,10 +117,10 @@ export default function CompanionPortal() {
     return <RegistrationForm onDone={fetchCompanion} defaultName={profile?.full_name || (user.user_metadata?.full_name as string) || ''} defaultPhone={profile?.phone || ''} />;
   }
 
-  if (companion.approval_status === 'PENDING_REVIEW') return <StatusCard kind="pending" name={companion.full_name} />;
+  if (companion.approval_status === 'PENDING_REVIEW') return <StatusCard kind="pending" name={companion.full_name} pendingDocs={pendingDocs} />;
   if (companion.approval_status === 'REJECTED') return <StatusCard kind="rejected" name={companion.full_name} reason={companion.rejection_reason} onReapply={fetchCompanion} />;
   if (companion.approval_status === 'SUSPENDED') return <StatusCard kind="suspended" name={companion.full_name} />;
-  return <ApprovedDashboard companion={companion} onChange={fetchCompanion} />;
+  return <ApprovedDashboard companion={companion} onChange={fetchCompanion} pendingDocs={pendingDocs} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -132,7 +143,7 @@ function RegistrationForm({ onDone, defaultName, defaultPhone }: { onDone: () =>
   const toggle = (list: string[], setList: (v: string[]) => void, value: string) =>
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
 
-  const missingDocs = DOC_TYPES.filter((d) => !files[d.key]).map((d) => d.label);
+  const missingDocs = DOC_TYPES.filter((d) => !('optional' in d) && !files[d.key]).map((d) => d.label);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,7 +260,10 @@ function RegistrationForm({ onDone, defaultName, defaultPhone }: { onDone: () =>
                     {f ? <FileCheck2 style={{ width: 18, height: 18 }} /> : <Upload style={{ width: 18, height: 18 }} />}
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--ink-teal)' }}>{d.label}</span>
+                    <span style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--ink-teal)' }}>
+                      {d.label}
+                      {'optional' in d && <span style={{ fontWeight: 500, color: 'var(--muted)' }}> · Optional</span>}
+                    </span>
                     <span style={{ fontSize: '0.76rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
                       {f ? f.name : d.hint}
                     </span>
@@ -277,7 +291,18 @@ function RegistrationForm({ onDone, defaultName, defaultPhone }: { onDone: () =>
 
 // ---------------------------------------------------------------------------
 
-function StatusCard({ kind, name, reason, onReapply }: { kind: 'pending' | 'rejected' | 'suspended'; name: string; reason?: string | null; onReapply?: () => void }) {
+// A gentle reminder that police verification / driving licence are still
+// missing. These are optional at signup, so this never blocks — it just nudges.
+function PendingDocsNote({ docs }: { docs: string[] }) {
+  if (!docs.length) return null;
+  return (
+    <div style={{ margin: '0 0 18px', padding: '12px 14px', borderRadius: 'var(--radius)', border: '1px solid var(--line)', background: 'var(--teal-soft)', textAlign: 'left', fontSize: '0.82rem', color: 'var(--ink-teal)' }}>
+      <strong>Still pending:</strong> {docs.join(', ')}. Optional to start — share on WhatsApp with ops when ready. Driving jobs need a verified licence.
+    </div>
+  );
+}
+
+function StatusCard({ kind, name, reason, onReapply, pendingDocs = [] }: { kind: 'pending' | 'rejected' | 'suspended'; name: string; reason?: string | null; onReapply?: () => void; pendingDocs?: string[] }) {
   const map = {
     pending: { icon: Clock, tone: 'teal' as const, title: 'Application under review', body: 'Our team is verifying your documents. You’ll be notified once approved — usually within 1–2 business days.' },
     rejected: { icon: XCircle, tone: 'urgent' as const, title: 'Application not approved', body: reason || 'Your application could not be approved this time. You can review your details and re-apply.' },
@@ -293,6 +318,7 @@ function StatusCard({ kind, name, reason, onReapply }: { kind: 'pending' | 'reje
       <div style={{ marginBottom: 10 }}><Badge tone={map.tone}>{kind === 'pending' ? 'Pending review' : kind === 'rejected' ? 'Not approved' : 'Suspended'}</Badge></div>
       <h1 style={{ margin: '0 0 8px', fontSize: '1.4rem', color: 'var(--ink-teal)' }}>Hi {name.split(' ')[0]} — {map.title}</h1>
       <p style={{ margin: '0 0 22px', color: 'var(--muted)' }}>{map.body}</p>
+      {kind === 'pending' && <PendingDocsNote docs={pendingDocs} />}
       {kind === 'rejected' && onReapply && <ReapplyButton onDone={onReapply} />}
       <p style={{ marginTop: 22, fontSize: '0.82rem' }}>
         <a href="https://wa.me/919717500225" target="_blank" rel="noopener" style={{ color: 'var(--teal)', fontWeight: 700 }}>Questions? Chat with ops on WhatsApp</a>
@@ -609,7 +635,7 @@ function CollectPanel({ job, busy, onCollect }: {
   );
 }
 
-function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; onChange: () => void }) {
+function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companion: CompanionRow; onChange: () => void; pendingDocs?: string[] }) {
   const { user } = useAuth();
   const [online, setOnline] = useState(companion.is_online);
   const [togglingOnline, setTogglingOnline] = useState(false);
@@ -711,6 +737,8 @@ function ApprovedDashboard({ companion, onChange }: { companion: CompanionRow; o
           {togglingOnline ? <Loader2 className="animate-spin" style={{ width: 15, height: 15 }} /> : online ? 'Go offline' : 'Go online'}
         </Button>
       </div>
+
+      <PendingDocsNote docs={pendingDocs} />
 
       {loadingJobs ? (
         <div style={{ display: 'grid', placeItems: 'center', padding: 32 }}><Loader2 className="animate-spin" style={{ width: 22, height: 22, color: 'var(--teal)' }} /></div>
