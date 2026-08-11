@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { PhoneCall } from 'lucide-react';
-import { Card } from '@caresy/ui';
+import { Card, Reveal, Stagger, StaggerItem } from '@caresy/ui';
 
 const STEPS = [
   { title: 'Book Your Service', desc: 'Choose the service you need and share the details with us.' },
@@ -14,19 +14,21 @@ const STEPS = [
 export default function HowItWorks() {
   return (
     <main className="page" id="main-content">
+      <Reveal>
       <section className="page-hero" style={{ maxWidth: '700px', margin: '0 auto', textAlign: 'center' }}>
         <p className="eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>How it works</p>
         <h1>Getting help is simple.</h1>
         <p style={{ margin: '0 auto' }}>No app download, no account required to get started — just a call or a form.</p>
       </section>
+      </Reveal>
 
       {/* Vertical Timeline */}
       <section className="section" style={{ maxWidth: '700px', margin: '0 auto', position: 'relative' }}>
         <div style={{ position: 'absolute', top: '12px', bottom: '12px', left: '41px', borderLeft: '2px dashed var(--teal)', zIndex: 1 }} />
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', position: 'relative', zIndex: 2 }}>
+        <Stagger gap={0.12} style={{ display: 'flex', flexDirection: 'column', gap: '40px', position: 'relative', zIndex: 2 }}>
           {STEPS.map((step, i) => (
-            <div key={step.title} style={{ display: 'flex', gap: '24px', alignItems: 'start' }}>
+            <StaggerItem key={step.title} style={{ display: 'flex', gap: '24px', alignItems: 'start' }}>
               <div style={{ display: 'grid', placeItems: 'center', width: '34px', height: '34px', borderRadius: '50%', background: 'var(--teal)', color: '#fff', fontWeight: 700, fontSize: '1rem', flexShrink: 0, border: '3px solid var(--paper)', boxShadow: '0 0 0 2px var(--teal)' }}>
                 {i + 1}
               </div>
@@ -34,12 +36,13 @@ export default function HowItWorks() {
                 <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--ink)', margin: '0 0 6px' }}>{step.title}</h2>
                 <p style={{ fontSize: '0.92rem', color: 'var(--muted)', lineHeight: 1.5, margin: 0 }}>{step.desc}</p>
               </div>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       {/* Support Call Box */}
+      <Reveal>
       <section className="section" style={{ maxWidth: '700px', margin: '0 auto' }}>
         <Card variant="sunken" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', background: 'var(--sage)', borderColor: 'var(--sage-deep)' }}>
           <div style={{ display: 'grid', placeItems: 'center', width: '44px', height: '44px', borderRadius: '50%', background: 'var(--teal-deep)', color: '#fff', marginBottom: '12px' }}>
@@ -54,6 +57,7 @@ export default function HowItWorks() {
           </a>
         </Card>
       </section>
+      </Reveal>
     </main>
   );
 }

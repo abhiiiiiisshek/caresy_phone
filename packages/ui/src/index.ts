@@ -29,6 +29,10 @@ export type { InputProps } from './Input';
 export { MotionSpot } from './motion/MotionSpot';
 export type { SpotVariant } from './motion/MotionSpot';
 
+// Scroll-reveal primitives — the site's entrance vocabulary.
+export { Reveal, Stagger, StaggerItem } from './motion/Reveal';
+export type { RevealProps, StaggerProps } from './motion/Reveal';
+
 // State slots — every empty/loading/error/success surface goes through these.
 export { EmptyState } from './states/EmptyState';
 export type { EmptyStateProps } from './states/EmptyState';

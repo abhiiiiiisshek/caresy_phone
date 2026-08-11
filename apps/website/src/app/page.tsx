@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import HealthTips from '@/components/HealthTips';
+import { Reveal } from '@caresy/ui';
 import { HeroGesture, type GestureKey } from '@/lib/heroGestures';
 import {
   Bell, Zap, Calendar, CalendarDays, Users, FileText, ArrowRight,
@@ -260,7 +261,7 @@ export default function Home() {
 
           {/* Brand hero — the marketing front door, shown only to signed-out visitors */}
           {!user && (
-            <div style={{ padding: '16px 18px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
+            <Reveal style={{ padding: '16px 18px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
               <p style={{ margin: 0, fontSize: 17, lineHeight: '24px', fontWeight: 700, color: 'var(--m3-ink)' }}>
                 Be there, even when you can’t be.
               </p>
@@ -278,7 +279,7 @@ export default function Home() {
                   </span>
                 ))}
               </div>
-            </div>
+            </Reveal>
           )}
 
           {/* Active booking card — only when a real assigned/in-progress booking exists */}
@@ -330,7 +331,7 @@ export default function Home() {
           )}
 
           {/* Primary actions */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Reveal delay={0.05} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <ActionCard
               href="/quick-help"
               bg="var(--m3-urgent-bg)" ink="var(--m3-urgent-ink)" btnBg="var(--m3-urgent)"
@@ -349,10 +350,10 @@ export default function Home() {
               decorIcon={CalendarDays}
               img="/assets/caresy-family-app.webp" imgAlt="Care Journey timeline on a phone in a hospital corridor"
             />
-          </div>
+          </Reveal>
 
           {/* Our services */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Reveal style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <SectionTitle action="See all" actionHref="/services">Our Services</SectionTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
               {SERVICE_CHIPS.map((c) => {
@@ -374,10 +375,10 @@ export default function Home() {
                 );
               })}
             </div>
-          </div>
+          </Reveal>
 
           {/* Recommended */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Reveal style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <SectionTitle>Recommended for you</SectionTitle>
 
             <HealthTips />
@@ -404,10 +405,10 @@ export default function Home() {
               <ChevronRight style={{ width: 16, height: 16, color: 'var(--m3-muted)', flexShrink: 0 }} />
             </Link>
 
-          </div>
+          </Reveal>
 
           {/* Trust & safety */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid rgba(192,201,195,0.2)' }}>
+          <Reveal style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid rgba(192,201,195,0.2)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <BadgeCheck style={{ width: 22, height: 22, color: 'var(--m3-green)' }} />
               <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--m3-ink)' }}>Verified Companions</span>
@@ -416,7 +417,7 @@ export default function Home() {
               Your safety is our priority. All Caresy companions undergo strict background checks, interviews, and professional certification reviews.
             </p>
             <Link href="/trust" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.1px', color: 'var(--m3-green-deep)', textDecoration: 'none' }}>Learn about our screening</Link>
-          </div>
+          </Reveal>
 
         </div>
       </div>
