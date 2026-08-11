@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createClient } from './supabase/client';
-import { getMsg91AccessToken, msg91Configured } from './msg91';
+import { getMsg91AccessToken, msg91Configured, sendPhoneOtp, verifyPhoneOtp, retryPhoneOtp } from './msg91';
 import { User } from '@supabase/supabase-js';
 
 interface Profile {
@@ -28,6 +28,12 @@ interface AuthContextType {
   phoneSignInEnabled: boolean;
   /** Opens the MSG91 widget and, on a verified OTP, establishes a session. Throws on failure. */
   signInWithPhone: () => Promise<void>;
+  /** Sends an OTP to a 10-digit Indian mobile number (custom login UI). Throws on failure. */
+  startPhoneOtp: (mobile10: string) => Promise<void>;
+  /** Resends the OTP to the number from the last startPhoneOtp call. */
+  resendPhoneOtp: () => Promise<void>;
+  /** Verifies the OTP and establishes a session. Throws on failure. */
+  confirmPhoneOtp: (otp: string) => Promise<void>;
   saveProfile: (data: { full_name: string; age: number; phone: string }) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -154,11 +160,11 @@ export function AuthProvider({
     });
   };
 
-  // No OAuth redirect here: the widget verifies the OTP in place, the server
-  // trades that for a one-shot magic-link hash, and verifyOtp turns it into a
-  // session on this same page. onAuthStateChange picks it up from there.
-  const signInWithPhone = async () => {
-    const accessToken = await getMsg91AccessToken();
+  // Trades a verified MSG91 access-token for a Supabase session. The server
+  // (which holds the secret authkey) confirms the number and returns a one-shot
+  // magic-link hash; verifyOtp turns it into a session on this same page, and
+  // onAuthStateChange picks it up. No OAuth redirect, no email sent.
+  const establishPhoneSession = async (accessToken: string) => {
     const response = await fetch('/api/auth/phone', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -168,6 +174,18 @@ export function AuthProvider({
     if (!response.ok) throw new Error(body.error || 'Phone sign-in failed.');
     const { error } = await supabase.auth.verifyOtp({ token_hash: body.tokenHash, type: 'email' });
     if (error) throw new Error(error.message);
+  };
+
+  // Popup flow (used by the booking-modal quick login).
+  const signInWithPhone = async () => {
+    await establishPhoneSession(await getMsg91AccessToken());
+  };
+
+  // Custom-UI flow (dedicated /login page): send → verify → session, our fields.
+  const startPhoneOtp = (mobile10: string) => sendPhoneOtp(`91${mobile10}`);
+  const resendPhoneOtp = () => retryPhoneOtp();
+  const confirmPhoneOtp = async (otp: string) => {
+    await establishPhoneSession(await verifyPhoneOtp(otp));
   };
 
   const saveProfile = async (data: { full_name: string; age: number; phone: string }) => {
@@ -211,6 +229,9 @@ export function AuthProvider({
         signInWithApple,
         phoneSignInEnabled: msg91Configured(),
         signInWithPhone,
+        startPhoneOtp,
+        resendPhoneOtp,
+        confirmPhoneOtp,
         saveProfile,
         signOut
       }}
