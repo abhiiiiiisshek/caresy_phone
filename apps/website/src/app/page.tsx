@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import HealthTips from '@/components/HealthTips';
+import { HeroGesture, type GestureKey } from '@/lib/heroGestures';
 import {
   Bell, Zap, Calendar, CalendarDays, Users, FileText, ArrowRight,
   ClipboardCheck, ChevronRight, BadgeCheck, BriefcaseMedical,
@@ -45,18 +46,8 @@ function greeting() {
   return 'Good evening';
 }
 
-// Animated 3D-style emoji gestures (Google Noto, self-hosted) shown beside the
-// greeting. Each header phrase names the gesture that fits it.
-const GESTURES = {
-  namaste: { src: '/assets/emoji-1f64f.webp', alt: 'Namaste' },
-  clap: { src: '/assets/emoji-1f44f.webp', alt: 'Clapping' },
-  wave: { src: '/assets/emoji-1f44b.webp', alt: 'Waving hello' },
-  heart: { src: '/assets/emoji-1faf6.webp', alt: 'Heart hands' },
-  flex: { src: '/assets/emoji-1f4aa.webp', alt: 'Strength' },
-  hug: { src: '/assets/emoji-1f917.webp', alt: 'Hug' },
-  smile: { src: '/assets/emoji-1f60a.webp', alt: 'Warm smile' },
-} as const;
-type GestureKey = keyof typeof GESTURES;
+// Each header phrase names the gesture that fits it — rendered as a Phosphor
+// duotone icon animated with Motion One (see heroGestures.tsx).
 type Header = [string, GestureKey];
 
 // Short, warm greeting phrases rotated client-side each visit so the header
@@ -192,7 +183,7 @@ export default function Home() {
   const [activeBooking, setActiveBooking] = useState<ActiveBookingInfo | null>(null);
   const [headerPhrase, setHeaderPhrase] = useState<string | null>(null);
   const [noNameLine, setNoNameLine] = useState('welcome.');
-  const [avatar, setAvatar] = useState<{ src: string; alt: string } | null>(null);
+  const [avatarGesture, setAvatarGesture] = useState<GestureKey | null>(null);
 
   useEffect(() => {
     if (!user) { setActiveBooking(null); return; }
@@ -223,7 +214,7 @@ export default function Home() {
     const pool = headerPool(new Date().getHours(), hasUpcoming);
     const [text, gesture] = pool[Math.floor(Math.random() * pool.length)];
     setHeaderPhrase(text);
-    setAvatar(GESTURES[gesture]);
+    setAvatarGesture(gesture);
     setNoNameLine(NO_NAME_LINES[Math.floor(Math.random() * NO_NAME_LINES.length)]);
   }, [hasUpcoming]);
 
@@ -260,11 +251,9 @@ export default function Home() {
             <p style={{ margin: 0, fontSize: 32, lineHeight: '40px', color: 'var(--m3-ink)' }}>
               {header}<br />{firstName ? `${firstName}.` : noNameLine}
             </p>
-            {avatar && (
+            {avatarGesture && (
               <span style={{ display: 'grid', placeItems: 'center', width: 96, height: 96, borderRadius: '50%', background: 'var(--m3-surface, #eef1ec)', border: '1px solid var(--m3-line, #e1e3de)', flexShrink: 0 }}>
-                {/* Desaturated toward the site's calm palette so the emoji doesn't glare */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={avatar.src} alt={avatar.alt} style={{ width: 72, height: 72, filter: 'saturate(0.65) brightness(0.98)', opacity: 0.95 }} />
+                <HeroGesture gesture={avatarGesture} size={56} />
               </span>
             )}
           </div>

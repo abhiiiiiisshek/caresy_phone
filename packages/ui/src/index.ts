@@ -24,3 +24,19 @@ export type { BadgeProps, BadgeTone, BadgeSize } from './Badge';
 
 export { Input } from './Input';
 export type { InputProps } from './Input';
+
+// Illustrated slot — one animated Phosphor spot, requested by variant.
+export { MotionSpot } from './motion/MotionSpot';
+export type { SpotVariant } from './motion/MotionSpot';
+
+// State slots — every empty/loading/error/success surface goes through these.
+export { EmptyState } from './states/EmptyState';
+export type { EmptyStateProps } from './states/EmptyState';
+export { LoadingState } from './states/LoadingState';
+export type { LoadingStateProps } from './states/LoadingState';
+export { ErrorState } from './states/ErrorState';
+export type { ErrorStateProps } from './states/ErrorState';
+export { SuccessState } from './states/SuccessState';
+export type { SuccessStateProps } from './states/SuccessState';
+export { StateLayout } from './states/StateLayout';
+export type { StateSlotProps } from './states/StateLayout';

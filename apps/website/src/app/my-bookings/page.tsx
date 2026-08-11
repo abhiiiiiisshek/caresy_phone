@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays, Smartphone, Wallet, Phone } from 'lucide-react';
-import { Button } from '@caresy/ui';
+import { Button, MotionSpot } from '@caresy/ui';
 import { formatINR, upiPayUrl, runningTotalPaise } from '@caresy/utils/pricing';
 import { MIN_LEAD_MINUTES } from '@caresy/utils/slots';
 
@@ -732,7 +732,7 @@ export default function MyBookings() {
         <div style={{ maxWidth: 576, margin: '0 auto' }}>
           <PageHeader initial={initial} />
           <div style={{ margin: '16px 16px 0', textAlign: 'center', padding: '40px 24px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
-            <div style={{ fontSize: '3rem', marginBottom: 16 }}>📅</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}><MotionSpot variant="calendar" size={128} /></div>
             <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: 'var(--m3-ink)' }}>No bookings yet</h2>
             <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: '20px', color: 'var(--m3-muted)' }}>
               Book a verified companion in a couple of minutes — no account needed to start. Sign in later to see your visits here and follow them live.

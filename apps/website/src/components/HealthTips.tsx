@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { rotatedGuides, daysSinceEpoch } from '@/lib/careGuides';
+import { GuideIcon } from '@/lib/guideIcons';
 
 // The home page is statically prerendered, so reading Date during render would
 // bake the build date into the HTML and disagree with the client from the next
@@ -74,8 +75,8 @@ export default function HealthTips() {
                 <h4 style={{ margin: 0, fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', color: 'var(--m3-ink)' }}>{g.title}</h4>
                 <span style={{ fontSize: 14, lineHeight: '20px', letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>{g.summary}</span>
               </div>
-              <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 63, height: 64, borderRadius: 12, background: 'var(--m3-chip)', fontSize: 30, flexShrink: 0 }}>
-                {g.emoji}
+              <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 63, height: 64, borderRadius: 12, background: 'var(--m3-chip)', flexShrink: 0 }}>
+                <GuideIcon slug={g.slug} size={34} />
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 }}>

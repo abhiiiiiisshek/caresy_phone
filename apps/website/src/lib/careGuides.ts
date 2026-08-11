@@ -17,7 +17,6 @@ export interface GuideSection {
 
 export interface CareGuide {
   slug: string;
-  emoji: string;
   title: string;
   summary: string;
   minutes: number;
@@ -27,7 +26,6 @@ export interface CareGuide {
 export const CARE_GUIDES: CareGuide[] = [
   {
     slug: 'post-surgery',
-    emoji: '🩹',
     title: 'The first week after surgery',
     summary: 'What actually needs watching once you get home',
     minutes: 4,
@@ -72,7 +70,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'medicines',
-    emoji: '💊',
     title: 'Getting medicines right',
     summary: 'Missed doses are far more common than wrong ones',
     minutes: 3,
@@ -105,7 +102,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'preventing-falls',
-    emoji: '🚶',
     title: 'Staying steady on your feet',
     summary: 'The strength that prevents falls can be rebuilt at home',
     minutes: 3,
@@ -141,7 +137,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'hydration',
-    emoji: '💧',
     title: 'Water before tea',
     summary: 'Why older adults get dehydrated without feeling thirsty',
     minutes: 2,
@@ -171,7 +166,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'diabetes-feet',
-    emoji: '🦶',
     title: 'Check the feet daily',
     summary: 'Two minutes that prevent most diabetic foot wounds',
     minutes: 2,
@@ -201,7 +195,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'sleep-and-breathing',
-    emoji: '😴',
     title: 'Sleep, and breathing well',
     summary: 'Two habits that matter most during a long illness',
     minutes: 2,
@@ -224,7 +217,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'leaving-hospital',
-    emoji: '📋',
     title: 'Before you leave the hospital',
     summary: 'The questions worth asking at discharge',
     minutes: 3,
@@ -256,7 +248,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'fever-at-home',
-    emoji: '🌡️',
     title: 'Fever at home',
     summary: 'What to do, and when it stops being a wait-and-see',
     minutes: 3,
@@ -295,7 +286,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'eating-to-recover',
-    emoji: '🍲',
     title: 'Eating to recover',
     summary: 'Appetite goes first, and it matters more than people think',
     minutes: 3,
@@ -331,7 +321,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'blood-pressure-at-home',
-    emoji: '🩺',
     title: 'Measuring blood pressure at home',
     summary: 'Most home readings are wrong for avoidable reasons',
     minutes: 2,
@@ -362,7 +351,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'bed-rest-skin',
-    emoji: '🛏️',
     title: 'Caring for someone in bed',
     summary: 'Pressure sores form in hours and take months to heal',
     minutes: 3,
@@ -396,7 +384,6 @@ export const CARE_GUIDES: CareGuide[] = [
   },
   {
     slug: 'dementia-day',
-    emoji: '🧠',
     title: 'Making the day easier with dementia',
     summary: 'Routine does more than any argument',
     minutes: 3,

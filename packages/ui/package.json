@@ -6,6 +6,10 @@
     ".": "./src/index.ts",
     "./theme.css": "./theme.css"
   },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "motion": "^13.0.0"
+  },
   "peerDependencies": {
     "react": "^19"
   }

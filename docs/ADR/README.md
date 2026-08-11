@@ -22,3 +22,6 @@ header comment of the migration that implements them. The ADR is the index.
 | [0007](0007-share-token-for-guest-tracking.md) | Separate `share_token` for guest tracking links | Accepted | 2026-07-26 |
 | [0008](0008-assert-selfchecks-no-test-framework.md) | `assert`-based self-checks instead of a test framework | Accepted | 2026-07-29 |
 | [0009](0009-expo-native-mobile.md) | Native mobile with Expo / React Native, not a WebView shell | Accepted | 2026-08-07 |
+| [0010](0010-lottie-login-mascot.md) | Lottie-animated mascot on login | Superseded by 0012 | 2026-08-10 |
+| [0011](0011-mascot-design-system.md) | One owned mascot character, requested by pose | Superseded by 0012 | 2026-08-10 |
+| [0012](0012-drop-mascot-phosphor-motion.md) | Drop mascot; Phosphor duotone icons + Motion One spots | Accepted | 2026-08-11 |

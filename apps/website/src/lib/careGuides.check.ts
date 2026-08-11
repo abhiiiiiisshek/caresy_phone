@@ -49,7 +49,7 @@ assert.equal(guideBySlug(null), undefined);
 
 // Every guide has something to render.
 for (const g of CARE_GUIDES) {
-  assert.ok(g.title && g.summary && g.emoji, `${g.slug} missing header copy`);
+  assert.ok(g.title && g.summary, `${g.slug} missing header copy`);
   assert.ok(g.minutes > 0, `${g.slug} has no read time`);
   assert.ok(g.sections.length > 0, `${g.slug} has no sections`);
   for (const s of g.sections) {

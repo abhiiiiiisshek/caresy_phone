@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
-import { Button } from '@caresy/ui';
+import { Button, MotionSpot } from '@caresy/ui';
 import {
   Loader2, ArrowLeft, Plus, FileText, Users, HeartPulse, Share2,
   Download, Trash2, ChevronRight, ShieldCheck,
@@ -495,7 +495,7 @@ function CareInner() {
   if (!user) {
     return (
       <div style={{ textAlign: 'center', padding: '48px 24px' }}>
-        <div style={{ fontSize: '3rem', marginBottom: 12 }}>🫂</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><MotionSpot variant="welcome" size={132} /></div>
         <h2 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 700, color: 'var(--m3-ink)' }}>Care lives here</h2>
         <p style={{ margin: '0 auto 20px', maxWidth: 360, fontSize: 14, lineHeight: '20px', color: 'var(--m3-muted)' }}>
           Sign in to follow a family member&rsquo;s visits, medicines and reports in one timeline — and to share it with the rest of the family.
@@ -530,7 +530,7 @@ function CareInner() {
 
         {patients.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '36px 24px', borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📖</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}><MotionSpot variant="clipboard" size={120} /></div>
             <h2 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: 'var(--m3-ink)' }}>No patients yet</h2>
             <p style={{ margin: '0 0 20px', fontSize: 14, lineHeight: '20px', color: 'var(--m3-muted)' }}>
               A patient record is created with your first booking. After that, their timeline, documents and care passport live here.

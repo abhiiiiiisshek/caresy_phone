@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CARE_GUIDES, guideBySlug } from '@/lib/careGuides';
+import { GuideIcon } from '@/lib/guideIcons';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 
@@ -26,7 +27,7 @@ export default async function GuidesPage({ searchParams }: { searchParams: Promi
             </Link>
 
             <header style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <span aria-hidden style={{ fontSize: 40, lineHeight: '46px' }}>{guide.emoji}</span>
+              <span aria-hidden style={{ lineHeight: 0 }}><GuideIcon slug={guide.slug} size={46} /></span>
               <h1 style={{ margin: 0, fontSize: 27, lineHeight: '34px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>{guide.title}</h1>
               <p style={{ margin: 0, fontSize: 15, lineHeight: '22px', color: 'var(--m3-muted)' }}>{guide.summary}</p>
               <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.5px', color: 'var(--m3-green-deep)' }}>{guide.minutes} min read</span>
@@ -71,7 +72,7 @@ export default async function GuidesPage({ searchParams }: { searchParams: Promi
               {CARE_GUIDES.map((g) => (
                 <li key={g.slug}>
                   <Link href={`/guides?a=${g.slug}`} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 16, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', textDecoration: 'none' }}>
-                    <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 46, height: 46, borderRadius: 12, background: 'var(--m3-chip)', fontSize: 22, flexShrink: 0 }}>{g.emoji}</span>
+                    <span aria-hidden style={{ display: 'grid', placeItems: 'center', width: 46, height: 46, borderRadius: 12, background: 'var(--m3-chip)', flexShrink: 0 }}><GuideIcon slug={g.slug} size={26} /></span>
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: 'var(--m3-ink)' }}>{g.title}</span>
                       <span style={{ display: 'block', fontSize: 12.5, lineHeight: '18px', color: 'var(--m3-muted)' }}>{g.summary}</span>
