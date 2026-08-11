@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Fingerprint, ShieldAlert, MapPin, Camera, GraduationCap, ShieldCheck } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { COMPANIONS } from '@/data/companions';
-import { StepItem, CompanionCard, StatCard, Card, Badge } from '@caresy/ui';
+import { StepItem, CompanionCard, StatCard, Card, Badge, Reveal, Stagger, StaggerItem } from '@caresy/ui';
 
 const VERIFICATION_STEPS = [
   { icon: Fingerprint, title: 'Aadhaar verification', desc: 'Identity checked before companion activation via UIDAI / Digilocker API integration.' },
@@ -23,23 +23,25 @@ export default function Trust() {
   return (
     <main className="page" id="main-content">
 
-      <section className="page-hero" style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <Reveal as="section" className="page-hero" style={{ maxWidth: '800px', margin: '0 auto' }}>
         <p className="eyebrow">Trust framework</p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0', lineHeight: 1.2 }}>Families need proof before they need a pitch.</h1>
         <p style={{ color: 'var(--muted)', fontSize: '1.05rem' }}>Every companion must be verified and trained before assignment. The customer sees who is coming and why they can be trusted.</p>
-      </section>
+      </Reveal>
 
       {/* Verification steps */}
       <section className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
+        <Stagger style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
           {VERIFICATION_STEPS.map((step, i) => (
-            <StepItem key={step.title} number={<step.icon style={{ width: 20, height: 20 }} />} title={`${i + 1}. ${step.title}`} description={step.desc} />
+            <StaggerItem key={step.title}>
+              <StepItem number={<step.icon style={{ width: 20, height: 20 }} />} title={`${i + 1}. ${step.title}`} description={step.desc} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       {/* Meet Companions Section */}
-      <section className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <Reveal as="section" className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
         <div className="section-title" style={{ textAlign: 'center' }}>
           <p className="section-kicker">Our Companions</p>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: '8px 0' }}>Meet our verified companions.</h2>
@@ -68,10 +70,10 @@ export default function Trust() {
           })}
         </div>
         <p style={{ fontSize: '0.84rem', textAlign: 'center', color: 'var(--muted)', marginTop: '16px' }}>*Note: Profiles shown above are simulated examples representing our standard companion backgrounds and specialties.</p>
-      </section>
+      </Reveal>
 
       {/* Real Experiences Testimonials */}
-      <section className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <Reveal as="section" className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
         <div className="section-title" style={{ textAlign: 'center', marginBottom: '48px' }}>
           <p className="section-kicker">Family Trust</p>
           <h2>Real experiences from Caresy families.</h2>
@@ -93,12 +95,12 @@ export default function Trust() {
           </Card>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '48px' }}>
-          <StatCard headline="5,000+" detail="Visits Completed" />
-          <StatCard headline="1,200+" detail="Companions Verified" />
-          <StatCard headline="4.9/5" detail="Family Rating" />
-          <StatCard headline="100%" detail="Aadhaar & Police Screened" />
-        </div>
+        <Stagger gap={0.1} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', marginBottom: '48px' }}>
+          <StaggerItem><StatCard headline="5,000+" detail="Visits Completed" /></StaggerItem>
+          <StaggerItem><StatCard headline="1,200+" detail="Companions Verified" /></StaggerItem>
+          <StaggerItem><StatCard headline="4.9/5" detail="Family Rating" /></StaggerItem>
+          <StaggerItem><StatCard headline="100%" detail="Aadhaar & Police Screened" /></StaggerItem>
+        </Stagger>
 
         <div style={{ textAlign: 'center', borderTop: '1px solid var(--line)', paddingTop: '30px' }}>
           <span style={{ color: 'var(--muted)', fontSize: '0.78rem', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'block', marginBottom: '16px' }}>As Featured In</span>
@@ -108,10 +110,10 @@ export default function Trust() {
             <strong style={{ fontSize: '1.2rem', color: 'var(--muted)' }}>TechSparks</strong>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* Live Operations Desk Widget */}
-      <section className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <Reveal as="section" className="section" style={{ maxWidth: '900px', margin: '0 auto' }}>
         <Card style={{ background: 'rgba(13, 122, 102, 0.04)', borderColor: 'rgba(13, 122, 102, 0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
           <div>
             <Badge tone="success" live size="sm" style={{ marginBottom: 8 }}>Live Operations Status</Badge>
@@ -123,10 +125,10 @@ export default function Trust() {
             <Link className="btn btn-outline" href="/booking">Schedule planned visit</Link>
           </div>
         </Card>
-      </section>
+      </Reveal>
 
       {/* Service Boundaries & Emergency SOP */}
-      <section className="section" style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+      <Reveal as="section" className="section" style={{ maxWidth: '900px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
         <Card>
           <p className="eyebrow">Service boundaries</p>
           <h2>Caresy companions are not doctors or nurses.</h2>
@@ -141,16 +143,16 @@ export default function Trust() {
             <li>Follow the hospital emergency process.</li>
           </ol>
         </Card>
-      </section>
+      </Reveal>
 
-      <section className="section final-cta" style={{ maxWidth: '900px', margin: '0 auto' }}>
+      <Reveal as="section" className="section final-cta" style={{ maxWidth: '900px', margin: '0 auto' }}>
         <div>
           <p className="eyebrow">Reassurance before booking</p>
           <h2>See the companion profile before the visit begins.</h2>
           <p>Photo, name, contact number, experience, languages, rating, and verification status are shared after assignment.</p>
         </div>
         <Link className="btn btn-primary" href="/booking" style={{ display: 'inline-flex', marginTop: '16px' }}>Book for later</Link>
-      </section>
+      </Reveal>
     </main>
   );
 }
