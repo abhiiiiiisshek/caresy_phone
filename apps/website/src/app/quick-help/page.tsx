@@ -37,11 +37,16 @@ export default function QuickHelp() {
   const [successBookingId, setSuccessBookingId] = useState<string | null>(null);
   const { deskCompanions, callbackMin } = useLiveMetrics();
 
-  // Single screen: an urgent user should reach submit in one pass, not three
-  // clicks. All fields on one form; submit gates on everything being valid.
-  const formValid =
-    customerName.trim() !== '' && isValidIndianMobile(phone) && /\S+@\S+\.\S+/.test(email) &&
-    patientName.trim() !== '' && hospital.trim() !== '' && areaStatus === 'served';
+  const TOTAL_STEPS = 3;
+  const [step, setStep] = useState(1);
+
+  const step1Valid = customerName.trim() !== '' && isValidIndianMobile(phone) && /\S+@\S+\.\S+/.test(email);
+  const step2Valid = patientName.trim() !== '' && hospital.trim() !== '' && areaStatus === 'served';
+  const isStepValid = (s: number) => (s === 1 ? step1Valid : s === 2 ? step2Valid : true);
+  const formValid = step1Valid && step2Valid;
+
+  const goNext = () => { if (isStepValid(step) && step < TOTAL_STEPS) setStep(step + 1); };
+  const goBack = () => { if (step > 1) setStep(step - 1); };
 
   // Restore an in-progress form after a Google sign-in redirect took the user away and back.
   useEffect(() => {
@@ -264,110 +269,141 @@ export default function QuickHelp() {
 
       <section className="section" style={{ maxWidth: 640, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 20 }}>
-          <Link href="/" aria-label="Back home" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', color: 'var(--ink)' }}>
-            <ArrowLeft style={{ width: 18, height: 18 }} />
-          </Link>
+          {step > 1 ? (
+            <button type="button" onClick={goBack} aria-label="Previous step" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--ink)' }}>
+              <ArrowLeft style={{ width: 18, height: 18 }} />
+            </button>
+          ) : (
+            <Link href="/" aria-label="Back home" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', color: 'var(--ink)' }}>
+              <ArrowLeft style={{ width: 18, height: 18 }} />
+            </Link>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--muted)' }}>Step {step} of {TOTAL_STEPS}</span>
+            <div style={{ display: 'flex', gap: 4, width: 128 }}>
+              {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+                <span key={i} style={{ flex: 1, height: 4, borderRadius: 999, background: i < step ? '#27a875' : 'rgba(0,0,0,0.1)' }} />
+              ))}
+            </div>
+          </div>
           <Link href="/" aria-label="Close" style={{ display: 'grid', placeItems: 'center', width: 40, height: 40, borderRadius: '50%', color: 'var(--ink)' }}>
             <span style={{ fontSize: 20, lineHeight: 1 }}>×</span>
           </Link>
         </div>
 
         <form className="booking-form urgent-form material-card" onSubmit={handleFormSubmit}>
-          <div className="form-section">
-            <h2>Contact details</h2>
-            <div className="form-row">
-              <Input label="Your name" name="customerName" type="text" placeholder="Ananya Rao" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
-              <Input
-                label="Mobile number" name="phone" type="tel" required
-                inputMode="numeric" maxLength={10} placeholder="98765 43210"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                hint={mobileHint(phone) ?? '+91 — we call this number back'}
-              />
+          {step === 1 && (
+            <div className="form-section">
+              <h2>Contact details</h2>
+              <div className="form-row">
+                <Input label="Your name" name="customerName" type="text" placeholder="Ananya Rao" required value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
+                <Input
+                  label="Mobile number" name="phone" type="tel" required
+                  inputMode="numeric" maxLength={10} placeholder="98765 43210"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                  hint={mobileHint(phone) ?? '+91 — we call this number back'}
+                />
+              </div>
+              <div className="form-row">
+                <Input label="Email address" name="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              </div>
             </div>
-            <div className="form-row">
-              <Input label="Email address" name="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-          </div>
+          )}
 
-          <div className="form-section">
-            <h2>Where is help needed?</h2>
-            <div className="form-row">
-              <Input label="Patient name" name="patientName" type="text" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} />
-              <HospitalAutocomplete
-                label="Hospital or clinic" required
-                value={hospital}
-                onChange={(v, picked) => {
-                  setHospital(v);
-                  const pin = picked && pincodeForArea(picked.area);
-                  if (pin) setPincode(pin);
-                }}
-              />
+          {step === 2 && (
+            <div className="form-section">
+              <h2>Where is help needed?</h2>
+              <div className="form-row">
+                <Input label="Patient name" name="patientName" type="text" placeholder="Ramesh Kumar" required value={patientName} onChange={(e) => setPatientName(e.target.value)} />
+                <HospitalAutocomplete
+                  label="Hospital or clinic" required
+                  value={hospital}
+                  onChange={(v, picked) => {
+                    setHospital(v);
+                    const pin = picked && pincodeForArea(picked.area);
+                    if (pin) setPincode(pin);
+                  }}
+                />
+              </div>
+              <div className="form-row">
+                <Input
+                  label="Pincode (Noida / Greater Noida)" name="pincode" required
+                  inputMode="numeric" maxLength={6} placeholder="201301"
+                  value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
+                  hint={
+                    areaStatus === 'checking' ? 'Checking availability…'
+                    : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
+                    : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — Noida & Greater Noida only.'
+                    : 'We currently serve Noida & Greater Noida only.'
+                  }
+                />
+              </div>
+              {/* Matters more here than on a scheduled booking: an urgent job
+                  dispatches within minutes, so a gate number saves real time. */}
+              <div className="form-row">
+                <MeetingPoint
+                  address={meetAddress} coords={meetCoords}
+                  onAddressChange={setMeetAddress} onCoordsChange={setMeetCoords}
+                />
+              </div>
+              <label>What is happening now?
+                <select name="service" value={service} onChange={(e) => setService(e.target.value)}>
+                  <option>Appointment today</option>
+                  <option>Test or scan today</option>
+                  <option>Registration or queue support</option>
+                  <option>Medicine or document support</option>
+                  <option>Need guidance from operations</option>
+                </select>
+              </label>
             </div>
-            <div className="form-row">
-              <Input
-                label="Pincode (Noida / Greater Noida)" name="pincode" required
-                inputMode="numeric" maxLength={6} placeholder="201301"
-                value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
-                hint={
-                  areaStatus === 'checking' ? 'Checking availability…'
-                  : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
-                  : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — Noida & Greater Noida only.'
-                  : 'We currently serve Noida & Greater Noida only.'
-                }
-              />
-            </div>
-            {/* Matters more here than on a scheduled booking: an urgent job
-                dispatches within minutes, so a gate number saves real time. */}
-            <div className="form-row">
-              <MeetingPoint
-                address={meetAddress} coords={meetCoords}
-                onAddressChange={setMeetAddress} onCoordsChange={setMeetCoords}
-              />
-            </div>
-            <label>What is happening now?
-              <select name="service" value={service} onChange={(e) => setService(e.target.value)}>
-                <option>Appointment today</option>
-                <option>Test or scan today</option>
-                <option>Registration or queue support</option>
-                <option>Medicine or document support</option>
-                <option>Need guidance from operations</option>
-              </select>
-            </label>
-          </div>
+          )}
 
-          <div className="form-section">
-            <h2>Urgency</h2>
-            <fieldset>
-              <legend>When should we call?</legend>
-              {['Call now', 'Within 30 minutes', 'Later today'].map((opt) => (
-                <label className="check" key={opt}>
-                  <input type="radio" name="urgency" value={opt} checked={urgency === opt} onChange={() => setUrgency(opt)} /> {opt}
-                </label>
-              ))}
-            </fieldset>
-            <Input label="Short note" name="notes" multiline rows={4} placeholder="Patient location, appointment time, mobility needs, emergency contact" value={notes} onChange={(e) => setNotes(e.target.value)} />
-            <div className="summary-note" style={{ marginTop: 16 }}>
-              <strong>Emergency boundary</strong>
-              <p>If the patient condition is worsening, contact hospital emergency services first. Caresy is assistance and coordination, not emergency medical care.</p>
+          {step === 3 && (
+            <div className="form-section">
+              <h2>Urgency</h2>
+              <fieldset>
+                <legend>When should we call?</legend>
+                {['Call now', 'Within 30 minutes', 'Later today'].map((opt) => (
+                  <label className="check" key={opt}>
+                    <input type="radio" name="urgency" value={opt} checked={urgency === opt} onChange={() => setUrgency(opt)} /> {opt}
+                  </label>
+                ))}
+              </fieldset>
+              <Input label="Short note" name="notes" multiline rows={4} placeholder="Patient location, appointment time, mobility needs, emergency contact" value={notes} onChange={(e) => setNotes(e.target.value)} />
+              <div className="summary-note" style={{ marginTop: 16 }}>
+                <strong>Emergency boundary</strong>
+                <p>If the patient condition is worsening, contact hospital emergency services first. Caresy is assistance and coordination, not emergency medical care.</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="wizard-nav" style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-            <Button type="submit" variant="urgent" full shape="pill" size="lg" disabled={isSubmitting || !formValid}>
-              {isSubmitting ? 'Submitting...' : 'Request urgent call-back'}
-            </Button>
+            {step > 1 && (
+              <Button type="button" variant="outline" full shape="pill" size="lg" onClick={goBack}>Back</Button>
+            )}
+            {step < TOTAL_STEPS ? (
+              <Button type="button" variant="urgent" full shape="pill" size="lg" disabled={!isStepValid(step)} onClick={goNext}>Continue</Button>
+            ) : (
+              <Button type="submit" variant="urgent" full shape="pill" size="lg" disabled={isSubmitting || !formValid}>
+                {isSubmitting ? 'Submitting...' : 'Request urgent call-back'}
+              </Button>
+            )}
           </div>
 
-          <p style={{ fontSize: '0.82rem', textAlign: 'center', color: 'var(--muted)', marginTop: '10px' }}>
-            * Caresy operations callback and feasibility check are <strong>100% free</strong>. You only pay if a companion is successfully dispatched.
-          </p>
-          <div style={{ textAlign: 'center', marginTop: '15px' }}>
-            <span style={{ fontSize: '0.88rem', color: 'var(--muted)' }}>Or connect with us instantly:</span><br />
-            <a href="https://wa.me/919717500225" target="_blank" rel="noopener" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#27a875', fontWeight: 700, marginTop: '8px' }}>
-              <MessageSquare style={{ width: '18px', height: '18px' }} /> Chat on WhatsApp for urgent help
-            </a>
-          </div>
+          {step === TOTAL_STEPS && (
+            <>
+              <p style={{ fontSize: '0.82rem', textAlign: 'center', color: 'var(--muted)', marginTop: '10px' }}>
+                * Caresy operations callback and feasibility check are <strong>100% free</strong>. You only pay if a companion is successfully dispatched.
+              </p>
+              <div style={{ textAlign: 'center', marginTop: '15px' }}>
+                <span style={{ fontSize: '0.88rem', color: 'var(--muted)' }}>Or connect with us instantly:</span><br />
+                <a href="https://wa.me/919717500225" target="_blank" rel="noopener" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#27a875', fontWeight: 700, marginTop: '8px' }}>
+                  <MessageSquare style={{ width: '18px', height: '18px' }} /> Chat on WhatsApp for urgent help
+                </a>
+              </div>
+            </>
+          )}
         </form>
       </section>
     </main>
