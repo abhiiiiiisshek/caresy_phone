@@ -11,6 +11,7 @@ answers the question (budget rules in `CLAUDE.md`).
 
 | Question | File |
 |---|---|
+| **Restart / low context — read first** | `docs/NEXT_SESSION.md` then `docs/PROJECT_MEMORY.md` |
 | New here — what is this whole thing? | `docs/ENGINEER_ONBOARDING.md` |
 | How do I write code here? | `CLAUDE.md` |
 | What is in flight / known broken right now? | `docs/CURRENT.md` — **read first after `/clear`** |

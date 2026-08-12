@@ -229,7 +229,7 @@ GRANT EXECUTE ON FUNCTION public.companion_may_drive(UUID) TO authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Sanity check: transport must never have altered a bill.
--- ---------------------------------------------------------------------------
+-- -----------------------------------------------------₹----------------------
 DO $$
 BEGIN
     ASSERT NOT EXISTS (

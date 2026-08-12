@@ -3,6 +3,7 @@
 -- ============================================================================
 -- /quick-help inserted a new patient row on every urgent request, so the same
 -- parent accumulated one record per visit and their care timeline, documents and
+
 -- booking history were split across all of them. The source is fixed (the page
 -- reuses the customer's existing patient now); this cleans up the rows already
 -- there.

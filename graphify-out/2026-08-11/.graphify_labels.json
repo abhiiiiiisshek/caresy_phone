@@ -167,10 +167,5 @@
   "165": "layout.tsx",
   "166": "msg91.ts",
   "167": "ADR-0009 — Native mobile with Expo, not a WebView shell",
-  "168": "page.tsx",
-  "169": "@caresy/types",
-  "170": "@caresy/utils",
-  "171": "@lottiefiles/dotlottie-react",
-  "172": "react-dom",
-  "173": "@vercel/speed-insights"
+  "168": "page.tsx"
 }

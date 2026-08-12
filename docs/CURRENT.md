@@ -28,6 +28,16 @@ Read this first after a `/clear`.
 
 ## In flight
 
+- **Mascot design system replaces emoji illustration.** One owned character,
+  requested by pose — `<Mascot pose="…" />` and the `EmptyState`/`LoadingState`/
+  `ErrorState`/`SuccessState` wrappers, all in `@caresy/ui` (ADR-0011). Art is a
+  registry swap (`POSE_ART`), not a code change; the placeholder character ships
+  until real art is registered (Lottie path per ADR-0010, dep already installed).
+  Wired: `login` (5 poses incl. covering-eyes on OTP), `my-bookings`, `profile`,
+  `care`. **Still emoji:** the 12 `careGuides.ts` topic thumbnails (content
+  taxonomy, not a mascot state — needs its own icon decision) and the ✓/✗ text
+  prefixes in `booking`/`quick-help` service-area copy. tsc + `build` green.
+
 - **Migration 31 gives the customer their own two verbs.** Reschedule and Cancel
   in `my-bookings` were buttons that closed the sheet; every plan change arrived
   as a WhatsApp message. They now call `cancel_booking()` / `reschedule_booking()`,
