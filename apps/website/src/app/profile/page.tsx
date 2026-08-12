@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { Phone, Mail, LogOut, CalendarCheck, Loader2, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog, Trash2 } from 'lucide-react';
-import { Button, MotionSpot } from '@caresy/ui';
+import { Button, MotionSpot, Reveal } from '@caresy/ui';
 import { isValidIndianMobile } from '@caresy/utils/phone';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
@@ -115,7 +115,7 @@ export default function Profile() {
         </div>
 
         {/* Profile header card */}
-        <section style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: 24, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)' }}>
+        <Reveal as="section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: 24, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)' }}>
           <div style={{ width: 96, height: 96, borderRadius: '50%', border: '4px solid var(--m3-bg)', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', overflow: 'hidden', display: 'grid', placeItems: 'center', background: 'var(--m3-green)' }}>
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -137,7 +137,7 @@ export default function Profile() {
           <a href={supWa('updating my profile details')} target="_blank" rel="noopener" style={{ width: '100%', padding: '12px 24px', borderRadius: 999, background: 'var(--m3-green-deep)', color: '#fff', fontSize: 16, fontWeight: 500, letterSpacing: '0.15px', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}>
             Edit Profile
           </a>
-        </section>
+        </Reveal>
 
         {/* Account settings */}
         <Section icon={UserCog} title="Account Settings">

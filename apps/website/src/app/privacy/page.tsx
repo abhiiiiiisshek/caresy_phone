@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, Info } from 'lucide-react';
-import { Input } from '@caresy/ui';
+import { Input, Reveal } from '@caresy/ui';
 
 const PRIVACY_SECTIONS = [
   {
@@ -75,13 +75,13 @@ export default function PrivacyPolicy() {
 
   return (
     <main className="page" id="main-content" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
-      <section className="page-hero reveal active" style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px 24px' }}>
+      <Reveal as="section" className="page-hero" style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px 24px' }}>
         <p className="eyebrow">Legal</p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>Privacy Policy</h1>
         <p style={{ color: 'var(--muted)' }}>Effective Date: June 21, 2026</p>
-      </section>
+      </Reveal>
 
-      <section className="section" style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
+      <Reveal as="section" className="section" style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
         <div className="legal-layout" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '40px', alignItems: 'start' }}>
           
           {/* Sidebar Navigation */}
@@ -161,7 +161,7 @@ export default function PrivacyPolicy() {
           </div>
 
         </div>
-      </section>
+      </Reveal>
     </main>
   );
 }

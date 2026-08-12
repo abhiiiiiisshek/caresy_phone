@@ -15,7 +15,7 @@ import { matchCompanionByDepartment } from '@/data/companions';
 import HospitalAutocomplete from '@/components/HospitalAutocomplete';
 import MeetingPoint, { type Coords } from '@/components/MeetingPoint';
 import { pincodeForArea } from '@/data/hospitals';
-import { Input } from '@caresy/ui';
+import { Input, Reveal } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode, listServedAreas, type ServiceArea } from '@caresy/utils';
 import { priceForMinutes, formatINR, eveningSurchargePaise, GRACE_MINUTES } from '@caresy/utils/pricing';
 import { isValidIndianMobile, normalizeIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
@@ -73,11 +73,11 @@ const label: React.CSSProperties = { fontSize: 14, fontWeight: 500, letterSpacin
 
 function StepHeader({ step, title, sub }: { step: number; title: string; sub: string }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <Reveal style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--m3-green-deep)' }}>Step {step} of {TOTAL_STEPS}</span>
       <h1 style={{ margin: 0, fontSize: 28, lineHeight: '34px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>{title}</h1>
       <p style={{ margin: 0, fontSize: 14, lineHeight: '20px', letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>{sub}</p>
-    </div>
+    </Reveal>
   );
 }
 
@@ -494,7 +494,7 @@ export default function Booking() {
     return (
       <main id="main-content" style={{ background: 'var(--m3-bg)', minHeight: '100vh', fontFamily: EPILOGUE, paddingBottom: 96 }}>
         <div style={{ maxWidth: 576, margin: '0 auto', padding: '48px 16px', display: 'flex', flexDirection: 'column', gap: 32 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <Reveal style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <div style={{ maxWidth: 500, width: '100%', borderRadius: 'var(--m3-radius-card)', overflow: 'hidden', background: 'var(--m3-chip)' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/img/booking-confirmed.jpg" alt="" style={{ width: '100%', height: 240, objectFit: 'cover', display: 'block' }} />
@@ -507,7 +507,7 @@ export default function Booking() {
             <p style={{ margin: 0, maxWidth: 512, fontSize: 16, lineHeight: '24px', letterSpacing: '0.5px', color: 'var(--m3-muted)', textAlign: 'center' }}>
               Your request has been received. Our operations team will review it and assign a verified companion shortly.
             </p>
-          </div>
+          </Reveal>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32, padding: 32, borderRadius: 'var(--m3-radius-card)', background: '#e7e9e4', boxShadow: '0 1px 1px rgba(0,0,0,0.05)' }}>
             <div style={{ paddingBottom: 25, borderBottom: '1px solid #c0c9c3' }}>

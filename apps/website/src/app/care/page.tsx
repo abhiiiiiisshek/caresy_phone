@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
-import { Button, MotionSpot } from '@caresy/ui';
+import { Button, MotionSpot, Reveal } from '@caresy/ui';
 import {
   Loader2, ArrowLeft, Plus, FileText, Users, HeartPulse, Share2,
   Download, Trash2, ChevronRight, ShieldCheck,
@@ -84,7 +84,7 @@ function Spinner() {
 
 function Section({ icon: Icon, title, action, children }: { icon: React.ElementType; title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 18, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
+    <Reveal as="section" amount={0.15} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 18, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-surface)', border: '1px solid var(--m3-line)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--m3-ink)' }}>
           <Icon style={{ width: 17, height: 17, color: 'var(--m3-green)' }} />{title}
@@ -92,7 +92,7 @@ function Section({ icon: Icon, title, action, children }: { icon: React.ElementT
         {action}
       </div>
       {children}
-    </section>
+    </Reveal>
   );
 }
 

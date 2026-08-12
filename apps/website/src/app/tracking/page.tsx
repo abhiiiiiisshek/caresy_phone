@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@caresy/auth/supabase/client';
+import { Reveal } from '@caresy/ui';
 import { Star, Phone, Share2, Loader2, HelpCircle } from 'lucide-react';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
@@ -237,13 +238,13 @@ export default function LiveTracking() {
   return (
     <main id="main-content" style={{ background: 'var(--m3-bg)', minHeight: '100vh', fontFamily: EPILOGUE, display: 'flex', flexDirection: 'column', paddingBottom: 96 }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
+      <Reveal style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16 }}>
         <Link href="/" style={{ fontSize: 28, lineHeight: '36px', fontWeight: 700, color: 'var(--m3-green)', textDecoration: 'none' }}>Caresy</Link>
         <Link href="/support" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 999, color: 'var(--m3-muted)', fontSize: 14, fontWeight: 500, letterSpacing: '0.1px', textDecoration: 'none' }}>
           <HelpCircle style={{ width: 20, height: 20 }} />
           Help
         </Link>
-      </div>
+      </Reveal>
       <Suspense fallback={<div style={{ display: 'grid', placeItems: 'center', padding: '120px 24px' }}><Loader2 className="animate-spin" style={{ width: 40, height: 40, color: 'var(--m3-green)' }} /></div>}>
         <TrackingInner />
       </Suspense>

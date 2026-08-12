@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Search, MessageCircle, Phone, Mail, ArrowRight, ChevronDown, Headset, Bell, Loader2 } from 'lucide-react';
 import { createClient } from '@caresy/auth/supabase/client';
 import { useAuth } from '@caresy/auth';
-import { Input, Button } from '@caresy/ui';
+import { Input, Button, Reveal } from '@caresy/ui';
 import { isValidIndianMobile, normalizeIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
@@ -159,12 +159,12 @@ export default function Support() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28, padding: '20px 16px 48px' }}>
 
           {/* Hero */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Reveal style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <h1 style={{ margin: 0, fontSize: 26, lineHeight: '32px', fontWeight: 700, color: 'var(--m3-green-deep)' }}>How can we help?</h1>
             <p style={{ margin: 0, fontSize: 14.5, lineHeight: '21px', color: 'var(--m3-muted)' }}>
               Answers below, or reach a person in under a minute.
             </p>
-          </div>
+          </Reveal>
 
           {/* Reach a human — first, because that is why most people open this page */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import { MessageSquare, Mail, ShieldCheck, Check, User, MapPin, Activity, ShoppingBag, Loader2, Hash, Calendar, Clock, CalendarHeart, X, CalendarClock, XCircle, ArrowLeft, ChevronRight, MoreHorizontal, Briefcase, CalendarDays, Smartphone, Wallet, Phone } from 'lucide-react';
-import { Button, MotionSpot } from '@caresy/ui';
+import { Button, MotionSpot, Reveal } from '@caresy/ui';
 import { formatINR, upiPayUrl, runningTotalPaise } from '@caresy/utils/pricing';
 import { MIN_LEAD_MINUTES } from '@caresy/utils/slots';
 
@@ -307,7 +307,7 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
   const trackable = ['assigned', 'accepted', 'in_progress', 'active'].some((k) => booking.status.toLowerCase().includes(k));
 
   return (
-    <article style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 24, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)', border: '1px solid #e1e3de', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+    <Reveal as="article" amount={0.15} style={{ position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: 24, padding: 25, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-chip)', border: '1px solid #e1e3de', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
           {companion?.photo ? (
@@ -365,7 +365,7 @@ function PrimaryBookingCard({ booking, onDetails }: { booking: BookingRecord; on
           <MoreHorizontal style={{ width: 16, height: 16 }} />
         </button>
       </div>
-    </article>
+    </Reveal>
   );
 }
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
-import { Button } from '@caresy/ui';
+import { Button, Reveal } from '@caresy/ui';
 import { AlertTriangle, Loader2, Check } from 'lucide-react';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
@@ -71,7 +71,7 @@ export default function DeleteAccount() {
   }
 
   return shell(
-    <>
+    <Reveal>
       <h1 style={{ fontSize: 28, lineHeight: '34px', fontWeight: 700, color: 'var(--m3-green-deep)', margin: '0 0 24px' }}>Delete account</h1>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: 24, borderRadius: 'var(--m3-radius-card)', background: 'var(--m3-bg)', border: '1px solid rgba(196,85,67,0.3)' }}>
@@ -123,6 +123,6 @@ export default function DeleteAccount() {
           Cancel
         </button>
       </div>
-    </>
+    </Reveal>
   );
 }

@@ -6,7 +6,7 @@ import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import { MessageSquare, Check, ArrowLeft } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
-import { Input, Button } from '@caresy/ui';
+import { Input, Button, Reveal } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import { eveningSurchargePaise } from '@caresy/utils/pricing';
 import { isValidIndianMobile, normalizeIndianMobile, toE164, mobileHint } from '@caresy/utils/phone';
@@ -221,7 +221,7 @@ export default function QuickHelp() {
   if (successBookingId) {
     return (
       <main className="page" id="main-content">
-        <section className="section" style={{ maxWidth: '640px', margin: '0 auto', paddingTop: '40px' }}>
+        <Reveal as="section" className="section" style={{ maxWidth: '640px', margin: '0 auto', paddingTop: '40px' }}>
           <div className="material-card" style={{ padding: '48px 32px', textAlign: 'center' }}>
             <div style={{ width: '80px', height: '80px', margin: '0 auto 24px', borderRadius: '50%', background: 'rgba(39, 168, 117, 0.14)', color: '#1e7e58', display: 'grid', placeItems: 'center' }}>
               <Check style={{ width: '40px', height: '40px' }} strokeWidth={3} />
@@ -241,18 +241,18 @@ export default function QuickHelp() {
               <Link href="/my-bookings" className="btn btn-outline full">View My Bookings</Link>
             </div>
           </div>
-        </section>
+        </Reveal>
       </main>
     );
   }
 
   return (
     <main className="page urgent-page" id="main-content">
-      <section className="page-hero">
+      <Reveal as="section" className="page-hero">
         <p className="eyebrow">Same-day support</p>
         <h1>Need help at the hospital today?</h1>
         <p>Share the minimum details. Operations can call back, verify feasibility, and guide the next step.</p>
-      </section>
+      </Reveal>
 
       <div style={{ maxWidth: 'var(--max)', margin: '0 auto', padding: '0 24px 20px' }}>
         <div className="material-card" style={{ background: 'rgba(196, 85, 67, 0.05)', borderColor: 'rgba(196, 85, 67, 0.18)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
