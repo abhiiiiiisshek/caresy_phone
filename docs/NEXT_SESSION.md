@@ -4,18 +4,33 @@ Fast-moving. **Read this first on restart. Update it before every `/clear` or
 when context is about to fill.** Durable facts live in
 [PROJECT_MEMORY.md](./PROJECT_MEMORY.md).
 
-_Last updated: 2026-08-10 — branch `feature/structured-data`._
+_Last updated: 2026-08-13 — branch `feature/structured-data`, working tree clean._
 
-## In progress (uncommitted WIP on feature/structured-data)
+## Just shipped (on `main`, deployed)
 
-These are modified but **not committed** — a `git status` will show them:
+- `da99940` — companion signup now requires **Aadhaar back** upload
+  alongside front (`AADHAAR_BACK` added to `DOC_TYPES` in
+  `apps/companion/src/app/page.tsx`). `feature/structured-data` and `main`
+  point at the same commit — pushed, Vercel building production.
+  Verify live at companion.caresy.co.in once the build finishes.
+- `8dd8515`, `43f3ce1` — mobile-app (Expo/RN): design-system foundation,
+  Home/Booking/My-Bookings screens, live Tracking screen. See
+  `apps/mobile-app/NATIVE_CHECKLIST.md` for what's deferred and store-submission
+  blockers.
+
+## In progress (uncommitted WIP)
+
+None — `git status` is clean as of this update. Re-check before trusting this.
+
+Still outstanding from before (not touched this session):
 
 - `apps/website/src/app/login/page.tsx` — custom OTP flow + Ellie mascot.
 - `packages/auth/src/msg91.ts`, `packages/auth/src/AuthContext.tsx` — phone OTP.
 - `apps/website/src/app/{privacy,terms}/page.tsx` — legal copy.
 - `supabase/migrations/{27_TRANSPORT,29_FIX_AUDIT_RLS,32_MERGE_DUPLICATE_PATIENTS}.sql`.
 
-Shipped separately and clean on `main`: companion optional-docs (`6dc9600`).
+Confirm these are still present/uncommitted on next restart — this list is
+carried forward from 2026-08-10 and may be stale.
 
 ## Next tasks (do these)
 

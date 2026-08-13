@@ -22,9 +22,9 @@ _Last updated: 2026-08-13._
 | Booking (`app/booking.tsx`) | ✅ built | 4-step form, progress bar, chips, inline errors, haptics | writes patients→locations→bookings (exact web contract) |
 | My Bookings (`app/my-bookings.tsx`) | ✅ built | upcoming/past tabs, live meter, pull-to-refresh, cancel + track | states via design system |
 | Tracking (`app/tracking.tsx`) | ✅ built | headline, companion card, live-location, trip timeline, native Share | polls `get_shared_tracking` 10s; token from Home/My Bookings |
-| Quick Help (urgent) | ⬜ todo | — | |
-| Profile | ⬜ todo | — | |
-| Care / Guides | ⬜ todo | — | content screens |
+| Quick Help (urgent) | ✅ built | 3-step wizard, progress, chips, pincode `checkPincodeServed`, WhatsApp CTA | mirrors `apps/website/src/app/quick-help/page.tsx`; Settings folds into Profile per `MOBILE_PLAN.md` Phase 2 |
+| Profile | ⬜ todo | — | folds Settings + Support (no separate Settings screen — see `PARALLEL_WORK.md` Current split) |
+| Care / Guides | ⬜ todo | — | content screens; 12 `careGuides.ts` thumbnails still emoji per `docs/CURRENT.md:37` — needs icon decision |
 | Account deletion | ⬜ todo | — | **store-compliance blocker** |
 
 ## Deferred functionality (must restore before submission)
