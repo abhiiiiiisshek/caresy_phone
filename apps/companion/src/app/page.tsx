@@ -20,7 +20,8 @@ import { runningTotalPaise, formatINR, upiPayUrl } from '@caresy/utils/pricing';
 const LANGUAGE_OPTIONS = ['Hindi', 'English', 'Punjabi', 'Bengali', 'Tamil', 'Telugu', 'Urdu'];
 const SPECIALTY_OPTIONS = ['Elderly care', 'Cardiology', 'Orthopedics', 'Oncology', 'Diagnostics', 'Post-surgery', 'Maternity', 'General'];
 const DOC_TYPES = [
-  { key: 'AADHAAR', label: 'Aadhaar card', hint: 'Front side, clearly readable' },
+  { key: 'AADHAAR', label: 'Aadhaar card (front)', hint: 'Front side, clearly readable' },
+  { key: 'AADHAAR_BACK', label: 'Aadhaar card (back)', hint: 'Back side, clearly readable' },
   // Optional at signup — can be added later before an admin approves.
   { key: 'POLICE_VERIFICATION', label: 'Police verification', hint: 'Certificate or acknowledgement', optional: true },
   { key: 'PHOTO_ID', label: 'Photo / selfie', hint: 'A recent clear headshot' },
