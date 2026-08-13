@@ -1,6 +1,6 @@
 // node --experimental-strip-types src/bookingStatus.check.ts  → silence = pass
 import assert from 'node:assert';
-import { getStatusInfo, isPastBooking, prettyService } from './bookingStatus.ts';
+import { getStatusInfo, isPastBooking, prettyService, trackingSteps, trackingHeadline } from './bookingStatus.ts';
 
 // The bug this module exists to prevent: the two "confirmed" enums must not drift.
 assert.equal(getStatusInfo('ACCEPTED').label, 'Confirmed');
@@ -24,5 +24,19 @@ assert.equal(isPastBooking({ status: 'ASSIGNED', scheduled_start_time: new Date(
 assert.equal(isPastBooking({ status: 'PENDING', scheduled_start_time: null }, T), false);
 
 assert.equal(prettyService('HOSPITAL_COMPANION'), 'Hospital Companion');
+
+// Tracking timeline: active step advances with status, and ACCEPTED tracks the
+// same as ASSIGNED (the self-accept path must not fall to "finding companion").
+assert.equal(trackingSteps('ASSIGNED', 'Asha').activeIdx, 1);
+assert.equal(trackingSteps('ACCEPTED', 'Asha').activeIdx, 1);
+assert.equal(trackingSteps('IN_PROGRESS', 'Asha').activeIdx, 2);
+assert.equal(trackingSteps('COMPLETED', 'Asha').activeIdx, 3);
+// Only reached steps are returned (never show future stages as history).
+assert.equal(trackingSteps('ASSIGNED', 'Asha').steps.length, 2);
+assert.equal(trackingSteps('COMPLETED', 'Asha').steps.length, 4);
+assert.ok(trackingSteps('ASSIGNED', 'Asha').steps[0].desc.includes('Asha'));
+assert.equal(trackingHeadline('ACCEPTED'), 'Your companion is on the way');
+assert.equal(trackingHeadline('IN_PROGRESS'), 'Your companion is with the patient');
+assert.equal(trackingHeadline('PENDING'), 'Finding your companion');
 
 console.log('bookingStatus.check: ok');

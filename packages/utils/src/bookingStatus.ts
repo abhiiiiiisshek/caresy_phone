@@ -45,3 +45,36 @@ export function isPastBooking(
   const when = b.scheduled_start_time ? new Date(b.scheduled_start_time).getTime() : null;
   return when !== null && when < now;
 }
+
+// ---- Live-tracking timeline contract (shared by web /tracking and native) ----
+
+export interface TrackStep {
+  title: string;
+  desc: string;
+}
+
+// The trip stepper + which step is active for a given status. Returns only the
+// steps reached so far (+ the active one), so the UI never shows future stages
+// as if they were done. companionName is interpolated into the descriptions.
+export function trackingSteps(status: string, companionName: string): { steps: TrackStep[]; activeIdx: number } {
+  const s = status.toLowerCase();
+  const all: TrackStep[] = [
+    { title: 'Booking Confirmed', desc: `${companionName} has been assigned to your visit.` },
+    { title: 'Companion En Route', desc: `${companionName} is on the way to your location.` },
+    { title: 'Visit In Progress', desc: `${companionName} is with the patient at the hospital.` },
+    { title: 'Visit Completed', desc: 'Medicines collected and patient safely returned.' },
+  ];
+  let activeIdx = 1;
+  if (s.includes('assigned') || s.includes('accepted')) activeIdx = 1;
+  else if (s.includes('progress') || s === 'active') activeIdx = 2;
+  else if (s === 'completed') activeIdx = 3;
+  return { steps: all.slice(0, Math.max(activeIdx + 1, 2)), activeIdx };
+}
+
+export function trackingHeadline(status: string): string {
+  const s = status.toLowerCase();
+  if (s.includes('assigned') || s.includes('accepted')) return 'Your companion is on the way';
+  if (s.includes('progress') || s === 'active') return 'Your companion is with the patient';
+  if (s === 'completed') return 'Visit completed';
+  return 'Finding your companion';
+}

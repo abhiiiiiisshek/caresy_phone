@@ -20,8 +20,8 @@ _Last updated: 2026-08-13._
 |---|---|---|---|
 | Home (`app/index.tsx`) | ✅ built | dashboard: greeting, hero CTA, next-visit peek, quick actions | signed-out branded welcome |
 | Booking (`app/booking.tsx`) | ✅ built | 4-step form, progress bar, chips, inline errors, haptics | writes patients→locations→bookings (exact web contract) |
-| My Bookings (`app/my-bookings.tsx`) | ✅ built | upcoming/past tabs, live meter, pull-to-refresh, cancel | states via design system |
-| Tracking | ⬜ todo | — | next |
+| My Bookings (`app/my-bookings.tsx`) | ✅ built | upcoming/past tabs, live meter, pull-to-refresh, cancel + track | states via design system |
+| Tracking (`app/tracking.tsx`) | ✅ built | headline, companion card, live-location, trip timeline, native Share | polls `get_shared_tracking` 10s; token from Home/My Bookings |
 | Quick Help (urgent) | ⬜ todo | — | |
 | Profile | ⬜ todo | — | |
 | Care / Guides | ⬜ todo | — | content screens |
@@ -46,7 +46,11 @@ Client-side validation is UX only — **server-side/RLS enforcement remains auth
 4. **Rescheduling** — My Bookings ships Cancel (`cancel_booking` RPC) but not
    Reschedule (`reschedule_booking`). *Why:* needs a native datetime picker. *Restore:*
    reuse the Booking day/slot chooser (no extra dep) as a reschedule sheet.
-5. **Tracking** — not yet ported (web `/tracking` via `share_token`).
+5. **Embedded live map** — Tracking shows an "Open in Maps" deep link, not an
+   inline map. Web embeds an OpenStreetMap iframe (no SDK). *Why deferred:* no
+   WebView allowed; inline native map needs `react-native-maps` + platform config.
+   *Restore:* `react-native-maps` (or Expo Maps) centered on `last_lat/last_lng`
+   with a companion marker, before submission if live-location is a headline feature.
 6. **Notifications** — `expo-notifications` not wired; push pipeline (Firebase
    config present) unproven on native. **Store-relevant.**
 7. **Document / photo upload** — patient docs (`patient-docs` bucket). Needs

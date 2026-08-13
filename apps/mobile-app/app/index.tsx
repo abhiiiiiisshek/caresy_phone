@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
-import { getStatusInfo, isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
+import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { Button, Card, LoadingState, Overline, Screen, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
 import { color, radius, shadow, space } from '../lib/theme';
@@ -16,10 +16,16 @@ type Profile = { full_name: string | null };
 interface NextBooking {
   id: string;
   reference_code: string;
+  share_token: string;
   status: string;
   scheduled_start_time: string | null;
   service_type: string;
   service_metadata: any;
+}
+
+function isTrackable(status: string) {
+  const s = status.toLowerCase();
+  return s.includes('assigned') || s.includes('accepted') || s.includes('progress') || s === 'active';
 }
 
 function serviceLabel(b: NextBooking) {
@@ -42,7 +48,7 @@ export default function Home() {
     supabase.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle()
       .then(({ data }) => setProfile(data));
     supabase.from('bookings')
-      .select('id, reference_code, status, scheduled_start_time, service_type, service_metadata')
+      .select('id, reference_code, share_token, status, scheduled_start_time, service_type, service_metadata')
       .order('created_at', { ascending: false })
       .then(({ data }) => {
         const rows = (data as NextBooking[]) || [];
@@ -117,13 +123,17 @@ export default function Home() {
               <Txt variant="caption" color={color.faint}>Book one above and it will appear here.</Txt>
             </Card>
           ) : (
-            <Card onPress={() => router.push('/my-bookings')}>
+            <Card onPress={() => isTrackable(next.status)
+              ? router.push({ pathname: '/tracking', params: { token: next.share_token } })
+              : router.push('/my-bookings')}>
               <View style={s.rowBetween}>
                 <Txt variant="title" color={color.ink} style={s.flex1}>{serviceLabel(next)}</Txt>
                 <StatusPill status={next.status} />
               </View>
               <Txt variant="body" color={color.muted}>{whenLabel(next.scheduled_start_time)}</Txt>
-              <Txt variant="caption" color={color.faint}>Ref {next.reference_code} · {getStatusInfo(next.status).label}</Txt>
+              <Txt variant="caption" color={color.faint}>
+                {isTrackable(next.status) ? 'Tap to track live · ' : ''}Ref {next.reference_code}
+              </Txt>
             </Card>
           )}
         </View>

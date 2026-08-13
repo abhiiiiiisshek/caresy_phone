@@ -14,6 +14,7 @@ import { color, radius, space } from '../lib/theme';
 interface BookingRecord {
   id: string;
   reference_code: string;
+  share_token: string;
   status: string;
   created_at: string;
   scheduled_start_time: string | null;
@@ -26,10 +27,16 @@ interface BookingRecord {
 }
 
 const SELECT = `
-  id, reference_code, status, created_at, scheduled_start_time,
+  id, reference_code, share_token, status, created_at, scheduled_start_time,
   service_type, service_metadata, actual_start_time, final_amount_paise, payment_status,
   patient:patients ( full_name )
 `;
+
+// Statuses where a live-tracking view is meaningful.
+function isTrackable(status: string) {
+  const s = status.toLowerCase();
+  return s.includes('assigned') || s.includes('accepted') || s.includes('progress') || s === 'active';
+}
 
 function serviceLabel(b: BookingRecord) {
   return (b.service_metadata?.originalService as string) || prettyService(b.service_type || 'Booking');
@@ -124,18 +131,19 @@ export default function MyBookings() {
               action={filter === 'upcoming' ? <Button title="Book care" onPress={() => router.push('/booking')} style={s.emptyBtn} /> : undefined}
             />
           }
-          renderItem={({ item }) => <BookingCard b={item} onCancel={cancel} />}
+          renderItem={({ item }) => <BookingCard b={item} onCancel={cancel} onTrack={(bk) => router.push({ pathname: '/tracking', params: { token: bk.share_token } })} />}
         />
       )}
     </Screen>
   );
 }
 
-function BookingCard({ b, onCancel }: { b: BookingRecord; onCancel: (b: BookingRecord) => void }) {
+function BookingCard({ b, onCancel, onTrack }: { b: BookingRecord; onCancel: (b: BookingRecord) => void; onTrack: (b: BookingRecord) => void }) {
   const name = patientName(b);
   const isLive = b.status.toLowerCase().includes('progress');
   const isBilled = b.final_amount_paise != null;
   const cancellable = !isPastBooking(b) && !isLive;
+  const trackable = isTrackable(b.status);
 
   return (
     <Card style={s.card}>
@@ -154,7 +162,10 @@ function BookingCard({ b, onCancel }: { b: BookingRecord; onCancel: (b: BookingR
         </Txt>
       ) : null}
 
-      {cancellable ? <Button title="Cancel booking" variant="danger" onPress={() => onCancel(b)} style={s.cancel} /> : null}
+      <View style={s.actions}>
+        {trackable ? <Button title="Track visit" onPress={() => onTrack(b)} style={s.actionBtn} /> : null}
+        {cancellable ? <Button title="Cancel" variant="danger" onPress={() => onCancel(b)} style={s.actionBtn} /> : null}
+      </View>
     </Card>
   );
 }
@@ -187,6 +198,7 @@ const s = StyleSheet.create({
   card: { gap: space.xs },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginBottom: space.xs },
   amount: { marginTop: space.sm },
-  cancel: { marginTop: space.md, alignSelf: 'flex-start' },
+  actions: { flexDirection: 'row', gap: space.sm, marginTop: space.md },
+  actionBtn: { flex: 1 },
   meter: { marginTop: space.md, gap: space.xs, padding: space.lg, borderRadius: radius.md, backgroundColor: color.successSoft, borderWidth: 1, borderColor: color.success },
 });
