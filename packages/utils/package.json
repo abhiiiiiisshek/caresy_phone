@@ -4,6 +4,7 @@
   "private": true,
   "exports": {
     ".": "./src/serviceArea.ts",
+    "./bookingStatus": "./src/bookingStatus.ts",
     "./pricing": "./src/pricing.ts",
     "./phone": "./src/phone.ts",
     "./slots": "./src/slots.ts"
