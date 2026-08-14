@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { CARE_GUIDES, guideBySlug } from '@/lib/careGuides';
+import { CARE_GUIDES, guideBySlug } from '@caresy/utils/careGuides';
 import { GuideIcon } from '@/lib/guideIcons';
 import { Reveal, Stagger, StaggerItem } from '@caresy/ui';
 

@@ -36,6 +36,36 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-14 — primary session — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`)
+Did: sequential handoff, not concurrent — picked up in the same directory
+Muse left, on the branch Muse left it on, after confirming `git status` was
+clean. Continued Muse's claimed `apps/mobile-app` Phase 2 scope: built
+`app/profile.tsx` (account info, activity links, help & support folded in,
+sign out — read-only per Phase 2, "edit" rows deep-link to WhatsApp same as
+web) and `app/care/index.tsx` + `app/care/[slug].tsx` (guide list + detail).
+Moved `apps/website/src/lib/careGuides.ts` (+ its `.check.ts`) into
+`packages/utils/src/careGuides.ts` so native and web share one content
+source instead of duplicating ~450 lines — repointed website's 3 call sites
+(`sitemap.ts`, `guides/page.tsx`, `HealthTips.tsx`) and added the
+`@caresy/utils/careGuides` export. Added Profile/Care quick actions to
+Home (`app/index.tsx`), 2x2 grid now that there are 4.
+Verified: `tsc --noEmit` clean in both `apps/mobile-app` and `apps/website`;
+`careGuides.check.ts` passes from its new location; `npm run lint -w
+@caresy/website` shows only pre-existing errors, none in touched files; `npm
+run build -w @caresy/website` succeeds, all 27 routes including `/guides`.
+`apps/mobile-app` has no lint script — tsc-clean is its gate for now.
+Left mid-flight: nothing uncommitted after this entry is written — about to
+commit and push to `feature/mobile-quick-help`.
+Don't touch: `apps/mobile-app/app/profile.tsx`, `apps/mobile-app/app/care/`,
+`packages/utils/src/careGuides.ts` — just built, verify on device before
+changing. Account deletion still ⬜, untouched (Phase 5, out of scope here).
+Next: Account deletion screen (Phase 5, store-compliance blocker) is the
+only Phase-2-adjacent item left on `NATIVE_CHECKLIST.md`; otherwise Phase 2
+is done — Phase 4 gaps (push notifications, doc picker) or real-device QA
+of everything built so far are the logical next targets.
+
+---
+
 ### 2026-08-13 — Agent 2 (Muse) — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`)
 Did: claimed `apps/mobile-app` ⬜ todos per Updated Current split (Agent 1 Claude → website/login/privacy + migrations 27/29/32; Agent 2 → mobile Quick Help/Profile/Care/Deletion). Branched `feature/mobile-quick-help` off `feature/structured-data` (da99940) to avoid colliding on `feature/structured-data`. Operating in worktree `caresy_m3_worktree` (primary clone is `Documents/caresy_phone_xcode` for Agent 1).
 Left mid-flight: `docs/PARALLEL_WORK.md` updated with ownership + this log entry (untracked → will commit); `docs/NEXT_SESSION.md` still M (pre-existing update 2026-08-13, clean per its text). No mobile code yet — starting Quick Help.

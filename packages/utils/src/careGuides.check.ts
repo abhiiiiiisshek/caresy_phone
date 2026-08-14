@@ -1,6 +1,6 @@
 // Self-check for the rotation maths. No framework: run it with
-//   node --experimental-strip-types src/lib/careGuides.check.ts
-// from apps/website. Silence means pass.
+//   node --experimental-strip-types src/careGuides.check.ts
+// from packages/utils. Silence means pass.
 
 import { strict as assert } from 'node:assert';
 import { CARE_GUIDES, rotatedGuides, daysSinceEpoch, guideBySlug } from './careGuides.ts';

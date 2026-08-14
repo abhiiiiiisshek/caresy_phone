@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { CARE_GUIDES } from '@/lib/careGuides';
+import { CARE_GUIDES } from '@caresy/utils/careGuides';
 
 const BASE = 'https://caresy.co.in';
 

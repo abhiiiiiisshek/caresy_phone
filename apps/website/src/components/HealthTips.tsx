@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { rotatedGuides, daysSinceEpoch } from '@/lib/careGuides';
+import { rotatedGuides, daysSinceEpoch } from '@caresy/utils/careGuides';
 import { GuideIcon } from '@/lib/guideIcons';
 
 // The home page is statically prerendered, so reading Date during render would

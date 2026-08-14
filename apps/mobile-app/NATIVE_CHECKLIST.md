@@ -5,7 +5,7 @@ contracts, and Supabase queries/RPCs — **not** for layout or components. This
 file tracks what is built, what is deferred, and what must be restored before
 store submission.
 
-_Last updated: 2026-08-13._
+_Last updated: 2026-08-14._
 
 ## Design system
 
@@ -23,8 +23,8 @@ _Last updated: 2026-08-13._
 | My Bookings (`app/my-bookings.tsx`) | ✅ built | upcoming/past tabs, live meter, pull-to-refresh, cancel + track | states via design system |
 | Tracking (`app/tracking.tsx`) | ✅ built | headline, companion card, live-location, trip timeline, native Share | polls `get_shared_tracking` 10s; token from Home/My Bookings |
 | Quick Help (urgent) | ✅ built | 3-step wizard, progress, chips, pincode `checkPincodeServed`, WhatsApp CTA | mirrors `apps/website/src/app/quick-help/page.tsx`; Settings folds into Profile per `MOBILE_PLAN.md` Phase 2 |
-| Profile | ⬜ todo | — | folds Settings + Support (no separate Settings screen — see `PARALLEL_WORK.md` Current split) |
-| Care / Guides | ⬜ todo | — | content screens; 12 `careGuides.ts` thumbnails still emoji per `docs/CURRENT.md:37` — needs icon decision |
+| Profile (`app/profile.tsx`) | ✅ built | account info, activity links, help & support, sign out | folds Settings + Support per prior decision; read-only, "edit" routes to WhatsApp same as web |
+| Care / Guides (`app/care/index.tsx`, `app/care/[slug].tsx`) | ✅ built | list + detail, no icons/thumbnails, plain cards | content moved to `packages/utils/src/careGuides.ts` (was website-only `apps/website/src/lib/careGuides.ts`) so web + native share one source; website's 3 call sites + self-check repointed |
 | Account deletion | ⬜ todo | — | **store-compliance blocker** |
 
 ## Deferred functionality (must restore before submission)

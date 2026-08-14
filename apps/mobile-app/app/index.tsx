@@ -141,6 +141,8 @@ export default function Home() {
         {/* Quick actions */}
         <View style={s.actions}>
           <QuickAction label="My bookings" onPress={() => router.push('/my-bookings')} />
+          <QuickAction label="Profile" onPress={() => router.push('/profile')} />
+          <QuickAction label="Care guides" onPress={() => router.push('/care')} />
           <QuickAction label="Get help" onPress={() => Linking.openURL(`https://wa.me/${SUPPORT_WA}`)} />
         </View>
 
@@ -180,7 +182,7 @@ const s = StyleSheet.create({
   section: { gap: space.md },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginBottom: space.xs },
 
-  actions: { flexDirection: 'row', gap: space.md },
-  action: { flex: 1, backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, minHeight: 72, justifyContent: 'center' },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  action: { flexBasis: '46%', flexGrow: 1, backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, minHeight: 72, justifyContent: 'center' },
   signOut: { marginTop: space.sm },
 });

@@ -7,7 +7,8 @@
     "./bookingStatus": "./src/bookingStatus.ts",
     "./pricing": "./src/pricing.ts",
     "./phone": "./src/phone.ts",
-    "./slots": "./src/slots.ts"
+    "./slots": "./src/slots.ts",
+    "./careGuides": "./src/careGuides.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0"
