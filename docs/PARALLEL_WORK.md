@@ -82,6 +82,18 @@ surprises into `main`.
 6. **Append a session log entry below** (not edit old ones) before you stop —
    this is the cross-person, cross-session handoff. `NEXT_SESSION.md` is the
    single-owner narrative; this log is the two-person one.
+7. **One physical directory, one active session — never two.** A branch
+   name is not isolation; the working directory is. If both people's agents
+   point at the same folder path (e.g. `caresy_m3_worktree`), one
+   `git checkout` from either side can silently discard the other's
+   uncommitted edits mid-session — this already happened once (2026-08-13,
+   the folder flipped from `feature/structured-data` to
+   `feature/mobile-quick-help` under a live session). Each concurrent agent
+   needs its own `git worktree add ../<name> <branch>` or its own clone.
+   Before starting work, run `git branch --show-current` +
+   `git worktree list` and confirm the branch matches what your own last
+   session log entry says you left it on — if it doesn't, stop and set up a
+   separate worktree before touching anything.
 
 ## Current split (fill in / adjust as work is assigned) — updated 2026-08-13 by Agent 2 (Muse)
 
