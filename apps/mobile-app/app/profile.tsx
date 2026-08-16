@@ -1,11 +1,11 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
-import { isValidIndianMobile } from '@caresy/utils/phone';
-import { Button, Card, LoadingState, Overline, Screen, Txt } from '../components/ui';
+import { isValidIndianMobile, toE164 } from '@caresy/utils/phone';
+import { Button, Card, Field, LoadingState, Overline, Screen, Txt } from '../components/ui';
 import { color, space } from '../lib/theme';
 
 // Mirrors apps/website/src/app/profile/page.tsx's sections, native layout.
@@ -39,15 +39,22 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 export default function ProfileScreen() {
-  const { session, loading, signInWithGoogle, signOut } = useAuth();
+  const { session, loading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [phoneDraft, setPhoneDraft] = useState('');
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneErr, setPhoneErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!session) { setProfile(null); return; }
     supabase.from('profiles').select('full_name, age, phone').eq('id', session.user.id).maybeSingle()
-      .then(({ data }) => setProfile(data));
+      .then(({ data }) => {
+        setProfile(data);
+        if (data?.phone) setPhoneDraft(data.phone);
+      });
   }, [session]);
 
   if (loading) return <Screen><LoadingState /></Screen>;
@@ -67,6 +74,15 @@ export default function ProfileScreen() {
             onPress={async () => { setSigningIn(true); try { await signInWithGoogle(); } finally { setSigningIn(false); } }}
             style={s.signInBtn}
           />
+          {Platform.OS === 'ios' ? (
+            <Button
+              title="Sign in with Apple"
+              variant="secondary"
+              loading={signingIn}
+              onPress={async () => { setSigningIn(true); try { await signInWithApple(); } finally { setSigningIn(false); } }}
+              style={s.signInBtn}
+            />
+          ) : null}
         </View>
       </Screen>
     );
@@ -88,11 +104,41 @@ export default function ProfileScreen() {
         </View>
 
         <Section title="Account">
-          <Row
-            title="Mobile number"
-            sub={isValidIndianMobile(profile?.phone || '') ? profile!.phone! : 'Not added — tap to add'}
-            onPress={() => Linking.openURL(supWa('adding my mobile number to my profile'))}
-          />
+          {editingPhone ? (
+            <Card style={s.editCard}>
+              <Field
+                label="Mobile number"
+                value={phoneDraft}
+                onChangeText={(t) => { setPhoneDraft(t); setPhoneErr(null); }}
+                placeholder="10-digit number"
+                keyboardType="phone-pad"
+                error={phoneErr}
+              />
+              <View style={s.editRow}>
+                <Button title="Cancel" variant="secondary" onPress={() => { setEditingPhone(false); setPhoneDraft(profile?.phone || ''); setPhoneErr(null); }} style={s.editBtn} />
+                <Button
+                  title="Save"
+                  loading={phoneSaving}
+                  onPress={async () => {
+                    if (!isValidIndianMobile(phoneDraft)) { setPhoneErr('Enter a valid 10-digit number'); return; }
+                    setPhoneSaving(true);
+                    const { error } = await supabase.from('profiles').update({ phone: toE164(phoneDraft) }).eq('id', session!.user.id);
+                    setPhoneSaving(false);
+                    if (error) { setPhoneErr(error.message); return; }
+                    setProfile((p) => p ? { ...p, phone: toE164(phoneDraft) } : p);
+                    setEditingPhone(false);
+                  }}
+                  style={s.editBtn}
+                />
+              </View>
+            </Card>
+          ) : (
+            <Row
+              title="Mobile number"
+              sub={isValidIndianMobile(profile?.phone || '') ? profile!.phone! : 'Not added — tap to add'}
+              onPress={() => setEditingPhone(true)}
+            />
+          )}
           <Row title="Payment methods" sub="Cash or UPI, paid after the visit" />
           <Row title="Companion preferences" onPress={() => Linking.openURL(supWa('my companion preferences'))} />
         </Section>
@@ -106,6 +152,28 @@ export default function ProfileScreen() {
           <Row title="Chat on WhatsApp" sub="Fastest — usually answered in minutes" onPress={() => Linking.openURL(supWa('a general question'))} />
           <Row title="Call us" sub={SUPPORT_TEL} onPress={() => Linking.openURL(`tel:${SUPPORT_TEL}`)} />
           <Row title="Email" sub="Replies within 24 hours" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
+        </Section>
+
+        <Section title="Danger zone">
+          <Card style={s.dangerCard}>
+            <Txt variant="title" color={color.terracottaDeep}>Delete account</Txt>
+            <Txt variant="caption" color={color.muted}>Permanently removes profile, patients, bookings and care logs. Cannot be undone.</Txt>
+            <Button
+              title="Delete my account"
+              variant="danger"
+              onPress={() => {
+                Alert.alert(
+                  'Delete account?',
+                  'This permanently deletes your account and all data. Type DELETE to confirm on the next screen.',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Continue', style: 'destructive', onPress: () => router.push('/account-delete') },
+                  ],
+                );
+              }}
+              style={s.deleteBtn}
+            />
+          </Card>
         </Section>
 
         <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
@@ -126,6 +194,11 @@ const s = StyleSheet.create({
   section: { gap: space.sm },
   sectionBody: { gap: space.sm },
   row: { gap: 2 },
+  editCard: { gap: space.md },
+  editRow: { flexDirection: 'row', gap: space.md },
+  editBtn: { flex: 1 },
+  dangerCard: { gap: space.sm, borderWidth: 1, borderColor: 'rgba(196,85,67,0.25)' },
+  deleteBtn: { marginTop: space.xs },
 
   signOut: { marginTop: space.sm },
 });

@@ -8,9 +8,16 @@ import { supabase } from '../lib/supabase';
 import { formatINR, priceForMinutes, eveningSurchargePaise } from '@caresy/utils/pricing';
 import { availableSlots } from '@caresy/utils/slots';
 import { toE164, isValidIndianMobile } from '@caresy/utils/phone';
-import { isValidPincode } from '@caresy/utils';
+import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import { Button, Card, Chip, ChipRow, Field, FormScreen, Overline, Screen, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
+import { HOSPITALS, pincodeForArea } from '../lib/hospitals';
+
+// expo deps — dynamic require keeps tsc green until plugin native rebuild
+let Location: any = null;
+let ImagePicker: any = null;
+try { Location = require('expo-location'); } catch {}
+try { ImagePicker = require('expo-image-picker'); } catch {}
 
 // Business rules mirror apps/website/src/app/booking (data contract, not layout).
 const SERVICES = [
@@ -65,6 +72,14 @@ export default function Booking() {
   const [department, setDepartment] = useState('');
   const [doctor, setDoctor] = useState('');
   const [meetAddress, setMeetAddress] = useState('');
+  const [meetMode, setMeetMode] = useState<'home' | 'hospital' | 'custom'>('custom');
+  const [hospitalFocused, setHospitalFocused] = useState(false);
+  const [pincodeCheck, setPincodeCheck] = useState<{ served: boolean; area?: string; city?: string } | null>(null);
+  const [locLoading, setLocLoading] = useState(false);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locError, setLocError] = useState<string | null>(null);
+  const [docUri, setDocUri] = useState<string | null>(null);
+  const [docUploading, setDocUploading] = useState(false);
 
   const [savedPatients, setSavedPatients] = useState<SavedPatient[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
@@ -97,6 +112,43 @@ export default function Booking() {
       .then(({ data }) => setSavedPatients((data as SavedPatient[]) || []));
   }, [session]);
 
+  // Live pincode served check — mirrors web checkPincodeServed
+  useEffect(() => {
+    const pin = pincode.trim();
+    if (!isValidPincode(pin)) { setPincodeCheck(null); return; }
+    let alive = true;
+    checkPincodeServed(supabase as any, pin).then((r) => {
+      if (!alive) return;
+      setPincodeCheck(r.served ? { served: true, area: r.area?.area_name || undefined, city: r.area?.city } : { served: false });
+    });
+    return () => { alive = false; };
+  }, [pincode]);
+
+  // Keep meetAddress in sync with meetMode
+  useEffect(() => {
+    if (meetMode === 'hospital' && hospital) setMeetAddress(hospital);
+    else if (meetMode === 'home' && coords) setMeetAddress(`Current location · ${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`);
+  }, [meetMode, hospital, coords]);
+
+  const requestLocation = async () => {
+    if (!Location) { setLocError('Location module not installed — run npm install then rebuild'); return false; }
+    setLocLoading(true); setLocError(null);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') { setLocError('Permission denied — enter address manually'); return false; }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy ? Location.Accuracy.Balanced : 3 });
+      setCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+      return true;
+    } catch (e: any) {
+      setLocError(e?.message || 'Could not get location');
+      return false;
+    } finally { setLocLoading(false); }
+  };
+
+  useEffect(() => {
+    if (meetMode === 'home' && !coords && !locLoading && Location) { requestLocation(); }
+  }, [meetMode]);
+
   const pickSaved = (p: SavedPatient) => {
     setSelectedPatientId(p.id); setPatientName(p.full_name);
     setAge(p.age != null ? String(p.age) : ''); setEmergency(p.emergency_contact_phone ?? '');
@@ -119,13 +171,21 @@ export default function Booking() {
     return null;
   };
 
-  const next = () => {
+  const next = async () => {
     setTried(true);
     const err = stepError();
     if (err) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       if (err.trim()) Alert.alert('Almost there', err);
       return;
+    }
+    // If At home and no coords yet, try to get location before advancing from step 2
+    if (step === 2 && meetMode === 'home' && !coords) {
+      const ok = await requestLocation();
+      if (!ok && !coords) {
+        // Allow continuing with manual address fallback
+        Alert.alert('Location', 'We could not get your location. Please check the meeting address field and continue.');
+      }
     }
     Haptics.selectionAsync();
     setTried(false);
@@ -156,7 +216,9 @@ export default function Booking() {
 
       const { data: loc, error: locErr } = await supabase.from('locations').insert({
         customer_user_id: uid, title: hospital, address_line_1: meetAddress.trim() || hospital,
-        city: 'Noida', state: 'Uttar Pradesh', pincode: pincode.trim(), latitude: null, longitude: null,
+        city: 'Noida', state: 'Uttar Pradesh', pincode: pincode.trim(),
+        latitude: meetMode === 'home' && coords ? coords.latitude : null,
+        longitude: meetMode === 'home' && coords ? coords.longitude : null,
       }).select().single();
       if (locErr) throw locErr;
 
@@ -172,6 +234,22 @@ export default function Booking() {
         },
       }).select().single();
       if (bkErr) throw bkErr;
+
+      // Patient doc upload (Phase 4) — best-effort, booking already succeeded
+      if (docUri && patientId) {
+        try {
+          setDocUploading(true);
+          const resp = await fetch(docUri);
+          const blob = await resp.blob();
+          const ext = docUri.split('.').pop()?.split('?')[0] || 'jpg';
+          const path = `${patientId}/${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage.from('patient-docs').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
+          if (!upErr) {
+            await supabase.from('patient_documents').insert({ patient_id: patientId, booking_id: bk.id, doc_type: 'OTHER', title: 'Booking attachment', file_path: path });
+          }
+        } catch {}
+        setDocUploading(false);
+      }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setSuccessRef(bk.reference_code);
@@ -234,9 +312,11 @@ export default function Booking() {
           {SERVICES.map((sv) => {
             const on = serviceKey === sv.key;
             return (
-              <Card key={sv.key} onPress={() => setServiceKey(sv.key)} style={[s.optCard, on && s.optOn]}>
+              <Card key={sv.key} onPress={() => setServiceKey(sv.key)} style={[s.optCard, on ? s.optOn : s.optOff]}>
+                <View style={[s.optAccent, on ? s.optAccentOn : s.optAccentOff]} />
                 <Txt variant="title" color={on ? color.greenDeep : color.ink}>{sv.name}</Txt>
                 <Txt variant="body" color={color.muted}>{sv.desc}</Txt>
+                <Txt variant="caption" color={color.faint}>{on ? 'Selected' : 'Tap to select'}</Txt>
               </Card>
             );
           })}
@@ -250,16 +330,73 @@ export default function Booking() {
 
       {step === 2 && (
         <>
-          <Field label="Hospital / clinic" value={hospital} onChangeText={setHospital} placeholder="e.g. Max Hospital, Noida" error={hospitalErr} />
+          <Field
+            label="Hospital / clinic"
+            value={hospital}
+            onChangeText={setHospital}
+            onFocus={() => setHospitalFocused(true)}
+            onBlur={() => setTimeout(() => setHospitalFocused(false), 150)}
+            placeholder="Search — e.g. Max Hospital, Noida"
+            error={hospitalErr}
+          />
+          {hospitalFocused && (
+            <View style={s.suggestBox}>
+              {(hospital.trim()
+                ? HOSPITALS.filter((h) => `${h.name} ${h.area}`.toLowerCase().includes(hospital.toLowerCase())).slice(0, 6)
+                : HOSPITALS.slice(0, 6)
+              ).map((h) => (
+                <Pressable
+                  key={`${h.name}-${h.area}`}
+                  onPress={() => {
+                    setHospital(h.name);
+                    const pin = pincodeForArea(h.area);
+                    if (pin && !pincode.trim()) setPincode(pin);
+                    setHospitalFocused(false);
+                  }}
+                  style={s.suggestRow}
+                >
+                  <Txt variant="title" color={color.ink} numberOfLines={1}>{h.name}</Txt>
+                  <Txt variant="caption" color={color.muted}>{h.area}</Txt>
+                </Pressable>
+              ))}
+            </View>
+          )}
           <Field label="Pincode" value={pincode} onChangeText={setPincode} placeholder="201301" keyboardType="number-pad" error={pincodeErr} />
+          {pincodeCheck && (
+            <View style={[s.pincodeBadge, pincodeCheck.served ? s.pincodeOk : s.pincodeNo]}>
+              <Txt variant="caption" color={pincodeCheck.served ? color.greenDeep : color.terracotta}>
+                {pincodeCheck.served ? `✓ Serves ${pincodeCheck.area || pincodeCheck.city || 'this area'}` : '✗ We don\'t serve this pincode yet — message us on WhatsApp to confirm'}
+              </Txt>
+            </View>
+          )}
+          {locError ? <Txt variant="caption" color={color.terracotta}>{locError}</Txt> : null}
+          {coords ? <Txt variant="caption" color={color.greenDeep}>✓ Location captured · {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}</Txt> : null}
+          {locLoading ? <Txt variant="caption" color={color.muted}>Getting your location…</Txt> : null}
           <Field label="Department (optional)" value={department} onChangeText={setDepartment} placeholder="Cardiology" />
           <Field label="Doctor (optional)" value={doctor} onChangeText={setDoctor} placeholder="Dr. Sharma" />
-          <Field label="Meeting point (optional)" value={meetAddress} onChangeText={setMeetAddress} placeholder="Main gate / reception" />
+          <View style={s.meetGrid}>
+            {[
+              { key: 'home', label: 'At home', sub: 'Use my location', tint: color.greenTint },
+              { key: 'hospital', label: 'At hospital', sub: hospital || 'Hospital address', tint: color.card },
+              { key: 'custom', label: 'Custom address', sub: 'Enter manually', tint: color.surface },
+            ].map((o) => {
+              const on = meetMode === o.key;
+              return (
+                <Card key={o.key} onPress={() => setMeetMode(o.key as any)} style={[s.meetCard, on && s.optOn, { backgroundColor: on ? color.greenTint : o.tint }]}>
+                  <View style={[s.meetAccent, on && s.meetAccentOn]} />
+                  <Txt variant="title" color={on ? color.greenDeep : color.ink}>{o.label}</Txt>
+                  <Txt variant="caption" color={color.muted} numberOfLines={1}>{o.sub}</Txt>
+                </Card>
+              );
+            })}
+          </View>
+          <Field label="Meeting address" value={meetAddress} onChangeText={setMeetAddress} placeholder={meetMode === 'home' ? 'House no., street, landmark' : meetMode === 'hospital' ? (hospital || 'Hospital address') : 'Main gate / reception'} />
           <Txt variant="h2" color={color.ink}>Getting there</Txt>
           {TRANSPORT_MODES.map((m) => {
             const on = transportMode === m.key;
             return (
-              <Card key={m.key} onPress={() => setTransportMode(m.key)} style={[s.optCard, on && s.optOn]}>
+              <Card key={m.key} onPress={() => setTransportMode(m.key)} style={[s.optCard, on ? s.optOn : s.optOff]}>
+                <View style={[s.optAccent, on ? s.optAccentOn : s.optAccentOff]} />
                 <Txt variant="title" color={on ? color.greenDeep : color.ink}>{m.label}</Txt>
               </Card>
             );
@@ -285,6 +422,25 @@ export default function Booking() {
           <Txt variant="h2" color={color.ink}>Care needs (optional)</Txt>
           <ChipRow>{CARE_NEEDS.map((n) => <Chip key={n} label={n} selected={careNeeds.includes(n)} onPress={() => toggleNeed(n)} />)}</ChipRow>
           <Field label="Notes (optional)" value={notes} onChangeText={setNotes} placeholder="Anything the companion should know" multiline />
+          <Txt variant="h2" color={color.ink}>Patient document (optional)</Txt>
+          <Card style={s.docCard}>
+            {docUri ? <Txt variant="caption" color={color.greenDeep}>✓ Selected: {docUri.split('/').pop()}</Txt> : <Txt variant="caption" color={color.muted}>Prescription, report or receipt — visible to your companion circle.</Txt>}
+            <View style={s.docRow}>
+              <Button
+                title={docUri ? 'Change photo' : 'Pick photo'}
+                variant="secondary"
+                onPress={async () => {
+                  if (!ImagePicker) { Alert.alert('Not ready', 'Rebuild the dev client to enable photo picker'); return; }
+                  const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                  if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access to attach a document'); return; }
+                  const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+                  if (!res.canceled && res.assets?.[0]?.uri) setDocUri(res.assets[0].uri);
+                }}
+                style={s.docBtn}
+              />
+              {docUri ? <Button title="Remove" variant="secondary" onPress={() => setDocUri(null)} style={s.docBtn} /> : null}
+            </View>
+          </Card>
         </>
       )}
 
@@ -323,8 +479,12 @@ const s = StyleSheet.create({
   progressOn: { backgroundColor: color.green },
   progressOff: { backgroundColor: color.line },
   heading: { gap: space.xs },
-  optCard: { gap: space.xs, borderWidth: 1.5, borderColor: 'transparent' },
+  optCard: { gap: space.xs, borderWidth: 1.5, borderColor: 'transparent', overflow: 'hidden' },
+  optAccent: { height: 4, marginHorizontal: -space.lg, marginTop: -space.lg, marginBottom: space.xs },
+  optAccentOn: { backgroundColor: color.green },
+  optAccentOff: { backgroundColor: color.line },
   optOn: { borderColor: color.green, backgroundColor: color.greenTint },
+  optOff: { borderColor: color.line, backgroundColor: color.surface },
   summary: { marginTop: space.md, gap: space.xs },
   summaryAmount: { marginTop: space.sm },
   footer: { flexDirection: 'row', gap: space.md, padding: space.lg, borderTopWidth: 1, borderTopColor: color.line, backgroundColor: color.surface },
@@ -334,4 +494,18 @@ const s = StyleSheet.create({
   tick: { width: 72, height: 72, borderRadius: radius.pill, backgroundColor: color.success, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
   refBadge: { backgroundColor: color.greenTint, paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, marginVertical: space.sm },
   successBtn: { alignSelf: 'stretch' },
+  suggestBox: { backgroundColor: color.surface, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, overflow: 'hidden', marginTop: -space.sm },
+  suggestRow: { paddingVertical: space.sm, paddingHorizontal: space.md, borderBottomWidth: 1, borderBottomColor: color.line, gap: 2 },
+  pincodeBadge: { marginTop: -space.sm, paddingVertical: 6, paddingHorizontal: space.md, borderRadius: radius.sm },
+  pincodeOk: { backgroundColor: color.greenTint },
+  pincodeNo: { backgroundColor: color.urgentBg },
+  meetGrid: { flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' },
+  meetCard: { flexBasis: '30%', flexGrow: 1, gap: 4, overflow: 'hidden', minWidth: 96 },
+  meetAccent: { height: 4, marginHorizontal: -space.lg, marginTop: -space.lg, marginBottom: space.xs, backgroundColor: color.line },
+  meetAccentOn: { backgroundColor: color.green },
+  meetLabel: { marginTop: space.sm },
+  meetHint: { gap: space.sm, backgroundColor: color.card },
+  docCard: { gap: space.sm },
+  docRow: { flexDirection: 'row', gap: space.sm },
+  docBtn: { flex: 1 },
 });

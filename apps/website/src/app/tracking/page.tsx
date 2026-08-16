@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { createClient } from '@caresy/auth/supabase/client';
 import { Reveal } from '@caresy/ui';
 import { Star, Phone, Share2, Loader2, HelpCircle } from 'lucide-react';
+import { trackingHeadline, trackingSteps } from '@caresy/utils/bookingStatus';
 
 const EPILOGUE = 'var(--font-epilogue), sans-serif';
 const SUPPORT_WA = '919717500225';
@@ -29,29 +30,6 @@ function osmEmbed(lat: number, lng: number): string {
   const d = 0.006;
   const bbox = [lng - d, lat - d, lng + d, lat + d].join('%2C');
   return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lng}`;
-}
-
-function stepsFor(status: string, companionName: string) {
-  const s = status.toLowerCase();
-  const all = [
-    { title: 'Booking Confirmed', desc: `${companionName} has been assigned to your visit` },
-    { title: 'Companion En Route', desc: `${companionName} is currently on the way to your location.` },
-    { title: 'Visit In Progress', desc: `${companionName} is with the patient at the hospital.` },
-    { title: 'Visit Completed', desc: 'Medicines collected and patient safely returned.' },
-  ];
-  let activeIdx = 1;
-  if (s.includes('assigned')) activeIdx = 1;
-  else if (s.includes('progress') || s === 'active') activeIdx = 2;
-  else if (s === 'completed') activeIdx = 3;
-  return { all: all.slice(0, Math.max(activeIdx + 1, 2)), activeIdx };
-}
-
-function headline(status: string) {
-  const s = status.toLowerCase();
-  if (s.includes('assigned')) return 'Your companion is on the way';
-  if (s.includes('progress') || s === 'active') return 'Your companion is with the patient';
-  if (s === 'completed') return 'Visit completed';
-  return 'Finding your companion';
 }
 
 function TrackingInner() {
@@ -113,7 +91,10 @@ function TrackingInner() {
     );
   }
 
-  const { all: steps, activeIdx } = stepsFor(booking.status, companionName);
+  const hasLocation = booking.last_lat != null && booking.last_lng != null;
+  const tripStarted = hasLocation; // live lat/lng is the credential that trip has started
+  const trackOpts = { scheduled_start_time: booking.scheduled_start_time, hasLocation, tripStarted };
+  const { steps, activeIdx } = trackingSteps(booking.status, companionName, trackOpts);
   const confirmedAt = booking.scheduled_start_time || booking.created_at;
   const confirmedTime = new Date(confirmedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
@@ -159,7 +140,7 @@ function TrackingInner() {
             <span style={{ width: 48, height: 6, borderRadius: 999, background: '#c0c9c3', opacity: 0.5 }} />
           </div>
           <div style={{ padding: '16px 24px 17px', borderBottom: '1px solid #e1e3de' }}>
-            <h2 style={{ margin: 0, fontSize: 22, lineHeight: '28px', fontWeight: 500, color: 'var(--m3-ink)' }}>{headline(booking.status)}</h2>
+            <h2 style={{ margin: 0, fontSize: 22, lineHeight: '28px', fontWeight: 500, color: 'var(--m3-ink)' }}>{trackingHeadline(booking.status, trackOpts)}</h2>
             <p style={{ margin: '4px 0 0', fontSize: 14, letterSpacing: '0.25px', color: 'var(--m3-muted)' }}>
               Booking {booking.reference_code}
               {booking.pickup_title ? ` · ${booking.pickup_title}` : ''}

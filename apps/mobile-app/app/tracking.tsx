@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react';
 import { Image, Linking, Share, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
+let MapView: any = null;
+let Marker: any = null;
+try {
+  const m = require('react-native-maps');
+  MapView = m.default || m;
+  Marker = m.Marker;
+} catch {}
+
 import { supabase } from '../lib/supabase';
 import { trackingHeadline, trackingSteps } from '@caresy/utils/bookingStatus';
 import { Button, Card, EmptyState, LoadingState, Overline, Screen, Txt } from '../components/ui';
@@ -28,8 +36,7 @@ export default function Tracking() {
   const [booking, setBooking] = useState<TrackedBooking | null>(null);
   const [loading, setLoading] = useState(!!token);
 
-  // The share token is the credential — no session needed (family opens the same
-  // link). One poll covers status + last-known position; 10s matches web.
+  // Share token is credential — Realtime if available, poll as fallback.
   useEffect(() => {
     if (!token) { setLoading(false); return; }
     let alive = true;
@@ -41,8 +48,21 @@ export default function Tracking() {
       });
     };
     tick();
-    const id = setInterval(tick, 10_000);
-    return () => { alive = false; clearInterval(id); };
+    const poll = setInterval(tick, 10_000);
+    // Realtime broadcast on trip:<token> if backend emits (Phase 4), else poll keeps it live
+    let channel: any = null;
+    try {
+      channel = supabase.channel(`trip:${token}`)
+        .on('broadcast', { event: 'location' }, (payload: any) => {
+          if (!alive) return;
+          const p = payload?.payload || payload;
+          if (p?.last_lat != null && p?.last_lng != null) {
+            setBooking((prev) => prev ? { ...prev, last_lat: p.last_lat, last_lng: p.last_lng, last_location_at: p.at || new Date().toISOString() } : prev);
+          }
+        })
+        .subscribe();
+    } catch {}
+    return () => { alive = false; clearInterval(poll); try { channel && supabase.removeChannel(channel); } catch {} };
   }, [token]);
 
   const header = <Stack.Screen options={{ headerShown: true, title: 'Live tracking' }} />;
@@ -64,8 +84,18 @@ export default function Tracking() {
 
   const companion = booking.companion;
   const companionName = companion?.name || 'Your companion';
-  const { steps, activeIdx } = trackingSteps(booking.status, companionName);
   const hasLocation = booking.last_lat != null && booking.last_lng != null;
+  const tripStarted = hasLocation; // live lat/lng is the credential that trip has started
+  const { steps, activeIdx } = trackingSteps(booking.status, companionName, {
+    scheduled_start_time: booking.scheduled_start_time,
+    hasLocation,
+    tripStarted,
+  });
+  const headline = trackingHeadline(booking.status, {
+    scheduled_start_time: booking.scheduled_start_time,
+    hasLocation,
+    tripStarted,
+  });
 
   const share = () => {
     const url = `${WEB_BASE}/tracking?t=${token}`;
@@ -84,7 +114,7 @@ export default function Tracking() {
       <View style={s.body}>
         <View style={s.headlineBlock}>
           <Overline>Booking {booking.reference_code}</Overline>
-          <Txt variant="h1" color={color.greenDeep}>{trackingHeadline(booking.status)}</Txt>
+          <Txt variant="h1" color={color.greenDeep}>{headline}</Txt>
           {booking.pickup_title ? <Txt variant="body" color={color.muted}>{booking.pickup_title}</Txt> : null}
         </View>
 
@@ -106,7 +136,7 @@ export default function Tracking() {
           </Card>
         ) : null}
 
-        {/* Location */}
+        {/* Location — native map when live, placeholder before trip starts */}
         <Card style={s.locCard}>
           {hasLocation ? (
             <>
@@ -114,6 +144,19 @@ export default function Tracking() {
                 <View style={s.liveDot} />
                 <Txt variant="label" color={color.green}>Live location shared</Txt>
               </View>
+              {MapView && Marker ? (
+                <View style={s.mapWrap}>
+                  <MapView
+                    style={s.map}
+                    initialRegion={{ latitude: booking.last_lat!, longitude: booking.last_lng!, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
+                    region={{ latitude: booking.last_lat!, longitude: booking.last_lng!, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                  >
+                    <Marker coordinate={{ latitude: booking.last_lat!, longitude: booking.last_lng! }} title={companionName} />
+                  </MapView>
+                </View>
+              ) : null}
               <Txt variant="caption" color={color.faint}>
                 {booking.last_location_at ? `Updated ${new Date(booking.last_location_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : 'Just now'}
               </Txt>
@@ -121,8 +164,8 @@ export default function Tracking() {
             </>
           ) : (
             <>
-              <Txt variant="label" color={color.muted}>Location not shared yet</Txt>
-              <Txt variant="caption" color={color.faint}>Your companion’s live location appears here once they start the trip.</Txt>
+              <Txt variant="label" color={color.muted}>Location will be shared soon</Txt>
+              <Txt variant="caption" color={color.faint}>Your companion will share live location when they start the trip. Check back closer to your scheduled time.</Txt>
             </>
           )}
         </Card>
@@ -167,6 +210,8 @@ const s = StyleSheet.create({
   locCard: { gap: space.xs },
   liveRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   liveDot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: color.success },
+  mapWrap: { height: 180, borderRadius: radius.md, overflow: 'hidden', marginTop: space.sm },
+  map: { flex: 1 },
   mapBtn: { marginTop: space.md },
 
   timeline: { gap: 0, marginTop: space.sm },

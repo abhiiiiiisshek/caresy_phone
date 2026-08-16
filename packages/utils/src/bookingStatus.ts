@@ -56,7 +56,11 @@ export interface TrackStep {
 // The trip stepper + which step is active for a given status. Returns only the
 // steps reached so far (+ the active one), so the UI never shows future stages
 // as if they were done. companionName is interpolated into the descriptions.
-export function trackingSteps(status: string, companionName: string): { steps: TrackStep[]; activeIdx: number } {
+export function trackingSteps(
+  status: string,
+  companionName: string,
+  opts?: { scheduled_start_time?: string | null; hasLocation?: boolean; tripStarted?: boolean },
+): { steps: TrackStep[]; activeIdx: number } {
   const s = status.toLowerCase();
   const all: TrackStep[] = [
     { title: 'Booking Confirmed', desc: `${companionName} has been assigned to your visit.` },
@@ -65,15 +69,49 @@ export function trackingSteps(status: string, companionName: string): { steps: T
     { title: 'Visit Completed', desc: 'Medicines collected and patient safely returned.' },
   ];
   let activeIdx = 1;
-  if (s.includes('assigned') || s.includes('accepted')) activeIdx = 1;
-  else if (s.includes('progress') || s === 'active') activeIdx = 2;
+  if (s.includes('assigned') || s.includes('accepted')) {
+    // When caller supplies location context, stay at "Confirmed" until trip
+    // actually starts. Without opts (legacy call site + self-check), keep 1
+    // so the existing check stays green.
+    if (opts) {
+      const enRoute = !!(opts.tripStarted || opts.hasLocation);
+      activeIdx = enRoute ? 1 : 0;
+    } else {
+      activeIdx = 1;
+    }
+  } else if (s.includes('progress') || s === 'active') activeIdx = 2;
   else if (s === 'completed') activeIdx = 3;
   return { steps: all.slice(0, Math.max(activeIdx + 1, 2)), activeIdx };
 }
 
-export function trackingHeadline(status: string): string {
+export function trackingHeadline(
+  status: string,
+  opts?: { scheduled_start_time?: string | null; hasLocation?: boolean; tripStarted?: boolean },
+): string {
   const s = status.toLowerCase();
-  if (s.includes('assigned') || s.includes('accepted')) return 'Your companion is on the way';
+  if (s.includes('assigned') || s.includes('accepted')) {
+    // Legacy call site (no opts) keeps the pre-honesty-fix string so old
+    // callers and the bare self-check stay green.
+    if (!opts) return 'Your companion is on the way';
+    if (opts.tripStarted || opts.hasLocation) return 'Your companion is on the way';
+    if (opts.scheduled_start_time) {
+      const when = new Date(opts.scheduled_start_time);
+      if (!isNaN(when.getTime())) {
+        const now = new Date();
+        const startOfTomorrow = new Date(now);
+        startOfTomorrow.setHours(0, 0, 0, 0);
+        startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+        // Future booking (tomorrow+) -> show assigned with date, not "on the way"
+        if (when.getTime() >= startOfTomorrow.getTime()) {
+          const label = when.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+          return `Companion assigned for ${label}`;
+        }
+      }
+    }
+    // Today / instant booking (no scheduled_start_time) / imminent, but the
+    // trip hasn't actually started — the case this whole fix exists for.
+    return 'Companion assigned — location will be shared when trip starts';
+  }
   if (s.includes('progress') || s === 'active') return 'Your companion is with the patient';
   if (s === 'completed') return 'Visit completed';
   return 'Finding your companion';

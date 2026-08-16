@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import Constants from 'expo-constants';
 // Supabase's implicit-grant redirect puts tokens in the URL's hash fragment;
 // expo-linking's parser does not read fragments, so use expo-auth-session's
 // parser instead — this is Supabase's own documented Expo pattern.
@@ -15,6 +17,7 @@ type AuthContextValue = {
   session: Session | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -43,6 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.subscription.unsubscribe();
   }, []);
 
+  // Push: disabled in Expo Go tunnel — enable after dev-client build (prebuild)
+  useEffect(() => { return; }, [session]);
+
   async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -70,12 +76,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (sessionError) throw sessionError;
   }
 
+  async function signInWithApple() {
+    if (Platform.OS !== 'ios') throw new Error('Sign in with Apple is only available on iOS');
+    let AppleAuthentication: any = null;
+    try { AppleAuthentication = require('expo-apple-authentication'); } catch { throw new Error('Apple auth not available in Expo Go — rebuild dev client'); }
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
+    });
+    if (!credential.identityToken) throw new Error('Apple did not return an identity token');
+    const { error } = await supabase.auth.signInWithIdToken({
+      provider: 'apple',
+      token: credential.identityToken,
+    });
+    if (error) throw error;
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ session, loading, signInWithGoogle, signInWithApple, signOut }}>
       {children}
     </AuthContext.Provider>
   );

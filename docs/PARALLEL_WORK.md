@@ -7,7 +7,7 @@
 | 0 — Unblock sharing | `packages/utils`/`types` made web-independent so Metro can import them | ✅ done 2026-08-07 |
 | 1 — Boot + auth | Expo app scaffolded, Supabase auth (Google sign-in), one screen reading own `profiles` row | ✅ done |
 | 2 — Read-only screens | Home, booking history/detail, profile, settings, support, native bottom tabs | ✅ mostly done — Home + My Bookings built, Profile/Settings/Support still ⬜ (see `NATIVE_CHECKLIST.md`) |
-| 3 — Booking write path | Service → hospital → patient → pincode → slot → confirm, real `INSERT` under RLS | ✅ done — Booking screen built, writes patients→locations→bookings |
+| 3 — Booking write path | Service → hospital → patient → pincode → slot → confirm, real `INSERT` under RLS | ✅ built (parity deferred — see `NATIVE_CHECKLIST.md` deferred 1–4,8) — Booking screen built, writes patients→locations→bookings |
 | 4 — Native-only capability | Live tracking (maps + Realtime), push notifications, image picker for docs | 🔶 partial — Tracking screen built; push notifications + doc picker not yet |
 | 5 — Store compliance | Account deletion, Sign in with Apple, privacy manifest, Data Safety/App Privacy forms | ⬜ not built — **blocks both store submissions** |
 | 6 — Ship, retire shell | EAS Build → Play + App Store, then delete old `apps/mobile` Capacitor tree | ⬜ blocked on Phase 5 |
@@ -33,6 +33,80 @@ Left mid-flight: <anything uncommitted or half-done — or "none, clean">
 Don't touch: <files/areas someone else should hold off on, or "none">
 Next: <what should happen next in this area>
 ```
+
+---
+
+### 2026-08-14 — primary + Muse — branch `feature/mobile-quick-help` — forward from Phase 3
+Did: confirmed Phase 3 booking write path as built (parity deferred). `apps/mobile-app/app/booking.tsx` 4-step wizard writes patients→locations→bookings under RLS; server `enforce_service_area()` remains authoritative. Checklist parity gap acknowledged per `NATIVE_CHECKLIST.md:35-48`.
+Left mid-flight: none — doc-only update. Prior uncommitted `apps/mobile-app/{app.json,package.json,tsconfig.json}`, `package-lock.json`, `apps/mobile-app/eas.json` still M/?? — untouched.
+Don't touch: same as 2026-08-14 evening/Muse review entries — `apps/mobile-app/{app.json,package.json,tsconfig.json,eas.json}`, `package-lock.json`, `apps/mobile-app/app/{profile.tsx,care/}`, `packages/utils/src/careGuides.ts` until device verification lands.
+Next: **On your side** — (a) run money loop on device: book on phone → accept in companion portal → complete & bill → confirm amount matches `formatINR(totalPaise)` vs admin/payments; (b) verify empty-dashboard is honest empty state vs fetch bug (fresh Google account → "No upcoming visits"); (c) when ready, restore Phase 3 parity 1–4 (served-area `checkPincodeServed`, hospital picker, map lat/lng, reschedule) + Phase 5 account deletion (store blocker). Agent proceeds to Phase 4 native-only gaps (push, doc picker, inline map) when you signal — no `packages/*` or `supabase/migrations/*` edits without call-out.
+
+---
+
+### 2026-08-14 — Muse review — branch `feature/mobile-quick-help` (worktree: `caresy_m3_worktree`) — Phase 3 read
+
+Did: read `docs/MOBILE_PLAN.md` Phase 3 + `apps/mobile-app/NATIVE_CHECKLIST.md` + `docs/LIVE_TRACKING_HANDOFF.md` per scoped request. **Scope applied:** `NATIVE_CHECKLIST.md` blockers only; `DEVELOPER_HANDOFF.md` skipped (superseded, not mobile); `NEXT_SESSION.md`/`CURRENT.md` skipped (web-side mascot/migrations 30/31, not Phase 3). Updated phases table row 3: `✅ done` → `✅ built (parity deferred — see NATIVE_CHECKLIST.md deferred 1–4,8)` — accurate per checklist; no other rows changed. No `apps/mobile-app/*`, `packages/*`, or `supabase/migrations/*` edits.
+
+Phase 3 import — `NATIVE_CHECKLIST.md` deferred (source lines `30:31–58`, last read 2026-08-14):
+- 1. Served-area enforcement — Booking checks `isValidPincode` format only; web gates on `checkPincodeServed`/`listServedAreas` (injected `SupabaseClient`). Deferred for NCR launch; restore before opening outside serviced pincodes. *Server-side `enforce_service_area()` remains authoritative.*
+- 2. Hospital selection — plain text field vs web `HospitalAutocomplete` over `hospitals` catalog. Valid booking either way; restore with native searchable picker.
+- 3. Meeting-point / map location — `latitude/longitude = null`; web has map picker (`MeetingPoint`). Companion Open-in-Maps falls back to address. Restore with native map picker + `expo-location` permission flow.
+- 4. Rescheduling — My Bookings ships `cancel_booking` but not `reschedule_booking`; needs native datetime picker. Restore by reusing Booking day/slot chooser as reschedule sheet.
+- (Deferred 5–7 noted but out of Phase 3 scope — tracked in `NATIVE_CHECKLIST.md`): 5. Embedded live map (deep link only, no `react-native-maps`), 6. Notifications (`expo-notifications` not wired), 7. Document/photo upload (`patient-docs` bucket).
+- 8. Account deletion — ⬜ todo, **store-compliance blocker** (also Phase 5 blocker: `NATIVE_CHECKLIST.md:28,64`).
+
+Phase 4 context only (`LIVE_TRACKING_HANDOFF.md`, not folded into Phase 3): `16_TRIPS_AND_LIVE_TRACKING.sql` → `17_TRIP_ETA.sql` → `18_BOOKING_TRIP_LINK.sql`, `trip-eta` Edge Function (OpenRouteService), Realtime Broadcast (`trip:<id>`) + Postgres Changes, MapLibre + OSM tiles, companion/customer trip screens in `caresy-app`. Tracked separately in `NATIVE_CHECKLIST.md:51–53` + `PARALLEL_WORK.md` Phase 4 row.
+
+Source of truth: `docs/MOBILE_PLAN.md` Phase 3; summary in `PARALLEL_WORK.md` phases table is not authoritative and can go stale.
+
+Left mid-flight: none from this review — append-only doc edit, no code changes. Uncommitted state from prior primary session untouched: `apps/mobile-app/{app.json,package.json,tsconfig.json}`, `package-lock.json`, `apps/mobile-app/eas.json` (still `M`/`??` per `git status` at review time).
+Don't touch: `apps/mobile-app/app.json`, `apps/mobile-app/package.json`, `apps/mobile-app/tsconfig.json`, `apps/mobile-app/eas.json`, `package-lock.json` — prior primary session's real-device QA uncommitted work (see 2026-08-14 evening entry). Also `apps/mobile-app/app/profile.tsx`, `apps/mobile-app/app/care/`, `packages/utils/src/careGuides.ts` per 2026-08-14 entry — verify on device before changing.
+Next: Phase 3 parity restores (1–4,8) when scoped; Phase 4 (push notifications, doc picker, inline map) and Phase 5 (account deletion, Sign in with Apple, privacy manifest) remain the only ⬜ store-blocking work per `NATIVE_CHECKLIST.md`.
+
+---
+
+### 2026-08-14 (evening) — primary session — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`)
+Did: first real-device QA pass on Phase 2/3 (previously only `tsc`-clean, never
+run on hardware per `NATIVE_CHECKLIST.md`). Fixed a `react`/`react-dom` version
+mismatch under `apps/mobile-app` (package.json had drifted to `19.2.3`/`^19.2.8`
+against the monorepo's `19.2.4`, plus a stale nested copy in
+`apps/mobile-app/node_modules`); pinned both to `19.2.4` and regenerated
+`package-lock.json` from a clean install. Installed `expo-dev-client` and
+`eas-cli` (saved as devDependency) since SDK 57 is too new for store-published
+Expo Go on both platforms — added `apps/mobile-app/eas.json` with a
+`development` profile. Ran `eas build --profile development --platform all`:
+Android succeeded first try; iOS failed on Apple capability sync (misleading
+"bundle cannot be deleted" error) because an orphaned Sign-In-with-Apple
+Service ID was still attached to `in.co.caresy.app` from prior App Store
+Connect work — deleted the stray Service ID in Apple Developer portal, iOS
+build succeeded after. `eas build:configure` auto-added `extra.eas.projectId`
+to `app.json` (harmless, expected). Diagnosed phone-can't-reach-Metro as
+router-level AP/client isolation (ruled out macOS firewall by testing with it
+off, and ruled out app-level bug by confirming Safari on the phone also
+couldn't load the LAN IP) — worked around with `expo start --tunnel`. Fixed
+Google OAuth silently falling back to the website mid-login: Supabase's
+Redirect URLs allowlist was missing `caresy://auth/callback` (and the
+`caresy://**` wildcard); added both in Supabase Dashboard → Authentication →
+URL Configuration. Sign-in now completes and returns to the app.
+Diagnosed (not yet confirmed) the "blank"-looking dashboard: likely not a bug
+— a fresh Google account has zero bookings, so the "next visit" card correctly
+renders a plain "No upcoming visits" empty state, which reads as broken
+because there's no icon/illustration/polish on it yet. Awaiting user
+confirmation the hero card + greeting name do render before ruling out an
+actual data-fetch bug.
+Left mid-flight: uncommitted changes — `apps/mobile-app/package.json`,
+`apps/mobile-app/tsconfig.json` (Expo auto-added `include`), `package-lock.json`,
+new `apps/mobile-app/eas.json`, `apps/mobile-app/app.json` (auto-added
+`extra.eas.projectId`). Nothing committed yet, all local. No code changes to
+`profile.tsx`/`care/`/`careGuides.ts` — didn't touch prior session's screens.
+Don't touch: nothing claimed for next session yet.
+Next: user wants (a) confirmation + fix if the empty dashboard is a real
+data bug vs. honest empty state, then (b) a dedicated design/polish pass —
+Liquid Glass materials on iOS, Material 3 Expressive on Android — not yet
+scoped or added to any phase in `MOBILE_PLAN.md`. Phase 4 gaps (push
+notifications, doc picker) and Phase 5 (account deletion, Sign in with Apple,
+store-compliance) are still the only phases with real ⬜ work.
 
 ---
 

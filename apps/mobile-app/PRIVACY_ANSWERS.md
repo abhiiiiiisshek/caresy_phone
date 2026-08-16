@@ -1,0 +1,34 @@
+# Caresy — Privacy Answers (App Store + Play)
+
+Use this verbatim for App Store Connect **App Privacy** and Play Console **Data Safety**.
+
+## Tracking
+- **Tracking across apps/websites:** No.
+
+## Data collected (iOS App Privacy)
+
+| Data type | Linked to user | Tracking | Purpose |
+|---|---|---|---|
+| Name | No | No | App functionality (profile greeting) |
+| Phone number | Yes | No | App functionality (booking contact, OTP if phone auth) |
+| Precise location | No | No | App functionality (meeting point, live trip sharing after companion starts) |
+| Photos/Videos | No | No | App functionality (optional patient document: prescription/report) |
+
+**How:** User-entered + device location only when `At home` is chosen (permission prompt). Location is written to `locations.latitude/longitude` and (when live) broadcast on `trip:<id>` to circle members only.
+
+## iOS privacy manifest
+- File: `apps/mobile-app/PrivacyInfo.xcprivacy` — `NSPrivacyTracking: false`, data types above, API reasons `C617.1` (FileTimestamp), `CA92.1` (UserDefaults), `35F9.1` (SystemBootTime).
+- Strings in `app.json` `ios.infoPlist`: `NSLocationWhenInUseUsageDescription`, `NSLocationAlwaysAndWhenInUseUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription`, `NSUserNotificationUsageDescription`.
+
+## Play Data Safety (answers)
+- **Data collected:** Yes — Name, Phone, Precise location, Photos.
+- **Data shared:** No.
+- **Collected is optional?** Location/Photos are optional (only if user picks `At home` or attaches a doc). Phone is optional until booking.
+- **Deletion:** Yes — in-app `Profile → Danger zone → Delete account` (`app/account-delete.tsx`) deletes `auth.users` cascades to all tables/buckets; website also `/account/delete` via `POST /api/account/delete`. Meets Apple 5.1.1(v) + Play.
+- **Encryption in transit:** Yes (Supabase TLS).
+- **Encryption at rest:** Yes (Supabase).
+
+## Notes for reviewer
+- Location is **not** tracked in background continuously — only set at booking (`At home`) and live-shared during an active visit (`trip:<id>` Realtime) to the booking's circle.
+- Photos are user-initiated only; no camera use without explicit `Pick photo` tap.
+- Sign in with Apple is offered alongside Google (Apple 4.8) — see `lib/AuthProvider.tsx:signInWithApple`.

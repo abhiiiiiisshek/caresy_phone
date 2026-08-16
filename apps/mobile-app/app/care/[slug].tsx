@@ -2,8 +2,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 
 import { guideBySlug } from '@caresy/utils/careGuides';
-import { EmptyState, Overline, Screen, Txt } from '../../components/ui';
-import { color, space } from '../../lib/theme';
+import { Card, EmptyState, Overline, Screen, Txt } from '../../components/ui';
+import { color, radius, space } from '../../lib/theme';
 
 export default function CareGuideDetail() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -22,10 +22,11 @@ export default function CareGuideDetail() {
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: guide.title }} />
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <View style={s.intro}>
+        <Card style={s.hero}>
+          <View style={s.heroBar} />
           <Txt variant="h1" color={color.greenDeep}>{guide.title}</Txt>
           <Txt variant="caption" color={color.faint}>{guide.minutes} min read</Txt>
-        </View>
+        </Card>
 
         {guide.sections.map((sec, i) => (
           <View key={i} style={s.section}>
@@ -53,6 +54,8 @@ export default function CareGuideDetail() {
 const s = StyleSheet.create({
   body: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
   intro: { gap: space.xs, marginBottom: space.sm },
+  hero: { gap: space.xs, overflow: 'hidden' },
+  heroBar: { height: 6, marginHorizontal: -space.lg, marginTop: -space.lg, marginBottom: space.sm, backgroundColor: color.green, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
   section: { gap: space.sm },
   paragraph: { lineHeight: 22 },
   bulletRow: { flexDirection: 'row', gap: space.sm, paddingRight: space.md },

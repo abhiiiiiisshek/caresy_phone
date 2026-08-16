@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -37,7 +37,7 @@ function whenLabel(iso: string | null) {
 }
 
 export default function Home() {
-  const { session, loading, signInWithGoogle, signOut } = useAuth();
+  const { session, loading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [next, setNext] = useState<NextBooking | null | undefined>(undefined); // undefined = not loaded
@@ -80,6 +80,18 @@ export default function Home() {
             }}
             style={s.welcomeBtn}
           />
+          {Platform.OS === 'ios' ? (
+            <Button
+              title="Sign in with Apple"
+              variant="secondary"
+              loading={signingIn}
+              onPress={async () => {
+                setSigningIn(true);
+                try { await signInWithApple(); } finally { setSigningIn(false); }
+              }}
+              style={s.welcomeBtn}
+            />
+          ) : null}
         </View>
       </Screen>
     );
@@ -98,18 +110,37 @@ export default function Home() {
           <Txt variant="display" color={color.greenDeep}>Hi, {name}</Txt>
         </View>
 
-        {/* Primary CTA */}
+        {/* Primary — URGENT dominates (emotional, fast, biggest) */}
+        <Pressable
+          onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push('/quick-help'); }}
+          accessibilityRole="button"
+          accessibilityLabel="Need help urgently"
+          style={({ pressed }) => [s.heroUrgentPrimary, shadow.card, pressed && s.pressed, Platform.OS === 'ios' && s.glassIos]}
+        >
+          <View style={s.urgentGlow} />
+          <View style={s.urgentGlow2} />
+          <Overline color={color.urgent}>Immediate response</Overline>
+          <Txt variant="display" color={color.urgentInk}>Need help urgently?</Txt>
+          <Txt variant="body" color="rgba(147,0,10,0.78)">
+            Today's appointment, queue or medicine — we assign a companion right now.
+          </Txt>
+          <View style={s.heroUrgentCta}><Txt variant="label" color={color.onGreen}>Get urgent help →</Txt></View>
+          <Txt variant="caption" color="rgba(147,0,10,0.55)">Usually assigned in minutes · Noida & Greater Noida</Txt>
+        </Pressable>
+
+        {/* Secondary — Scheduled, still graphic but calmer */}
         <Pressable
           onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/booking'); }}
           accessibilityRole="button"
-          accessibilityLabel="Book a companion"
-          style={({ pressed }) => [s.hero, shadow.card, pressed && s.pressed]}
+          accessibilityLabel="Book a companion for later"
+          style={({ pressed }) => [s.heroScheduled, shadow.card, pressed && s.pressed, Platform.OS === 'ios' && s.glassIos]}
         >
+          <View style={s.scheduledGlow} />
           <Txt variant="h1" color={color.onGreen}>Book a companion</Txt>
-          <Txt variant="body" color="rgba(255,255,255,0.85)">
-            Doctor visits, procedures, medicine pickup — someone there the whole time.
+          <Txt variant="body" color="rgba(255,255,255,0.86)">
+            Plan ahead — doctor visits, procedures, elder care. Pick date & time.
           </Txt>
-          <View style={s.heroCta}><Txt variant="label" color={color.greenDeep}>Start booking →</Txt></View>
+          <View style={s.heroCta}><Txt variant="label" color={color.greenDeep}>Schedule →</Txt></View>
         </Pressable>
 
         {/* Next visit */}
@@ -138,12 +169,12 @@ export default function Home() {
           )}
         </View>
 
-        {/* Quick actions */}
+        {/* Quick actions — no duplicate urgent; Get Help goes to real support */}
         <View style={s.actions}>
-          <QuickAction label="My bookings" onPress={() => router.push('/my-bookings')} />
-          <QuickAction label="Profile" onPress={() => router.push('/profile')} />
-          <QuickAction label="Care guides" onPress={() => router.push('/care')} />
-          <QuickAction label="Get help" onPress={() => Linking.openURL(`https://wa.me/${SUPPORT_WA}`)} />
+          <QuickAction label="My bookings" onPress={() => router.push('/my-bookings')} icon="◷" />
+          <QuickAction label="Care guides" onPress={() => router.push('/care')} icon="✦" />
+          <QuickAction label="Get help" onPress={() => router.push('/support')} icon="?" />
+          <QuickAction label="Profile" onPress={() => router.push('/profile')} icon="◯" />
         </View>
 
         <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
@@ -152,14 +183,15 @@ export default function Home() {
   );
 }
 
-function QuickAction({ label, onPress }: { label: string; onPress: () => void }) {
+function QuickAction({ label, onPress, icon }: { label: string; onPress: () => void; icon?: string }) {
   return (
     <Pressable
       onPress={() => { Haptics.selectionAsync(); onPress(); }}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [s.action, shadow.card, pressed && s.pressed]}
+      style={({ pressed }) => [s.action, shadow.card, pressed && s.pressed, Platform.OS === 'ios' ? s.actionIos : s.actionAndroid]}
     >
+      {icon ? <Txt variant="caption" color={color.faint}>{icon}</Txt> : null}
       <Txt variant="title" color={color.greenDeep}>{label}</Txt>
     </Pressable>
   );
@@ -176,13 +208,21 @@ const s = StyleSheet.create({
   welcomeBtn: { alignSelf: 'stretch', marginTop: space.lg },
 
   greeting: { gap: space.xs },
-  hero: { backgroundColor: color.green, borderRadius: radius.lg, padding: space.xl, gap: space.sm },
+  heroUrgentPrimary: { backgroundColor: color.urgentBg, borderRadius: radius.lg, padding: space.xl, gap: space.sm, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(186,26,26,0.14)', minHeight: 190 },
+  urgentGlow: { position: 'absolute', top: -36, right: -30, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(186,26,26,0.10)' },
+  urgentGlow2: { position: 'absolute', bottom: -40, left: -20, width: 140, height: 140, borderRadius: 70, backgroundColor: 'rgba(255,255,255,0.55)' },
+  heroUrgentCta: { alignSelf: 'flex-start', marginTop: space.sm, backgroundColor: color.urgent, paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill },
+  heroScheduled: { backgroundColor: color.green, borderRadius: radius.lg, padding: space.xl, gap: space.sm, overflow: 'hidden', minHeight: 148 },
+  scheduledGlow: { position: 'absolute', top: -22, right: -22, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(255,255,255,0.11)' },
   heroCta: { alignSelf: 'flex-start', marginTop: space.sm, backgroundColor: color.onGreen, paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill },
+  glassIos: { backgroundColor: Platform.OS === 'ios' ? 'rgba(255,255,255,0.02)' : undefined },
 
   section: { gap: space.md },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginBottom: space.xs },
 
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  action: { flexBasis: '46%', flexGrow: 1, backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, minHeight: 72, justifyContent: 'center' },
+  action: { flexBasis: '46%', flexGrow: 1, backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, minHeight: 76, justifyContent: 'center', gap: 2, borderWidth: 1, borderColor: 'transparent' },
+  actionIos: { backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.06)' },
+  actionAndroid: { backgroundColor: color.surface, borderColor: color.line, elevation: 1 },
   signOut: { marginTop: space.sm },
 });

@@ -39,4 +39,28 @@ assert.equal(trackingHeadline('ACCEPTED'), 'Your companion is on the way');
 assert.equal(trackingHeadline('IN_PROGRESS'), 'Your companion is with the patient');
 assert.equal(trackingHeadline('PENDING'), 'Finding your companion');
 
+// Tracking honesty (the opts branch): ASSIGNED/ACCEPTED must not claim "on the
+// way" before a live location or trip start actually exists.
+assert.equal(
+  trackingHeadline('ASSIGNED', { hasLocation: false, tripStarted: false }),
+  'Companion assigned — location will be shared when trip starts',
+);
+assert.equal(
+  trackingHeadline('ASSIGNED', { hasLocation: true, tripStarted: false }),
+  'Your companion is on the way',
+);
+assert.equal(
+  trackingHeadline('ASSIGNED', { hasLocation: true, tripStarted: true }),
+  'Your companion is on the way',
+);
+// A future-scheduled visit shows the date, never a live-sounding claim.
+const tomorrow = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+assert.ok(
+  trackingHeadline('ASSIGNED', { scheduled_start_time: tomorrow, hasLocation: false }).startsWith('Companion assigned for'),
+);
+// activeIdx stays at "Confirmed" (0) until location/trip-start exists, then
+// advances to "En Route" (1) — this is the bug the honesty fix closed.
+assert.equal(trackingSteps('ASSIGNED', 'Asha', { hasLocation: false, tripStarted: false }).activeIdx, 0);
+assert.equal(trackingSteps('ASSIGNED', 'Asha', { hasLocation: true, tripStarted: false }).activeIdx, 1);
+
 console.log('bookingStatus.check: ok');

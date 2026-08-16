@@ -12,8 +12,27 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "in.co.caresy.app",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Allow Caresy to use your location to set the meeting point for your companion and share live trip location.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow Caresy to use your location to set the meeting point and share live location during a visit.",
+        "NSPhotoLibraryUsageDescription": "Allow Caresy to access photos to attach a prescription or report to your booking.",
+        "NSCameraUsageDescription": "Allow Caresy to use the camera to capture a prescription or report.",
+        "NSUserNotificationUsageDescription": "Allow Caresy to send booking and visit updates.",
+        "NSPrivacyAccessedAPICategoryFileTimestamp": "File timestamps for document handling",
+        "ITSAppUsesNonExemptEncryption": false
+      },
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyCollectedDataTypes": [
+          { "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeName", "NSPrivacyCollectedDataTypeLinked": false, "NSPrivacyCollectedDataTypeTracking": false, "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"] },
+          { "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePhoneNumber", "NSPrivacyCollectedDataTypeLinked": true, "NSPrivacyCollectedDataTypeTracking": false, "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"] },
+          { "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePreciseLocation", "NSPrivacyCollectedDataTypeLinked": false, "NSPrivacyCollectedDataTypeTracking": false, "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"] },
+          { "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePhotosorVideos", "NSPrivacyCollectedDataTypeLinked": false, "NSPrivacyCollectedDataTypeTracking": false, "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAppFunctionality"] }
+        ]
       }
     },
     "android": {
@@ -30,6 +49,19 @@
       "expo-secure-store",
       "expo-web-browser",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Caresy to use your location to set the meeting point for your companion."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1B4D3E"
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash.png",
@@ -41,6 +73,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f1c994af-5e87-43f4-8d64-f33366e6756d"
+      }
     }
   }
 }

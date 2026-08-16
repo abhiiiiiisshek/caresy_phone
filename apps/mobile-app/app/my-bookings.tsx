@@ -191,11 +191,11 @@ function LiveMeter({ b }: { b: BookingRecord }) {
 
 const s = StyleSheet.create({
   flex1: { flex: 1 },
-  tabs: { flexDirection: 'row', gap: space.sm, paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.sm },
-  list: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
-  listEmpty: { flexGrow: 1 },
+  tabs: { flexDirection: 'row', gap: space.sm, paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.sm },
+  list: { paddingHorizontal: space.xl, paddingTop: space.sm, paddingBottom: space.xxl, gap: space.md },
+  listEmpty: { flexGrow: 1, paddingTop: space.xl },
   emptyBtn: { marginTop: space.md, paddingHorizontal: space.xxl },
-  card: { gap: space.xs },
+  card: { gap: space.xs, overflow: 'hidden' },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginBottom: space.xs },
   amount: { marginTop: space.sm },
   actions: { flexDirection: 'row', gap: space.sm, marginTop: space.md },
