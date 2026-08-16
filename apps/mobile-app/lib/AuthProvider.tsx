@@ -3,7 +3,6 @@ import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
-import * as Notifications from 'expo-notifications';
 // Supabase's implicit-grant redirect puts tokens in the URL's hash fragment;
 // expo-linking's parser does not read fragments, so use expo-auth-session's
 // parser instead — this is Supabase's own documented Expo pattern.
@@ -48,12 +47,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`
-  // Re-enabled after `prebuild --clean` — requires dev-client (Expo Go crashes on ExpoPushTokenManager).
-  // Guarded so Expo Go / simulator never breaks: try/catch + isDevice check.
+  // Lazy require keeps Expo Go from crashing at import time — ExpoPushTokenManager
+  // only exists in dev-client (prebuild --clean). Entire block is try/catch guarded.
   useEffect(() => {
     if (!session?.user) return;
     let cancelled = false;
     (async () => {
+      let Notifications: any = null;
+      try {
+        Notifications = require('expo-notifications');
+      } catch {
+        return; // Expo Go without native module — silently skip
+      }
       try {
         // Physical device only — simulator has no push token
         const isDevice = (Constants as any).isDevice ?? true;
