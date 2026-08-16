@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
 // Supabase's implicit-grant redirect puts tokens in the URL's hash fragment;
 // expo-linking's parser does not read fragments, so use expo-auth-session's
 // parser instead — this is Supabase's own documented Expo pattern.
@@ -46,8 +47,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.subscription.unsubscribe();
   }, []);
 
-  // Push: disabled in Expo Go tunnel — enable after dev-client build (prebuild)
-  useEffect(() => { return; }, [session]);
+  // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`
+  // Re-enabled after `prebuild --clean` — requires dev-client (Expo Go crashes on ExpoPushTokenManager).
+  // Guarded so Expo Go / simulator never breaks: try/catch + isDevice check.
+  useEffect(() => {
+    if (!session?.user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        // Physical device only — simulator has no push token
+        const isDevice = (Constants as any).isDevice ?? true;
+        if (!isDevice) return;
+
+        const { status: existing } = await Notifications.getPermissionsAsync();
+        let finalStatus = existing;
+        if (existing !== 'granted') {
+          const req = await Notifications.requestPermissionsAsync();
+          finalStatus = req.status;
+        }
+        if (finalStatus !== 'granted' || cancelled) return;
+
+        // Android channel — required for foreground notifications
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'default',
+            importance: Notifications.AndroidImportance.DEFAULT,
+          });
+        }
+
+        const projectId =
+          (Constants.expoConfig?.extra as any)?.eas?.projectId ??
+          (Constants as any).easConfig?.projectId ??
+          'f1c994af-5e87-43f4-8d64-f33366e6756d';
+
+        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId } as any);
+        const token = (tokenData as any).data as string | undefined;
+        if (!token || cancelled) return;
+
+        const { error } = await supabase.from('push_tokens').upsert(
+          { token, user_id: session.user.id, platform: Platform.OS },
+          { onConflict: 'token' },
+        );
+        if (error) console.warn('[push] upsert failed', error.message);
+      } catch (e) {
+        // Silently skip in Expo Go / web — push needs dev-client + google-services.json
+        console.warn('[push] registration skipped', (e as Error).message?.slice(0, 120));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [session]);
 
   async function signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
