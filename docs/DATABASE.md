@@ -47,11 +47,13 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 27 | `27_TRANSPORT.sql` | `booking_transport` fare log ([ADR-0006](ADR/0006-transport-is-facilitated-not-billed.md)) | ✅ |
 | 28 | `28_CONTACT_AND_METRICS.sql` | `contact_messages`, `ops_metrics` | ✅ |
 | 29 | `29_FIX_AUDIT_RLS.sql` | `trigger_audit_bookings` → `SECURITY DEFINER`; its RLS-blocked insert was aborting every booking UPDATE | ✅ |
-| 30 | `30_LAUNCH_FIXES.sql` | same-day bookings no longer born expired; `service_metadata.companion` stamped by the DB; `can_drive` closed to self-service; new-booking notification | ⬜ |
-| 31 | `31_CUSTOMER_ACTIONS.sql` | `cancel_booking` / `reschedule_booking`, and the guard that makes them the only way a customer changes a visit; `min_lead_minutes` setting | ⬜ |
-| 32 | `32_MERGE_DUPLICATE_PATIENTS.sql` | one-off data fix: merges the patient rows `/quick-help` duplicated, soft-deleting the losers | ⬜ |
-| 33 | `33_PHONE_SIGNIN.sql` | `find_user_by_phone()` (service-role only) — matches an MSG91 OTP number against `profiles.phone` AND `auth.users.phone` so OTP sign-in reuses the existing account | ⬜ |
-| 34 | `34_SECURITY_HARDENING.sql` | pins `search_path` on `is_admin()` and `guard_companion_privileged_fields()`; closes the `trips` column-guard gap (`guard_trip_status_columns()`) the same way 31 closed it on `bookings` | ⬜ |
+| 30 | `30_LAUNCH_FIXES.sql` | same-day bookings no longer born expired; `service_metadata.companion` stamped by the DB; `can_drive` closed to self-service; new-booking notification | ✅ |
+| 31 | `31_CUSTOMER_ACTIONS.sql` | `cancel_booking` / `reschedule_booking`, and the guard that makes them the only way a customer changes a visit; `min_lead_minutes` setting | ✅ |
+| 32 | `32_MERGE_DUPLICATE_PATIENTS.sql` | one-off data fix: merges the patient rows `/quick-help` duplicated, soft-deleting the losers | ⬜* |
+| 33 | `33_PHONE_SIGNIN.sql` | `find_user_by_phone()` (service-role only) — matches an MSG91 OTP number against `profiles.phone` AND `auth.users.phone` so OTP sign-in reuses the existing account | ✅ |
+| 34 | `34_SECURITY_HARDENING.sql` | pins `search_path` on `is_admin()` and `guard_companion_privileged_fields()`; closes the `trips` column-guard gap (`guard_trip_status_columns()`) the same way 31 closed it on `bookings` | ✅ |
+
+\* 32 is a one-off data fix — re-run `select * from patients where customer_user_id = auth.uid() and deleted_at is null group by full_name having count(*) >1` after; flip to ✅ once merged (see `32_MERGE_DUPLICATE_PATIENTS.sql` foot query).
 
 ## Core tables
 
