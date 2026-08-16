@@ -45,13 +45,25 @@ export default function QuickHelp() {
   const [submitting, setSubmitting] = useState(false);
   const [successRef, setSuccessRef] = useState<string | null>(null);
 
-  // Seed from session like web does
+  const [family, setFamily] = useState<{ id: string; full_name: string }[]>([]);
+  const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
+
+  // Seed from session like web does + load family for 1-tap select
   useEffect(() => {
     if (!session) return;
     const name = (session.user.user_metadata?.full_name || session.user.user_metadata?.name) as string | undefined;
     if (name) setCustomerName((v) => v || name);
     if (session.user.email) setEmail((v) => v || session.user.email!);
+    supabase.from('patients').select('id, full_name').eq('customer_user_id', session.user.id).is('deleted_at', null).order('created_at', { ascending: true }).limit(20)
+      .then(({ data }) => setFamily((data as any) || []));
   }, [session]);
+
+  useEffect(() => {
+    if (selectedFamilyId) {
+      const m = family.find((f) => f.id === selectedFamilyId);
+      if (m) setPatientName(m.full_name);
+    }
+  }, [selectedFamilyId, family]);
 
   // Live pincode check
   useEffect(() => {

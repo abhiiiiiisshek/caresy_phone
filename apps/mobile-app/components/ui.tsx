@@ -185,15 +185,21 @@ export function Field({
 export function LoadingState({ label }: { label?: string }) {
   return (
     <View style={s.stateWrap}>
-      <ActivityIndicator color={color.green} />
-      {label ? <Txt variant="body" color={color.muted}>{label}</Txt> : null}
+      <View style={s.skeletonCard}><View style={s.skelLine} /><View style={[s.skelLine, { width: '72%' }]} /><View style={[s.skelLine, { width: '55%' }]} /></View>
+      {label ? <Txt variant="caption" color={color.faint}>{label}</Txt> : null}
+      <ActivityIndicator color={color.green} size="small" />
     </View>
   );
+}
+
+export function SkeletonRow() {
+  return <View style={s.skeletonCard}><View style={s.skelLine} /><View style={[s.skelLine, { width: '68%' }]} /></View>;
 }
 
 export function EmptyState({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {
   return (
     <View style={s.stateWrap}>
+      <View style={s.emptyBadge}><Txt variant="h2" color={color.green}>✦</Txt></View>
       <Txt variant="h2" color={color.ink} style={s.centerText}>{title}</Txt>
       {body ? <Txt variant="body" color={color.muted} style={s.centerText}>{body}</Txt> : null}
       {action}
@@ -231,6 +237,9 @@ const s = StyleSheet.create({
   stateWrap: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl },
   centerText: { textAlign: 'center' },
   retryBtn: { marginTop: space.sm, paddingHorizontal: space.xl },
+  skeletonCard: { width: '100%', backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, gap: space.sm, borderWidth: 1, borderColor: color.line },
+  skelLine: { height: 12, borderRadius: 6, backgroundColor: '#E8EDE9', width: '100%' },
+  emptyBadge: { width: 56, height: 56, borderRadius: 28, backgroundColor: color.greenTint, alignItems: 'center', justifyContent: 'center' },
 });
 
 const btn = StyleSheet.create({

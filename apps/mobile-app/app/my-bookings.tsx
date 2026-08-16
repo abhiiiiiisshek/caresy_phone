@@ -64,7 +64,7 @@ export default function MyBookings() {
     if (mode === 'pull') setRefreshing(true);
     setError(null);
     try {
-      const { data, error: e } = await supabase.from('bookings').select(SELECT).order('created_at', { ascending: false });
+      const { data, error: e } = await supabase.from('bookings').select(SELECT).order('created_at', { ascending: false }).limit(50);
       if (e) throw e;
       setBookings((data as unknown as BookingRecord[]) || []);
     } catch (err: any) {

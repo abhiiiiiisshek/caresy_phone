@@ -112,16 +112,18 @@ export default function Booking() {
       .then(({ data }) => setSavedPatients((data as SavedPatient[]) || []));
   }, [session]);
 
-  // Live pincode served check — mirrors web checkPincodeServed
+  // Live pincode served check — debounced (efficiency: avoids query on every keystroke)
   useEffect(() => {
     const pin = pincode.trim();
     if (!isValidPincode(pin)) { setPincodeCheck(null); return; }
     let alive = true;
-    checkPincodeServed(supabase as any, pin).then((r) => {
-      if (!alive) return;
-      setPincodeCheck(r.served ? { served: true, area: r.area?.area_name || undefined, city: r.area?.city } : { served: false });
-    });
-    return () => { alive = false; };
+    const t = setTimeout(() => {
+      checkPincodeServed(supabase as any, pin).then((r) => {
+        if (!alive) return;
+        setPincodeCheck(r.served ? { served: true, area: r.area?.area_name || undefined, city: r.area?.city } : { served: false });
+      });
+    }, 400);
+    return () => { alive = false; clearTimeout(t); };
   }, [pincode]);
 
   // Keep meetAddress in sync with meetMode

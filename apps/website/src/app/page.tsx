@@ -352,7 +352,7 @@ export default function Home() {
             />
           </Reveal>
 
-          {/* Our services */}
+          {/* Our services — marvel depth: elevated chip cards with hover lift */}
           <Reveal style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <SectionTitle action="See all" actionHref="/services">Our Services</SectionTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
@@ -360,14 +360,14 @@ export default function Home() {
                 const external = c.href.startsWith('http');
                 const inner = (
                   <>
-                    <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 1px rgba(0,0,0,0.05)', color: 'var(--m3-green)' }}>
+                    <span style={{ display: 'grid', placeItems: 'center', width: 48, height: 48, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 8px rgba(0,54,41,0.08)', color: 'var(--m3-green)' }}>
                       <c.icon style={{ width: 20, height: 20 }} />
                     </span>
-                    <span style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.5px', color: 'var(--m3-ink)', textAlign: 'center' }}>{c.label}</span>
-                    {c.note && <span style={{ fontSize: 10, color: 'var(--m3-muted)', textAlign: 'center' }}>{c.note}</span>}
+                    <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.2px', color: 'var(--m3-ink)', textAlign: 'center' }}>{c.label}</span>
+                    {c.note && <span style={{ fontSize: 10, color: 'var(--m3-muted)', textAlign: 'center', lineHeight: 1.3 }}>{c.note}</span>}
                   </>
                 );
-                const style: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 12, background: 'var(--m3-chip)', textDecoration: 'none', minHeight: 118, boxSizing: 'border-box' };
+                const style: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 8px', borderRadius: 16, background: 'var(--m3-chip)', textDecoration: 'none', minHeight: 120, boxSizing: 'border-box', border: '1px solid rgba(192,201,195,0.35)', transition: 'transform 160ms ease, box-shadow 160ms ease' };
                 return external ? (
                   <a key={c.label} href={c.href} target="_blank" rel="noopener noreferrer" style={style}>{inner}</a>
                 ) : (

@@ -96,11 +96,14 @@ export default function ProfileScreen() {
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Profile' }} />
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <View style={s.header}>
-          <View style={s.avatar}><Txt variant="h1" color={color.onGreen}>{initial}</Txt></View>
-          <Txt variant="h1" color={color.ink}>{displayName}</Txt>
-          <Txt variant="body" color={color.muted}>{profile?.age ? `Age ${profile.age}` : `Member since ${memberSince}`}</Txt>
-          <Txt variant="caption" color={color.faint}>{session.user.email}</Txt>
+        <View style={s.headerWrap}>
+          <View style={s.headerGlow} />
+          <View style={s.header}>
+            <View style={s.avatar}><Txt variant="h1" color={color.onGreen}>{initial}</Txt></View>
+            <Txt variant="h1" color={color.ink}>{displayName}</Txt>
+            <Txt variant="body" color={color.muted}>{profile?.age ? `Age ${profile.age}` : `Member since ${memberSince}`}</Txt>
+            <Txt variant="caption" color={color.faint}>{session.user.email}</Txt>
+          </View>
         </View>
 
         <Section title="Account">
@@ -188,8 +191,10 @@ const s = StyleSheet.create({
   signedOut: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl },
   signInBtn: { alignSelf: 'stretch', marginTop: space.lg },
 
-  header: { alignItems: 'center', gap: space.xs },
-  avatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: color.green, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
+  headerWrap: { alignItems: 'center', paddingVertical: space.lg, overflow: 'hidden', borderRadius: 18, backgroundColor: color.surface, borderWidth: 1, borderColor: color.line },
+  headerGlow: { position: 'absolute', top: -28, right: -28, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(27,77,62,0.07)' },
+  header: { alignItems: 'center', gap: space.xs, paddingHorizontal: space.lg },
+  avatar: { width: 88, height: 88, borderRadius: 44, backgroundColor: color.green, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm, shadowColor: '#0B2A20', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 4 },
 
   section: { gap: space.sm },
   sectionBody: { gap: space.sm },
