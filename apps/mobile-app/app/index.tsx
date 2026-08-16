@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -251,8 +252,15 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback
       {img ? (
         <>
           <Image source={img} style={s.actionImg} resizeMode="cover" accessibilityIgnoresInvertColors />
-          {/* Fade into card colour so copy stays legible — website: linear-gradient(90deg, bg 0%, bg 36%, transparent 84%) */}
-          <View style={[s.actionImgFade, { backgroundColor: bg }]} pointerEvents="none" />
+          {/* Fade into card colour so copy stays legible — matches website: linear-gradient(90deg, bg 0%, bg 36%, transparent 84%) */}
+          <LinearGradient
+            colors={[bg, bg, 'transparent']}
+            locations={[0, 0.36, 0.84]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.actionImgFade}
+            pointerEvents="none"
+          />
         </>
       ) : (
         <View style={[s.actionDecor, decor === 'urgent' ? s.actionDecorUrgent : s.actionDecorGreen]} pointerEvents="none">
@@ -325,7 +333,7 @@ const s = StyleSheet.create({
   actionDesc: { lineHeight: 16, opacity: 0.9 },
   actionArrow: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', flexShrink: 0, zIndex: 1 },
   actionImg: { position: 'absolute', top: 0, right: 0, bottom: 0, width: '64%' },
-  actionImgFade: { position: 'absolute', top: 0, left: 0, bottom: 0, width: '58%' },
+  actionImgFade: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0 },
   // Fallback decor when no image
   actionDecor: { position: 'absolute', right: -8, bottom: -8, width: 96, height: 96, alignItems: 'center', justifyContent: 'center', opacity: 1 },
   actionDecorUrgent: {},
