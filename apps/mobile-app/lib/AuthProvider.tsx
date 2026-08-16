@@ -47,23 +47,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`
-  // Lazy require — ExpoPushTokenManager only exists in dev-client (prebuild --clean).
-  // In Expo Go the require itself throws as a native-module ERROR overlay even when
-  // caught, so we bail before requiring when running in storeClient / Expo Go.
+  // Push only when native modules are actually built (dev-client).
+  // Expo Go / web / simulator have no ExpoPushTokenManager — skip entirely
+  // without even requiring the JS, so no ERROR/WARN overlay.
   useEffect(() => {
     if (!session?.user) return;
-    // Expo Go = storeClient, web = no push — skip entirely, no require, no ERROR overlay
-    const execEnv = (Constants as any).executionEnvironment;
-    const ownership = (Constants as any).appOwnership;
-    if (execEnv === 'storeClient' || ownership === 'expo' || Platform.OS === 'web') return;
+    if (Platform.OS === 'web') return;
     let cancelled = false;
     (async () => {
+      // expo-device is the reliable isDevice check (Constants.isDevice is stale)
+      let Device: any = null;
+      try { Device = require('expo-device'); } catch {}
+      if (Device?.isDevice === false) return;
+
       let Notifications: any = null;
       try {
         Notifications = require('expo-notifications');
       } catch {
-        return; // dev-client not built yet — silently skip
+        return; // not built yet — silently skip (will work after prebuild dev-client)
       }
+      if (!Notifications?.getPermissionsAsync) return;
       try {
         // Physical device only — simulator has no push token
         const isDevice = (Constants as any).isDevice ?? true;
