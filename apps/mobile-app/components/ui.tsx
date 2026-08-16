@@ -5,6 +5,7 @@ import { ReactNode } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -143,6 +144,54 @@ export function ChipRow({ children }: { children: ReactNode }) {
   return <View style={s.chipRow}>{children}</View>;
 }
 
+export function FieldButton({ label, value, placeholder, onPress, error }: { label: string; value: string; placeholder?: string; onPress: () => void; error?: string | null }) {
+  return (
+    <View style={s.field}>
+      <Text style={[type.label, { color: color.muted }]}>{label}</Text>
+      <Pressable onPress={() => { Haptics.selectionAsync(); onPress(); }} style={({ pressed }) => [s.input, s.inputButton, error ? s.inputError : null, pressed && s.pressed]}>
+        <Text style={[type.body, { color: value ? color.ink : color.placeholder }]} numberOfLines={1}>{value || placeholder || 'Select'}</Text>
+        <Text style={[type.label, { color: color.muted }]}>⌄</Text>
+      </Pressable>
+      {error ? <Text style={[type.caption, { color: color.terracottaDeep }]}>{error}</Text> : null}
+    </View>
+  );
+}
+
+export function BottomSheet({ visible, title, options, selectedKey, onSelect, onClose }: {
+  visible: boolean; title: string; options: { key: string; label: string; desc?: string }[]; selectedKey: string; onSelect: (key: string) => void; onClose: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View style={bs.overlay}>
+        <Pressable style={bs.backdrop} onPress={onClose} />
+        <View style={bs.sheet}>
+          <View style={bs.handle} />
+          <View style={bs.header}>
+            <Txt variant="title" color={color.ink}>{title}</Txt>
+            <Pressable onPress={onClose} hitSlop={12} style={bs.closeBtn}><Txt variant="label" color={color.muted}>Close</Txt></Pressable>
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={bs.list}>
+            {options.map((o) => {
+              const on = o.key === selectedKey;
+              return (
+                <Pressable key={o.key} onPress={() => { Haptics.selectionAsync(); onSelect(o.key); onClose(); }} style={({ pressed }) => [bs.row, on && bs.rowOn, pressed && s.pressed]}>
+                  <View style={bs.rowLeft}>
+                    <Txt variant="title" color={on ? color.greenDeep : color.ink}>{o.label}</Txt>
+                    {o.desc ? <Txt variant="caption" color={color.muted}>{o.desc}</Txt> : null}
+                  </View>
+                  <View style={[bs.check, on ? bs.checkOn : bs.checkOff]}>
+                    {on ? <Txt variant="label" color={color.onGreen}>✓</Txt> : null}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 /* ---------- Field ---------- */
 
 export function Field({
@@ -232,6 +281,7 @@ const s = StyleSheet.create({
     backgroundColor: color.surface, borderWidth: 1, borderColor: color.line, borderRadius: radius.md,
     paddingHorizontal: space.lg, paddingVertical: space.md, fontSize: 15, color: color.ink,
   },
+  inputButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm },
   inputMultiline: { minHeight: 88, textAlignVertical: 'top' },
   inputError: { borderColor: color.terracotta },
   stateWrap: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl },
@@ -257,4 +307,20 @@ const chip = StyleSheet.create({
   on: { backgroundColor: color.green, borderWidth: 1, borderColor: color.green },
   textOff: { color: color.muted },
   textOn: { color: color.onGreen },
+});
+
+const bs = StyleSheet.create({
+  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(16,24,20,0.45)' },
+  backdrop: { ...StyleSheet.absoluteFill },
+  sheet: { backgroundColor: color.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: space.sm, paddingBottom: space.xl, maxHeight: '72%' },
+  handle: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: color.line, marginBottom: space.md },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xl, paddingBottom: space.md, borderBottomWidth: 1, borderBottomColor: color.line },
+  closeBtn: { paddingVertical: 4, paddingHorizontal: space.sm },
+  list: { padding: space.md, gap: space.sm },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: color.line, backgroundColor: color.surface, gap: space.md },
+  rowOn: { borderColor: color.green, backgroundColor: color.greenTint },
+  rowLeft: { flex: 1, gap: 2 },
+  check: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  checkOff: { borderColor: color.line, backgroundColor: color.surface },
+  checkOn: { borderColor: color.green, backgroundColor: color.green },
 });

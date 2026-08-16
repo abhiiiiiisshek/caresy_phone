@@ -9,7 +9,7 @@ import { formatINR, priceForMinutes, eveningSurchargePaise } from '@caresy/utils
 import { availableSlots } from '@caresy/utils/slots';
 import { toE164, isValidIndianMobile } from '@caresy/utils/phone';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
-import { Button, Card, Chip, ChipRow, Field, FormScreen, Overline, Screen, Txt } from '../components/ui';
+import { BottomSheet, Button, Card, Chip, ChipRow, Field, FieldButton, FormScreen, Overline, Screen, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
 import { HOSPITALS, pincodeForArea } from '../lib/hospitals';
 
@@ -93,6 +93,9 @@ export default function Booking() {
 
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [serviceSheet, setServiceSheet] = useState(false);
+  const [transportSheet, setTransportSheet] = useState(false);
+
   const [submitting, setSubmitting] = useState(false);
   const [successRef, setSuccessRef] = useState<string | null>(null);
 
@@ -311,17 +314,25 @@ export default function Booking() {
 
       {step === 1 && (
         <>
-          {SERVICES.map((sv) => {
-            const on = serviceKey === sv.key;
-            return (
-              <Card key={sv.key} onPress={() => setServiceKey(sv.key)} style={[s.optCard, on ? s.optOn : s.optOff]}>
-                <View style={[s.optAccent, on ? s.optAccentOn : s.optAccentOff]} />
-                <Txt variant="title" color={on ? color.greenDeep : color.ink}>{sv.name}</Txt>
-                <Txt variant="body" color={color.muted}>{sv.desc}</Txt>
-                <Txt variant="caption" color={color.faint}>{on ? 'Selected' : 'Tap to select'}</Txt>
-              </Card>
-            );
-          })}
+          <FieldButton
+            label="Service"
+            value={chosenService.name}
+            placeholder="Choose a service"
+            onPress={() => setServiceSheet(true)}
+          />
+          <Card style={[s.optCard, s.optOn]}>
+            <View style={[s.optAccent, s.optAccentOn]} />
+            <Txt variant="title" color={color.greenDeep}>{chosenService.name}</Txt>
+            <Txt variant="body" color={color.muted}>{chosenService.desc}</Txt>
+          </Card>
+          <BottomSheet
+            visible={serviceSheet}
+            title="Choose a service"
+            selectedKey={serviceKey}
+            onSelect={setServiceKey}
+            onClose={() => setServiceSheet(false)}
+            options={SERVICES.map((sv) => ({ key: sv.key, label: sv.name, desc: sv.desc }))}
+          />
           <Txt variant="h2" color={color.ink}>How long?</Txt>
           <ChipRow>
             {DURATIONS.map((h) => <Chip key={h} label={durationLabel(h)} selected={durationHours === h} onPress={() => setDurationHours(h)} />)}
@@ -394,15 +405,20 @@ export default function Booking() {
           </View>
           <Field label="Meeting address" value={meetAddress} onChangeText={setMeetAddress} placeholder={meetMode === 'home' ? 'House no., street, landmark' : meetMode === 'hospital' ? (hospital || 'Hospital address') : 'Main gate / reception'} />
           <Txt variant="h2" color={color.ink}>Getting there</Txt>
-          {TRANSPORT_MODES.map((m) => {
-            const on = transportMode === m.key;
-            return (
-              <Card key={m.key} onPress={() => setTransportMode(m.key)} style={[s.optCard, on ? s.optOn : s.optOff]}>
-                <View style={[s.optAccent, on ? s.optAccentOn : s.optAccentOff]} />
-                <Txt variant="title" color={on ? color.greenDeep : color.ink}>{m.label}</Txt>
-              </Card>
-            );
-          })}
+          <FieldButton
+            label="Transport"
+            value={TRANSPORT_MODES.find((m) => m.key === transportMode)?.label ?? 'Select'}
+            placeholder="How will you get there?"
+            onPress={() => setTransportSheet(true)}
+          />
+          <BottomSheet
+            visible={transportSheet}
+            title="Getting there"
+            selectedKey={transportMode}
+            onSelect={setTransportMode}
+            onClose={() => setTransportSheet(false)}
+            options={TRANSPORT_MODES.map((m) => ({ key: m.key, label: m.label }))}
+          />
         </>
       )}
 
