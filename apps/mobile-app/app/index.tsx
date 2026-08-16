@@ -2,7 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import Constants from 'expo-constants';
+
+let LinearGradient: any = null;
+try {
+  LinearGradient = require('expo-linear-gradient').LinearGradient;
+  // In Expo Go (storeClient) the native view is missing — null it to avoid WARN
+  const execEnv = (Constants as any).executionEnvironment;
+  const ownership = (Constants as any).appOwnership;
+  if (execEnv === 'storeClient' || ownership === 'expo') LinearGradient = null;
+} catch {
+  LinearGradient = null;
+}
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -253,14 +264,18 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback
         <>
           <Image source={img} style={s.actionImg} resizeMode="cover" accessibilityIgnoresInvertColors />
           {/* Fade into card colour so copy stays legible — matches website: linear-gradient(90deg, bg 0%, bg 36%, transparent 84%) */}
-          <LinearGradient
-            colors={[bg, bg, 'transparent']}
-            locations={[0, 0.36, 0.84]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={s.actionImgFade}
-            pointerEvents="none"
-          />
+          {LinearGradient ? (
+            <LinearGradient
+              colors={[bg, bg, 'transparent']}
+              locations={[0, 0.36, 0.84]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={s.actionImgFade}
+              pointerEvents="none"
+            />
+          ) : (
+            <View style={[s.actionImgFade, { backgroundColor: bg, opacity: 0.92 }]} pointerEvents="none" />
+          )}
         </>
       ) : (
         <View style={[s.actionDecor, decor === 'urgent' ? s.actionDecorUrgent : s.actionDecorGreen]} pointerEvents="none">
