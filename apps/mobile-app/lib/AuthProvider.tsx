@@ -47,17 +47,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`
-  // Lazy require keeps Expo Go from crashing at import time — ExpoPushTokenManager
-  // only exists in dev-client (prebuild --clean). Entire block is try/catch guarded.
+  // Lazy require — ExpoPushTokenManager only exists in dev-client (prebuild --clean).
+  // In Expo Go the require itself throws as a native-module ERROR overlay even when
+  // caught, so we bail before requiring when running in storeClient / Expo Go.
   useEffect(() => {
     if (!session?.user) return;
+    // Expo Go = storeClient, web = no push — skip entirely, no require, no ERROR overlay
+    const execEnv = (Constants as any).executionEnvironment;
+    const ownership = (Constants as any).appOwnership;
+    if (execEnv === 'storeClient' || ownership === 'expo' || Platform.OS === 'web') return;
     let cancelled = false;
     (async () => {
       let Notifications: any = null;
       try {
         Notifications = require('expo-notifications');
       } catch {
-        return; // Expo Go without native module — silently skip
+        return; // dev-client not built yet — silently skip
       }
       try {
         // Physical device only — simulator has no push token
