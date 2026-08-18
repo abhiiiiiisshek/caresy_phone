@@ -4,11 +4,16 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
 let MapView: any = null;
 let Marker: any = null;
-try {
-  const m = require('react-native-maps');
-  MapView = m.default || m;
-  Marker = m.Marker;
-} catch {}
+// Web bundler (expo-router/web) cannot parse react-native-maps native internals
+// (codegenNativeCommands) — hide require from Metro via eval so web bundle skips it.
+// Native (iOS/Android) still gets the real map via dev-client.
+if (require('react-native').Platform.OS !== 'web') {
+  try {
+    const m = eval("require")('react-native-maps');
+    MapView = m.default || m;
+    Marker = m.Marker;
+  } catch {}
+}
 
 import { supabase } from '../lib/supabase';
 import { trackingHeadline, trackingSteps } from '@caresy/utils/bookingStatus';
