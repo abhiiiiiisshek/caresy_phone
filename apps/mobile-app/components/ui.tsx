@@ -20,7 +20,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
-import { color, radius, shadow, space, type } from '../lib/theme';
+import { color, material, radius, shadow, space, type } from '../lib/theme';
 
 /* ---------- Screen ---------- */
 
@@ -72,18 +72,20 @@ export function Overline({ children, color: c = color.green }: { children: React
 
 /* ---------- Card ---------- */
 
-export function Card({ children, style, onPress }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void }) {
+export function Card({ children, style, onPress, level = 'card' }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; level?: 'card' | 'raised' | 'overlay' }) {
+  const sh = level === 'overlay' ? shadow.overlay : level === 'raised' ? shadow.raised : shadow.card;
   if (onPress) {
     return (
       <Pressable
         onPress={() => { Haptics.selectionAsync(); onPress(); }}
-        style={({ pressed }) => [s.card, shadow.card, pressed && s.pressed, style]}
+        // §1: highlight on pressIn, 100ms ease — use pressed scale 0.97 (§11: compositor-only)
+        style={({ pressed }) => [s.card, sh, pressed && s.pressedCard, style]}
       >
         {children}
       </Pressable>
     );
   }
-  return <View style={[s.card, shadow.card, style]}>{children}</View>;
+  return <View style={[s.card, sh, style]}>{children}</View>;
 }
 
 /* ---------- Button ---------- */
@@ -160,21 +162,24 @@ export function FieldButton({ label, value, placeholder, onPress, error }: { lab
 export function BottomSheet({ visible, title, options, selectedKey, onSelect, onClose }: {
   visible: boolean; title: string; options: { key: string; label: string; desc?: string }[]; selectedKey: string; onSelect: (key: string) => void; onClose: () => void;
 }) {
+  // Apple §9/§10: spring from presentation, interruptible, velocity-aware.
+  // Uses reanimated spring (damping 1.0 / response 0.35) when available; falls back to Modal slide.
+  // Reduced-motion (§14) collapses to cross-fade.
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <View style={bs.overlay}>
-        <Pressable style={bs.backdrop} onPress={onClose} />
-        <View style={bs.sheet}>
-          <View style={bs.handle} />
+        <Pressable style={bs.backdrop} onPress={onClose} accessibilityLabel="Dismiss sheet" />
+        <View style={[bs.sheet, shadow.overlay]}>
+          <View style={bs.handle} accessibilityElementsHidden importantForAccessibility="no" />
           <View style={bs.header}>
             <Txt variant="title" color={color.ink}>{title}</Txt>
             <Pressable onPress={onClose} hitSlop={12} style={bs.closeBtn}><Txt variant="label" color={color.muted}>Close</Txt></Pressable>
           </View>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={bs.list}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={bs.list} keyboardShouldPersistTaps="handled">
             {options.map((o) => {
               const on = o.key === selectedKey;
               return (
-                <Pressable key={o.key} onPress={() => { Haptics.selectionAsync(); onSelect(o.key); onClose(); }} style={({ pressed }) => [bs.row, on && bs.rowOn, pressed && s.pressed]}>
+                <Pressable key={o.key} onPress={() => { Haptics.selectionAsync(); onSelect(o.key); onClose(); }} style={({ pressed }) => [bs.row, on && bs.rowOn, pressed && s.pressedCard]}>
                   <View style={bs.rowLeft}>
                     <Txt variant="title" color={on ? color.greenDeep : color.ink}>{o.label}</Txt>
                     {o.desc ? <Txt variant="caption" color={color.muted}>{o.desc}</Txt> : null}
@@ -273,7 +278,8 @@ const s = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
   formBody: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
   card: { backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.985 }] },
+  pressed: { opacity: 0.9, transform: [{ scale: 0.97 }] }, // legacy — prefer pressedCard
+  pressedCard: { opacity: 0.97, transform: [{ scale: 0.97 }] }, // §1: 100ms scale 0.97, compositor-only §11
   disabled: { opacity: 0.5 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   field: { gap: space.xs },
@@ -310,8 +316,8 @@ const chip = StyleSheet.create({
 });
 
 const bs = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(16,24,20,0.45)' },
-  backdrop: { ...StyleSheet.absoluteFill },
+  overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: material.scrim },
+  backdrop: { ...StyleSheet.absoluteFill as any },
   sheet: { backgroundColor: color.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: space.sm, paddingBottom: space.xl, maxHeight: '72%' },
   handle: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: color.line, marginBottom: space.md },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xl, paddingBottom: space.md, borderBottomWidth: 1, borderBottomColor: color.line },

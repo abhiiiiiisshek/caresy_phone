@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -41,6 +42,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function ProfileScreen() {
   const { session, loading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
@@ -96,7 +98,7 @@ export default function ProfileScreen() {
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Profile' }} />
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <View style={s.headerWrap}>
+        <Animated.View entering={reduceMotion ? FadeIn.duration(200) : FadeInDown.duration(460).springify().damping(20).stiffness(260)} style={s.headerWrap}>
           <View style={s.headerGlow} />
           <View style={s.header}>
             <View style={s.avatar}><Txt variant="h1" color={color.onGreen}>{initial}</Txt></View>
@@ -104,80 +106,88 @@ export default function ProfileScreen() {
             <Txt variant="body" color={color.muted}>{profile?.age ? `Age ${profile.age}` : `Member since ${memberSince}`}</Txt>
             <Txt variant="caption" color={color.faint}>{session.user.email}</Txt>
           </View>
-        </View>
+        </Animated.View>
 
-        <Section title="Account">
-          {editingPhone ? (
-            <Card style={s.editCard}>
-              <Field
-                label="Mobile number"
-                value={phoneDraft}
-                onChangeText={(t) => { setPhoneDraft(t); setPhoneErr(null); }}
-                placeholder="10-digit number"
-                keyboardType="phone-pad"
-                error={phoneErr}
-              />
-              <View style={s.editRow}>
-                <Button title="Cancel" variant="secondary" onPress={() => { setEditingPhone(false); setPhoneDraft(profile?.phone || ''); setPhoneErr(null); }} style={s.editBtn} />
-                <Button
-                  title="Save"
-                  loading={phoneSaving}
-                  onPress={async () => {
-                    if (!isValidIndianMobile(phoneDraft)) { setPhoneErr('Enter a valid 10-digit number'); return; }
-                    setPhoneSaving(true);
-                    const { error } = await supabase.from('profiles').update({ phone: toE164(phoneDraft) }).eq('id', session!.user.id);
-                    setPhoneSaving(false);
-                    if (error) { setPhoneErr(error.message); return; }
-                    setProfile((p) => p ? { ...p, phone: toE164(phoneDraft) } : p);
-                    setEditingPhone(false);
-                  }}
-                  style={s.editBtn}
+        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(80) : FadeInDown.duration(460).delay(100).springify().damping(20).stiffness(260)}>
+          <Section title="Account">
+            {editingPhone ? (
+              <Card level="raised" style={s.editCard}>
+                <Field
+                  label="Mobile number"
+                  value={phoneDraft}
+                  onChangeText={(t) => { setPhoneDraft(t); setPhoneErr(null); }}
+                  placeholder="10-digit number"
+                  keyboardType="phone-pad"
+                  error={phoneErr}
                 />
-              </View>
+                <View style={s.editRow}>
+                  <Button title="Cancel" variant="secondary" onPress={() => { setEditingPhone(false); setPhoneDraft(profile?.phone || ''); setPhoneErr(null); }} style={s.editBtn} />
+                  <Button
+                    title="Save"
+                    loading={phoneSaving}
+                    onPress={async () => {
+                      if (!isValidIndianMobile(phoneDraft)) { setPhoneErr('Enter a valid 10-digit number'); return; }
+                      setPhoneSaving(true);
+                      const { error } = await supabase.from('profiles').update({ phone: toE164(phoneDraft) }).eq('id', session!.user.id);
+                      setPhoneSaving(false);
+                      if (error) { setPhoneErr(error.message); return; }
+                      setProfile((p) => p ? { ...p, phone: toE164(phoneDraft) } : p);
+                      setEditingPhone(false);
+                    }}
+                    style={s.editBtn}
+                  />
+                </View>
+              </Card>
+            ) : (
+              <Row
+                title="Mobile number"
+                sub={isValidIndianMobile(profile?.phone || '') ? profile!.phone! : 'Not added — tap to add'}
+                onPress={() => setEditingPhone(true)}
+              />
+            )}
+            <Row title="Payment methods" sub="Cash or UPI, paid after the visit" />
+            <Row title="Companion preferences" onPress={() => Linking.openURL(supWa('my companion preferences'))} />
+          </Section>
+        </Animated.View>
+
+        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(120) : FadeInDown.duration(460).delay(160).springify().damping(20).stiffness(260)}>
+          <Section title="Activity">
+            <Row title="My bookings" onPress={() => router.push('/my-bookings')} />
+            <Row title="Care guides" sub="Short reads on recovery, medicines, falls and more" onPress={() => router.push('/care')} />
+          </Section>
+        </Animated.View>
+
+        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(160) : FadeInDown.duration(460).delay(220).springify().damping(20).stiffness(260)}>
+          <Section title="Help & support">
+            <Row title="Chat on WhatsApp" sub="Fastest — usually answered in minutes" onPress={() => Linking.openURL(supWa('a general question'))} />
+            <Row title="Call us" sub={SUPPORT_TEL} onPress={() => Linking.openURL(`tel:${SUPPORT_TEL}`)} />
+            <Row title="Email" sub="Replies within 24 hours" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
+          </Section>
+        </Animated.View>
+
+        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(200) : FadeInDown.duration(460).delay(280).springify().damping(20).stiffness(260)}>
+          <Section title="Danger zone">
+            <Card level="overlay" style={s.dangerCard}>
+              <Txt variant="title" color={color.terracottaDeep}>Delete account</Txt>
+              <Txt variant="caption" color={color.muted}>Permanently removes profile, patients, bookings and care logs. Cannot be undone.</Txt>
+              <Button
+                title="Delete my account"
+                variant="danger"
+                onPress={() => {
+                  Alert.alert(
+                    'Delete account?',
+                    'This permanently deletes your account and all data. Type DELETE to confirm on the next screen.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Continue', style: 'destructive', onPress: () => router.push('/account-delete') },
+                    ],
+                  );
+                }}
+                style={s.deleteBtn}
+              />
             </Card>
-          ) : (
-            <Row
-              title="Mobile number"
-              sub={isValidIndianMobile(profile?.phone || '') ? profile!.phone! : 'Not added — tap to add'}
-              onPress={() => setEditingPhone(true)}
-            />
-          )}
-          <Row title="Payment methods" sub="Cash or UPI, paid after the visit" />
-          <Row title="Companion preferences" onPress={() => Linking.openURL(supWa('my companion preferences'))} />
-        </Section>
-
-        <Section title="Activity">
-          <Row title="My bookings" onPress={() => router.push('/my-bookings')} />
-          <Row title="Care guides" sub="Short reads on recovery, medicines, falls and more" onPress={() => router.push('/care')} />
-        </Section>
-
-        <Section title="Help & support">
-          <Row title="Chat on WhatsApp" sub="Fastest — usually answered in minutes" onPress={() => Linking.openURL(supWa('a general question'))} />
-          <Row title="Call us" sub={SUPPORT_TEL} onPress={() => Linking.openURL(`tel:${SUPPORT_TEL}`)} />
-          <Row title="Email" sub="Replies within 24 hours" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
-        </Section>
-
-        <Section title="Danger zone">
-          <Card style={s.dangerCard}>
-            <Txt variant="title" color={color.terracottaDeep}>Delete account</Txt>
-            <Txt variant="caption" color={color.muted}>Permanently removes profile, patients, bookings and care logs. Cannot be undone.</Txt>
-            <Button
-              title="Delete my account"
-              variant="danger"
-              onPress={() => {
-                Alert.alert(
-                  'Delete account?',
-                  'This permanently deletes your account and all data. Type DELETE to confirm on the next screen.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Continue', style: 'destructive', onPress: () => router.push('/account-delete') },
-                  ],
-                );
-              }}
-              style={s.deleteBtn}
-            />
-          </Card>
-        </Section>
+          </Section>
+        </Animated.View>
 
         <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
       </ScrollView>

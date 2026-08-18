@@ -46,6 +46,19 @@ export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 
 export const radius = { sm: 10, md: 14, lg: 18, pill: 999 } as const;
 
+// Motion — Apple Designing Fluid Interfaces §4 + §14
+// All springs are compositor-only (transform/opacity). EASE matches web Reveal.tsx.
+export const motion = {
+  ease: [0.22, 1, 0.36, 1] as const,
+  // response = duration-like, damping = bounce control
+  spring: {
+    default: { damping: 20, stiffness: 260, mass: 1 } as const, // ~ response 0.38, critically damped
+    momentum: { damping: 16, stiffness: 280, mass: 1 } as const, // 0.8 damping, response 0.30 for drag release
+  },
+  duration: { fast: 180, normal: 320, slow: 500 } as const,
+  stagger: 56,
+} as const;
+
 // Type scale — sizes + line heights tuned for mobile reading.
 export const type = {
   display: { fontSize: 28, lineHeight: 34, fontWeight: '700' as const },
@@ -58,7 +71,7 @@ export const type = {
   overline: { fontSize: 12, lineHeight: 16, fontWeight: '600' as const, letterSpacing: 1, textTransform: 'uppercase' as const },
 } as const;
 
-// Soft elevation for cards (iOS shadow + Android elevation).
+// Depth — 3 Apple-style levels (§12). Every layer lifts intentionally.
 export const shadow = {
   card: {
     shadowColor: '#0B2A20',
@@ -67,4 +80,24 @@ export const shadow = {
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
+  raised: {
+    shadowColor: '#0B2A20',
+    shadowOpacity: 0.10,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+  },
+  overlay: {
+    shadowColor: '#0B2A20',
+    shadowOpacity: 0.16,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
+  },
+} as const;
+
+export const material = {
+  // iOS translucent chrome — blur+saturate per §12; Android falls back to solid + elevation
+  iosBlur: 'blur(20px) saturate(180%)',
+  scrim: 'rgba(16,24,20,0.45)',
 } as const;

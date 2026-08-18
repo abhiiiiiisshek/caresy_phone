@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -20,6 +21,7 @@ type FamilyMember = {
 export default function FamilyScreen() {
   const { session } = useAuth();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -101,24 +103,26 @@ export default function FamilyScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Family' }} />
-      <View style={s.topBar}>
+      <Animated.View entering={reduceMotion ? FadeIn.duration(180) : FadeInDown.duration(420).springify().damping(20).stiffness(260)} style={s.topBar}>
         <Txt variant="body" color={color.muted} style={s.flex1}>Add parents, spouse, children — select them in one tap during booking.</Txt>
         <Button title="+ Add member" onPress={openAdd} style={s.addBtn} />
-      </View>
+      </Animated.View>
 
       {showAdd && (
-        <Card style={s.formCard}>
-          <Overline>{editTarget ? 'Edit member' : 'Add family member'}</Overline>
-          <Field label="Full name *" value={fullName} onChangeText={setFullName} placeholder="e.g. Sunita Sharma" />
-          <Field label="Age" value={age} onChangeText={setAge} placeholder="e.g. 68" keyboardType="number-pad" />
-          <Field label="Blood group" value={bloodGroup} onChangeText={setBloodGroup} placeholder="e.g. B+" />
-          <Field label="Allergies" value={allergies} onChangeText={setAllergies} placeholder="e.g. Penicillin" />
-          <Field label="Relation" value={relation} onChangeText={setRelation} placeholder="e.g. Mother" />
-          <View style={s.editRow}>
-            <Button title="Cancel" variant="secondary" onPress={() => setShowAdd(false)} style={s.flex1} />
-            <Button title={editTarget ? 'Save' : 'Add'} loading={saving} onPress={save} style={s.flex1} />
-          </View>
-        </Card>
+        <Animated.View entering={reduceMotion ? FadeIn.duration(200) : FadeInDown.duration(380).springify().damping(20).stiffness(260)}>
+          <Card level="raised" style={s.formCard}>
+            <Overline>{editTarget ? 'Edit member' : 'Add family member'}</Overline>
+            <Field label="Full name *" value={fullName} onChangeText={setFullName} placeholder="e.g. Sunita Sharma" />
+            <Field label="Age" value={age} onChangeText={setAge} placeholder="e.g. 68" keyboardType="number-pad" />
+            <Field label="Blood group" value={bloodGroup} onChangeText={setBloodGroup} placeholder="e.g. B+" />
+            <Field label="Allergies" value={allergies} onChangeText={setAllergies} placeholder="e.g. Penicillin" />
+            <Field label="Relation" value={relation} onChangeText={setRelation} placeholder="e.g. Mother" />
+            <View style={s.editRow}>
+              <Button title="Cancel" variant="secondary" onPress={() => setShowAdd(false)} style={s.flex1} />
+              <Button title={editTarget ? 'Save' : 'Add'} loading={saving} onPress={save} style={s.flex1} />
+            </View>
+          </Card>
+        </Animated.View>
       )}
 
       <FlatList
@@ -126,17 +130,19 @@ export default function FamilyScreen() {
         keyExtractor={(m) => m.id}
         contentContainerStyle={members.length ? s.list : s.listEmpty}
         ListEmptyComponent={<Card style={s.empty}><Txt variant="body" color={color.muted}>No family members yet. Add one to book in one tap.</Txt></Card>}
-        renderItem={({ item }) => (
-          <Card style={s.row}>
-            <Pressable onPress={() => openEdit(item)} style={s.rowMain}>
-              <View style={s.avatar}><Txt variant="title" color={color.onGreen}>{item.full_name.charAt(0).toUpperCase()}</Txt></View>
-              <View style={s.flex1}>
-                <Txt variant="title" color={color.ink}>{item.full_name}</Txt>
-                <Txt variant="caption" color={color.faint}>{[item.age ? `${item.age}y` : null, item.blood_group, item.allergies ? `Allergy: ${item.allergies}` : null].filter(Boolean).join(' · ') || 'Tap to edit'}</Txt>
-              </View>
-            </Pressable>
-            <Pressable onPress={() => remove(item)} hitSlop={12} style={s.removeHit}><Txt variant="caption" color={color.terracotta}>Remove</Txt></Pressable>
-          </Card>
+        renderItem={({ item, index }) => (
+          <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(index * 24) : FadeInDown.duration(460).delay(index * 48).springify().damping(20).stiffness(260)}>
+            <Card style={s.row}>
+              <Pressable onPress={() => openEdit(item)} style={s.rowMain}>
+                <View style={s.avatar}><Txt variant="title" color={color.onGreen}>{item.full_name.charAt(0).toUpperCase()}</Txt></View>
+                <View style={s.flex1}>
+                  <Txt variant="title" color={color.ink}>{item.full_name}</Txt>
+                  <Txt variant="caption" color={color.faint}>{[item.age ? `${item.age}y` : null, item.blood_group, item.allergies ? `Allergy: ${item.allergies}` : null].filter(Boolean).join(' · ') || 'Tap to edit'}</Txt>
+                </View>
+              </Pressable>
+              <Pressable onPress={() => remove(item)} hitSlop={12} style={s.removeHit}><Txt variant="caption" color={color.terracotta}>Remove</Txt></Pressable>
+            </Card>
+          </Animated.View>
         )}
       />
     </Screen>

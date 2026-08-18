@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInRight, FadeOutLeft, useReducedMotion } from 'react-native-reanimated';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -266,6 +267,7 @@ export default function Booking() {
     }
   };
 
+  const reduceMotion = useReducedMotion();
   if (authLoading) return <Screen />;
   if (!session) return <Redirect href="/" />;
 
@@ -273,14 +275,14 @@ export default function Booking() {
     return (
       <Screen>
         <Stack.Screen options={{ headerShown: true, title: 'Booked', headerBackVisible: false }} />
-        <View style={s.success}>
+        <Animated.View entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(380).springify().damping(20).stiffness(260)} style={s.success}>
           <View style={s.tick}><Txt variant="display" color={color.onGreen}>✓</Txt></View>
           <Txt variant="h1" color={color.greenDeep}>Request sent</Txt>
           <Txt variant="body" color={color.muted} style={s.center}>We'll confirm a companion shortly and notify you.</Txt>
           <View style={s.refBadge}><Txt variant="label" color={color.greenDeep}>Ref {successRef}</Txt></View>
           <Button title="View my bookings" onPress={() => router.replace('/my-bookings')} style={s.successBtn} />
           <Button title="Back home" variant="secondary" onPress={() => router.replace('/')} style={s.successBtn} />
-        </View>
+        </Animated.View>
       </Screen>
     );
   }
@@ -301,26 +303,26 @@ export default function Booking() {
     <FormScreen footer={footer}>
       <Stack.Screen options={{ headerShown: true, title: 'Book care' }} />
 
-      {/* progress */}
+      {/* progress — spring width per §4 */}
       <View style={s.progressRow}>
         {Array.from({ length: TOTAL_STEPS }, (_, i) => (
           <View key={i} style={[s.progressSeg, i < step ? s.progressOn : s.progressOff]} />
         ))}
       </View>
-      <View style={s.heading}>
+      <Animated.View key={`heading-${step}`} entering={reduceMotion ? FadeIn.duration(200) : FadeInRight.duration(320).springify().damping(20).stiffness(260)} exiting={reduceMotion ? FadeOutLeft.duration(160) : FadeOutLeft.duration(180)} style={s.heading}>
         <Overline>Step {step} of {TOTAL_STEPS}</Overline>
         <Txt variant="h1" color={color.greenDeep}>{STEP_TITLES[step - 1]}</Txt>
-      </View>
+      </Animated.View>
 
       {step === 1 && (
-        <>
+        <Animated.View key="step-1" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
           <FieldButton
             label="Service"
             value={chosenService.name}
             placeholder="Choose a service"
             onPress={() => setServiceSheet(true)}
           />
-          <Card style={[s.optCard, s.optOn]}>
+          <Card level="raised" style={[s.optCard, s.optOn]}>
             <View style={[s.optAccent, s.optAccentOn]} />
             <Txt variant="title" color={color.greenDeep}>{chosenService.name}</Txt>
             <Txt variant="body" color={color.muted}>{chosenService.desc}</Txt>
@@ -338,11 +340,11 @@ export default function Booking() {
             {DURATIONS.map((h) => <Chip key={h} label={durationLabel(h)} selected={durationHours === h} onPress={() => setDurationHours(h)} />)}
           </ChipRow>
           <Txt variant="title" color={color.greenDeep}>{durationLabel(durationHours)} · {formatINR(basePaise)}</Txt>
-        </>
+        </Animated.View>
       )}
 
       {step === 2 && (
-        <>
+        <Animated.View key="step-2" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
           <Field
             label="Hospital / clinic"
             value={hospital}
@@ -419,11 +421,11 @@ export default function Booking() {
             onClose={() => setTransportSheet(false)}
             options={TRANSPORT_MODES.map((m) => ({ key: m.key, label: m.label }))}
           />
-        </>
+        </Animated.View>
       )}
 
       {step === 3 && (
-        <>
+        <Animated.View key="step-3" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
           {savedPatients.length > 0 && (
             <ChipRow>
               {savedPatients.map((p) => <Chip key={p.id} label={p.full_name} selected={selectedPatientId === p.id} onPress={() => pickSaved(p)} />)}
@@ -459,11 +461,11 @@ export default function Booking() {
               {docUri ? <Button title="Remove" variant="secondary" onPress={() => setDocUri(null)} style={s.docBtn} /> : null}
             </View>
           </Card>
-        </>
+        </Animated.View>
       )}
 
       {step === 4 && (
-        <>
+        <Animated.View key="step-4" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
           <ChipRow>
             {days.map((d) => <Chip key={d.iso} label={d.label} selected={date === d.iso} onPress={() => { setDate(d.iso); setTime(''); }} />)}
           </ChipRow>
@@ -484,7 +486,7 @@ export default function Booking() {
             {eveningPaise > 0 ? <Txt variant="caption" color={color.muted}>Includes evening surcharge</Txt> : null}
             <Txt variant="caption" color={color.faint}>Estimate. Final amount is metered by actual companion time.</Txt>
           </Card>
-        </>
+        </Animated.View>
       )}
     </FormScreen>
   );
@@ -492,6 +494,7 @@ export default function Booking() {
 
 const s = StyleSheet.create({
   center: { textAlign: 'center' },
+  stepBody: { gap: space.lg },
   progressRow: { flexDirection: 'row', gap: space.xs },
   progressSeg: { flex: 1, height: 4, borderRadius: radius.pill },
   progressOn: { backgroundColor: color.green },

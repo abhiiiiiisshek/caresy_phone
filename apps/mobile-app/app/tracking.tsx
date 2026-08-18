@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Image, Linking, Share, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 let MapView: any = null;
 let Marker: any = null;
@@ -33,6 +34,7 @@ interface TrackedBooking {
 export default function Tracking() {
   const { token } = useLocalSearchParams<{ token?: string }>();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [booking, setBooking] = useState<TrackedBooking | null>(null);
   const [loading, setLoading] = useState(!!token);
 
@@ -112,71 +114,75 @@ export default function Tracking() {
     <Screen>
       {header}
       <View style={s.body}>
-        <View style={s.headlineBlock}>
+        <Animated.View entering={reduceMotion ? FadeIn.duration(200) : FadeInDown.duration(460).springify().damping(20).stiffness(260)} style={s.headlineBlock}>
           <Overline>Booking {booking.reference_code}</Overline>
           <Txt variant="h1" color={color.greenDeep}>{headline}</Txt>
           {booking.pickup_title ? <Txt variant="body" color={color.muted}>{booking.pickup_title}</Txt> : null}
-        </View>
+        </Animated.View>
 
         {/* Companion */}
         {companion ? (
-          <Card style={s.companion}>
-            {companion.photo ? (
-              <Image source={{ uri: companion.photo }} style={s.avatar} accessibilityLabel={companionName} />
-            ) : (
-              <View style={[s.avatar, s.avatarFallback]}><Txt variant="h2" color={color.onGreen}>{companionName.charAt(0)}</Txt></View>
-            )}
-            <View style={s.flex1}>
-              <Txt variant="title" color={color.ink}>{companionName}</Txt>
-              <Txt variant="caption" color={color.muted}>
-                {companion.rating ? `★ ${companion.rating}  ·  ` : ''}{companion.verification || companion.specialty || 'Verified'}
-              </Txt>
-            </View>
-            <Button title="Message" variant="secondary" onPress={messageCompanion} style={s.msgBtn} />
-          </Card>
+          <Animated.View entering={reduceMotion ? FadeIn.duration(200).delay(60) : FadeInDown.duration(460).delay(80).springify().damping(20).stiffness(260)}>
+            <Card level="raised" style={s.companion}>
+              {companion.photo ? (
+                <Image source={{ uri: companion.photo }} style={s.avatar} accessibilityLabel={companionName} />
+              ) : (
+                <View style={[s.avatar, s.avatarFallback]}><Txt variant="h2" color={color.onGreen}>{companionName.charAt(0)}</Txt></View>
+              )}
+              <View style={s.flex1}>
+                <Txt variant="title" color={color.ink}>{companionName}</Txt>
+                <Txt variant="caption" color={color.muted}>
+                  {companion.rating ? `★ ${companion.rating}  ·  ` : ''}{companion.verification || companion.specialty || 'Verified'}
+                </Txt>
+              </View>
+              <Button title="Message" variant="secondary" onPress={messageCompanion} style={s.msgBtn} />
+            </Card>
+          </Animated.View>
         ) : null}
 
-        {/* Location — native map when live, placeholder before trip starts */}
-        <Card style={s.locCard}>
-          {hasLocation ? (
-            <>
-              <View style={s.liveRow}>
-                <View style={s.liveDot} />
-                <Txt variant="label" color={color.green}>Live location shared</Txt>
-              </View>
-              {MapView && Marker ? (
-                <View style={s.mapWrap}>
-                  <MapView
-                    style={s.map}
-                    initialRegion={{ latitude: booking.last_lat!, longitude: booking.last_lng!, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
-                    region={{ latitude: booking.last_lat!, longitude: booking.last_lng!, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
-                    scrollEnabled={false}
-                    zoomEnabled={false}
-                  >
-                    <Marker coordinate={{ latitude: booking.last_lat!, longitude: booking.last_lng! }} title={companionName} />
-                  </MapView>
+        {/* Location */}
+        <Animated.View entering={reduceMotion ? FadeIn.duration(200).delay(120) : FadeInDown.duration(460).delay(160).springify().damping(20).stiffness(260)}>
+          <Card level="raised" style={s.locCard}>
+            {hasLocation ? (
+              <>
+                <View style={s.liveRow}>
+                  <View style={s.liveDot} />
+                  <Txt variant="label" color={color.green}>Live location shared</Txt>
                 </View>
-              ) : null}
-              <Txt variant="caption" color={color.faint}>
-                {booking.last_location_at ? `Updated ${new Date(booking.last_location_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : 'Just now'}
-              </Txt>
-              <Button title="Open in Maps" onPress={openMaps} style={s.mapBtn} />
-            </>
-          ) : (
-            <>
-              <Txt variant="label" color={color.muted}>Location will be shared soon</Txt>
-              <Txt variant="caption" color={color.faint}>Your companion will share live location when they start the trip. Check back closer to your scheduled time.</Txt>
-            </>
-          )}
-        </Card>
+                {MapView && Marker ? (
+                  <View style={s.mapWrap}>
+                    <MapView
+                      style={s.map}
+                      initialRegion={{ latitude: booking.last_lat!, longitude: booking.last_lng!, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
+                      region={{ latitude: booking.last_lat!, longitude: booking.last_lng!, latitudeDelta: 0.01, longitudeDelta: 0.01 }}
+                      scrollEnabled={false}
+                      zoomEnabled={false}
+                    >
+                      <Marker coordinate={{ latitude: booking.last_lat!, longitude: booking.last_lng! }} title={companionName} />
+                    </MapView>
+                  </View>
+                ) : null}
+                <Txt variant="caption" color={color.faint}>
+                  {booking.last_location_at ? `Updated ${new Date(booking.last_location_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}` : 'Just now'}
+                </Txt>
+                <Button title="Open in Maps" onPress={openMaps} style={s.mapBtn} />
+              </>
+            ) : (
+              <>
+                <Txt variant="label" color={color.muted}>Location will be shared soon</Txt>
+                <Txt variant="caption" color={color.faint}>Your companion will share live location when they start the trip. Check back closer to your scheduled time.</Txt>
+              </>
+            )}
+          </Card>
+        </Animated.View>
 
-        {/* Timeline */}
+        {/* Timeline — stagger */}
         <View style={s.timeline}>
           {steps.map((step, i) => {
             const done = i < activeIdx;
             const active = i === activeIdx;
             return (
-              <View key={step.title} style={s.step}>
+              <Animated.View key={step.title} entering={reduceMotion ? FadeIn.duration(180).delay(180 + i * 36) : FadeInDown.duration(440).delay(220 + i * 56).springify().damping(20).stiffness(260)} style={s.step}>
                 <View style={s.rail}>
                   <View style={[s.node, (done || active) ? s.nodeOn : s.nodeOff, active && s.nodeActive]} />
                   {i < steps.length - 1 ? <View style={[s.line, done ? s.lineOn : s.lineOff]} /> : null}
@@ -185,7 +191,7 @@ export default function Tracking() {
                   <Txt variant="title" color={active ? color.greenDeep : done ? color.ink : color.faint}>{step.title}</Txt>
                   <Txt variant="caption" color={color.muted}>{step.desc}</Txt>
                 </View>
-              </View>
+              </Animated.View>
             );
           })}
         </View>

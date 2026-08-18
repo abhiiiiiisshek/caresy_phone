@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -53,6 +54,7 @@ function whenLabel(iso: string | null) {
 export default function MyBookings() {
   const { session, loading: authLoading } = useAuth();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -111,10 +113,10 @@ export default function MyBookings() {
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'My Bookings' }} />
-      <View style={s.tabs}>
+      <Animated.View entering={reduceMotion ? FadeIn.duration(180) : FadeInDown.duration(420).springify().damping(20).stiffness(260)} style={s.tabs}>
         <Chip label="Upcoming" selected={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
         <Chip label="Past" selected={filter === 'past'} onPress={() => setFilter('past')} />
-      </View>
+      </Animated.View>
 
       {error ? (
         <ErrorState message={error} onRetry={() => fetch()} />
@@ -125,13 +127,19 @@ export default function MyBookings() {
           contentContainerStyle={shown.length ? s.list : s.listEmpty}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetch('pull')} tintColor={color.green} />}
           ListEmptyComponent={
-            <EmptyState
-              title={filter === 'upcoming' ? 'No upcoming visits' : 'No past visits yet'}
-              body={filter === 'upcoming' ? 'Book a companion and it will show up here.' : undefined}
-              action={filter === 'upcoming' ? <Button title="Book care" onPress={() => router.push('/booking')} style={s.emptyBtn} /> : undefined}
-            />
+            <Animated.View entering={reduceMotion ? FadeIn.duration(200) : FadeInDown.duration(460).delay(120).springify().damping(20).stiffness(260)}>
+              <EmptyState
+                title={filter === 'upcoming' ? 'No upcoming visits' : 'No past visits yet'}
+                body={filter === 'upcoming' ? 'Book a companion and it will show up here.' : undefined}
+                action={filter === 'upcoming' ? <Button title="Book care" onPress={() => router.push('/booking')} style={s.emptyBtn} /> : undefined}
+              />
+            </Animated.View>
           }
-          renderItem={({ item }) => <BookingCard b={item} onCancel={cancel} onTrack={(bk) => router.push({ pathname: '/tracking', params: { token: bk.share_token } })} />}
+          renderItem={({ item, index }) => (
+            <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(index * 18) : FadeInDown.duration(460).delay(index * 48).springify().damping(20).stiffness(260)}>
+              <BookingCard b={item} onCancel={cancel} onTrack={(bk) => router.push({ pathname: '/tracking', params: { token: bk.share_token } })} />
+            </Animated.View>
+          )}
         />
       )}
     </Screen>

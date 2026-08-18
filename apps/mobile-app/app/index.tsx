@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View, AccessibilityInfo } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
+import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
 
 let LinearGradient: any = null;
 try {
@@ -142,49 +143,54 @@ export default function Home() {
     ?? (session.user.user_metadata?.name as string | undefined)?.split(' ')[0]
     ?? 'there';
 
+  const reduceMotion = useReducedMotion();
   return (
     <Screen>
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <View style={s.greeting}>
+        <Animated.View entering={reduceMotion ? FadeIn.duration(180) : FadeInDown.duration(500).springify().damping(20).stiffness(260)} style={s.greeting}>
           <Overline>Welcome back</Overline>
           <Txt variant="display" color={color.greenDeep}>Hi, {name}</Txt>
-        </View>
+        </Animated.View>
 
-        {/* Primary actions — pixel-identical to website page.tsx ActionCards (bg/ink/btnBg/label/title/desc + photo bleed) */}
+        {/* Primary actions — stagger §14, spring §4 default */}
         <View style={s.primaryActions}>
-          <ActionCard
-            bg={color.urgentBg}
-            ink={color.urgentInk}
-            btnBg={color.urgent}
-            label="Immediate need"
-            title="Urgent Booking"
-            desc="Find a companion for last-minute emergencies."
-            sf={SF.urgent}
-            fallback={FallbackGlyph.urgent}
-            decor="urgent"
-            img={require('../assets/caresy-hospital-support.webp')}
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); router.push('/quick-help'); }}
-            accessibilityLabel="Urgent booking — get a companion now"
-          />
-          <ActionCard
-            bg={color.green}
-            ink={color.onGreen}
-            inkMuted="rgba(255,255,255,0.82)"
-            btnBg={color.greenDeep}
-            label="Plan ahead"
-            title="Schedule Appointment"
-            desc="Book a companion for a future medical visit."
-            sf={SF.schedule}
-            fallback={FallbackGlyph.schedule}
-            decor="schedule"
-            img={require('../assets/caresy-family-app.webp')}
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/booking'); }}
-            accessibilityLabel="Schedule appointment for later"
-          />
+          <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(40) : FadeInDown.duration(500).delay(60).springify().damping(20).stiffness(260)}>
+            <ActionCard
+              bg={color.urgentBg}
+              ink={color.urgentInk}
+              btnBg={color.urgent}
+              label="Immediate need"
+              title="Urgent Booking"
+              desc="Find a companion for last-minute emergencies."
+              sf={SF.urgent}
+              fallback={FallbackGlyph.urgent}
+              decor="urgent"
+              img={require('../assets/caresy-hospital-support.webp')}
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); router.push('/quick-help'); }}
+              accessibilityLabel="Urgent booking — get a companion now"
+            />
+          </Animated.View>
+          <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(80) : FadeInDown.duration(500).delay(120).springify().damping(20).stiffness(260)}>
+            <ActionCard
+              bg={color.green}
+              ink={color.onGreen}
+              inkMuted="rgba(255,255,255,0.82)"
+              btnBg={color.greenDeep}
+              label="Plan ahead"
+              title="Schedule Appointment"
+              desc="Book a companion for a future medical visit."
+              sf={SF.schedule}
+              fallback={FallbackGlyph.schedule}
+              decor="schedule"
+              img={require('../assets/caresy-family-app.webp')}
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/booking'); }}
+              accessibilityLabel="Schedule appointment for later"
+            />
+          </Animated.View>
         </View>
 
-        {/* Next visit — marvel empty state replaces blank card */}
-        <View style={s.section}>
+        {/* Next visit */}
+        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(120) : FadeInDown.duration(500).delay(180).springify().damping(20).stiffness(260)} style={s.section}>
           <Txt variant="h2" color={color.ink}>Your next visit</Txt>
           {next === undefined ? (
             <Card><View style={s.skeletonRow}><View style={s.skelLine} /><View style={[s.skelLine, { width: '60%' }]} /></View></Card>
@@ -193,7 +199,7 @@ export default function Home() {
               <View style={s.emptyIcon}><Txt variant="h1" color={color.green}>✦</Txt></View>
               <Txt variant="title" color={color.ink} style={{ textAlign: 'center' }}>No upcoming visits</Txt>
               <Txt variant="caption" color={color.faint} style={{ textAlign: 'center' }}>Your next booking will appear here with live tracking.</Txt>
-              <Pressable onPress={() => router.push('/booking')} style={({ pressed }) => [s.emptyCta, pressed && s.pressed]}>
+              <Pressable onPress={() => router.push('/booking')} style={({ pressed }) => [s.emptyCta, pressed && s.pressedCard]}>
                 <Txt variant="label" color={color.onGreen}>Book a visit</Txt>
               </Pressable>
             </Card>
@@ -211,18 +217,23 @@ export default function Home() {
               </Txt>
             </Card>
           )}
-        </View>
+        </Animated.View>
 
-        {/* Quick actions — SF Symbols on iOS, consistent glyph fallback on Android/web */}
+        {/* Quick actions — stagger 56ms */}
         <View style={s.actions}>
-          <QuickAction label="My bookings" sub="Track & manage" onPress={() => router.push('/my-bookings')} sf={SF.bookings} fallback={FallbackGlyph.bookings} />
-          <QuickAction label="Care guides" sub="Recovery tips" onPress={() => router.push('/care')} sf={SF.care} fallback={FallbackGlyph.care} />
-          <QuickAction label="Get help" sub="Chat or call" onPress={() => router.push('/support')} sf={SF.help} fallback={FallbackGlyph.help} />
-          <QuickAction label="Profile" sub="You & family" onPress={() => router.push('/profile')} sf={SF.profile} fallback={FallbackGlyph.profile} />
+          {[
+            { label: 'My bookings', sub: 'Track & manage', route: '/my-bookings' as const, sf: SF.bookings, fb: FallbackGlyph.bookings },
+            { label: 'Care guides', sub: 'Recovery tips', route: '/care' as const, sf: SF.care, fb: FallbackGlyph.care },
+            { label: 'Get help', sub: 'Chat or call', route: '/support' as const, sf: SF.help, fb: FallbackGlyph.help },
+            { label: 'Profile', sub: 'You & family', route: '/profile' as const, sf: SF.profile, fb: FallbackGlyph.profile },
+          ].map((a, i) => (
+            <Animated.View key={a.label} entering={reduceMotion ? FadeIn.duration(180).delay(160 + i * 36) : FadeInDown.duration(460).delay(240 + i * 56).springify().damping(20).stiffness(260)} style={s.actionWrap}>
+              <QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} sf={a.sf} fallback={a.fb} />
+            </Animated.View>
+          ))}
         </View>
 
-        {/* Trust — mirrors website Verified Companions, not chips inside urgent */}
-        <View style={s.trustCard}>
+        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(320) : FadeInDown.duration(500).delay(360).springify().damping(20).stiffness(260)} style={s.trustCard}>
           <View style={s.trustHeaderRow}>
             {Platform.OS === 'ios' && SymbolView ? (
               <SymbolView name="checkmark.shield.fill" size={20} tintColor={color.green} />
@@ -239,7 +250,7 @@ export default function Home() {
             <View style={s.trustChip}><Txt variant="caption" color={color.greenDeep}>4.9/5 · 5k+ visits</Txt></View>
             <View style={s.trustChip}><Txt variant="caption" color={color.greenDeep}>Noida & Greater Noida</Txt></View>
           </View>
-        </View>
+        </Animated.View>
 
         <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
       </ScrollView>
@@ -312,7 +323,7 @@ function QuickAction({ label, sub, onPress, sf, fallback }: { label: string; sub
       onPress={() => { Haptics.selectionAsync(); onPress(); }}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [s.action, shadow.card, pressed && s.pressed, Platform.OS === 'ios' ? s.actionIos : s.actionAndroid]}
+      style={({ pressed }) => [s.action, shadow.raised, pressed && s.pressedCard, Platform.OS === 'ios' ? s.actionIos : s.actionAndroid]}
     >
       <View style={s.actionIcon}>
         {useSF ? (
@@ -331,7 +342,9 @@ const s = StyleSheet.create({
   body: { padding: space.xl, gap: space.xl, paddingBottom: space.xxl },
   flex1: { flex: 1 },
   centerText: { textAlign: 'center' },
-  pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+  actionWrap: { flexBasis: '46%', flexGrow: 1 },
+  pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] }, // legacy
+  pressedCard: { opacity: 0.97, transform: [{ scale: 0.97 }] },
 
   welcome: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
   logoBadge: { width: 72, height: 72, borderRadius: radius.lg, backgroundColor: color.green, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
@@ -354,7 +367,6 @@ const s = StyleSheet.create({
   actionDecorUrgent: {},
   actionDecorGreen: {},
   actionDecorGlyph: { fontSize: 72, lineHeight: 72 },
-  pressedCard: { opacity: 0.96, transform: [{ scale: 0.985 }] },
   trustCard: { backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, gap: space.sm, borderWidth: 1, borderColor: 'rgba(192,201,195,0.35)' },
   trustHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   trustBody: { lineHeight: 18 },
