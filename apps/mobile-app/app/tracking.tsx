@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image, Linking, Share, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 let MapView: any = null;
 let Marker: any = null;
@@ -34,7 +33,7 @@ interface TrackedBooking {
 export default function Tracking() {
   const { token } = useLocalSearchParams<{ token?: string }>();
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const [booking, setBooking] = useState<TrackedBooking | null>(null);
   const [loading, setLoading] = useState(!!token);
 
@@ -114,15 +113,15 @@ export default function Tracking() {
     <Screen>
       {header}
       <View style={s.body}>
-        <Animated.View entering={reduceMotion ? FadeIn.duration(200) : FadeInDown.duration(460).springify().damping(20).stiffness(260)} style={s.headlineBlock}>
+        <View>
           <Overline>Booking {booking.reference_code}</Overline>
           <Txt variant="h1" color={color.greenDeep}>{headline}</Txt>
           {booking.pickup_title ? <Txt variant="body" color={color.muted}>{booking.pickup_title}</Txt> : null}
-        </Animated.View>
+        </View>
 
         {/* Companion */}
         {companion ? (
-          <Animated.View entering={reduceMotion ? FadeIn.duration(200).delay(60) : FadeInDown.duration(460).delay(80).springify().damping(20).stiffness(260)}>
+          <View>
             <Card level="raised" style={s.companion}>
               {companion.photo ? (
                 <Image source={{ uri: companion.photo }} style={s.avatar} accessibilityLabel={companionName} />
@@ -137,11 +136,11 @@ export default function Tracking() {
               </View>
               <Button title="Message" variant="secondary" onPress={messageCompanion} style={s.msgBtn} />
             </Card>
-          </Animated.View>
+          </View>
         ) : null}
 
         {/* Location */}
-        <Animated.View entering={reduceMotion ? FadeIn.duration(200).delay(120) : FadeInDown.duration(460).delay(160).springify().damping(20).stiffness(260)}>
+        <View>
           <Card level="raised" style={s.locCard}>
             {hasLocation ? (
               <>
@@ -174,7 +173,7 @@ export default function Tracking() {
               </>
             )}
           </Card>
-        </Animated.View>
+        </View>
 
         {/* Timeline — stagger */}
         <View style={s.timeline}>
@@ -182,7 +181,7 @@ export default function Tracking() {
             const done = i < activeIdx;
             const active = i === activeIdx;
             return (
-              <Animated.View key={step.title} entering={reduceMotion ? FadeIn.duration(180).delay(180 + i * 36) : FadeInDown.duration(440).delay(220 + i * 56).springify().damping(20).stiffness(260)} style={s.step}>
+              <View key={step.title}>
                 <View style={s.rail}>
                   <View style={[s.node, (done || active) ? s.nodeOn : s.nodeOff, active && s.nodeActive]} />
                   {i < steps.length - 1 ? <View style={[s.line, done ? s.lineOn : s.lineOff]} /> : null}
@@ -191,7 +190,7 @@ export default function Tracking() {
                   <Txt variant="title" color={active ? color.greenDeep : done ? color.ink : color.faint}>{step.title}</Txt>
                   <Txt variant="caption" color={color.muted}>{step.desc}</Txt>
                 </View>
-              </Animated.View>
+              </View>
             );
           })}
         </View>

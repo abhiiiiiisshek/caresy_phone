@@ -1,7 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -42,7 +41,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function ProfileScreen() {
   const { session, loading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const [profile, setProfile] = useState<Profile | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
@@ -98,7 +97,7 @@ export default function ProfileScreen() {
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Profile' }} />
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={reduceMotion ? FadeIn.duration(200) : FadeInDown.duration(460).springify().damping(20).stiffness(260)} style={s.headerWrap}>
+        <View>
           <View style={s.headerGlow} />
           <View style={s.header}>
             <View style={s.avatar}><Txt variant="h1" color={color.onGreen}>{initial}</Txt></View>
@@ -106,9 +105,9 @@ export default function ProfileScreen() {
             <Txt variant="body" color={color.muted}>{profile?.age ? `Age ${profile.age}` : `Member since ${memberSince}`}</Txt>
             <Txt variant="caption" color={color.faint}>{session.user.email}</Txt>
           </View>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(80) : FadeInDown.duration(460).delay(100).springify().damping(20).stiffness(260)}>
+        <View>
           <Section title="Account">
             {editingPhone ? (
               <Card level="raised" style={s.editCard}>
@@ -148,24 +147,24 @@ export default function ProfileScreen() {
             <Row title="Payment methods" sub="Cash or UPI, paid after the visit" />
             <Row title="Companion preferences" onPress={() => Linking.openURL(supWa('my companion preferences'))} />
           </Section>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(120) : FadeInDown.duration(460).delay(160).springify().damping(20).stiffness(260)}>
+        <View>
           <Section title="Activity">
             <Row title="My bookings" onPress={() => router.push('/my-bookings')} />
             <Row title="Care guides" sub="Short reads on recovery, medicines, falls and more" onPress={() => router.push('/care')} />
           </Section>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(160) : FadeInDown.duration(460).delay(220).springify().damping(20).stiffness(260)}>
+        <View>
           <Section title="Help & support">
             <Row title="Chat on WhatsApp" sub="Fastest — usually answered in minutes" onPress={() => Linking.openURL(supWa('a general question'))} />
             <Row title="Call us" sub={SUPPORT_TEL} onPress={() => Linking.openURL(`tel:${SUPPORT_TEL}`)} />
             <Row title="Email" sub="Replies within 24 hours" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
           </Section>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(200) : FadeInDown.duration(460).delay(280).springify().damping(20).stiffness(260)}>
+        <View>
           <Section title="Danger zone">
             <Card level="overlay" style={s.dangerCard}>
               <Txt variant="title" color={color.terracottaDeep}>Delete account</Txt>
@@ -187,7 +186,7 @@ export default function ProfileScreen() {
               />
             </Card>
           </Section>
-        </Animated.View>
+        </View>
 
         <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
       </ScrollView>

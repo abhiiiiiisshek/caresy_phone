@@ -3,7 +3,6 @@ import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View, Acc
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
-import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
 
 let LinearGradient: any = null;
 try {
@@ -143,18 +142,18 @@ export default function Home() {
     ?? (session.user.user_metadata?.name as string | undefined)?.split(' ')[0]
     ?? 'there';
 
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   return (
     <Screen>
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <Animated.View entering={reduceMotion ? FadeIn.duration(180) : FadeInDown.duration(500).springify().damping(20).stiffness(260)} style={s.greeting}>
+        <View>
           <Overline>Welcome back</Overline>
           <Txt variant="display" color={color.greenDeep}>Hi, {name}</Txt>
-        </Animated.View>
+        </View>
 
         {/* Primary actions — stagger §14, spring §4 default */}
         <View style={s.primaryActions}>
-          <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(40) : FadeInDown.duration(500).delay(60).springify().damping(20).stiffness(260)}>
+          <View>
             <ActionCard
               bg={color.urgentBg}
               ink={color.urgentInk}
@@ -169,8 +168,8 @@ export default function Home() {
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); router.push('/quick-help'); }}
               accessibilityLabel="Urgent booking — get a companion now"
             />
-          </Animated.View>
-          <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(80) : FadeInDown.duration(500).delay(120).springify().damping(20).stiffness(260)}>
+          </View>
+          <View>
             <ActionCard
               bg={color.green}
               ink={color.onGreen}
@@ -186,11 +185,11 @@ export default function Home() {
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/booking'); }}
               accessibilityLabel="Schedule appointment for later"
             />
-          </Animated.View>
+          </View>
         </View>
 
         {/* Next visit */}
-        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(120) : FadeInDown.duration(500).delay(180).springify().damping(20).stiffness(260)} style={s.section}>
+        <View>
           <Txt variant="h2" color={color.ink}>Your next visit</Txt>
           {next === undefined ? (
             <Card><View style={s.skeletonRow}><View style={s.skelLine} /><View style={[s.skelLine, { width: '60%' }]} /></View></Card>
@@ -217,7 +216,7 @@ export default function Home() {
               </Txt>
             </Card>
           )}
-        </Animated.View>
+        </View>
 
         {/* Quick actions — stagger 56ms */}
         <View style={s.actions}>
@@ -227,13 +226,13 @@ export default function Home() {
             { label: 'Get help', sub: 'Chat or call', route: '/support' as const, sf: SF.help, fb: FallbackGlyph.help },
             { label: 'Profile', sub: 'You & family', route: '/profile' as const, sf: SF.profile, fb: FallbackGlyph.profile },
           ].map((a, i) => (
-            <Animated.View key={a.label} entering={reduceMotion ? FadeIn.duration(180).delay(160 + i * 36) : FadeInDown.duration(460).delay(240 + i * 56).springify().damping(20).stiffness(260)} style={s.actionWrap}>
+            <View key={a.label}>
               <QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} sf={a.sf} fallback={a.fb} />
-            </Animated.View>
+            </View>
           ))}
         </View>
 
-        <Animated.View entering={reduceMotion ? FadeIn.duration(180).delay(320) : FadeInDown.duration(500).delay(360).springify().damping(20).stiffness(260)} style={s.trustCard}>
+        <View>
           <View style={s.trustHeaderRow}>
             {Platform.OS === 'ios' && SymbolView ? (
               <SymbolView name="checkmark.shield.fill" size={20} tintColor={color.green} />
@@ -250,7 +249,7 @@ export default function Home() {
             <View style={s.trustChip}><Txt variant="caption" color={color.greenDeep}>4.9/5 · 5k+ visits</Txt></View>
             <View style={s.trustChip}><Txt variant="caption" color={color.greenDeep}>Noida & Greater Noida</Txt></View>
           </View>
-        </Animated.View>
+        </View>
 
         <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
       </ScrollView>

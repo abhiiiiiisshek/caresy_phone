@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import Animated, { FadeIn, FadeInRight, FadeOutLeft, useReducedMotion } from 'react-native-reanimated';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -176,7 +175,7 @@ export default function QuickHelp() {
     }
   };
 
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const back = () => {
     if (step > 1) setStep((n) => n - 1);
     else router.back();
@@ -184,7 +183,7 @@ export default function QuickHelp() {
 
   if (successRef) {
     return (
-      <Animated.View entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(380).springify().damping(20).stiffness(260)} style={s.success}>
+      <View>
         <Stack.Screen options={{ headerShown: true, title: 'Request received' }} />
         <View style={s.tick}>
           <Txt variant="h1" color={color.onGreen}>✓</Txt>
@@ -201,7 +200,7 @@ export default function QuickHelp() {
           style={s.successBtn}
         />
         <Button title="View My Bookings" variant="secondary" onPress={() => router.replace('/my-bookings' as any)} style={s.successBtn} />
-      </Animated.View>
+      </View>
     );
   }
 
@@ -244,22 +243,22 @@ export default function QuickHelp() {
           <View key={i} style={[s.progressSeg, i < step ? s.progressOn : s.progressOff]} />
         ))}
       </View>
-      <Animated.View key={`qh-heading-${step}`} entering={reduceMotion ? FadeIn.duration(200) : FadeInRight.duration(320).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.heading}>
+      <View key={`qh-heading-${step}`}>
         <Overline>Step {step} of {TOTAL_STEPS}</Overline>
         <Txt variant="h1" color={color.greenDeep}>{STEP_TITLES[step - 1]}</Txt>
         {step === 1 ? <Txt variant="body" color={color.muted}>We’ll call you back within minutes. Share the minimum.</Txt> : null}
-      </Animated.View>
+      </View>
 
       {step === 1 && (
-        <Animated.View key="qh-1" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
+        <View key="qh-1">
           <Field label="Your name" value={customerName} onChangeText={setCustomerName} placeholder="Ananya Rao" error={nameErr} />
           <Field label="Mobile number" value={phone} onChangeText={(v) => setPhone(v.replace(/\D/g, '').slice(0, 10))} placeholder="98765 43210" keyboardType="phone-pad" error={phoneErr} />
           <Field label="Email address" value={email} onChangeText={setEmail} placeholder="name@example.com" keyboardType="email-address" autoCapitalize="none" error={emailErr} />
-        </Animated.View>
+        </View>
       )}
 
       {step === 2 && (
-        <Animated.View key="qh-2" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
+        <View key="qh-2">
           <Field label="Patient name" value={patientName} onChangeText={setPatientName} placeholder="Ramesh Kumar" error={patientErr} />
           <Field label="Hospital or clinic" value={hospital} onChangeText={setHospital} placeholder="e.g. Max Hospital, Noida" error={hospitalErr} />
           <Field label="Pincode" value={pincode} onChangeText={(v) => setPincode(v.replace(/\D/g, '').slice(0, 6))} placeholder="201301" keyboardType="number-pad" error={pincodeErr} />
@@ -271,11 +270,11 @@ export default function QuickHelp() {
               <Chip key={sv} label={sv} selected={service === sv} onPress={() => setService(sv)} />
             ))}
           </ChipRow>
-        </Animated.View>
+        </View>
       )}
 
       {step === 3 && (
-        <Animated.View key="qh-3" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
+        <View key="qh-3">
           <Txt variant="h2" color={color.ink}>When should we call?</Txt>
           <ChipRow>
             {URGENCIES.map((u) => (
@@ -287,7 +286,7 @@ export default function QuickHelp() {
             <Txt variant="title" color={color.ink}>Emergency boundary</Txt>
             <Txt variant="body" color={color.muted}>If the patient condition is worsening, contact hospital emergency services first. Caresy is assistance and coordination, not emergency medical care.</Txt>
           </Card>
-        </Animated.View>
+        </View>
       )}
     </FormScreen>
   );

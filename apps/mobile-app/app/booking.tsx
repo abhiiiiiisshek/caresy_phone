@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeIn, FadeInRight, FadeOutLeft, useReducedMotion } from 'react-native-reanimated';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -267,7 +266,7 @@ export default function Booking() {
     }
   };
 
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   if (authLoading) return <Screen />;
   if (!session) return <Redirect href="/" />;
 
@@ -275,14 +274,14 @@ export default function Booking() {
     return (
       <Screen>
         <Stack.Screen options={{ headerShown: true, title: 'Booked', headerBackVisible: false }} />
-        <Animated.View entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(380).springify().damping(20).stiffness(260)} style={s.success}>
+        <View>
           <View style={s.tick}><Txt variant="display" color={color.onGreen}>✓</Txt></View>
           <Txt variant="h1" color={color.greenDeep}>Request sent</Txt>
           <Txt variant="body" color={color.muted} style={s.center}>We'll confirm a companion shortly and notify you.</Txt>
           <View style={s.refBadge}><Txt variant="label" color={color.greenDeep}>Ref {successRef}</Txt></View>
           <Button title="View my bookings" onPress={() => router.replace('/my-bookings')} style={s.successBtn} />
           <Button title="Back home" variant="secondary" onPress={() => router.replace('/')} style={s.successBtn} />
-        </Animated.View>
+        </View>
       </Screen>
     );
   }
@@ -309,13 +308,13 @@ export default function Booking() {
           <View key={i} style={[s.progressSeg, i < step ? s.progressOn : s.progressOff]} />
         ))}
       </View>
-      <Animated.View key={`heading-${step}`} entering={reduceMotion ? FadeIn.duration(200) : FadeInRight.duration(320).springify().damping(20).stiffness(260)} exiting={reduceMotion ? FadeOutLeft.duration(160) : FadeOutLeft.duration(180)} style={s.heading}>
+      <View key={`heading-${step}`}>
         <Overline>Step {step} of {TOTAL_STEPS}</Overline>
         <Txt variant="h1" color={color.greenDeep}>{STEP_TITLES[step - 1]}</Txt>
-      </Animated.View>
+      </View>
 
       {step === 1 && (
-        <Animated.View key="step-1" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
+        <View key="step-1">
           <FieldButton
             label="Service"
             value={chosenService.name}
@@ -340,11 +339,11 @@ export default function Booking() {
             {DURATIONS.map((h) => <Chip key={h} label={durationLabel(h)} selected={durationHours === h} onPress={() => setDurationHours(h)} />)}
           </ChipRow>
           <Txt variant="title" color={color.greenDeep}>{durationLabel(durationHours)} · {formatINR(basePaise)}</Txt>
-        </Animated.View>
+        </View>
       )}
 
       {step === 2 && (
-        <Animated.View key="step-2" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
+        <View key="step-2">
           <Field
             label="Hospital / clinic"
             value={hospital}
@@ -421,11 +420,11 @@ export default function Booking() {
             onClose={() => setTransportSheet(false)}
             options={TRANSPORT_MODES.map((m) => ({ key: m.key, label: m.label }))}
           />
-        </Animated.View>
+        </View>
       )}
 
       {step === 3 && (
-        <Animated.View key="step-3" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
+        <View key="step-3">
           {savedPatients.length > 0 && (
             <ChipRow>
               {savedPatients.map((p) => <Chip key={p.id} label={p.full_name} selected={selectedPatientId === p.id} onPress={() => pickSaved(p)} />)}
@@ -461,11 +460,11 @@ export default function Booking() {
               {docUri ? <Button title="Remove" variant="secondary" onPress={() => setDocUri(null)} style={s.docBtn} /> : null}
             </View>
           </Card>
-        </Animated.View>
+        </View>
       )}
 
       {step === 4 && (
-        <Animated.View key="step-4" entering={reduceMotion ? FadeIn.duration(220) : FadeInRight.duration(340).springify().damping(20).stiffness(260)} exiting={FadeOutLeft.duration(180)} style={s.stepBody}>
+        <View key="step-4">
           <ChipRow>
             {days.map((d) => <Chip key={d.iso} label={d.label} selected={date === d.iso} onPress={() => { setDate(d.iso); setTime(''); }} />)}
           </ChipRow>
@@ -486,7 +485,7 @@ export default function Booking() {
             {eveningPaise > 0 ? <Txt variant="caption" color={color.muted}>Includes evening surcharge</Txt> : null}
             <Txt variant="caption" color={color.faint}>Estimate. Final amount is metered by actual companion time.</Txt>
           </Card>
-        </Animated.View>
+        </View>
       )}
     </FormScreen>
   );
