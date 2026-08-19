@@ -42,7 +42,8 @@
         "backgroundColor": "#f8faf5",
         "foregroundImage": "./assets/icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "usesCleartextTraffic": true
     },
     "plugins": [
       "expo-router",
