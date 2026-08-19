@@ -7,7 +7,7 @@ import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { formatINR, runningTotalPaise } from '@caresy/utils/pricing';
-import { Button, Card, Chip, ChipRow, EmptyState, ErrorState, LoadingState, Screen, Txt } from '../components/ui';
+import { Button, Card, Chip, ChipRow, EmptyState, ErrorState, LoadingState, Screen, Stagger, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
 import { color, radius, space } from '../lib/theme';
 
@@ -112,10 +112,10 @@ export default function MyBookings() {
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'My Bookings' }} />
-      <View>
+      <Stagger index={0} style={s.tabs}>
         <Chip label="Upcoming" selected={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
         <Chip label="Past" selected={filter === 'past'} onPress={() => setFilter('past')} />
-      </View>
+      </Stagger>
 
       {error ? (
         <ErrorState message={error} onRetry={() => fetch()} />
@@ -135,9 +135,9 @@ export default function MyBookings() {
             </View>
           }
           renderItem={({ item, index }) => (
-            <View>
+            <Stagger index={index + 1}>
               <BookingCard b={item} onCancel={cancel} onTrack={(bk) => router.push({ pathname: '/tracking', params: { token: bk.share_token } })} />
-            </View>
+            </Stagger>
           )}
         />
       )}

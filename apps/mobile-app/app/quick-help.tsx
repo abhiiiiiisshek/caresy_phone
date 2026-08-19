@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Animated, Alert, Easing, Linking, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 import { useAuth } from '../lib/AuthProvider';
@@ -7,18 +7,13 @@ import { supabase } from '../lib/supabase';
 import { isValidIndianMobile, toE164 } from '@caresy/utils/phone';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import { eveningSurchargePaise } from '@caresy/utils/pricing';
-import { Button, Card, Chip, ChipRow, Field, FormScreen, Overline, Txt } from '../components/ui';
+import { Button, Card, Chip, ChipRow, Field, FormScreen, Overline, Stagger, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
 
 // Mirrors apps/website/src/app/quick-help/page.tsx — 3-step wizard
 // Step1: contact, Step2: where (patient/hospital/pincode), Step3: urgency/notes
 const TOTAL_STEPS = 3;
 const STEP_TITLES = ['Contact details', 'Where is help needed?', 'Urgency'];
-function Stagger({ children, style }: { children: React.ReactNode; style?: any }) {
-  const a = useRef(new Animated.Value(0)).current;
-  useEffect(() => { Animated.timing(a, { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(); }, [a]);
-  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}>{children}</Animated.View>;
-}
 const SERVICES = [
   'Appointment today',
   'Test or scan today',

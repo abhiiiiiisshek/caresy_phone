@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Alert, Easing, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -9,7 +9,7 @@ import { formatINR, priceForMinutes, eveningSurchargePaise } from '@caresy/utils
 import { availableSlots } from '@caresy/utils/slots';
 import { toE164, isValidIndianMobile } from '@caresy/utils/phone';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
-import { BottomSheet, Button, Card, Chip, ChipRow, Field, FieldButton, FormScreen, Overline, Screen, Txt } from '../components/ui';
+import { BottomSheet, Button, Card, Chip, ChipRow, Field, FieldButton, FormScreen, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
 import { HOSPITALS, pincodeForArea } from '../lib/hospitals';
 
@@ -39,12 +39,6 @@ const LANGUAGES = ['No preference', 'Hindi', 'English', 'Tamil', 'Telugu', 'Kann
 const CARE_NEEDS = ['Wheelchair', 'Walking assistance', 'Medicine collection'];
 const TOTAL_STEPS = 4;
 const STEP_TITLES = ['What do you need?', 'Where?', 'Who is it for?', 'When?'];
-function Stagger({ children, style }: { children: React.ReactNode; style?: any }) {
-  const a = useRef(new Animated.Value(0)).current;
-  useEffect(() => { Animated.timing(a, { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(); }, [a]);
-  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}>{children}</Animated.View>;
-}
-
 interface SavedPatient { id: string; full_name: string; age: number | null; emergency_contact_phone: string | null; }
 
 function fmtSlot(t: string) {

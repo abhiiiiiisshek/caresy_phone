@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 
-import { Button, Card, Overline, Screen, Txt } from '../components/ui';
+import { Button, Card, ChipRow, Chip, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
 
 const SUPPORT_WA = '919717500225';
@@ -30,43 +30,47 @@ export default function Support() {
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Get help' }} />
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <View style={s.intro}>
+        <Stagger index={0} style={s.intro}>
           <Overline>Get help</Overline>
           <Txt variant="h1" color={color.greenDeep}>How can we help?</Txt>
           <Txt variant="body" color={color.muted}>Answers first — WhatsApp only if you need a human.</Txt>
-        </View>
+        </Stagger>
 
-        <View style={s.chips}>
-          {CATS.map((c) => (
-            <Pressable key={c} onPress={() => setCat(c)} style={[s.chip, cat === c && s.chipOn]}>
-              <Txt variant="label" color={cat === c ? color.onGreen : color.ink}>{c}</Txt>
-            </Pressable>
-          ))}
-        </View>
+        <Stagger index={1}>
+          <ChipRow>
+            {CATS.map((c) => (
+              <Chip key={c} label={c} selected={cat === c} onPress={() => setCat(c)} />
+            ))}
+          </ChipRow>
+        </Stagger>
 
-        {shown.map((f) => {
+        {shown.map((f, i) => {
           const isOpen = open === f.q;
           return (
-            <Card key={f.q} onPress={() => setOpen(isOpen ? null : f.q)} style={s.faq}>
-              <View style={s.faqHead}>
-                <Txt variant="title" color={color.ink} style={s.flex1}>{f.q}</Txt>
-                <Txt variant="title" color={color.faint}>{isOpen ? '−' : '+'}</Txt>
-              </View>
-              {isOpen ? <Txt variant="body" color={color.muted}>{f.a}</Txt> : null}
-              <View style={s.catBadge}><Txt variant="caption" color={color.faint}>{f.cat}</Txt></View>
-            </Card>
+            <Stagger key={f.q} index={i + 2}>
+              <Card onPress={() => setOpen(isOpen ? null : f.q)} style={s.faq}>
+                <View style={s.faqHead}>
+                  <Txt variant="title" color={color.ink} style={s.flex1}>{f.q}</Txt>
+                  <Txt variant="title" color={color.faint}>{isOpen ? '−' : '+'}</Txt>
+                </View>
+                {isOpen ? <Txt variant="body" color={color.muted}>{f.a}</Txt> : null}
+                <View style={s.catBadge}><Txt variant="caption" color={color.faint}>{f.cat}</Txt></View>
+              </Card>
+            </Stagger>
           );
         })}
 
-        <Card style={s.escalate}>
-          <Txt variant="title" color={color.ink}>Still need a human?</Txt>
-          <Txt variant="body" color={color.muted}>We reply fastest on WhatsApp, usually in minutes.</Txt>
-          <Button title="Chat on WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent('Hello Caresy Support, I need help with: ')}`)} style={s.btn} />
-          <View style={s.row}>
-            <Button title="Call us" variant="secondary" onPress={() => Linking.openURL(`tel:${SUPPORT_TEL}`)} style={s.rowBtn} />
-            <Button title="Email" variant="secondary" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} style={s.rowBtn} />
-          </View>
-        </Card>
+        <Stagger index={shown.length + 2}>
+          <Card style={s.escalate}>
+            <Txt variant="title" color={color.ink}>Still need a human?</Txt>
+            <Txt variant="body" color={color.muted}>We reply fastest on WhatsApp, usually in minutes.</Txt>
+            <Button title="Chat on WhatsApp" onPress={() => Linking.openURL(`https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent('Hello Caresy Support, I need help with: ')}`)} style={s.btn} />
+            <View style={s.row}>
+              <Button title="Call us" variant="secondary" onPress={() => Linking.openURL(`tel:${SUPPORT_TEL}`)} style={s.rowBtn} />
+              <Button title="Email" variant="secondary" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} style={s.rowBtn} />
+            </View>
+          </Card>
+        </Stagger>
       </ScrollView>
     </Screen>
   );
@@ -76,9 +80,6 @@ const s = StyleSheet.create({
   body: { padding: space.xl, gap: space.md, paddingBottom: space.xxl },
   intro: { gap: space.xs },
   flex1: { flex: 1 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radius.pill, backgroundColor: color.surface, borderWidth: 1, borderColor: color.line },
-  chipOn: { backgroundColor: color.green, borderColor: color.green },
   faq: { gap: space.sm },
   faqHead: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   catBadge: { alignSelf: 'flex-start', backgroundColor: color.card, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill },

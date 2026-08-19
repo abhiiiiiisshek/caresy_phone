@@ -17,7 +17,7 @@ if (require('react-native').Platform.OS !== 'web') {
 
 import { supabase } from '../lib/supabase';
 import { trackingHeadline, trackingSteps } from '@caresy/utils/bookingStatus';
-import { Button, Card, EmptyState, LoadingState, Overline, Screen, Txt } from '../components/ui';
+import { Button, Card, EmptyState, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { color, radius, shadow, space } from '../lib/theme';
 
 const SUPPORT_WA = '919717500225';
@@ -118,15 +118,15 @@ export default function Tracking() {
     <Screen>
       {header}
       <View style={s.body}>
-        <View>
+        <Stagger index={0}>
           <Overline>Booking {booking.reference_code}</Overline>
           <Txt variant="h1" color={color.greenDeep}>{headline}</Txt>
           {booking.pickup_title ? <Txt variant="body" color={color.muted}>{booking.pickup_title}</Txt> : null}
-        </View>
+        </Stagger>
 
         {/* Companion */}
         {companion ? (
-          <View>
+          <Stagger index={1}>
             <Card level="raised" style={s.companion}>
               {companion.photo ? (
                 <Image source={{ uri: companion.photo }} style={s.avatar} accessibilityLabel={companionName} />
@@ -141,11 +141,11 @@ export default function Tracking() {
               </View>
               <Button title="Message" variant="secondary" onPress={messageCompanion} style={s.msgBtn} />
             </Card>
-          </View>
+          </Stagger>
         ) : null}
 
         {/* Location */}
-        <View>
+        <Stagger index={2}>
           <Card level="raised" style={s.locCard}>
             {hasLocation ? (
               <>
@@ -178,15 +178,14 @@ export default function Tracking() {
               </>
             )}
           </Card>
-        </View>
+        </Stagger>
 
-        {/* Timeline — stagger */}
         <View style={s.timeline}>
           {steps.map((step, i) => {
             const done = i < activeIdx;
             const active = i === activeIdx;
             return (
-              <View key={step.title}>
+              <Stagger key={step.title} index={i + 3} style={s.step}>
                 <View style={s.rail}>
                   <View style={[s.node, (done || active) ? s.nodeOn : s.nodeOff, active && s.nodeActive]} />
                   {i < steps.length - 1 ? <View style={[s.line, done ? s.lineOn : s.lineOff]} /> : null}
@@ -195,12 +194,14 @@ export default function Tracking() {
                   <Txt variant="title" color={active ? color.greenDeep : done ? color.ink : color.faint}>{step.title}</Txt>
                   <Txt variant="caption" color={color.muted}>{step.desc}</Txt>
                 </View>
-              </View>
+              </Stagger>
             );
           })}
         </View>
 
-        <Button title="Share live status" variant="secondary" onPress={share} style={s.shareBtn} />
+        <Stagger index={steps.length + 3}>
+          <Button title="Share live status" variant="secondary" onPress={share} style={s.shareBtn} />
+        </Stagger>
       </View>
     </Screen>
   );

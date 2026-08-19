@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
-import { Button, Card, Field, LoadingState, Overline, Screen, Txt } from '../components/ui';
+import { Button, Card, Field, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
 
 type FamilyMember = {
@@ -102,13 +102,13 @@ export default function FamilyScreen() {
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Family' }} />
-      <View>
+      <Stagger index={0} style={s.topBar}>
         <Txt variant="body" color={color.muted} style={s.flex1}>Add parents, spouse, children — select them in one tap during booking.</Txt>
         <Button title="+ Add member" onPress={openAdd} style={s.addBtn} />
-      </View>
+      </Stagger>
 
       {showAdd && (
-        <View>
+        <Stagger index={1}>
           <Card level="raised" style={s.formCard}>
             <Overline>{editTarget ? 'Edit member' : 'Add family member'}</Overline>
             <Field label="Full name *" value={fullName} onChangeText={setFullName} placeholder="e.g. Sunita Sharma" />
@@ -121,7 +121,7 @@ export default function FamilyScreen() {
               <Button title={editTarget ? 'Save' : 'Add'} loading={saving} onPress={save} style={s.flex1} />
             </View>
           </Card>
-        </View>
+        </Stagger>
       )}
 
       <FlatList
@@ -130,7 +130,7 @@ export default function FamilyScreen() {
         contentContainerStyle={members.length ? s.list : s.listEmpty}
         ListEmptyComponent={<Card style={s.empty}><Txt variant="body" color={color.muted}>No family members yet. Add one to book in one tap.</Txt></Card>}
         renderItem={({ item, index }) => (
-          <View>
+          <Stagger index={index + 2}>
             <Card style={s.row}>
               <Pressable onPress={() => openEdit(item)} style={s.rowMain}>
                 <View style={s.avatar}><Txt variant="title" color={color.onGreen}>{item.full_name.charAt(0).toUpperCase()}</Txt></View>
@@ -141,7 +141,7 @@ export default function FamilyScreen() {
               </Pressable>
               <Pressable onPress={() => remove(item)} hitSlop={12} style={s.removeHit}><Txt variant="caption" color={color.terracotta}>Remove</Txt></Pressable>
             </Card>
-          </View>
+          </Stagger>
         )}
       />
     </Screen>

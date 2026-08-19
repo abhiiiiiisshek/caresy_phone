@@ -2,9 +2,47 @@
 
 **Read this first on restart — this is the ONE file for all progress. All other handoff/progress files are deprecated. Update this file before every `/clear`. Durable facts live in [PROJECT_MEMORY.md](./PROJECT_MEMORY.md). Claude + Muse both use this.**
 
-_Last updated: 2026-08-19 12:00 — branch `feature/mobile-quick-help`, `8bc8d64` pushed (later `b532bdd`/`6caebe1`/`ab4bbf5`/`7797028`), tsc 0 both apps, web export 996 modules 1.8MB._
+_Last updated: 2026-08-19 (session 2) — branch `feature/mobile-quick-help`, uncommitted working-tree changes, `tsc 0` mobile-app._
 
-## Just shipped (committed + pushed, not yet deployed)
+## In progress — mobile UI parity pass (this session)
+
+User: home screen looks good, every other screen "looks static" vs website. Ran an Explore audit comparing all 10 `apps/mobile-app/app/*.tsx` screens against `components/ui.tsx` primitives + website equivalents. Full ranked findings not persisted verbatim — re-run the audit prompt if detail needed beyond below.
+
+**Root cause found:** `Stagger` (entrance animation, RN `Animated`, opacity 0→1 + translateY→0) was copy-pasted locally into `index.tsx`, `booking.tsx`, and `quick-help.tsx` — never exported from `ui.tsx`, so the other 7 screens had zero animation and no easy way to add it.
+
+**Done this session:**
+- Hoisted `Stagger` into `components/ui.tsx` (exported, `index`-based 56ms cadence, 480ms cubic-out) — single source now.
+- `index.tsx`, `booking.tsx`, `quick-help.tsx` — removed local `Stagger` duplicates, import shared one, dropped now-unused `useRef`/`Animated`/`Easing` imports.
+- `support.tsx` (ranked **worst** of the 10 — manual chip markup, zero animation) — replaced hand-rolled chip `Pressable`s with shared `Chip`/`ChipRow`, wrapped intro/category-chips/FAQ-list/escalate-card in `Stagger`, deleted dead `s.chips`/`s.chip`/`s.chipOn` styles. `tsc 0`.
+- `family.tsx` (2nd worst) — fixed dead `s.topBar` bind (now applied to intro View), wrapped intro, add/edit form card, and each `FlatList` row in `Stagger`. `tsc 0`.
+- `profile.tsx` — `s.headerWrap` bind fixed via `cavecrew-builder` subagent, confirmed + `tsc 0`. Then wrapped header/Account/Activity/Help & support/Danger zone/Sign-out in `Stagger` (index 0-5). `tsc 0`.
+- `my-bookings.tsx` — `s.tabs` bind fixed via subagent. `Stagger` added: filter-chip row (index 0), each `BookingCard` in `FlatList` (index+1). `tsc 0`. Still open: no companion photo in `BookingCard` (lower priority, from original audit).
+- `tracking.tsx` — `s.step` bind fixed (timeline row) via subagent, stale `{/* stagger */}` comment deleted. Then wrapped headline/companion-card/location-card in `Stagger` (index 0-2), each timeline step (index `i+3`), share button (index `steps.length+3`). `tsc 0`.
+- `account-delete.tsx` — wrapped confirm-form body in `Stagger` (index 0) via `cavecrew-builder` subagent. "Sign in required" / "Account deleted" states left untouched (single-state screens, low value). `tsc 0`.
+
+**Not committed yet** — working tree has: `components/ui.tsx`, `app/index.tsx`, `app/booking.tsx`, `app/quick-help.tsx`, `app/support.tsx`, `app/family.tsx`, `app/profile.tsx`, `app/my-bookings.tsx`, `app/tracking.tsx`, `app/account-delete.tsx`.
+
+## Next task
+
+**`care/index.tsx`** — add `Stagger` (missing) + photo-bleed `ActionCard` treatment that `index.tsx` has (creative — website comparison needed, keep for direct work not subagent). Then **`care/[slug].tsx`** — add `Stagger` to hero/text blocks, lowest-risk gap, likely last screen needed for parity.
+
+## Leftovers — remaining screens, worst → best (from same audit)
+
+Cross-cutting bug found in 4 screens: a StyleSheet key is defined but **never attached** to its View — literal cause of "looks static" on each. **All 4 binds now fixed** (family/profile this session directly, my-bookings/tracking via subagent):
+
+1. ~~**`family.tsx`** — `s.topBar` unapplied. No `Stagger`.~~ **done.**
+2. ~~**`profile.tsx`** — `s.headerWrap` unapplied.~~ **bind + `Stagger` done.**
+3. ~~**`my-bookings.tsx`** — `s.tabs` unapplied.~~ **bind + `Stagger` done.** Still open: no companion photo in `BookingCard` (website has one) — lower priority.
+4. ~~**`tracking.tsx`** — `s.step` unapplied, misleading stale comment.~~ **bind + comment + `Stagger` done.**
+5. ~~**`account-delete.tsx`** — missing `Stagger`.~~ **done.**
+6. **`care/index.tsx`** — already uses real `Chip`/`ChipRow` correctly + accent bars + icon badges. Missing `Stagger` and photo-bleed treatment (`ActionCard` style) that `index.tsx` has. *(next task, above)*
+7. **`care/[slug].tsx`** — plain article page, `Card` hero + text. No `Stagger`. Lowest-risk gap, likely matches website's text-first article layout already.
+
+`quick-help.tsx`/`booking.tsx` — already closest to bar (Card/Chip/ChipRow/BottomSheet + Stagger per-step). Remaining gap: no `index`-based per-field cadence (uniform fade only) and no `ActionCard` photo treatment — likely doesn't apply to form/wizard screens.
+
+**After screens:** run `npx tsc --noEmit` + `npm run lint -w @caresy/mobile-app` + `npm run build -w @caresy/mobile-app` per `CLAUDE.md` post-change workflow, then commit. `graphify update .` if touched files shift module boundaries (they don't here — same components, same imports).
+
+## Just shipped (committed + pushed, not yet deployed — prior session)
 
 - `8bc8d64` — **fix(mobile): restore stagger via RN Animated (Expo Go safe)** — reanimated stripped for RN 0.86 crash left UI flat; re-added `Stagger` (`opacity 0→1 + translateY 14→0`, 56ms, 420-480ms cubic) via `react-native Animated` (no native module). Home + Booking + QuickHelp now stagger, depth `raised/overlay` preserved. `tsc 0`.
 - `6caebe1` — **fix(mobile): Expo Go safe — hide native requires** — `expo-device`/`expo-notifications`/`expo-linear-gradient` now early-return if `isExpoGo` (`storeClient` or `appOwnership expo`) + `eval("require")` to hide from Metro. Fixes `ExpoDevice`/`ExpoPushTokenManager`/`LinearGradient` redbox loops via `AuthProvider`/`_layout`. `tsc 0`, web 1.8MB.

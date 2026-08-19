@@ -3,7 +3,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 import { useAuth } from '../lib/AuthProvider';
-import { Button, Card, Field, Screen, Txt } from '../components/ui';
+import { Button, Card, Field, Screen, Stagger, Txt } from '../components/ui';
 import { color, space } from '../lib/theme';
 
 export default function AccountDelete() {
@@ -74,7 +74,7 @@ export default function AccountDelete() {
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Delete account' }} />
-      <View style={s.body}>
+      <Stagger index={0} style={s.body}>
         <Card style={s.warn}>
           <Txt variant="title" color={color.terracottaDeep}>This is permanent</Txt>
           <Txt variant="body" color={color.muted}>Deleting {session.user.email} removes profile, patients, saved locations, bookings and care logs. Cannot be undone.</Txt>
@@ -83,7 +83,7 @@ export default function AccountDelete() {
         <Field label="Confirmation" value={confirm} onChangeText={setConfirm} placeholder="DELETE" autoCapitalize="none" />
         <Button title="Permanently delete my account" variant="danger" onPress={handleDelete} loading={busy} disabled={!canDelete} />
         <Button title="Cancel" variant="secondary" onPress={() => router.back()} disabled={busy} />
-      </View>
+      </Stagger>
     </Screen>
   );
 }

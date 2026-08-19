@@ -5,7 +5,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { isValidIndianMobile, toE164 } from '@caresy/utils/phone';
-import { Button, Card, Field, LoadingState, Overline, Screen, Txt } from '../components/ui';
+import { Button, Card, Field, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { color, space } from '../lib/theme';
 
 // Mirrors apps/website/src/app/profile/page.tsx's sections, native layout.
@@ -97,7 +97,7 @@ export default function ProfileScreen() {
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'Profile' }} />
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <View>
+        <Stagger index={0} style={s.headerWrap}>
           <View style={s.headerGlow} />
           <View style={s.header}>
             <View style={s.avatar}><Txt variant="h1" color={color.onGreen}>{initial}</Txt></View>
@@ -105,9 +105,9 @@ export default function ProfileScreen() {
             <Txt variant="body" color={color.muted}>{profile?.age ? `Age ${profile.age}` : `Member since ${memberSince}`}</Txt>
             <Txt variant="caption" color={color.faint}>{session.user.email}</Txt>
           </View>
-        </View>
+        </Stagger>
 
-        <View>
+        <Stagger index={1}>
           <Section title="Account">
             {editingPhone ? (
               <Card level="raised" style={s.editCard}>
@@ -147,24 +147,24 @@ export default function ProfileScreen() {
             <Row title="Payment methods" sub="Cash or UPI, paid after the visit" />
             <Row title="Companion preferences" onPress={() => Linking.openURL(supWa('my companion preferences'))} />
           </Section>
-        </View>
+        </Stagger>
 
-        <View>
+        <Stagger index={2}>
           <Section title="Activity">
             <Row title="My bookings" onPress={() => router.push('/my-bookings')} />
             <Row title="Care guides" sub="Short reads on recovery, medicines, falls and more" onPress={() => router.push('/care')} />
           </Section>
-        </View>
+        </Stagger>
 
-        <View>
+        <Stagger index={3}>
           <Section title="Help & support">
             <Row title="Chat on WhatsApp" sub="Fastest — usually answered in minutes" onPress={() => Linking.openURL(supWa('a general question'))} />
             <Row title="Call us" sub={SUPPORT_TEL} onPress={() => Linking.openURL(`tel:${SUPPORT_TEL}`)} />
             <Row title="Email" sub="Replies within 24 hours" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} />
           </Section>
-        </View>
+        </Stagger>
 
-        <View>
+        <Stagger index={4}>
           <Section title="Danger zone">
             <Card level="overlay" style={s.dangerCard}>
               <Txt variant="title" color={color.terracottaDeep}>Delete account</Txt>
@@ -186,9 +186,11 @@ export default function ProfileScreen() {
               />
             </Card>
           </Section>
-        </View>
+        </Stagger>
 
-        <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
+        <Stagger index={5}>
+          <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
+        </Stagger>
       </ScrollView>
     </Screen>
   );

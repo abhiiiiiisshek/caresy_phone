@@ -1,9 +1,11 @@
 // Native design-system primitives. Every screen composes these instead of
 // re-declaring StyleSheets. Haptics, accessibility and pressed-states live here
 // so they are consistent and free at the call site.
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -21,6 +23,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
 import { color, material, radius, shadow, space, type } from '../lib/theme';
+
+/* ---------- Stagger ---------- */
+
+// Entrance animation for list/section children. `index` sets the cadence
+// (56ms apart) so a screen's content arrives in sequence instead of at once.
+export function Stagger({ index = 0, children, style }: { index?: number; children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(a, { toValue: 1, duration: 480, delay: index * 56, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [a, index]);
+  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>{children}</Animated.View>;
+}
 
 /* ---------- Screen ---------- */
 

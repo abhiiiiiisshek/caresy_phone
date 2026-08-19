@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
-import { Animated, AppState, Easing, Image, Platform, Pressable, ScrollView, StyleSheet, View, AccessibilityInfo } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View, AccessibilityInfo } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -16,19 +16,10 @@ if (!_isExpoGo) {
   }
 }
 
-// Expo Go safe stagger — RN Animated (no reanimated native)
-function Stagger({ index = 0, children, style }: { index?: number; children: React.ReactNode; style?: any }) {
-  const a = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.timing(a, { toValue: 1, duration: 480, delay: index * 56, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
-  }, [a, index]);
-  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>{children}</Animated.View>;
-}
-
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
-import { Button, Card, LoadingState, Overline, Screen, Txt } from '../components/ui';
+import { Button, Card, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
 import { color, radius, shadow, space } from '../lib/theme';
 
