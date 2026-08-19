@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Alert, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -39,6 +39,11 @@ const LANGUAGES = ['No preference', 'Hindi', 'English', 'Tamil', 'Telugu', 'Kann
 const CARE_NEEDS = ['Wheelchair', 'Walking assistance', 'Medicine collection'];
 const TOTAL_STEPS = 4;
 const STEP_TITLES = ['What do you need?', 'Where?', 'Who is it for?', 'When?'];
+function Stagger({ children, style }: { children: React.ReactNode; style?: any }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.timing(a, { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(); }, [a]);
+  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}>{children}</Animated.View>;
+}
 
 interface SavedPatient { id: string; full_name: string; age: number | null; emergency_contact_phone: string | null; }
 
@@ -308,13 +313,13 @@ export default function Booking() {
           <View key={i} style={[s.progressSeg, i < step ? s.progressOn : s.progressOff]} />
         ))}
       </View>
-      <View key={`heading-${step}`}>
+      <Stagger key={`heading-${step}`}>
         <Overline>Step {step} of {TOTAL_STEPS}</Overline>
         <Txt variant="h1" color={color.greenDeep}>{STEP_TITLES[step - 1]}</Txt>
-      </View>
+      </Stagger>
 
       {step === 1 && (
-        <View key="step-1">
+        <Stagger key="step-1">
           <FieldButton
             label="Service"
             value={chosenService.name}
@@ -339,11 +344,11 @@ export default function Booking() {
             {DURATIONS.map((h) => <Chip key={h} label={durationLabel(h)} selected={durationHours === h} onPress={() => setDurationHours(h)} />)}
           </ChipRow>
           <Txt variant="title" color={color.greenDeep}>{durationLabel(durationHours)} · {formatINR(basePaise)}</Txt>
-        </View>
+        </Stagger>
       )}
 
       {step === 2 && (
-        <View key="step-2">
+        <Stagger key="step-2">
           <Field
             label="Hospital / clinic"
             value={hospital}
@@ -420,11 +425,11 @@ export default function Booking() {
             onClose={() => setTransportSheet(false)}
             options={TRANSPORT_MODES.map((m) => ({ key: m.key, label: m.label }))}
           />
-        </View>
+        </Stagger>
       )}
 
       {step === 3 && (
-        <View key="step-3">
+        <Stagger key="step-3">
           {savedPatients.length > 0 && (
             <ChipRow>
               {savedPatients.map((p) => <Chip key={p.id} label={p.full_name} selected={selectedPatientId === p.id} onPress={() => pickSaved(p)} />)}
@@ -460,11 +465,11 @@ export default function Booking() {
               {docUri ? <Button title="Remove" variant="secondary" onPress={() => setDocUri(null)} style={s.docBtn} /> : null}
             </View>
           </Card>
-        </View>
+        </Stagger>
       )}
 
       {step === 4 && (
-        <View key="step-4">
+        <Stagger key="step-4">
           <ChipRow>
             {days.map((d) => <Chip key={d.iso} label={d.label} selected={date === d.iso} onPress={() => { setDate(d.iso); setTime(''); }} />)}
           </ChipRow>
@@ -485,7 +490,7 @@ export default function Booking() {
             {eveningPaise > 0 ? <Txt variant="caption" color={color.muted}>Includes evening surcharge</Txt> : null}
             <Txt variant="caption" color={color.faint}>Estimate. Final amount is metered by actual companion time.</Txt>
           </Card>
-        </View>
+        </Stagger>
       )}
     </FormScreen>
   );

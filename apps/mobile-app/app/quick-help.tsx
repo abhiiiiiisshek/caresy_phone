@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Alert, Linking, StyleSheet, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Alert, Easing, Linking, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 import { useAuth } from '../lib/AuthProvider';
@@ -14,6 +14,11 @@ import { color, radius, space } from '../lib/theme';
 // Step1: contact, Step2: where (patient/hospital/pincode), Step3: urgency/notes
 const TOTAL_STEPS = 3;
 const STEP_TITLES = ['Contact details', 'Where is help needed?', 'Urgency'];
+function Stagger({ children, style }: { children: React.ReactNode; style?: any }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.timing(a, { toValue: 1, duration: 420, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(); }, [a]);
+  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}>{children}</Animated.View>;
+}
 const SERVICES = [
   'Appointment today',
   'Test or scan today',
@@ -243,22 +248,22 @@ export default function QuickHelp() {
           <View key={i} style={[s.progressSeg, i < step ? s.progressOn : s.progressOff]} />
         ))}
       </View>
-      <View key={`qh-heading-${step}`}>
+      <Stagger key={`qh-heading-${step}`}>
         <Overline>Step {step} of {TOTAL_STEPS}</Overline>
         <Txt variant="h1" color={color.greenDeep}>{STEP_TITLES[step - 1]}</Txt>
         {step === 1 ? <Txt variant="body" color={color.muted}>We’ll call you back within minutes. Share the minimum.</Txt> : null}
-      </View>
+      </Stagger>
 
       {step === 1 && (
-        <View key="qh-1">
+        <Stagger key="qh-1">
           <Field label="Your name" value={customerName} onChangeText={setCustomerName} placeholder="Ananya Rao" error={nameErr} />
           <Field label="Mobile number" value={phone} onChangeText={(v) => setPhone(v.replace(/\D/g, '').slice(0, 10))} placeholder="98765 43210" keyboardType="phone-pad" error={phoneErr} />
           <Field label="Email address" value={email} onChangeText={setEmail} placeholder="name@example.com" keyboardType="email-address" autoCapitalize="none" error={emailErr} />
-        </View>
+        </Stagger>
       )}
 
       {step === 2 && (
-        <View key="qh-2">
+        <Stagger key="qh-2">
           <Field label="Patient name" value={patientName} onChangeText={setPatientName} placeholder="Ramesh Kumar" error={patientErr} />
           <Field label="Hospital or clinic" value={hospital} onChangeText={setHospital} placeholder="e.g. Max Hospital, Noida" error={hospitalErr} />
           <Field label="Pincode" value={pincode} onChangeText={(v) => setPincode(v.replace(/\D/g, '').slice(0, 6))} placeholder="201301" keyboardType="number-pad" error={pincodeErr} />
@@ -270,11 +275,11 @@ export default function QuickHelp() {
               <Chip key={sv} label={sv} selected={service === sv} onPress={() => setService(sv)} />
             ))}
           </ChipRow>
-        </View>
+        </Stagger>
       )}
 
       {step === 3 && (
-        <View key="qh-3">
+        <Stagger key="qh-3">
           <Txt variant="h2" color={color.ink}>When should we call?</Txt>
           <ChipRow>
             {URGENCIES.map((u) => (
@@ -286,7 +291,7 @@ export default function QuickHelp() {
             <Txt variant="title" color={color.ink}>Emergency boundary</Txt>
             <Txt variant="body" color={color.muted}>If the patient condition is worsening, contact hospital emergency services first. Caresy is assistance and coordination, not emergency medical care.</Txt>
           </Card>
-        </View>
+        </Stagger>
       )}
     </FormScreen>
   );

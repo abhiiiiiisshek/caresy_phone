@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View, AccessibilityInfo } from 'react-native';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { Animated, AppState, Easing, Image, Platform, Pressable, ScrollView, StyleSheet, View, AccessibilityInfo } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -14,6 +14,15 @@ if (!_isExpoGo) {
   } catch {
     LinearGradient = null;
   }
+}
+
+// Expo Go safe stagger — RN Animated (no reanimated native)
+function Stagger({ index = 0, children, style }: { index?: number; children: React.ReactNode; style?: any }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(a, { toValue: 1, duration: 480, delay: index * 56, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [a, index]);
+  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>{children}</Animated.View>;
 }
 
 import { useAuth } from '../lib/AuthProvider';
@@ -143,19 +152,17 @@ export default function Home() {
     ?? (session.user.user_metadata?.name as string | undefined)?.split(' ')[0]
     ?? 'there';
 
-  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   return (
     <Screen>
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
-        <View>
+        <Stagger index={0}>
           <Overline>Welcome back</Overline>
           <Txt variant="display" color={color.greenDeep}>Hi, {name}</Txt>
-        </View>
+        </Stagger>
 
-        {/* Primary actions — stagger §14, spring §4 default */}
+        {/* Primary actions */}
         <View style={s.primaryActions}>
-          <View>
-            <ActionCard
+          <Stagger index={1}><ActionCard
               bg={color.urgentBg}
               ink={color.urgentInk}
               btnBg={color.urgent}
@@ -168,10 +175,8 @@ export default function Home() {
               img={require('../assets/caresy-hospital-support.webp')}
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); router.push('/quick-help'); }}
               accessibilityLabel="Urgent booking — get a companion now"
-            />
-          </View>
-          <View>
-            <ActionCard
+            /></Stagger>
+          <Stagger index={2}><ActionCard
               bg={color.green}
               ink={color.onGreen}
               inkMuted="rgba(255,255,255,0.82)"
@@ -185,12 +190,11 @@ export default function Home() {
               img={require('../assets/caresy-family-app.webp')}
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/booking'); }}
               accessibilityLabel="Schedule appointment for later"
-            />
-          </View>
+            /></Stagger>
         </View>
 
         {/* Next visit */}
-        <View>
+        <Stagger index={3}>
           <Txt variant="h2" color={color.ink}>Your next visit</Txt>
           {next === undefined ? (
             <Card><View style={s.skeletonRow}><View style={s.skelLine} /><View style={[s.skelLine, { width: '60%' }]} /></View></Card>
@@ -217,7 +221,7 @@ export default function Home() {
               </Txt>
             </Card>
           )}
-        </View>
+        </Stagger>
 
         {/* Quick actions — stagger 56ms */}
         <View style={s.actions}>
@@ -227,13 +231,11 @@ export default function Home() {
             { label: 'Get help', sub: 'Chat or call', route: '/support' as const, sf: SF.help, fb: FallbackGlyph.help },
             { label: 'Profile', sub: 'You & family', route: '/profile' as const, sf: SF.profile, fb: FallbackGlyph.profile },
           ].map((a, i) => (
-            <View key={a.label}>
-              <QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} sf={a.sf} fallback={a.fb} />
-            </View>
+              <Stagger key={a.label} index={4 + i}><QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} sf={a.sf} fallback={a.fb} /></Stagger>
           ))}
         </View>
 
-        <View>
+        <Stagger index={8}>
           <View style={s.trustHeaderRow}>
             {Platform.OS === 'ios' && SymbolView ? (
               <SymbolView name="checkmark.shield.fill" size={20} tintColor={color.green} />
@@ -250,7 +252,7 @@ export default function Home() {
             <View style={s.trustChip}><Txt variant="caption" color={color.greenDeep}>4.9/5 · 5k+ visits</Txt></View>
             <View style={s.trustChip}><Txt variant="caption" color={color.greenDeep}>Noida & Greater Noida</Txt></View>
           </View>
-        </View>
+        </Stagger>
 
         <Button title="Sign out" variant="secondary" onPress={() => signOut()} style={s.signOut} />
       </ScrollView>
