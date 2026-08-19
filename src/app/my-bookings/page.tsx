@@ -31,15 +31,17 @@ interface BookingRecord {
 }
 
 export default function MyBookings() {
-  const { user, openLogin } = useAuth();
+  const { user, isLoading: authIsLoading, openLogin } = useAuth();
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchBookings = async () => {
     setIsLoading(true);
+    setError(null);
     const supabase = createClient();
     try {
-      const { data, error } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('bookings')
         .select(`
           id,
@@ -63,22 +65,24 @@ export default function MyBookings() {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (fetchError) throw fetchError;
       setBookings(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching bookings:', err);
+      setError(err.message || 'Failed to connect to the database. Please check configuration.');
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    if (authIsLoading) return;
     if (user) {
       fetchBookings();
     } else {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, authIsLoading]);
 
   const getStatusInfo = (status: string) => {
     const s = status.toLowerCase();
@@ -161,7 +165,7 @@ export default function MyBookings() {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || authIsLoading) {
     return (
       <main className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-4">
@@ -226,7 +230,16 @@ export default function MyBookings() {
         </header>
 
         <div className="space-y-6">
-          {bookings.length === 0 ? (
+          {error ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-3xl p-10 text-center shadow-xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+              <h3 className="text-2xl font-bold mb-4 text-red-700 dark:text-red-400">Database Connection Error</h3>
+              <p className="text-red-600 dark:text-red-500 mb-4 max-w-md mx-auto">{error}</p>
+              <p className="text-sm text-red-500 dark:text-red-400 mb-8 max-w-md mx-auto">This typically happens if the Supabase environment variables are missing in Vercel.</p>
+              <button onClick={() => fetchBookings()} className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transition-all">
+                Retry Connection
+              </button>
+            </div>
+          ) : bookings.length === 0 ? (
             <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center shadow-xl animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               <div className="w-20 h-20 bg-teal-100 dark:bg-teal-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Calendar className="w-10 h-10 text-teal-600 dark:text-teal-400" />

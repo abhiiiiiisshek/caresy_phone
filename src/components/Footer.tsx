@@ -33,7 +33,9 @@ export default function Footer() {
             <h4>Company</h4>
             <Link href="/about">About Us</Link>
             <Link href="/services">Our Services</Link>
-            <Link href="/trust">Trust Framework</Link>
+            <Link href="/how-it-works">How It Works</Link>
+            <Link href="/trust">Trust &amp; Safety</Link>
+            <Link href="/testimonials">Testimonials</Link>
             <Link href="/faq">FAQs & Coverage</Link>
           </div>
           <div className="footer-col">

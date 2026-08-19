@@ -66,6 +66,33 @@ export default function About() {
         </div>
       </section>
 
+      {/* Founder Story Section */}
+      <section className="about-founders-section" style={{ padding: '0 16px 40px' }}>
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--charcoal)', textAlign: 'center', marginBottom: '20px' }}>Why we started Caresy</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '18px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--shadow-1)' }}>
+            <img src="/assets/caresy-founder-rohan.png" alt="Rohan Mehta, Co-founder" style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+            <div>
+              <p style={{ fontSize: '0.9rem', color: 'var(--charcoal)', lineHeight: 1.55, margin: '0 0 8px' }}>
+                &quot;My mother sat through a full day of scans and queues alone while I was stuck on a flight I couldn&apos;t change. Nobody should have to choose between being at work and being there for their family.&quot;
+              </p>
+              <strong style={{ fontSize: '0.86rem', color: 'var(--ink-teal)' }}>Rohan Mehta</strong>
+              <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--muted-teal-gray)' }}>Co-founder &amp; CEO</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', padding: '18px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--line)', boxShadow: 'var(--shadow-1)' }}>
+            <img src="/assets/caresy-founder-meera.png" alt="Meera Nair, Co-founder" style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+            <div>
+              <p style={{ fontSize: '0.9rem', color: 'var(--charcoal)', lineHeight: 1.55, margin: '0 0 8px' }}>
+                &quot;We built the verification pipeline first, before a single booking feature — because trust has to be earned before it&apos;s asked for. Every companion is Aadhaar- and police-verified before they ever meet a family.&quot;
+              </p>
+              <strong style={{ fontSize: '0.86rem', color: 'var(--ink-teal)' }}>Meera Nair</strong>
+              <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--muted-teal-gray)' }}>Co-founder &amp; Head of Trust &amp; Safety</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   );
 }

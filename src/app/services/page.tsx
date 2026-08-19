@@ -27,7 +27,10 @@ export default function Services() {
             <FileText style={{ width: '20px', height: '20px' }} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Hospital Assistance</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Hospital Assistance</h2>
+              <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--marigold-deep)', whiteSpace: 'nowrap' }}>₹499</span>
+            </div>
             <p style={{ fontSize: '0.88rem', color: 'var(--muted-teal-gray)', lineHeight: 1.5, margin: 0 }}>
               We help with paperwork, appointments, medicine pickup, queue management and waiting room comfort.
             </p>
@@ -40,7 +43,10 @@ export default function Services() {
             <Car style={{ width: '20px', height: '20px' }} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Pick-up & Drop</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Pick-up & Drop</h2>
+              <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--marigold-deep)', whiteSpace: 'nowrap' }}>₹899</span>
+            </div>
             <p style={{ fontSize: '0.88rem', color: 'var(--muted-teal-gray)', lineHeight: 1.5, margin: 0 }}>
               Safe and reliable pickup and drop services for patients and their attendants.
             </p>
@@ -53,7 +59,10 @@ export default function Services() {
             <User style={{ width: '20px', height: '20px' }} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Elderly Care Companion</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Elderly Care Companion</h2>
+              <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--marigold-deep)', whiteSpace: 'nowrap' }}>₹899</span>
+            </div>
             <p style={{ fontSize: '0.88rem', color: 'var(--muted-teal-gray)', lineHeight: 1.5, margin: 0 }}>
               Compassionate companionship and assistance for elderly during hospital visits.
             </p>
@@ -66,7 +75,10 @@ export default function Services() {
             <Shield style={{ width: '20px', height: '20px' }} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Full-day Concierge</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--charcoal)', margin: '0 0 6px' }}>Full-day Concierge</h2>
+              <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--marigold-deep)', whiteSpace: 'nowrap' }}>₹1,299</span>
+            </div>
             <p style={{ fontSize: '0.88rem', color: 'var(--muted-teal-gray)', lineHeight: 1.5, margin: 0 }}>
               Complete day-long support so you don't have to worry about a thing.
             </p>

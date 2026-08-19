@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Fingerprint, ShieldAlert, MapPin, Camera, GraduationCap, ShieldCheck, Star, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 
 const COMPANIONS = [
   {
@@ -39,16 +40,8 @@ const COMPANIONS = [
 
 export default function Trust() {
   const [expandedId, setExpandedId] = useState<string | null>('priya');
-  const [deskCompanions, setDeskCompanions] = useState(8);
-  const [callbackMin, setCallbackMin] = useState(6);
+  const { deskCompanions, callbackMin } = useLiveMetrics();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCallbackMin(4 + Math.floor(Math.random() * 5));
-      setDeskCompanions(5 + Math.floor(Math.random() * 7));
-    }, 15000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <main className="page" id="main-content" style={{ paddingTop: '80px', paddingBottom: '80px' }}>

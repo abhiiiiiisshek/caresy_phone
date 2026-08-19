@@ -2,104 +2,162 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FileText, Car, User, Shield, Star, PhoneCall, ArrowRight, HeartPulse } from 'lucide-react';
+import { FileText, Car, User, Shield, ShieldCheck, Users, Star, PhoneCall, ArrowRight, HeartHandshake } from 'lucide-react';
+
+const SERVICES = [
+  { icon: FileText, title: 'Hospital Assistance', price: '₹499', desc: 'Paperwork, appointments, medicine pickup, and queue management.' },
+  { icon: Car, title: 'Pick-up & Drop', price: '₹899', desc: 'Safe and reliable rides for patients and their attendants.' },
+  { icon: User, title: 'Elderly Care', price: '₹899', desc: 'Compassionate companionship during hospital visits.' },
+  { icon: Shield, title: 'Full-day Concierge', price: '₹1,299', desc: "Complete day-long support so you don't worry about a thing." },
+];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-marigold selection:text-ink-teal pt-24 pb-20 overflow-hidden relative">
-      
-      {/* Background gradients */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-200/40 dark:bg-teal-900/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
-      <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-marigold/20 dark:bg-marigold-deep/20 blur-[140px] rounded-full mix-blend-multiply dark:mix-blend-lighten pointer-events-none" />
+    <main id="main-content">
 
-      <div className="max-w-6xl mx-auto px-6 relative z-10">
+      {/* Hero */}
+      <section className="relative min-h-screen flex flex-col justify-end pb-12 pt-32 px-4 md:px-12 bg-cover bg-center overflow-hidden" style={{ backgroundImage: 'url(/assets/caresy-hero.png)' }}>
+        {/* Overlay scrim */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
         
-        {/* Hero Section */}
-        <section className="flex flex-col md:flex-row items-center justify-between gap-12 mt-8 md:mt-16 mb-24">
-          <div className="flex-1 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-100/50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 text-sm font-semibold mb-6 animate-fade-in-up">
-              <Star className="w-4 h-4 fill-current" /> Trusted in 50+ Hospitals
-            </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-              Your Care,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-marigold to-orange-500">Our Priority.</span>
+        {/* Floating update card */}
+        <div className="absolute top-[45%] right-[5%] md:right-[15%] -translate-y-1/2 bg-[#F4ECE6] p-5 rounded-3xl max-w-[320px] shadow-2xl hidden md:block border border-white/50">
+          <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-black/5 px-2 py-1 rounded-md mb-3 inline-block">Example of a live update</span>
+          <p className="font-bold text-ink-teal flex items-center gap-2 text-[15px] mb-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal block animate-pulse"></span>
+            Registration complete
+          </p>
+          <p className="text-slate-600 text-[13px] leading-relaxed">
+            Patient is seated near Cardiology. Companion has shared the token and file status.
+          </p>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto w-full">
+          <div className="max-w-2xl mb-8">
+            <p className="text-white/90 uppercase tracking-widest font-bold text-xs mb-4">Hospital companions for today or later</p>
+            <h1 className="text-white text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight">
+              Get trusted<br/>hospital<br/>help without<br/>leaving<br/>your day.
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-xl mx-auto md:mx-0 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-              We assist you and your loved ones with everything you need at the hospital so you can focus on what matters most.
+            <p className="text-white/90 text-lg md:text-[1.1rem] max-w-lg leading-relaxed font-medium">
+              Choose urgent assistance for a hospital visit today, or schedule a verified companion for an upcoming appointment, test, or follow-up.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-              <Link 
-                href="/booking" 
-                className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-marigold to-orange-500 text-ink-teal font-bold text-lg rounded-2xl shadow-lg shadow-marigold/20 hover:shadow-xl hover:shadow-marigold/40 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  Book Assistance <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </span>
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-in-out" />
-              </Link>
-              <Link 
-                href="/quick-help" 
-                className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 dark:bg-white/5 backdrop-blur-md text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 font-bold text-lg rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-300 dark:hover:border-red-800 hover:-translate-y-1 transition-all duration-300"
-              >
-                <PhoneCall className="w-5 h-5" /> Need Help Now?
-              </Link>
-            </div>
           </div>
 
-          <div className="flex-1 relative w-full max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="aspect-[4/3] rounded-[2rem] overflow-hidden shadow-2xl shadow-teal-900/10 border border-white/20 dark:border-white/10 relative group">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <img 
-                src="/assets/caresy-hero.png" 
-                alt="Caresy companion helping an elderly patient" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
-              />
-            </div>
-            
-            {/* Floating Card */}
-            <div className="absolute -bottom-8 -left-8 md:-bottom-12 md:-left-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/10 p-4 md:p-6 rounded-2xl shadow-xl flex items-center gap-4 animate-float">
-              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center text-green-600 dark:text-green-400">
-                <HeartPulse className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Active Companions</p>
-                <p className="text-xl font-bold text-slate-900 dark:text-white">24 Ready</p>
-              </div>
-            </div>
+          {/* Action Cards */}
+          <div className="grid md:grid-cols-2 gap-4 max-w-2xl mb-4">
+            <Link href="/quick-help" className="bg-terracotta hover:bg-terracotta-deep transition-colors p-6 rounded-3xl text-white group block shadow-lg">
+              <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 group-hover:bg-white/30 transition-colors">Today</span>
+              <h2 className="text-xl font-bold mb-1">I need help now</h2>
+              <p className="text-white/85 text-[13px] leading-relaxed pr-4">Fast call-back for same-day hospital assistance.</p>
+            </Link>
+            <Link href="/booking" className="bg-teal hover:bg-teal-deep transition-colors p-6 rounded-3xl text-white group block shadow-lg">
+              <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 group-hover:bg-white/30 transition-colors">Later</span>
+              <h2 className="text-xl font-bold mb-1">Book for an appointment</h2>
+              <p className="text-white/85 text-[13px] leading-relaxed pr-4">Schedule a companion for a planned visit.</p>
+            </Link>
           </div>
-        </section>
 
-        {/* Services Section */}
-        <section className="py-12 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Complete Hospital Support</h2>
-            <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto">From door to doctor and back, we ensure a seamless and comfortable healthcare experience.</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
+          {/* Trust Chips */}
+          <div className="flex flex-wrap gap-2 max-w-2xl">
             {[
-              { icon: FileText, title: "Hospital Assistance", desc: "Paperwork, appointments, medicine pickup, and queue management.", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/30" },
-              { icon: Car, title: "Pick-up & Drop", desc: "Safe and reliable rides for patients and their attendants.", color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900/30" },
-              { icon: User, title: "Elderly Care", desc: "Compassionate companionship during hospital visits.", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/30" },
-              { icon: Shield, title: "Full-day Concierge", desc: "Complete day-long support so you don't worry about a thing.", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-100 dark:bg-amber-900/30" }
-            ].map((service, idx) => (
-              <div key={idx} className="group p-6 rounded-3xl bg-white/60 dark:bg-slate-900/60 backdrop-blur-md border border-white/50 dark:border-white/5 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className={`w-14 h-14 rounded-2xl ${service.bg} ${service.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <service.icon className="w-7 h-7" />
-                </div>
-                <h3 className="text-xl font-bold mb-3">{service.title}</h3>
-                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {service.desc}
-                </p>
+              { title: '4-step', desc: 'family update flow', icon: <FileText className="w-4 h-4 mb-1.5 text-teal" /> },
+              { title: '6 checks', desc: 'before assignment', icon: <ShieldCheck className="w-4 h-4 mb-1.5 text-teal" /> },
+              { title: 'Human', desc: 'hospital presence', icon: <HeartHandshake className="w-4 h-4 mb-1.5 text-teal" /> }
+            ].map((chip, i) => (
+              <div key={i} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 flex-1 min-w-[130px]">
+                {chip.icon}
+                <div className="text-white font-bold text-sm">{chip.title}</div>
+                <div className="text-white/70 text-[11px] leading-tight mt-0.5">{chip.desc}</div>
               </div>
             ))}
-            
           </div>
-        </section>
+        </div>
+      </section>
 
-      </div>
+      {/* Reconcile the "how big are you really" question honestly, right under the hero */}
+      <section className="section" style={{ paddingTop: '48px', paddingBottom: '48px' }}>
+        <div className="proof-bar" style={{ marginTop: 0 }}>
+          <div className="proof-item">
+            <div className="proof-icon"><ShieldCheck style={{ width: '18px', height: '18px' }} /></div>
+            <strong>Aadhaar + police verified</strong>
+            <span>Every companion is checked via AuthBridge before assignment.</span>
+          </div>
+          <div className="proof-item">
+            <div className="proof-icon"><Users style={{ width: '18px', height: '18px' }} /></div>
+            <strong>Live in Noida &amp; Greater Noida</strong>
+            <span>Covering Max, Fortis, Kailash, Sharda and other major hospitals — <Link href="/faq#coverage" style={{ textDecoration: 'underline' }}>see full coverage</Link>.</span>
+          </div>
+          <div className="proof-item">
+            <div className="proof-icon"><Star style={{ width: '18px', height: '18px' }} /></div>
+            <strong>4.9/5 from 5,000+ visits</strong>
+            <span>Real families, real hospitals — <Link href="/trust" style={{ textDecoration: 'underline' }}>read their stories</Link>.</span>
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="section calm-path">
+        <div className="section-title" style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <p className="section-kicker">How it works</p>
+          <h2>Four steps, start to finish.</h2>
+          <p style={{ margin: '0 auto' }}>No app download, no account required to get started — just a call or a form.</p>
+        </div>
+        <div className="grid-3-col" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          {[
+            ['1', 'Tell us what you need', 'Same-day help or a scheduled visit — share the hospital and the situation.'],
+            ['2', 'We match a companion', 'A verified, trained companion nearby is assigned to your family.'],
+            ['3', 'They handle the day', 'Queues, paperwork, medicines — while you get live updates.'],
+            ['4', 'You stay in the loop', 'Every milestone, from check-in to discharge, sent straight to your phone.'],
+          ].map(([num, title, desc]) => (
+            <article className="material-card" key={num} style={{ padding: '24px' }}>
+              <div className="step-chip">{num}</div>
+              <h3>{title}</h3>
+              <p style={{ margin: 0, fontSize: '0.92rem' }}>{desc}</p>
+            </article>
+          ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '30px' }}>
+          <Link href="/how-it-works" className="btn btn-outline">See the full walkthrough</Link>
+        </div>
+      </section>
+
+      {/* Services with visible pricing */}
+      <section className="section service-teaser">
+        <div className="section-title" style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <p className="section-kicker">Complete hospital support</p>
+          <h2>From door to doctor and back.</h2>
+          <p style={{ margin: '0 auto' }}>Pick exactly what you need — prices shown upfront, no surprises at booking.</p>
+        </div>
+        <div className="teaser-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+          {SERVICES.map((s) => (
+            <div className="teaser-card" key={s.title}>
+              <span><s.icon style={{ width: '14px', height: '14px', display: 'inline', marginRight: '6px' }} />{s.price}</span>
+              <strong>{s.title}</strong>
+              <p>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '30px' }}>
+          <Link href="/services" className="btn btn-glass">See all services &amp; full pricing</Link>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="section">
+        <div className="final-cta">
+          <div>
+            <p className="eyebrow">Ready when you are</p>
+            <h2>Book a visit, or call if it&apos;s urgent.</h2>
+            <p>Every companion&apos;s photo, name, and verification status are shared with you before the visit begins.</p>
+          </div>
+          <div className="final-actions">
+            <a href="tel:+919717500225" className="btn btn-glass"><PhoneCall style={{ width: '18px', height: '18px' }} /> Call us</a>
+            <Link href="/quick-help" className="btn btn-urgent">Need help today</Link>
+            <Link href="/booking" className="btn btn-primary">Book for later <ArrowRight style={{ width: '18px', height: '18px' }} /></Link>
+          </div>
+        </div>
+      </section>
+
     </main>
   );
 }

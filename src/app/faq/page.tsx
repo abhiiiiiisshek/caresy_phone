@@ -145,7 +145,7 @@ export default function FAQ() {
         </div>
       </section>
     
-      <section className="section coverage-section reveal active" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px' }}>
+      <section id="coverage" className="section coverage-section reveal active" style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 24px', scrollMarginTop: '110px' }}>
         <div className="material-card" style={{ background: 'rgba(231, 243, 237, 0.6)', display: 'flex', flexDirection: 'column', gap: '14px', padding: '24px' }}>
           <span className="coverage-badge" style={{ background: 'var(--primary)', color: '#fff', padding: '4px 12px', borderRadius: '99px', fontSize: '0.72rem', fontWeight: 900, textTransform: 'uppercase', width: 'max-content', letterSpacing: '0.05em' }}>Coverage Area</span>
           <h2>Active Metro Areas & Network Hospitals</h2>

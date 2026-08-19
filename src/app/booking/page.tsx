@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
 import { Star, Calendar as CalendarIcon, User, MapPin, ClipboardList, ShieldCheck, ArrowRight, Loader2, Phone, MessageSquare } from 'lucide-react';
+import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 
 const COMPANION_DATABASE = {
   cardiology: {
@@ -65,17 +66,17 @@ export default function Booking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successBookingId, setSuccessBookingId] = useState<string | null>(null);
 
-  // Live status states
-  const [deskCompanions, setDeskCompanions] = useState(8);
-  const [callbackMin, setCallbackMin] = useState(6);
-
+  const [hospitals, setHospitals] = useState<string[]>([]);
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCallbackMin(4 + Math.floor(Math.random() * 5));
-      setDeskCompanions(5 + Math.floor(Math.random() * 7));
-    }, 15000);
-    return () => clearInterval(interval);
+    createClient()
+      .from('hospitals')
+      .select('label')
+      .order('label')
+      .then(({ data }) => data && setHospitals(data.map((r) => r.label)));
   }, []);
+
+  // Live status states
+  const { deskCompanions, callbackMin } = useLiveMetrics();
 
   const handleCheckboxChange = (need: string) => {
     if (careNeeds.includes(need)) {
@@ -316,7 +317,10 @@ export default function Booking() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Hospital/Clinic Name</label>
-                  <input required name="hospital" type="text" placeholder="e.g. Max Hospital, Saket" value={hospital} onChange={(e) => setHospital(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all" />
+                  <input required name="hospital" list="hospital-options" type="text" placeholder="e.g. Max Hospital, Saket" value={hospital} onChange={(e) => setHospital(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all" />
+                  <datalist id="hospital-options">
+                    {hospitals.map((h) => <option key={h} value={h} />)}
+                  </datalist>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Department</label>

@@ -5,9 +5,19 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { createClient } from '@/utils/supabase/client';
 import { Phone, MessageSquare, AlertCircle, Clock, MapPin, User, FileText, ArrowRight } from 'lucide-react';
+import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 
 export default function QuickHelp() {
   const { user, openLogin } = useAuth();
+
+  const [hospitals, setHospitals] = useState<string[]>([]);
+  useEffect(() => {
+    createClient()
+      .from('hospitals')
+      .select('label')
+      .order('label')
+      .then(({ data }) => data && setHospitals(data.map((r) => r.label)));
+  }, []);
   
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
@@ -20,16 +30,7 @@ export default function QuickHelp() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successBookingId, setSuccessBookingId] = useState<string | null>(null);
-  const [deskCompanions, setDeskCompanions] = useState(8);
-  const [callbackMin, setCallbackMin] = useState(6);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCallbackMin(4 + Math.floor(Math.random() * 5));
-      setDeskCompanions(5 + Math.floor(Math.random() * 7));
-    }, 15000);
-    return () => clearInterval(interval);
-  }, []);
+  const { deskCompanions, callbackMin } = useLiveMetrics();
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,7 +187,7 @@ export default function QuickHelp() {
           
           {/* Main Form */}
           <form onSubmit={handleFormSubmit} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl rounded-3xl p-6 md:p-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            
+
             <div className="mb-8">
               <h2 className="text-xl font-bold flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
                 <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center text-sm">1</div> Contact Details
@@ -218,7 +219,10 @@ export default function QuickHelp() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Hospital/Area</label>
-                  <input required name="hospital" type="text" placeholder="Max Hospital, Sector 62" value={hospital} onChange={(e) => setHospital(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+                  <input required name="hospital" list="hospital-options" type="text" placeholder="Max Hospital, Sector 62" value={hospital} onChange={(e) => setHospital(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+                  <datalist id="hospital-options">
+                    {hospitals.map((h) => <option key={h} value={h} />)}
+                  </datalist>
                 </div>
               </div>
               <div className="space-y-2">
