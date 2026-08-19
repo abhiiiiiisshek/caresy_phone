@@ -30,12 +30,12 @@ if [ "$MODE" = "tunnel" ]; then
     echo ""
     echo "✗ Tunnel failed (ngrok outage). Falling back to LAN…"
     echo "  Manually enter in Expo Go: exp://$IP:$PORT"
-    exec npx expo start --lan --clear --host $IP --port $PORT
+    exec npx expo start --lan --clear --port $PORT
   }
   exit 0
 fi
 
-# Default: lan
+# Default: lan — --host lan is same as --lan, don't pass IP as host (Expo 57 host is enum lan/tunnel/localhost)
 echo "→ LAN: exp://$IP:$PORT (use this if QR shows exp.direct and fails)"
 echo "  If phone can't connect, ensure iPhone + Mac on same Hotspot SSID and try 'exp://$IP:$PORT' manually in Expo Go → Enter URL"
-exec npx expo start --lan --clear --host $IP --port $PORT
+exec npx expo start --lan --clear --port $PORT
