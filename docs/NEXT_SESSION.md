@@ -1,37 +1,42 @@
-# NEXT_SESSION.md — "where we are & what's next"
+# NEXT_SESSION.md — SINGLE SOURCE OF TRUTH FOR PROGRESS
 
-Fast-moving. **Read this first on restart. Update it before every `/clear` or
-when context is about to fill.** Durable facts live in
-[PROJECT_MEMORY.md](./PROJECT_MEMORY.md).
+**Read this first on restart — this is the ONE file for all progress. All other handoff/progress files are deprecated. Update this file before every `/clear`. Durable facts live in [PROJECT_MEMORY.md](./PROJECT_MEMORY.md). Claude + Muse both use this.**
 
-_Last updated: 2026-08-18 12:30 — branch `feature/mobile-quick-help`, `ef2e26f` pushed, deferred sign-in + MSG91 per user, proceeding to Phase 5/6 Ship._
+_Last updated: 2026-08-19 12:00 — branch `feature/mobile-quick-help`, `8bc8d64` pushed (later `b532bdd`/`6caebe1`/`ab4bbf5`/`7797028`), tsc 0 both apps, web export 996 modules 1.8MB._
 
 ## Just shipped (committed + pushed, not yet deployed)
 
-- `ef2e26f` — **chore(mobile): bump expo-constants 57.0.10→57.0.11, add expo-device, align expo-notifications 0.32→57.0.11** — SDK 57 alignment for dev-client. `tsc 0` both apps. Deferred per user: sign-in button + MSG91 OTP setup.
-- `60470cc` — guard push + gradient for Expo Go, `npx expo prebuild --clean` done (ios/ generated, tsc 0). `55645f3`/`fd3758e`/`b511055` — push crash guards for Expo Go (lazy require).
-- `4c6a719` — **mobile home now website-identical** (user: "red urgent help above is a disaster" → fixed): removed `stickyUrgentWrap` 210px fixed red banner outside `ScrollView` in `apps/mobile-app/app/index.tsx`; new `primaryActions` inside scroll with two 132px `ActionCard`s matching `apps/website/src/app/page.tsx:334` — `Urgent Booking` + `Schedule Appointment`, trust chips moved to `Verified Companions` card. Images copied `website/public/assets/*.webp` → `mobile-app/assets/`. Prior: `family.tsx` new, `quick-help.tsx` picker, `booking.tsx` pincode debounce 400ms, `my-bookings.tsx` limit 50, `ui.tsx` skeletons, `expo-symbols ^57.0.2` hybrid.
-- `3700524` — bottom sheet for service/transport pickers (replace plain Chip cards). `f2c367d` — true gradient fade `LinearGradient` 36%→84% (storeClient guarded).
-- `af3558a`, `6c3e052` — audit fixes (deletion, RLS hardening, FAQ, tracking honesty) — prior. Ledger `30/31/33/34` → ✅.
+- `8bc8d64` — **fix(mobile): restore stagger via RN Animated (Expo Go safe)** — reanimated stripped for RN 0.86 crash left UI flat; re-added `Stagger` (`opacity 0→1 + translateY 14→0`, 56ms, 420-480ms cubic) via `react-native Animated` (no native module). Home + Booking + QuickHelp now stagger, depth `raised/overlay` preserved. `tsc 0`.
+- `6caebe1` — **fix(mobile): Expo Go safe — hide native requires** — `expo-device`/`expo-notifications`/`expo-linear-gradient` now early-return if `isExpoGo` (`storeClient` or `appOwnership expo`) + `eval("require")` to hide from Metro. Fixes `ExpoDevice`/`ExpoPushTokenManager`/`LinearGradient` redbox loops via `AuthProvider`/`_layout`. `tsc 0`, web 1.8MB.
+- `b532bdd` / `7797028` — **fix(expo): one-go LAN** — hotspot `172.20.10.4` AP isolation made `exp.direct` the only working mode, then ngrok outage killed tunnel. Added `scripts/start-expo.sh` (detects IP `en0`/`en1`, clears `:8081`, `expo start --lan/--tunnel` with correct `--host lan` enum, fallback `exp://IP:8081` manual), `package.json` `start:lan`/`start:tunnel`/`start:web`/`start:direct`, `app.json` `android.usesCleartextTraffic`. Corrected `--host IP` misuse (Expo 57 host is `lan|tunnel|localhost`).
+- `ab4bbf5` — **fix(mobile): maps web-safe** — `react-native-maps` `codegenNativeCommands` broke web bundling (996 modules failed). Hidden via `eval("require")` behind `Platform.OS !== 'web'`. `expo export --platform web` now 996 modules 1.8MB.
+- `b3b3e57` / `a5e0346` — **gesture-handler + reanimated stripped for RN 0.86** — both referenced `Renderer/shims/ReactNative` moved in RN 0.86.2, broke Metro. Removed `gesture-handler`, fell back from `reanimated` to plain View (later restored via RN Animated). Kept `reanimated` removal.
+- `fcd4317` — **feat(mobile): Apple Design premium polish — depth, motion, platform fidelity** — 3-level shadow `card/raised/overlay` + `material.scrim`, `Card level` prop, pressed `scale 0.97`, `Stack slide_from_right 320ms` + `GestureHandlerRootView` (later removed), stagger 56ms Home/Booking/QuickHelp/MyBookings/Tracking/Profile/Family. `tsc 0` (later cleaned for Expo Go).
+- `7797028` earlier → `7797028` includes  `fcd4317` polish; `b532bdd` fixed host enum.
+- Prior: `ef2e26f` — SDK 57 align (`expo-constants` `57.0.11`, `expo-device`, `expo-notifications` `57.0.11`), `60470cc` — guard push + gradient for Expo Go, `4c6a719` — home website-identical ActionCards, `3700524` bottom sheet, `f2c367d` LinearGradient 36%→84%, `af3558a`/`6c3e052` audit fixes. Ledger `30/31/33/34` → ✅.
 
 ## In progress (deferred per user, proceed to next phase)
 
-Deferred (leave for later):
+**Deferred (leave for later — Claude should skip):**
 - `apps/website/src/app/login/page.tsx` — custom OTP + Ellie mascot — sign-in button.
 - `packages/auth/src/msg91.ts` + `apps/website/src/app/api/auth/phone/route.ts` + `33_PHONE_SIGNIN.sql` — MSG91 OTP (needs `MSG91_AUTH_KEY`/`TEMPLATE_ID` env).
 
-Proceeding → **Phase 5/6 Ship** (Phase 4 ~90% considered done: MapView+Realtime+10s poll ✅, image-picker ✅, location ✅, push guarded ✅, bottom-sheet ✅, gradient ✅). Remaining verification is device-only: push `QUEUED→SENT` via `api/cron/send-push` + bottom-sheet on dev-client.
+**Proceeding → Phase 5/6 Ship** — Phase 4 ~90% done: MapView+Realtime+10s poll ✅, image-picker ✅, location ✅, push Expo Go guarded ✅, bottom-sheet ✅, gradient Expo Go safe ✅, depth polish ✅, motion restored via RN Animated ✅, web safe ✅.
 
-Outstanding still (not sign-in/MSG91):
+**Outstanding still (not sign-in/MSG91):**
 - `apps/website/src/app/{privacy,terms}/page.tsx` — legal copy (placeholder).
 - `supabase/migrations/32_MERGE_DUPLICATE_PATIENTS.sql` — one-off patient dedup `⬜*`.
+- `docs/PROGRESS_EASY.md` / `TODAYS_WORK_DETAILED.md` / `NEXT_SESSION_HANDOFF_*.md` — deprecated, see this file only.
 
 ## Next tasks (do these) — user: "leave we can set them later proceed to the phase"
 
-1. **EAS Ship (Phase 6):** `npx expo prebuild --clean` already done (ios/ + android via Capacitor). Next: `eas build --platform ios --profile production` → TestFlight + `eas build --platform android --profile production` → AAB → Play Console 12×14 closed testing (keystore + tester list not started). Verify on TestFlight: bottom-sheet pickers, `LinearGradient` fade, push `push_tokens` upsert (needs `google-services.json` + `SUPABASE_SERVICE_ROLE_KEY` + `projectId f1c994af-5e87-43f4-8d64-f33366e6756d`).
-2. **Deploy website:** Vercel deploy (already `30/31/33/34` → ✅, but verify prod `SELECT prosecdef FROM pg_proc WHERE proname='is_admin'` + `SELECT tgname FROM pg_trigger WHERE tgname='trg_guard_trip_status'`).
-3. **Before first customer (CURRENT.md):** set `NEXT_PUBLIC_UPI_VPA` + `OPS_WEBHOOK_URL` (ntfy.sh, no www/trailing slash) + `CRON_SECRET`, enable `pg_cron` 5min expiry sweep + `cron-job.org` 1min push drain, create `patient-docs` bucket, approve 1 companion at `/admin/companions`, walk money loop book→accept→Start→Complete&bill→collect→`/admin/payments` on 2 phones.
-4. **Later (deferred):** re-enable full sign-in + MSG91 OTP (`MSG91_AUTH_KEY`, `TEMPLATE_ID`, Ellie mascot `login/page.tsx`).
+1. **EAS Ship (Phase 6):** `npx expo prebuild --clean` already done (ios/ generated). Next: `eas build --platform ios --profile production` → TestFlight + `eas build --platform android --profile production` → AAB → Play 12×14 closed testing (keystore + tester list not started). Verify on TestFlight: bottom-sheet pickers, `LinearGradient` solid fallback in Expo Go / real gradient in dev-client, push `push_tokens` upsert (`google-services.json` + `SUPABASE_SERVICE_ROLE_KEY` + `projectId f1c994af-5e87-43f4-8d64-f33366e6756d`), RN Animated stagger (no reanimated native).
+2. **Run (one-go):** `npm run start:lan -w @caresy/mobile-app` → `exp://172.20.10.4:8081` (LAN, no --host IP), `npm run start:web` → `http://localhost:8081`, `npm run start:tunnel` → fallback to LAN if ngrok down. If `Firewall is enabled (State = 1)`: `sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off`.
+3. **Deploy website:** Vercel deploy (verify `SELECT prosecdef FROM pg_proc WHERE proname='is_admin'` + `tgname='trg_guard_trip_status'`).
+4. **Before first customer (CURRENT.md):** set `NEXT_PUBLIC_UPI_VPA` + `OPS_WEBHOOK_URL` (ntfy.sh, no www/trailing slash) + `CRON_SECRET`, enable `pg_cron` 5min + `cron-job.org` 1min, create `patient-docs` bucket, approve 1 companion at `/admin/companions`, walk money loop on 2 phones.
+5. **Later (deferred):** sign-in + MSG91 when ready.
+
+Verification: `tsc 0` both apps, `expo export --platform web` 996 modules 1.8MB, `npm run start:lan` no longer throws `AssertionError: --host`.
 
 ## Open decisions / unknowns
 
