@@ -47,22 +47,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`
-  // Push only when native modules are actually built (dev-client).
-  // Expo Go / web / simulator have no ExpoPushTokenManager — skip entirely
-  // without even requiring the JS, so no ERROR/WARN overlay.
+  // Expo Go has no ExpoDevice/ExpoPushTokenManager — don't even require().
+  // Must early-return BEFORE require() so no redbox bundling loop.
   useEffect(() => {
     if (!session?.user) return;
     if (Platform.OS === 'web') return;
+    const execEnv = (Constants as any).executionEnvironment;
+    const ownership = (Constants as any).appOwnership;
+    const isExpoGo = execEnv === 'storeClient' || ownership === 'expo';
+    if (isExpoGo) return; // Expo Go: skip native push entirely
     let cancelled = false;
     (async () => {
       // expo-device is the reliable isDevice check (Constants.isDevice is stale)
       let Device: any = null;
-      try { Device = require('expo-device'); } catch {}
+      try { Device = eval("require")('expo-device'); } catch {}
       if (Device?.isDevice === false) return;
 
       let Notifications: any = null;
       try {
-        Notifications = require('expo-notifications');
+        Notifications = eval("require")('expo-notifications');
       } catch {
         return; // not built yet — silently skip (will work after prebuild dev-client)
       }

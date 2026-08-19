@@ -5,14 +5,15 @@ import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
 
 let LinearGradient: any = null;
-try {
-  LinearGradient = require('expo-linear-gradient').LinearGradient;
-  // In Expo Go (storeClient) the native view is missing — null it to avoid WARN
-  const execEnv = (Constants as any).executionEnvironment;
-  const ownership = (Constants as any).appOwnership;
-  if (execEnv === 'storeClient' || ownership === 'expo') LinearGradient = null;
-} catch {
-  LinearGradient = null;
+const _execEnv = (Constants as any).executionEnvironment;
+const _ownership = (Constants as any).appOwnership;
+const _isExpoGo = _execEnv === 'storeClient' || _ownership === 'expo';
+if (!_isExpoGo) {
+  try {
+    LinearGradient = eval("require")('expo-linear-gradient').LinearGradient;
+  } catch {
+    LinearGradient = null;
+  }
 }
 
 import { useAuth } from '../lib/AuthProvider';
