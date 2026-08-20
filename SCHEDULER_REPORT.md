@@ -190,3 +190,14 @@ No delivery/claim/format, no mobile, no new deps.
   **401** (`send-push` drains nothing, Telegram/FCM silent). This is safer than
   the spoofable `x-vercel-cron` bypass; operator must set `CRON_SECRET` in Vercel
   and redeploy.
+
+---
+
+## 9) Integration update (god, 2026-08-20)
+
+`apps/website/vercel.json` REMOVED. The user schedules the drain via **cron-job.org**
+(`https://caresy.co.in/api/cron/send-push`, every minute), so the Vercel Cron entry
+was redundant and, on a Hobby plan, its `* * * * *` schedule would fail deploy
+validation and block the whole deployment. External cron is the single scheduler.
+Auth is the single Bearer check (§2, CARESY-5b): cron-job.org must send
+`Authorization: Bearer <CRON_SECRET>` (Advanced → Headers) and the job must be ENABLED.
