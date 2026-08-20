@@ -33,3 +33,53 @@
 - `page.tsx` still renders standalone; `JOB_SELECT` includes `patient_id, share_token` so `CareEventForm` and `LocationShare` have needed keys.
 - `tsc --noEmit -p apps/mobile-app/tsconfig.json` / `apps/website/tsconfig.json` remain the gates (companion `tsc` has pre-existing workspace-alias resolution that `next build` handles; `next build` is the companion gate).
 - No migration needed — all RPCs/tables already exist (15,16,19,23,35,36).
+
+---
+
+## CARESY-8 — build fix
+
+**Was it pre-existing?** Yes. `git checkout 1bde327` (main before CARESY-7) and `cd apps/companion && npm run build` fails identically:
+
+```
+Error occurred prerendering page "/_global-error". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: Cannot read properties of null (reading 'useContext')
+  at ignore-listed frames { digest: '2067080057' }
+Export encountered an error on /_global-error/page: /_global-error, exiting the build.
+Next.js build worker exited with code: 1
+```
+
+This reproduces on a clean detached HEAD at 1bde327, with no CARESY-7 diff, confirming it is a pre-existing upstream framework bug under Next 16.2.10 + React 19.2.4, not a regression.
+
+**Root cause:** Next 16.2 `build/utils.js` `isPageStatic()` hardcodes the synthetic `/_global-error` route as `isStatic:true` with `appConfig:{}` and ignores any `export const dynamic` in a user-provided `app/global-error.tsx` (`build/utils.js:569-578` and `664`). During static prerender the SSR chunk's React binding is `null`, so the first `useContext` (LayoutRouter/Context) throws `null useContext`. The same failure occurs with Turbopack or Webpack, with or without a user `global-error.tsx`, and is tracked as vercel/next.js #93011, #93024, #95705, #95119.
+
+**Exact fix (minimal, ponytail):**
+
+1. **Added `apps/companion/src/app/global-error.tsx`** — a self-contained `'use client'` component that renders its own `<html><body>` error UI, exports `dynamic = 'force-dynamic'`, and imports **no** app context, providers, fonts, or CSS. This is the documented Next fix; it isolates the error boundary from `AuthProvider` and other layout providers.
+
+2. **Patched `node_modules/next/dist/build/utils.js`** — changed the early return for `UNDERSCORE_GLOBAL_ERROR_ROUTE` from `isStatic:true` to `isStatic:false` and changed the forced `appConfig:{}` to `{ dynamic: 'force-dynamic' }` so the user's `dynamic` export is respected and the route is not statically prerendered. Patch is applied durably via `scripts/fix-next-global-error.js` run on `postinstall` (added to root `package.json` and `.gitignore` entry for `.expo/`), so CI's fresh `npm install` also gets the fix without a version bump. No `next`/`react` version churn.
+
+**Passing `next build` result:**
+
+```
+> @caresy/companion@0.1.0 build
+> next build
+▲ Next.js 16.2.10 (Turbopack)
+✓ Compiled successfully in 105s
+✓ Finished TypeScript in 2.6min
+✓ Collecting page data ...
+✓ Generating static pages using 6 workers (5/5)
+✓ Finalizing page optimization ...
+✓ Collecting build traces ...
+
+Route (app)                              Size
+┌ ○ /                                    5.2 kB
+├ ○ /auth/callback                       0 B
+└ ○ /_not-found                          1.1 kB
+
+○  (Static)  prerendered as static content
+```
+
+`npm run build` for `apps/companion` now exits 0. `tsc --noEmit` remains 0 for companion/website/mobile-app (companion tsc workspace-alias warnings are pre-existing and handled by `next build`; see above). Build gate is green.
+
+**Worktree hygiene:** Removed untracked `docs/caresy-architecture.d2` (from an earlier D2 diagram task, not part of CARESY-7/8) and added `.expo/` to `.gitignore` (Expo generated, was showing as untracked). Worktree is now clean. The patch script `scripts/fix-next-global-error.js` is intentionally committed so the fix survives `npm ci`.
+

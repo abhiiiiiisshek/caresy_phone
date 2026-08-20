@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   description: 'Portal for Caresy hospital companions: registration, jobs, and availability.',
 };
 
+export const dynamic = 'force-dynamic';
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1.0,
