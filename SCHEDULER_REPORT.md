@@ -83,19 +83,12 @@ export async function GET(request: Request) {
   }
 ```
 
-**Both paths remain:**
-- **External/manual:** `curl -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/send-push` → `auth === Bearer …` → passes, `isVercelCron=false` ignored. **Not weakened.**
-- **Vercel Cron:** Vercel invokes the path with header `x-vercel-cron: 1` (set by
-  Vercel infra; cannot be spoofed at the edge for deploys with `vercel.json`
-  cron). `isVercelCron=true` → passes even without `Authorization`. If a
-  deployment remaps `CRON_SECRET` into the cron via Vercel’s “Cron Secret”
-  feature, it would arrive as `Authorization`, but this branch does not depend
-  on that — `x-vercel-cron` is sufficient and documented as the “simplest
-  robust” approach per the task.
-- **No secret:** If `CRON_SECRET` not set, gate is open either way (dev).
+**Single Bearer path (both callers):**
+- **External/manual:** `curl -H "Authorization: Bearer $CRON_SECRET" https://<app>/api/cron/send-push` → passes. **Not weakened.**
+- **Vercel Cron:** When `CRON_SECRET` is set in Vercel env, Vercel **automatically** sends `Authorization: Bearer <CRON_SECRET>` on every cron invocation (documented Vercel behavior). So the same Bearer check authenticates Vercel Cron — no `x-vercel-cron` special-casing, no spoofable bypass. **Hard requirement:** `CRON_SECRET` MUST be set in Vercel env or Vercel Cron gets **401 (fails safe, no drain)**. This is intentional — an unset secret now blocks cron rather than failing open.
+- **No secret:** If `CRON_SECRET` not set, gate is open (dev fallback).
 
-If `x-vercel-cron` alone is judged too weak later, tighten to
-`auth === Bearer ${secret} || (isVercelCron && authHeaderMatchesVercelSigningSecret)` — but that would require Vercel’s `CRON_SECRET` header injection via `vercel.json` env, which the current spec explicitly says to keep simple and keep Bearer.
+The previous `x-vercel-cron` bypass was spoofable (client could forge the header via direct origin fetch) and is removed. Single Bearer is the documented Vercel pattern.
 
 No change to delivery/claim/format logic (CARESY-1/3/4 untouched).
 
@@ -130,10 +123,10 @@ right verb” — it was already `GET`, so nothing to add.
   `* * * * *` with next invocation and run history (status 200, JSON
   `{sent,failed,skipped,ops,telegram,ranAt}`).
 - Logs: Vercel → **Logs** → filter `path=/api/cron/send-push` shows
-  `x-vercel-cron: 1` invocations every minute, plus `telegram.sent` increments
+  `Authorization: Bearer $CRON_SECRET` invocations every minute (Vercel auto-injects), plus `telegram.sent` increments
   when `QUEUED` rows exist.
 
-**Manual (bearer still works, before or after deploy):**
+**Manual (bearer still — single path for both):**
 ```bash
 curl -i -H "Authorization: Bearer $CRON_SECRET" \
   https://<app>.vercel.app/api/cron/send-push
@@ -141,11 +134,11 @@ curl -i -H "Authorization: Bearer $CRON_SECRET" \
 
 # Verify 401 when wrong secret (if CRON_SECRET is set):
 curl -i https://<app>.vercel.app/api/cron/send-push
-# 401 { error: "Unauthorized" }  (no Bearer, no x-vercel-cron)
+# 401 { error: "Unauthorized" }  (no Bearer — Vercel Cron would also 401 if CRON_SECRET set but not injected)
 
-# Verify Vercel header path locally (simulate cron):
+# Verify 401 for forged x-vercel-cron alone (now correctly rejected):
 curl -i -H "x-vercel-cron: 1" http://localhost:3000/api/cron/send-push
-# 200 (no Bearer needed when header present, secret still set)
+# 401 (no Bearer — single-Bearer gate, fails safe)
 ```
 
 **No token Telegram dry-run still holds:** with `TELEGRAM_BOT_TOKEN` unset,
@@ -157,9 +150,10 @@ curl -i -H "x-vercel-cron: 1" http://localhost:3000/api/cron/send-push
 
 - **Deploy:** `git push origin feature/cron-schedule` → Vercel auto-deploys
   `apps/website` (project root). No `vercel deploy` run here per boundaries.
-- **Env:** `CRON_SECRET` must be set in Vercel → Settings → Environment
-  Variables (already required for external callers; Vercel Cron does not need it
-  separately because `x-vercel-cron` passes).
+- **Env:** `CRON_SECRET` **MUST** be set in Vercel → Settings → Environment
+  Variables — **hard requirement** post-CARESY-5b. Vercel Cron auto-injects
+  `Authorization: Bearer $CRON_SECRET` only when the env is set; if unset, cron
+  gets **401 and drains nothing** (fails safe).
 - **Plan:** If Vercel account is **Hobby**, either upgrade to **Pro** for
   `* * * * *` or keep `cron-job.org` hitting the Bearer path every minute as
   before. If Hobby deploy fails validation on `crons` schedule, change to
@@ -174,15 +168,15 @@ curl -i -H "x-vercel-cron: 1" http://localhost:3000/api/cron/send-push
 - `tsc --noEmit -p apps/mobile-app/tsconfig.json` → **0**
 - `apps/website/vercel.json` JSON valid, `crons[0].path` matches existing `GET`
   route, `crons[0].schedule` cron-valid `* * * * *`
-- `route.ts:138` `GET` confirmed, auth branch now `isVercelCron || Bearer`
+- `route.ts:138` `GET` confirmed, single Bearer [REDACTED] (no x-vercel-cron branch), fails safe 401
 
 ---
 
 ## 7) Files changed
 
-- `apps/website/vercel.json` — **new** (every-minute cron)
+- `apps/website/vercel.json` — **new** (every-minute cron, unchanged in 5b)
 - `apps/website/src/app/api/cron/send-push/route.ts:138-148` — auth gate
-  accepts `x-vercel-cron` in addition to Bearer
+  reverted to single Bearer [REDACTED] (Vercel auto-injects; `x-vercel-cron` bypass removed)
 
 No delivery/claim/format, no mobile, no new deps.
 
@@ -191,11 +185,8 @@ No delivery/claim/format, no mobile, no new deps.
 ## 8) Risks
 
 - **Hobby cap** — per-minute schedule deploy-fails on Hobby (documented above).
-- **x-vercel-cron alone** — header is set by Vercel infra for cron invocations
-  but an attacker with `CRON_SECRET` knowledge who also sets `x-vercel-cron`
-  would not gain extra privilege (they already have Bearer). An attacker who
-  does *not* know `CRON_SECRET` but forges `x-vercel-cron` via direct origin
-  fetch could bypass auth — Vercel strips/injects cron headers at the edge,
-  but defense-in-depth would be to verify `CRON_SECRET` via `Authorization`
-  *and* require it even for cron (Vercel can inject it via `vercel.json` env).
-  Kept simple per task (“simplest robust” = either/or); tighten if audited.
+- **CRON_SECRET unset + Vercel Cron 401** — intentional fails-safe: if
+  `CRON_SECRET` is not set in Vercel env, Vercel Cron sends no Bearer and gets
+  **401** (`send-push` drains nothing, Telegram/FCM silent). This is safer than
+  the spoofable `x-vercel-cron` bypass; operator must set `CRON_SECRET` in Vercel
+  and redeploy.
