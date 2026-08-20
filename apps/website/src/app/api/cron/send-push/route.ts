@@ -139,7 +139,11 @@ export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (secret) {
     const auth = request.headers.get('authorization');
-    if (auth !== `Bearer ${secret}`) {
+    const isVercelCron = request.headers.get('x-vercel-cron') !== null;
+    // Accept EITHER bearer OR Vercel cron header (Vercel Cron sets x-vercel-cron: 1
+    // on every cron invocation; it cannot be set by external callers via the
+    // Vercel edge, but we keep the bearer path so manual/external callers still work).
+    if (!isVercelCron && auth !== `Bearer ${secret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }
