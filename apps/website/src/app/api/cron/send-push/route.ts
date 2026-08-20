@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { accessToken, projectId, sendPush } from '@/lib/fcm';
 import { mapLimit } from '@/lib/mapLimit';
+import { chatIdsForRow, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
 
 // Drains the `notifications` queue to FCM. Meant to be hit on a schedule, the
 // same way /api/cron/expire-bookings is.
@@ -13,8 +14,10 @@ import { mapLimit } from '@/lib/mapLimit';
 //   • Vercel Cron — Pro only; Hobby caps cron at once a day.
 //
 // Env: CRON_SECRET (shared with the other cron route), SUPABASE_SERVICE_ROLE_KEY,
-// FIREBASE_SERVICE_ACCOUNT, and OPS_WEBHOOK_URL for the ADMIN-role rows (see
-// pageOps below) — without it nothing reaches ops except the /admin/ops badge.
+// FIREBASE_SERVICE_ACCOUNT, OPS_WEBHOOK_URL for the ADMIN-role rows (see
+// pageOps below) — without it nothing reaches ops except the /admin/ops badge,
+// TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID (+ optional TELEGRAM_CHAT_ID_ADMIN/_CUSTOMER/_COMPANION)
+// for Telegram fan-out — without them Telegram is a silent no-op.
 
 export const dynamic = 'force-dynamic';
 
@@ -33,6 +36,7 @@ interface QueuedRow {
   patient_id: string | null;
   recipient_user_id: string | null;
   recipient_role: string | null;
+  created_at?: string | null;
 }
 
 // Header values are latin-1 only, and a booking title is otherwise free text.
@@ -49,6 +53,46 @@ const asciiOnly = (s: string) => s.replace(/[^\x20-\x7E]/g, '').slice(0, 200);
 //
 // ponytail: no retry/backoff. A missed page is visible at /admin/ops, which is
 // watched anyway; add a retry column if that stops being true.
+// Telegram fan-out: one concise HTML message per QUEUED row, alongside FCM/ops.
+// Env-gated: if TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing, no-ops silently.
+// Per-role routing via TELEGRAM_CHAT_ID_ADMIN etc. falls back to TELEGRAM_CHAT_ID.
+// Idempotency: per-tick in-memory guard (Set) + the DB .eq('status','QUEUED') guard
+// on final transitions ensures a concurrent tick touching 0 rows won't have a
+// durable duplicate to retry; residual concurrent-SELECT double-send risk is
+// documented (true exactly-once would need a telegram_sent_at column).
+const TELEGRAM_CONCURRENCY = 5;
+
+async function fanoutTelegram(rows: QueuedRow[]): Promise<{ sent: number; skipped: number; failed: number }> {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (!token) return { sent: 0, skipped: rows.length, failed: 0 };
+  // In-memory per-tick dedupe: if the same id appears twice in one tick, send once.
+  const seen = new Set<string>();
+  const toSend = rows.filter((r) => {
+    if (seen.has(r.id)) return false;
+    seen.add(r.id);
+    return chatIdsForRow(r).length > 0;
+  });
+  if (!toSend.length) return { sent: 0, skipped: rows.length - toSend.length, failed: 0 };
+
+  const results = await mapLimit(toSend, TELEGRAM_CONCURRENCY, async (row) => {
+    const chats = chatIdsForRow(row);
+    const text = formatTelegramForRow(row as any);
+    // fan out to every chat for this role (usually 1)
+    const outs = await Promise.all(
+      chats.map((chatId) => sendTelegram(text, { chatId })),
+    );
+    const failed = outs.find((o) => !o.ok) as { ok: false; error: string } | undefined;
+    return failed ? { ok: false as const, error: failed.error } : { ok: true as const };
+  });
+
+  let sent = 0;
+  let failed = 0;
+  results.forEach((r) => (r.ok ? sent++ : failed++));
+  // rows with no chat configured count as skipped (env missing for that role)
+  const skipped = rows.length - toSend.length;
+  return { sent, skipped, failed };
+}
+
 async function pageOps(rows: QueuedRow[], url: string) {
   let ntfy = false;
   try {
@@ -105,7 +149,7 @@ export async function GET(request: Request) {
 
   const { data: rows, error: readErr } = await supabase
     .from('notifications')
-    .select('id, event, title, body, booking_id, patient_id, recipient_user_id, recipient_role')
+    .select('id, event, title, body, booking_id, patient_id, recipient_user_id, recipient_role, created_at')
     .eq('status', 'QUEUED')
     .order('created_at', { ascending: true })
     .limit(MAX_ROWS);
@@ -114,6 +158,18 @@ export async function GET(request: Request) {
   if (!rows?.length) return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ranAt: new Date().toISOString() });
 
   const all = rows as QueuedRow[];
+
+  // Telegram fan-out for EVERY QUEUED row (all portals via the single chokepoint).
+  // Runs alongside FCM/ops; failures are best-effort and do not block FCM.
+  // Guarded in-memory per-tick + DB status guard ensures no persistent double-send;
+  // a live send needs TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID — without them this is a no-op.
+  let telegram: { sent: number; skipped: number; failed: number } = { sent: 0, skipped: 0, failed: 0 };
+  try {
+    telegram = await fanoutTelegram(all);
+  } catch (e) {
+    // best-effort: Telegram failure never blocks FCM delivery
+    console.warn('[telegram] fanout failed', (e as Error).message?.slice(0, 200));
+  }
 
   // Rows addressed to ops, not to a person: "a new request needs a companion".
   // These used to fall into the resolve-to-the-booking-owner branch below, which
@@ -136,7 +192,7 @@ export async function GET(request: Request) {
 
   const queued = all.filter((r) => !opsRows.includes(r));
   if (!queued.length) {
-    return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ops: opsRows.length, ranAt: new Date().toISOString() });
+    return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ops: opsRows.length, telegram: telegram, ranAt: new Date().toISOString() });
   }
 
   // Booking-status rows predate recipient_user_id (13_LIFECYCLE enqueues by role
@@ -164,7 +220,7 @@ export async function GET(request: Request) {
 
   const deliverable = queued.filter((r) => r.recipient_user_id);
   if (!deliverable.length) {
-    return NextResponse.json({ sent: 0, failed: 0, skipped: undeliverable.length, ops: opsRows.length, ranAt: new Date().toISOString() });
+    return NextResponse.json({ sent: 0, failed: 0, skipped: undeliverable.length, ops: opsRows.length, telegram: telegram, ranAt: new Date().toISOString() });
   }
 
   const { data: tokenRows, error: tokErr } = await supabase
@@ -257,6 +313,7 @@ export async function GET(request: Request) {
     ops: opsRows.length,
     opsPaged: opsOutcomes.filter((o) => o.status === 'SENT').length,
     retiredTokens: retire.size,
+    telegram,
     ranAt: now,
   });
 }
