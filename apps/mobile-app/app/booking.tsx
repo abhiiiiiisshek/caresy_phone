@@ -94,6 +94,9 @@ export default function Booking() {
   const [time, setTime] = useState('');
   const [serviceSheet, setServiceSheet] = useState(false);
   const [transportSheet, setTransportSheet] = useState(false);
+  const [patientSheet, setPatientSheet] = useState(false);
+  const [dateSheet, setDateSheet] = useState(false);
+  const [timeSheet, setTimeSheet] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [successRef, setSuccessRef] = useState<string | null>(null);
@@ -425,10 +428,35 @@ export default function Booking() {
       {step === 3 && (
         <Stagger key="step-3">
           {savedPatients.length > 0 && (
-            <ChipRow>
-              {savedPatients.map((p) => <Chip key={p.id} label={p.full_name} selected={selectedPatientId === p.id} onPress={() => pickSaved(p)} />)}
-              <Chip label="+ New" selected={false} onPress={() => { setSelectedPatientId(null); setPatientName(''); setAge(''); setEmergency(''); }} />
-            </ChipRow>
+            <>
+              <FieldButton
+                label="Family member"
+                value={selectedPatientId ? (savedPatients.find((pp) => pp.id === selectedPatientId)?.full_name ?? patientName) : (patientName ? patientName : '+ New patient')}
+                placeholder="Choose family member"
+                onPress={() => setPatientSheet(true)}
+              />
+              <BottomSheet
+                visible={patientSheet}
+                title="Family member"
+                selectedKey={selectedPatientId ?? '__new'}
+                onSelect={(k) => {
+                  if (k === '__new') {
+                    setSelectedPatientId(null);
+                    setPatientName('');
+                    setAge('');
+                    setEmergency('');
+                  } else {
+                    const pp = savedPatients.find((x) => x.id === k);
+                    if (pp) pickSaved(pp);
+                  }
+                }}
+                onClose={() => setPatientSheet(false)}
+                options={[
+                  ...savedPatients.map((pp) => ({ key: pp.id, label: pp.full_name, desc: pp.age != null ? `Age ${pp.age}` : undefined })),
+                  { key: '__new', label: '+ New patient', desc: 'Enter details below' },
+                ]}
+              />
+            </>
           )}
           <Field label="Patient name" value={patientName} onChangeText={setPatientName} placeholder="Full name" error={nameErr} />
           <Field label="Age (optional)" value={age} onChangeText={setAge} placeholder="72" keyboardType="number-pad" />
@@ -464,14 +492,37 @@ export default function Booking() {
 
       {step === 4 && (
         <Stagger key="step-4">
-          <ChipRow>
-            {days.map((d) => <Chip key={d.iso} label={d.label} selected={date === d.iso} onPress={() => { setDate(d.iso); setTime(''); }} />)}
-          </ChipRow>
+          <FieldButton
+            label="Date"
+            value={date ? (days.find((d) => d.iso === date)?.label ?? date) : ''}
+            placeholder="Choose a day"
+            onPress={() => setDateSheet(true)}
+          />
+          <BottomSheet
+            visible={dateSheet}
+            title="Choose a day"
+            selectedKey={date || null}
+            onSelect={(k) => { setDate(k); setTime(''); }}
+            onClose={() => setDateSheet(false)}
+            options={days.map((d) => ({ key: d.iso, label: d.label }))}
+          />
           {date ? (
             slots.length ? (
               <>
-                <Txt variant="h2" color={color.ink}>Time slot</Txt>
-                <ChipRow>{slots.map((t) => <Chip key={t} label={fmtSlot(t)} selected={time === t} onPress={() => setTime(t)} />)}</ChipRow>
+                <FieldButton
+                  label="Time slot"
+                  value={time ? fmtSlot(time) : ''}
+                  placeholder="Choose a time"
+                  onPress={() => setTimeSheet(true)}
+                />
+                <BottomSheet
+                  visible={timeSheet}
+                  title="Choose a time"
+                  selectedKey={time || null}
+                  onSelect={setTime}
+                  onClose={() => setTimeSheet(false)}
+                  options={slots.map((s) => ({ key: s, label: fmtSlot(s) }))}
+                />
               </>
             ) : <Txt variant="body" color={color.muted}>No slots left that day. Pick another.</Txt>
           ) : <Txt variant="body" color={color.muted}>Choose a day to see available slots.</Txt>}

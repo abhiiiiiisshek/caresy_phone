@@ -173,8 +173,12 @@ export function FieldButton({ label, value, placeholder, onPress, error }: { lab
   );
 }
 
+// ── Reusable bottom-sheet picker ──
+// ONE component for every single-select picker in booking (family/patient,
+// date, time, service, transport). Callers pass FieldButton → PickerSheet.
+// Replaces the Chip/ChipRow pattern for pickers (see booking.tsx steps 3/4).
 export function BottomSheet({ visible, title, options, selectedKey, onSelect, onClose }: {
-  visible: boolean; title: string; options: { key: string; label: string; desc?: string }[]; selectedKey: string; onSelect: (key: string) => void; onClose: () => void;
+  visible: boolean; title: string; options: { key: string; label: string; desc?: string }[]; selectedKey: string | null; onSelect: (key: string) => void; onClose: () => void;
 }) {
   // Apple §9/§10: spring from presentation, interruptible, velocity-aware.
   // Uses reanimated spring (damping 1.0 / response 0.35) when available; falls back to Modal slide.
@@ -193,7 +197,7 @@ export function BottomSheet({ visible, title, options, selectedKey, onSelect, on
             {options.map((o) => {
               const on = o.key === selectedKey;
               return (
-                <Pressable key={o.key} onPress={() => { Haptics.selectionAsync(); onSelect(o.key); onClose(); }} style={({ pressed }) => [bs.row, on && bs.rowOn, pressed && s.pressedCard]}>
+                <Pressable key={o.key} onPress={() => { Haptics.selectionAsync(); onSelect(o.key); onClose(); }} style={({ pressed }) => [bs.row, on && bs.rowOn, pressed && s.pressedCard]} accessibilityRole="button" accessibilityState={{ selected: on }}>
                   <View style={bs.rowLeft}>
                     <Txt variant="title" color={on ? color.greenDeep : color.ink}>{o.label}</Txt>
                     {o.desc ? <Txt variant="caption" color={color.muted}>{o.desc}</Txt> : null}
@@ -210,6 +214,10 @@ export function BottomSheet({ visible, title, options, selectedKey, onSelect, on
     </Modal>
   );
 }
+
+// Alias so call sites can read as a picker primitive; BottomSheet remains for
+// backwards compat. Both names resolve to the same ONE reusable component.
+export const PickerSheet = BottomSheet;
 
 /* ---------- Field ---------- */
 

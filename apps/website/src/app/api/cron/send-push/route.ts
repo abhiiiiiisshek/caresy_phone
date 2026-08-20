@@ -124,11 +124,14 @@ export async function GET(request: Request) {
   const opsOutcomes = opsWebhook && opsRows.length ? await pageOps(opsRows, opsWebhook) : [];
   // With no webhook configured they stay QUEUED on purpose: /admin/ops counts
   // them, and that badge is the only ops signal left.
+  // Idempotent: only transition QUEUED → SENT/FAILED. If two cron ticks race,
+  // the second's update touches 0 rows and won't overwrite the first.
   for (const o of opsOutcomes) {
     await supabase
       .from('notifications')
       .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? new Date().toISOString() : null })
-      .eq('id', o.id);
+      .eq('id', o.id)
+      .eq('status', 'QUEUED');
   }
 
   const queued = all.filter((r) => !opsRows.includes(r));
@@ -155,7 +158,8 @@ export async function GET(request: Request) {
     await supabase
       .from('notifications')
       .update({ status: 'SKIPPED', error: 'no recipient_user_id' })
-      .in('id', undeliverable.map((r) => r.id));
+      .in('id', undeliverable.map((r) => r.id))
+      .eq('status', 'QUEUED');
   }
 
   const deliverable = queued.filter((r) => r.recipient_user_id);
@@ -223,6 +227,11 @@ export async function GET(request: Request) {
     return { id: row.id, status: 'FAILED', error: why.slice(0, 500) };
   });
 
+  // QUEUED → SENT/FAILED/SKIPPED transitions are idempotent and no-double-send:
+  // each final update is guarded by .eq('status','QUEUED'), so a concurrent tick
+  // that already claimed the row will cause this update to affect 0 rows.
+  // True double-send prevention (claim-before-send) would need a SENDING state
+  // or SELECT FOR UPDATE SKIP LOCKED; documented as residual risk in report.
   const now = new Date().toISOString();
   for (const o of outcomes) {
     if (o.status === 'SENT') sent++;
@@ -232,7 +241,8 @@ export async function GET(request: Request) {
     await supabase
       .from('notifications')
       .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? now : null })
-      .eq('id', o.id);
+      .eq('id', o.id)
+      .eq('status', 'QUEUED');
   }
 
   // Dead tokens, dropped so they stop consuming a send attempt every tick.

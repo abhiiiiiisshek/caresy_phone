@@ -46,22 +46,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.subscription.unsubscribe();
   }, []);
 
-  // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`
-  // Expo Go has no ExpoDevice/ExpoPushTokenManager — don't even require().
-  // Must early-return BEFORE require() so no redbox bundling loop.
+  // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`.
+  // Expo Go has no native push module — silently no-op there, but upsert on
+  // real builds (Constants.appOwnership !== 'expo' && Device.isDevice).
+  // Guard BEFORE any require() so Expo Go never evaluates native code.
   useEffect(() => {
     if (!session?.user) return;
     if (Platform.OS === 'web') return;
-    const execEnv = (Constants as any).executionEnvironment;
+    // Silent no-op in Expo Go: real builds have appOwnership === 'standalone'
+    // (or undefined) and executionEnvironment !== 'storeClient'.
     const ownership = (Constants as any).appOwnership;
-    const isExpoGo = execEnv === 'storeClient' || ownership === 'expo';
-    if (isExpoGo) return; // Expo Go: skip native push entirely
+    const execEnv = (Constants as any).executionEnvironment;
+    const isExpoGo = ownership === 'expo' || execEnv === 'storeClient';
+    if (isExpoGo) return;
     let cancelled = false;
     (async () => {
-      // expo-device is the reliable isDevice check (Constants.isDevice is stale)
+      // Device.isDevice is the reliable physical-device check (Constants.isDevice is stale).
       let Device: any = null;
       try { Device = eval("require")('expo-device'); } catch {}
-      if (Device?.isDevice === false) return;
+      if (Device?.isDevice === false) return; // simulator — silent no-op
 
       let Notifications: any = null;
       try {
@@ -71,9 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       if (!Notifications?.getPermissionsAsync) return;
       try {
-        // Physical device only — simulator has no push token
-        const isDevice = (Constants as any).isDevice ?? true;
-        if (!isDevice) return;
 
         const { status: existing } = await Notifications.getPermissionsAsync();
         let finalStatus = existing;
