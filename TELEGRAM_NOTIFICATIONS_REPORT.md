@@ -168,3 +168,40 @@ No DB migration, no mobile changes, no home-card/UI changes, no `expo prebuild`/
 2. **Ambiguous gaps triage:** Do you want Telegram for companion approval, patient creation, or billing events, or keep those silent?
 3. **Exact-once requirement:** Is the concurrent-SELECT double-send risk acceptable for now, or should we add `telegram_sent_at` column + claim RPC in a follow-up?
 4. **Channel routing:** Single `TELEGRAM_CHAT_ID` vs. separate ops/customer channels — keep single for now unless you want per-role isolation.
+
+---
+
+## CARESY-3b — trip-status enqueue (god decisions 2026-08-20T09:08:53Z)
+
+**God decisions on 4 questions:** Q1 YES add trip-status (companion trip advancing is customer-visible, currently silent — the one in-scope gap). Q2 SKIP ambiguous gaps (companion approval, patient/family CRUD, billing, signups). Q3 ACCEPT exact-once double-send as CARESY-4 debt (no claim column here). Q4 single `TELEGRAM_CHAT_ID` (no per-role split).
+
+**Migration:** `supabase/migrations/35_TRIP_NOTIFICATIONS.sql` (116 lines) — new, authorized override of earlier no-migration boundary for this trigger only.
+
+- **Function** `public.enqueue_trip_status_notification() RETURNS TRIGGER SECURITY DEFINER SET search_path=public` — fires `AFTER UPDATE OF status ON public.trips` **only when `NEW.status IS DISTINCT FROM OLD.status`** (guards both in `WHEN` clause and inside body). Looks up `reference_code` + `patient_id` from `bookings` where `id = NEW.booking_id`. Maps `NEW.status::text` to human `title`/`body` (e.g. `en_route_pickup` → `Companion is on the way — <ref>` / `Your companion is en route …`). Inserts one `notifications` row: `booking_id=NEW.booking_id, patient_id=v_patient, recipient_user_id=NEW.customer_user_id, recipient_role='CUSTOMER', event='TRIP_'||upper(NEW.status::text)`, `title`, `body`, `status='QUEUED'`. Mirrors `13_LIFECYCLE.sql:225 enqueue_booking_notification` and `23_CARE.sql` shape (same columns, `SECURITY DEFINER`, same `notifications` index).
+- **Trigger** `trg_enqueue_trip_status_notification` — `AFTER UPDATE OF status ON public.trips FOR EACH ROW WHEN (OLD.status IS DISTINCT FROM NEW.status) EXECUTE PROCEDURE enqueue_trip_status_notification()`.
+- **Not added:** trip CREATE (INSERT) — piggybacks on `BOOKING_ACCEPTED` per god Q1; Q2 ambiguous events untouched; `telegram_sent_at` claim column not added per Q3.
+- **Apply:** human runs `psql`/Supabase SQL editor on prod (migration not auto-applied here; `tsc` does not exec SQL).
+
+**What it enqueues — sample row (after `SELECT advance_trip_status('trip-uuid','en_route_pickup')`):**
+
+| id | booking_id | patient_id | recipient_user_id | recipient_role | event | title | body | status |
+|---|---|---|---|---|---|---|---|
+| `…` | `a1b2…` (trip.booking_id) | `p9…` (from bookings.patient_id) | `trip.customer_user_id` | `CUSTOMER` | `TRIP_EN_ROUTE_PICKUP` | `Companion is on the way — CR-2026-0142` | `Your companion is en route to the pickup location for booking CR-2026-0142.` | `QUEUED` |
+
+Other statuses: `TRIP_ASSIGNED` ("Companion assigned …"), `TRIP_PICKED_UP`, `TRIP_EN_ROUTE_HOSPITAL`, `TRIP_ARRIVED`, `TRIP_COMPLETED`, `TRIP_CANCELLED` — each with tailored title/body; unknown status falls back to `Trip <STATUS>`.
+
+**Sample Telegram text (via existing `lib/telegram.ts:formatTelegramForRow` — no code change, chokepoint picks it up automatically):**
+
+```
+<b>TRIP_EN_ROUTE_PICKUP</b> • CUSTOMER → 7f3a1b2c
+Companion is on the way — CR-2026-0142
+Your companion is en route to the pickup location for booking CR-2026-0142.
+booking a1b2c3d4 • 20 Aug 2026, 12:34 pm IST
+<code>9e4f…</code>
+```
+HTML-escaped, `parse_mode: 'HTML'`, `disable_web_page_preview: true`, sent via `sendTelegram(text,{chatId})` to `TELEGRAM_CHAT_ID` (single chat per Q4). Renders sanely because `formatTelegramForRow` already handles any `event`/`title`/`body`/`booking_id`/`patient_id`/`recipient_user_id`/`created_at`.
+
+**Fan-out path (unchanged):** `route.ts:43 fanoutTelegram(all)` already fans out **every** `QUEUED` row — new `TRIP_*` rows are included with no Telegram code change; `chatIdsForRow` for `CUSTOMER` resolves to `TELEGRAM_CHAT_ID`.
+
+**Verification:** `tsc --noEmit -p apps/website/tsconfig.json` 0, `… -p apps/mobile-app/tsconfig.json` 0 (migration is SQL-only, no TS change). Live Telegram still needs `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` as in main report §4; after applying migration 35, `advance_trip_status` will produce a `TRIP_*` row and the next cron tick will `telegram.sent==1`.
+
