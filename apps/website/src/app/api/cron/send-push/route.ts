@@ -4,8 +4,15 @@ import { accessToken, projectId, sendPush } from '@/lib/fcm';
 import { mapLimit } from '@/lib/mapLimit';
 import { chatIdsForRow, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
 
-// Drains the `notifications` queue to FCM. Meant to be hit on a schedule, the
-// same way /api/cron/expire-bookings is.
+// Drains the `notifications` queue to FCM + Telegram + ops.
+// Exactly-once via claim-before-send (36_NOTIFICATIONS_CLAIM.sql):
+//   1. Atomically claim QUEUED rows into SENDING with FOR UPDATE SKIP LOCKED
+//      (rpc claim_notifications, 5-min stale reclaim), so concurrent ticks
+//      claim DISJOINT sets and no row is ever sent twice.
+//   2. Send only claimed rows (fanoutTelegram, pageOps, FCM mapLimit).
+//   3. Finalize SENDING → SENT/FAILED/SKIPPED with .eq('status','SENDING').
+// Crash mid-send leaves SENDING rows; stale reclaim (claimed_at < now()-5m)
+// makes them eligible again on a later tick.
 //
 // Scheduling (pick one):
 //   • An external uptime cron (e.g. cron-job.org) calling this URL every minute
@@ -53,13 +60,12 @@ const asciiOnly = (s: string) => s.replace(/[^\x20-\x7E]/g, '').slice(0, 200);
 //
 // ponytail: no retry/backoff. A missed page is visible at /admin/ops, which is
 // watched anyway; add a retry column if that stops being true.
-// Telegram fan-out: one concise HTML message per QUEUED row, alongside FCM/ops.
+// Telegram fan-out: one concise HTML message per CLAIMED row, alongside FCM/ops.
 // Env-gated: if TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing, no-ops silently.
 // Per-role routing via TELEGRAM_CHAT_ID_ADMIN etc. falls back to TELEGRAM_CHAT_ID.
-// Idempotency: per-tick in-memory guard (Set) + the DB .eq('status','QUEUED') guard
-// on final transitions ensures a concurrent tick touching 0 rows won't have a
-// durable duplicate to retry; residual concurrent-SELECT double-send risk is
-// documented (true exactly-once would need a telegram_sent_at column).
+// Idempotency: per-tick in-memory Set + DB .eq('status','SENDING') on final
+// transitions ensures a concurrent tick (which claimed a disjoint set via SKIP LOCKED)
+// has no durable duplicate; SENDING stale-reclaim handles crash mid-send.
 const TELEGRAM_CONCURRENCY = 5;
 
 async function fanoutTelegram(rows: QueuedRow[]): Promise<{ sent: number; skipped: number; failed: number }> {
@@ -147,21 +153,20 @@ export async function GET(request: Request) {
   }
   const supabase = createClient(url, key);
 
-  const { data: rows, error: readErr } = await supabase
-    .from('notifications')
-    .select('id, event, title, body, booking_id, patient_id, recipient_user_id, recipient_role, created_at')
-    .eq('status', 'QUEUED')
-    .order('created_at', { ascending: true })
-    .limit(MAX_ROWS);
+  // Claim-before-send: atomically move QUEUED (+ stale SENDING) → SENDING.
+  // FOR UPDATE SKIP LOCKED ensures concurrent ticks claim disjoint sets.
+  const { data: rows, error: readErr } = await supabase.rpc('claim_notifications', {
+    p_limit: MAX_ROWS,
+  });
 
   if (readErr) return NextResponse.json({ error: readErr.message }, { status: 500 });
   if (!rows?.length) return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ranAt: new Date().toISOString() });
 
   const all = rows as QueuedRow[];
 
-  // Telegram fan-out for EVERY QUEUED row (all portals via the single chokepoint).
+  // Telegram fan-out for EVERY CLAIMED row (all portals via the single chokepoint).
   // Runs alongside FCM/ops; failures are best-effort and do not block FCM.
-  // Guarded in-memory per-tick + DB status guard ensures no persistent double-send;
+  // In-memory per-tick Set + DB SENDING guard ensures no persistent double-send;
   // a live send needs TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID — without them this is a no-op.
   let telegram: { sent: number; skipped: number; failed: number } = { sent: 0, skipped: 0, failed: 0 };
   try {
@@ -178,16 +183,16 @@ export async function GET(request: Request) {
   const opsRows = all.filter((r) => r.recipient_role === 'ADMIN' && !r.recipient_user_id);
   const opsWebhook = process.env.OPS_WEBHOOK_URL;
   const opsOutcomes = opsWebhook && opsRows.length ? await pageOps(opsRows, opsWebhook) : [];
-  // With no webhook configured they stay QUEUED on purpose: /admin/ops counts
-  // them, and that badge is the only ops signal left.
-  // Idempotent: only transition QUEUED → SENT/FAILED. If two cron ticks race,
-  // the second's update touches 0 rows and won't overwrite the first.
+  // With no webhook configured they stay SENDING on purpose: /admin/ops counts
+  // them, and the next tick's stale reclaim (5m) will make them eligible again.
+  // Claim-before-send: only transition SENDING → SENT/FAILED. Concurrent ticks
+  // claimed disjoint sets via SKIP LOCKED, so no row is ever sent twice.
   for (const o of opsOutcomes) {
     await supabase
       .from('notifications')
       .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? new Date().toISOString() : null })
       .eq('id', o.id)
-      .eq('status', 'QUEUED');
+      .eq('status', 'SENDING');
   }
 
   const queued = all.filter((r) => !opsRows.includes(r));
@@ -215,7 +220,7 @@ export async function GET(request: Request) {
       .from('notifications')
       .update({ status: 'SKIPPED', error: 'no recipient_user_id' })
       .in('id', undeliverable.map((r) => r.id))
-      .eq('status', 'QUEUED');
+      .eq('status', 'SENDING');
   }
 
   const deliverable = queued.filter((r) => r.recipient_user_id);
@@ -242,8 +247,9 @@ export async function GET(request: Request) {
     bearer = await accessToken();
     project = projectId();
   } catch (e) {
-    // Leave everything QUEUED — this is a configuration problem, not a per-row
-    // one, and the next run should retry the lot.
+    // Leave everything SENDING — this is a configuration problem, not a per-row
+    // one. Rows stay SENDING and stale-reclaim (5m) will make them eligible again;
+    // or an operator can reset SENDING→QUEUED manually if urgent.
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }
 
@@ -283,11 +289,10 @@ export async function GET(request: Request) {
     return { id: row.id, status: 'FAILED', error: why.slice(0, 500) };
   });
 
-  // QUEUED → SENT/FAILED/SKIPPED transitions are idempotent and no-double-send:
-  // each final update is guarded by .eq('status','QUEUED'), so a concurrent tick
-  // that already claimed the row will cause this update to affect 0 rows.
-  // True double-send prevention (claim-before-send) would need a SENDING state
-  // or SELECT FOR UPDATE SKIP LOCKED; documented as residual risk in report.
+  // SENDING → SENT/FAILED/SKIPPED transitions are exactly-once:
+  // each final update is guarded by .eq('status','SENDING'), and rows were
+  // claimed disjoint via FOR UPDATE SKIP LOCKED, so no concurrent tick ever
+  // sent the same row. Crash mid-send leaves SENDING; stale reclaim (5m) retries.
   const now = new Date().toISOString();
   for (const o of outcomes) {
     if (o.status === 'SENT') sent++;
@@ -298,7 +303,7 @@ export async function GET(request: Request) {
       .from('notifications')
       .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? now : null })
       .eq('id', o.id)
-      .eq('status', 'QUEUED');
+      .eq('status', 'SENDING');
   }
 
   // Dead tokens, dropped so they stop consuming a send attempt every tick.
