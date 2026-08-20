@@ -143,15 +143,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signInWithApple() {
     if (Platform.OS !== 'ios') throw new Error('Sign in with Apple is only available on iOS');
     let AppleAuthentication: any = null;
-    try { AppleAuthentication = require('expo-apple-authentication'); } catch { throw new Error('Apple auth not available in Expo Go — rebuild dev client'); }
+    try {
+      AppleAuthentication = require('expo-apple-authentication');
+    } catch {
+      throw new Error('Apple auth not available in Expo Go — rebuild dev client');
+    }
+    // Gate: hide on devices where Apple auth is unavailable (Android/web, older iOS).
+    // Callers also gate UI via isAvailableAsync; this is the runtime guard.
+    try {
+      if (AppleAuthentication.isAvailableAsync) {
+        const available = await AppleAuthentication.isAvailableAsync();
+        if (!available) throw new Error('Sign in with Apple not available on this device');
+      }
+    } catch (e: any) {
+      // If availability check throws, rethrow its message (e.g., not available)
+      if (e?.message?.includes('not available')) throw e;
+    }
+
+    // Nonce: mitigate replay — rawNonce hashed for Apple, rawNonce passed to Supabase.
+    // Supabase (GoTrue) verifies identityToken.nonce against the raw nonce.
+    let rawNonce: string | undefined;
+    let hashedNonce: string | undefined;
+    try {
+      const Crypto = require('expo-crypto');
+      // 32-char random + timestamp for uniqueness
+      rawNonce = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      if (Crypto?.digestStringAsync && Crypto?.CryptoDigestAlgorithm?.SHA256) {
+        hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+      } else if (Crypto?.digestStringAsync) {
+        hashedNonce = await Crypto.digestStringAsync('SHA-256' as any, rawNonce);
+      }
+    } catch {
+      rawNonce = undefined;
+      hashedNonce = undefined;
+    }
+
     const credential = await AppleAuthentication.signInAsync({
-      requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+      ...(hashedNonce ? { nonce: hashedNonce } : {}),
     });
     if (!credential.identityToken) throw new Error('Apple did not return an identity token');
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'apple',
       token: credential.identityToken,
-    });
+      ...(rawNonce ? { nonce: rawNonce } : {}),
+    } as any);
     if (error) throw error;
   }
 

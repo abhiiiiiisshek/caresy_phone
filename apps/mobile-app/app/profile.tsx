@@ -44,6 +44,7 @@ export default function ProfileScreen() {
   const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const [profile, setProfile] = useState<Profile | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(Platform.OS === 'ios');
   const [editingPhone, setEditingPhone] = useState(false);
   const [phoneDraft, setPhoneDraft] = useState('');
   const [phoneSaving, setPhoneSaving] = useState(false);
@@ -57,6 +58,21 @@ export default function ProfileScreen() {
         if (data?.phone) setPhoneDraft(data.phone);
       });
   }, [session]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const AppleAuthentication: any = require('expo-apple-authentication');
+        const avail = await AppleAuthentication.isAvailableAsync();
+        if (!cancelled) setAppleAvailable(!!avail);
+      } catch {
+        if (!cancelled) setAppleAvailable(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   if (loading) return <Screen><LoadingState /></Screen>;
 
@@ -75,7 +91,7 @@ export default function ProfileScreen() {
             onPress={async () => { setSigningIn(true); try { await signInWithGoogle(); } finally { setSigningIn(false); } }}
             style={s.signInBtn}
           />
-          {Platform.OS === 'ios' ? (
+          {appleAvailable ? (
             <Button
               title="Sign in with Apple"
               variant="secondary"

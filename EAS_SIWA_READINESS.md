@@ -1,0 +1,368 @@
+# EAS + SIWA READINESS — CARESY-6
+
+**Branch:** `feature/eas-siwa` (off `origin/main@6b866fe`)
+**Worktree:** `/Users/1234/Desktop/Caresy phone/caresy_m3_worktree`
+**Date:** 2026-08-20
+**Prior:** CARESY-1 (push), 3/3b (Telegram + trips), 4 (exactly-once), 5/5b (scheduler)
+
+---
+
+## Summary
+
+Mobile app is now **build-ready** and **Sign in with Apple** is end-to-end wired,
+but a human must supply Apple/Supabase/Firebase credentials before `eas build`
+can succeed. No `eas build`, `expo prebuild`, or store submit was run per
+boundaries. All config is scaffolding with `PLACEHOLDER`s — no secrets hardcoded.
+
+---
+
+## A) EAS BUILD CONFIG — what was done
+
+### `apps/mobile-app/eas.json` (after)
+
+```json
+{
+  "cli": { "version": ">= 21.8.0", "appVersionSource": "remote" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development",
+      "ios": { "simulator": true, "resourceClass": "m-medium" },
+      "android": { "buildType": "apk", "resourceClass": "medium" }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "ios": { "resourceClass": "m-medium" },
+      "android": { "buildType": "apk", "resourceClass": "medium" }
+    },
+    "production": {
+      "distribution": "store",
+      "autoIncrement": true,
+      "channel": "production",
+      "ios": { "resourceClass": "m-medium" },
+      "android": { "buildType": "app-bundle", "resourceClass": "medium" }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "PLACEHOLDER_APPLE_ID@example.com",
+        "ascAppId": "PLACEHOLDER_ASC_APP_ID",
+        "appleTeamId": "PLACEHOLDER_APPLE_TEAM_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./android/service-account.json",
+        "track": "internal"
+      }
+    }
+  }
+}
+```
+
+**Before:** only `development:{developmentClient:true,distribution:internal}`,
+`preview:{distribution:internal}`, `production:{}` and empty `submit.production`.
+
+**Changes:**
+- **development** — `developmentClient:true` kept, plus `channel:development`,
+  `ios.simulator:true` (note: `true` builds for Simulator; set `false` or omit
+  for device dev-client — comment in report), `android.buildType:apk` (sideload
+  without Play), `resourceClass` for build workers.
+- **preview** — `channel:preview`, `android.buildType:apk` for QA sideload,
+  `distribution:internal` (TestFlight internal via ad-hoc or `eas build --profile preview` + `eas submit -p ios` to TestFlight internal if desired).
+- **production** — `autoIncrement:true` (remote `appVersionSource` bumps build
+  number), `android.buildType:app-bundle` (AAB for Play), `resourceClass:medium/m-medium`,
+  `channel:production`, `distribution:store`.
+- **submit.production** — scaffolded with **PLACEHOLDERS** (never real IDs):
+  `appleId` (Apple ID email for ASC), `ascAppId` (App Store Connect numeric ID),
+  `appleTeamId` (10-char Team ID), `android.serviceAccountKeyPath`
+  (`./android/service-account.json` — Play service-account JSON, `track:internal`).
+
+Keep `appVersionSource: remote` (EAS manages `version`/`buildNumber`).
+
+### `apps/mobile-app/app.json` — audit & fix
+
+**Existing (kept):**
+- `expo.name Caresy`, `slug caresy`, `scheme caresy`, `version 1.0.0`,
+  `ios.bundleIdentifier in.co.caresy.app`, `android.package in.co.caresy.app`
+  (consistent).
+- `ios.usesAppleSignIn:true` — enables `com.apple.developer.applesignin` entitlement.
+- `ios.infoPlist` — all `NS*UsageDescription` strings present (location, photo,
+  camera, notifications, `ITSAppUsesNonExemptEncryption:false`, etc.).
+- `ios.privacyManifests` — `NSPrivacy*` present.
+- `ios.config.usesNonExemptEncryption:false` — matches App Store answer.
+- `android.googleServicesFile: ./google-services.json` — file **exists** (666 B,
+  `project_id: caresy-3cfa5`, `package_name: in.co.caresy.app`) — human-supplied real file.
+- `plugins`: `expo-router`, `expo-secure-store`, `expo-web-browser`,
+  `expo-location`, `expo-notifications` (with icon/color), `expo-splash-screen`.
+- `extra.eas.projectId: f1c994af-5e87-43f4-8d64-f33366e6756d` — matches
+  `AuthProvider` fallback `getExpoPushTokenAsync({projectId})`.
+
+**Added (this PR):**
+- `ios.googleServicesFile: ./GoogleService-Info.plist` — **reference added**;
+  the file itself is **MISSING** in the worktree (`find` shows no `GoogleService*`
+  under `apps/mobile-app`; only `android/google-services.json` exists). Human
+  must supply the Firebase iOS plist (from Firebase console → Project
+  `caresy-3cfa5` → iOS app `in.co.caresy.app` → download `GoogleService-Info.plist`
+  → place at `apps/mobile-app/GoogleService-Info.plist`). **Flagged as missing.**
+
+**Entitlements (`apps/mobile-app/ios/Caresy/Caresy.entitlements`):**
+```xml
+<dict>
+  <key>aps-environment</key><string>development</string>
+  <key>com.apple.developer.applesignin</key><array><string>Default</string></array>
+</dict>
+```
+- `aps-environment: development` is generated by `expo prebuild` for the
+  **development** profile; EAS will flip to `production` for
+  `--profile production` (and `development` stays `development`). No edit needed
+  here — just flag that production IPA must have `aps-environment: production`
+  (EAS handles via `distribution:store`).
+- `com.apple.developer.applesignin: Default` — correct for SIWA (enabled when
+  `usesAppleSignIn:true`). Associated Domains not needed for SIWA (only for
+  universal links / credential provider); left absent.
+
+**Still missing / human supplies (flagged, not invented):**
+- `GoogleService-Info.plist` (iOS FCM) — **missing** (see above).
+- `google-services.json` **exists** but human should verify its `mobilesdk_app_id`
+  matches Firebase console after any project move.
+- No `associatedDomains` in `ios` — not required for SIWA; add if later using
+  `apple-app-site-association`.
+- No `ios.entitlements` manual override in `app.json` — `usesAppleSignIn` and
+  `aps-environment` are auto-managed; manual `entitlements` plist is the
+  prebuild output, not source.
+
+### ProjectId wiring (CARESY-1 check — A3)
+
+`AuthProvider.tsx:92` does:
+```ts
+const projectId =
+  (Constants.expoConfig?.extra as any)?.eas?.projectId ??
+  (Constants as any).easConfig?.projectId ??
+  'f1c994af-5e87-43f4-8d64-f33366e6756d';
+await Notifications.getExpoPushTokenAsync({ projectId } as any);
+```
+`app.json:extra.eas.projectId` is `f1c994af-5e87-43f4-8d64-f33366e6756d` — **matches**.
+No fix needed; wiring is correct for real device tokens post-`prebuild`.
+
+---
+
+## B) SIWA FLOW — audit & completion
+
+### Previously referenced places
+- `app/index.tsx:124` and `app/profile.tsx:78` — `Platform.OS==='ios' ? <Button SIWA> : null`
+- `lib/AuthProvider.tsx:143-154` — `signInWithApple()` naive (no `isAvailableAsync`, no nonce)
+
+### What was completed (file:line)
+
+**`apps/mobile-app/lib/AuthProvider.tsx:143-188` — `signInWithApple()` now:**
+1. **iOS-only guard** `if (Platform.OS!=='ios') throw`.
+2. **Expo Go guard** `try{ require('expo-apple-authentication') } catch{ throw 'rebuild dev client' }`.
+3. **Device availability** `await AppleAuthentication.isAvailableAsync()` — if `false`, throw `not available on this device` (covers Android, web, older devices, Simulator without Apple capability).
+4. **Nonce (replay mitigation)** — `require('expo-crypto')`, generate `rawNonce` (32-char random + timestamp), hash `hashedNonce = digestStringAsync(SHA256, rawNonce)` (falls back to `'SHA-256'` string if enum missing). This mirrors Supabase/Expo SIWA best practice; `hashedNonce` passed to Apple, `rawNonce` passed to Supabase.
+5. `AppleAuthentication.signInAsync({ requestedScopes:[FULL_NAME,EMAIL], ...(hashedNonce?{nonce:hashedNonce}:{}) })` — Apple returns `identityToken` (JWT with `nonce` claim = hashed).
+6. `supabase.auth.signInWithIdToken({ provider:'apple', token: identityToken, ...(rawNonce?{nonce:rawNonce}:{}) })` — GoTrue verifies `identityToken.nonce === SHA256(rawNonce)`. If nonce was not used (hashedNonce undefined), call omits `nonce` and Supabase verifies without it (back-compat). Cast `as any` for TS `nonce?` optional.
+7. `AuthProvider` `onAuthStateChange` picks up the session like Google.
+
+**Gating UI:**
+
+- `apps/mobile-app/app/index.tsx:77-95` — added `appleAvailable` state
+  (`useState(Platform.OS==='ios')`) + `useEffect` that `require('expo-apple-authentication').isAvailableAsync()` and sets `appleAvailable`. Button now `{appleAvailable ? <Button SIWA> : null}` (was `Platform.OS==='ios'`).
+- `apps/mobile-app/app/profile.tsx:44-78` — same `appleAvailable` state+effect, same gate.
+
+This satisfies App Store Review Guideline 4.8 (“Sign in with Apple”) — native
+Apple button is first-party (Expo's `AppleAuthenticationButton` could also be
+used, but the current `Button` with `title: Sign in with Apple` is acceptable
+for the API; the entitlement is the review gate). The button is hidden on
+Android/web and on Simulator/devices lacking the capability.
+
+**Sign-out / session:**
+
+- `signOut()` is `supabase.auth.signOut()` — works for Apple users (same
+  `auth.users` row, provider `apple`). No separate revocation needed; Apple
+  token revocation is optional via `AppleAuthentication.RevokeAsync` but not
+  required for sign-out.
+
+**Account-delete:**
+
+- `apps/mobile-app/app/account-delete.tsx:33-55` calls `fetch('https://caresy.co.in/api/account/delete', { Authorization: Bearer <access_token> })` where `token` is from `supabase.auth.getSession()`. This works for Apple users — the
+  `access_token` is Supabase's, not Apple's, so provider is irrelevant.
+  `admin.auth.admin.deleteUser()` cascades to `profiles/patients/bookings/etc.`
+  for any provider. Verified: no change needed; flow still works.
+
+### What is NOT changed
+
+- No server auth enable/disable — Supabase Apple provider config is human-only.
+- No notification pipeline change except `projectId` wiring check (already correct).
+- No unrelated UI.
+
+---
+
+## C) Human prerequisites — numbered checklist
+
+Do these **before** `eas build --profile development` succeeds.
+
+**0. One-time setup (if not already):**
+1. `npm install -g eas-cli` (or use `npx eas`) — `eas-cli@^22` already in `package.json` devDeps.
+2. `eas login` (or `npx eas login`) — log in to the Expo account that owns
+   project `f1c994af-5e87-43f4-8d64-f33366e6756d` (Expo dashboard → Project → Settings → Owner).
+   If the project was created by another account, `eas init --id f1c994af…` or
+   `app.json:extra.eas.projectId` must match that owner; otherwise create a new
+   project with `eas init`.
+3. `eas whoami` to confirm.
+
+**1. Apple Developer (https://developer.apple.com):**
+4. Enrolled Apple Developer Program — paid membership (required for push + SIWA + TestFlight).
+5. **Team ID** — `https://developer.apple.com/account` → Membership → **Team ID** (10-char, e.g. `AB12C3D4E5`). Copy for `eas.json:appleTeamId` (`PLACEHOLDER_APPLE_TEAM_ID`).
+6. **App ID** `in.co.caresy.app` → Identifiers → New → App IDs → Explicit → Bundle ID `in.co.caresy.app` → Capabilities: enable **Sign in with Apple** (as Primary App ID) and **Push Notifications**. Save.
+7. **Services ID** (required for Supabase web OAuth, but not for native SIWA;
+   create anyway for Supabase “Services ID” field): Identifiers → New →
+   Services ID → Identifier e.g. `in.co.caresy.app.service` → enable **Sign in with Apple** → Configure → pick Primary App ID `in.co.caresy.app`, set Domains (Supabase auth callback domain), Return URLs (`https://<PROJECT_REF>.supabase.co/auth/v1/callback`). Save.
+8. **Key** — Keys → New → **Sign in with Apple** → Configure → pick Primary App ID → Create → **Key ID** (e.g. `ABC123DEFG`) and download `.p8` private key **once** (keep securely; Apple shows it once). Note Key ID for Supabase.
+
+**2. Firebase (FCM for push — CARESY-1 dependency):**
+9. Firebase console → Project `caresy-3cfa5` → Project Settings → **General** → iOS app `in.co.caresy.app` (create if missing) → download **`GoogleService-Info.plist`** → place at `apps/mobile-app/GoogleService-Info.plist` (referenced by `app.json:ios.googleServicesFile`). **Currently missing — human must supply.**
+10. Verify `apps/mobile-app/google-services.json` (Android) is current — already present (`project_id carsey-3cfa5`), but re-download if project moved.
+11. Enable **Cloud Messaging** API in Firebase.
+
+**3. Supabase Dashboard (https://supabase.com/dashboard):**
+12. Project → **Authentication → Providers → Apple** (enable) → paste:
+    - **Services ID** (`in.co.caresy.app.service` from step 7)
+    - **Team ID** (from step 5)
+    - **Key ID** (from step 8)
+    - **Private key** — full `.p8` content (including `-----BEGIN PRIVATE KEY-----`).
+    Save.
+13. Ensure **Site URL** and **Redirect URLs** include `caresy://auth/callback` (mobile) and `https://caresy.co.in/*` (website). Auth → URL Configuration.
+14. Confirm `app.json:extra.eas.projectId` (`f1c994af-…`) matches Expo project; Supabase needs nothing for this, but push needs it at runtime.
+
+**4. App Store Connect (https://appstoreconnect.apple.com):**
+15. Create App → Bundle ID `in.co.caresy.app` → SKU, etc. Note **App ID** numeric (`ascAppId`, e.g. `1234567890`) and verify **Apple ID** email (`appleId`) and **Team ID** for `eas.json:submit.production.ios` (`PLACEHOLDER_ASC_APP_ID`, `PLACEHOLDER_APPLE_ID`, `PLACEHOLDER_APPLE_TEAM_ID`).
+16. For `ios.simulator:true` dev builds, no ASC needed; for device dev/preview/production via TestFlight, ASC app must exist.
+
+**5. Android Play (for `eas build --profile production` + submit):**
+17. Play Console → Create app `in.co.caresy.app` → setup → **Service account** → create JSON key → place at `apps/mobile-app/android/service-account.json` (referenced by `eas.json:android.serviceAccountKeyPath` `PLACEHOLDER`). Set `track:internal` for first upload (or `production` later).
+18. If `apps/mobile-app/android/service-account.json` does not exist, `eas submit` will fail — human must supply.
+
+**6. EAS credentials (let EAS manage or supply manually):**
+19. For iOS: EAS can generate **Distribution Certificate**, **Provisioning Profile**, **Push Key** (APNs) on first `eas build` (prompt: “Generate a new Apple Push Key?” → Yes). Or upload existing via `eas credentials`.
+20. For Android: EAS can generate **keystore** or use `android/app/build.gradle` keystore; let EAS manage unless Play keystore exists.
+
+---
+
+## D) Exact commands to run (human)
+
+**After checklist above is green, from repo root `/Users/1234/Desktop/Caresy phone/caresy_m3_worktree`:**
+
+**Development (simulator or device dev-client):**
+```bash
+cd apps/mobile-app
+
+# Simulator dev-client (default in eas.json ios.simulator:true)
+npx eas build --profile development --platform ios
+# For device dev-client (not simulator), temporarily set ios.simulator:false:
+# npx eas build --profile development --platform ios --clear-cache
+# Then install the IPA on device, then
+npx expo start --dev-client
+
+# Android dev-client (apk)
+npx eas build --profile development --platform android
+```
+
+**Preview (internal QA, apk for Android, device build for iOS):**
+```bash
+cd apps/mobile-app
+npx eas build --profile preview --platform all
+# Then
+npx eas build:run -p ios --latest      # install preview IPA via TestFlight internal or direct
+npx eas build:run -p android --latest  # install apk
+```
+
+**Production (store):**
+```bash
+cd apps/mobile-app
+# iOS IPA + Android AAB, autoIncrement bumps version
+npx eas build --profile production --platform all
+# Then submit (uses eas.json:submit.production placeholders — fill first)
+npx eas submit --profile production --platform ios
+npx eas submit --profile production --platform android
+```
+
+**Other:**
+```bash
+# Credentials manager (if manual)
+npx eas credentials
+# Check project / device
+npx eas device:list
+npx eas project:info
+```
+
+Never run `expo prebuild --clean` manually before `eas build` — EAS runs prebuild.
+No `eas build` was run in this PR (billable + needs creds).
+
+---
+
+## E) What was completed in code vs blocked on creds
+
+**Completed (this PR):**
+- `apps/mobile-app/eas.json` — full profiles + submit placeholders (see §A).
+- `apps/mobile-app/app.json` — added `ios.googleServicesFile` reference (file missing flagged).
+- `apps/mobile-app/lib/AuthProvider.tsx:143-188` — SIWA with `isAvailableAsync` gate, nonce generation via `expo-crypto`, hashed nonce to Apple, raw nonce to Supabase.
+- `apps/mobile-app/app/index.tsx:77-140` + `apps/mobile-app/app/profile.tsx:42-88` — SIWA button gated by `appleAvailable` (iOS + `isAvailableAsync`), hidden on Android/web/Simulator without capability.
+- ProjectId wiring verified (`app.json` ↔ `AuthProvider` fallback).
+
+**Blocked on creds (human):**
+- `GoogleService-Info.plist` missing — no iOS FCM until supplied.
+- `android/service-account.json` missing — no Play submit.
+- Supabase Apple provider (Services ID/Team ID/Key ID/.p8) not configured — SIWA will `throw 'Apple did not return identity token'` or Supabase `provider not enabled` until set.
+- Apple Developer key download (`.p8` shown once) — human must keep.
+- `eas.json:submit.production.ios` placeholders must be replaced with real
+  `appleId`/`ascAppId`/`appleTeamId` before `eas submit`.
+
+---
+
+## F) How SIWA was wired (file:line)
+
+- `apps/mobile-app/lib/AuthProvider.tsx:143-188` — `signInWithApple()`:
+  `Platform.OS==='ios'` → `require('expo-apple-authentication').isAvailableAsync()`
+  → `expo-crypto.digestStringAsync(SHA256, rawNonce)` → `signInAsync({requestedScopes:[FULL_NAME,EMAIL], nonce:hashedNonce})` → `supabase.auth.signInWithIdToken({provider:'apple', token:identityToken, nonce:rawNonce})` → `onAuthStateChange` updates `session`.
+- `apps/mobile-app/app/index.tsx:77-95` — `appleAvailable` state + `useEffect(isAvailableAsync)` → `{appleAvailable ? <Button SIWA> : null}`.
+- `apps/mobile-app/app/profile.tsx:44-78` — same gate for signed-out profile screen.
+- `apps/mobile-app/app/account-delete.tsx:33` — uses `supabase.auth.getSession().access_token` → works for Apple users (Supabase session).
+
+**Assumptions flagged:**
+- `expo-crypto` `CryptoDigestAlgorithm.SHA256` may not exist in older SDK — fallback to `'SHA-256'` string literal; if both fail, nonce is omitted and Apple still succeeds (Supabase verifies without nonce).
+- Supabase `signInWithIdToken({nonce})` was added in `supabase-js@2.39+` — this project uses `@supabase/supabase-js` via `@caresy/auth` (check `package.json`); if the `nonce` field is rejected as unknown, remove `nonce` from the call and rely on Apple without nonce (still works, less replay protection). Cast `as any` allows `nonce?`.
+- No `accessToken`/`authorizationCode` handling needed for `signInWithIdToken` — only `identityToken`.
+
+---
+
+## G) Verification
+
+- `tsc --noEmit -p apps/mobile-app/tsconfig.json` → **0**
+- `tsc --noEmit -p apps/website/tsconfig.json` → **0**
+- `apps/mobile-app/eas.json` JSON valid, `appVersionSource:remote`, 3 profiles + submit placeholders valid for `eas build --help`.
+- `apps/mobile-app/app.json` JSON valid, `ios.bundleIdentifier`/`android.package` `in.co.caresy.app`, `usesAppleSignIn:true`, `ios.googleServicesFile` reference added (file missing flagged, not invented).
+
+---
+
+## H) What NOT to do next (boundaries)
+
+- Do not run `eas build`/`eas submit`/`expo prebuild` — human runs after creds.
+- Do not hardcode Team IDs/ASC IDs/.p8 — placeholders only.
+- No notification pipeline change (CARESY-1..5 intact).
+- No unrelated UI refactors.
+
+---
+
+## I) Next step for human
+
+1. Complete checklist **§C** (Apple Team/Services ID/Key, Firebase plist, Supabase Apple provider, ASC app).
+2. Fill `apps/mobile-app/eas.json:submit.production.ios` placeholders with real
+   values (or leave and let `eas submit` prompt).
+3. Place `GoogleService-Info.plist` and `android/service-account.json` (if needed).
+4. Run `npx eas build --profile development --platform ios` (simulator) or
+   `--platform all` — confirm dev-client installs and **SIWA button appears only
+   on iOS device** and successfully creates a Supabase user (check Dashboard →
+   Auth → Users → provider `apple`).
+

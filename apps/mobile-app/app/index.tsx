@@ -75,6 +75,22 @@ export default function Home() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [next, setNext] = useState<NextBooking | null | undefined>(undefined); // undefined = not loaded
   const [signingIn, setSigningIn] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(Platform.OS === 'ios');
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const AppleAuthentication: any = require('expo-apple-authentication');
+        const avail = await AppleAuthentication.isAvailableAsync();
+        if (!cancelled) setAppleAvailable(!!avail);
+      } catch {
+        if (!cancelled) setAppleAvailable(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (!session) { setProfile(null); setNext(undefined); return; }
@@ -121,7 +137,7 @@ export default function Home() {
             }}
             style={s.welcomeBtn}
           />
-          {Platform.OS === 'ios' ? (
+          {appleAvailable ? (
             <Button
               title="Sign in with Apple"
               variant="secondary"
