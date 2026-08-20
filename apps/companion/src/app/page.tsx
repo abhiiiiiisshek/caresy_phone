@@ -49,6 +49,8 @@ const RIDE_PAYERS = [
 
 import type { ApprovalStatus } from '@caresy/types';
 import LocationShare from '@/components/LocationShare';
+import TripStatusControl from '@/components/TripStatusControl';
+import CareEventForm from '@/components/CareEventForm';
 
 interface CompanionRow {
   id: string;
@@ -378,6 +380,8 @@ interface JobRow {
   billed_minutes: number | null;
   payment_status: string;
   payment_method: string | null;
+  patient_id: string | null;
+  share_token: string | null;
   pickup?: {
     title: string | null;
     address_line_1: string | null;
@@ -390,7 +394,7 @@ interface JobRow {
 }
 
 const JOB_SELECT =
-  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, transport_mode, final_amount_paise, billed_minutes, payment_status, payment_method, pickup:locations!pickup_location_id (title, address_line_1, pincode, city, latitude, longitude), patient:patients!patient_id (full_name, emergency_contact_phone)';
+  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, transport_mode, final_amount_paise, billed_minutes, payment_status, payment_method, patient_id, share_token, pickup:locations!pickup_location_id (title, address_line_1, pincode, city, latitude, longitude), patient:patients!patient_id (full_name, emergency_contact_phone)';
 
 function fmtWhen(iso: string | null): string {
   if (!iso) return 'Flexible';
@@ -645,6 +649,7 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [actioning, setActioning] = useState<string | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [mayDrive, setMayDrive] = useState<boolean | null>(null);
 
   const fetchJobs = useCallback(async () => {
     if (!user) return;
@@ -659,6 +664,13 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
   }, [user]);
 
   useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await createClient().rpc('companion_may_drive', { p_companion: user.id });
+      setMayDrive(Boolean(data));
+    })();
+  }, [user]);
 
   const toggleOnline = async () => {
     if (!user) return;
@@ -683,7 +695,17 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
     await fetchJobs();
   };
 
-  const accept = (job: JobRow) => setJobStatus(job, 'ACCEPTED', { companion_user_id: user!.id });
+  const accept = async (job: JobRow) => {
+    if (!user) return;
+    setActioning(job.id);
+    const supabase = createClient();
+    const { error: stampErr } = await supabase.rpc('stamp_companion_on_booking', { p_booking: job.id, p_companion: user.id });
+    if (stampErr) { setActioning(null); alert(stampErr.message.includes('cannot drive') ? 'You need a verified driving licence before you can accept a driving job.' : stampErr.message); return; }
+    const { error } = await supabase.from('bookings').update({ status: 'ACCEPTED' }).eq('id', job.id);
+    setActioning(null);
+    if (error) { alert(error.message); return; }
+    await fetchJobs();
+  };
 
   // Completion goes through the RPC, not a status update: the server reads the
   // clock and prices the visit itself. A client-sent amount would be a number
@@ -739,6 +761,7 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
         </Button>
       </div>
 
+      {mayDrive === false && <div style={{ padding: '10px 12px', borderRadius: 10, background: '#FFF3E0', border: '1px solid #FFE0B2', fontSize: '0.8rem', color: '#6D4C41', margin: '10px 0' }}>You can’t accept <strong>driving</strong> jobs until an admin verifies your driving licence. Non-driving jobs are still available.</div>}
       <PendingDocsNote docs={pendingDocs} />
 
       {loadingJobs ? (
@@ -753,8 +776,9 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
                 {activeMine.map((job) => (
                   <JobCard key={job.id} job={job} showPatient>
                     <LocationShare bookingId={job.id} />
+                    <TripStatusControl bookingId={job.id} />
                     {job.status === 'ACCEPTED' && (
-                      <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => setJobStatus(job, 'IN_PROGRESS', { actual_start_time: new Date().toISOString() })}
+                      <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={async () => { await setJobStatus(job, 'IN_PROGRESS', { actual_start_time: new Date().toISOString() }); try { await createClient().rpc('start_trip_for_booking', { p_booking: job.id }); await fetchJobs(); } catch {} }}
                         iconLeft={<PlayCircle style={{ width: 15, height: 15 }} />}>Start job</Button>
                     )}
                     {job.status === 'IN_PROGRESS' && (
@@ -762,6 +786,7 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
                         <RunningTotal startedAt={job.actual_start_time}
                           eveningSurchargePaise={job.service_metadata?.eveningSurchargePaise ?? 0} />
                         <RideLog job={job} onSaved={fetchJobs} />
+                        <CareEventForm bookingId={job.id} patientId={job.patient_id ?? null} onCreated={fetchJobs} />
                         <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={() => completeJob(job)}
                           iconLeft={<CheckCircle2 style={{ width: 15, height: 15 }} />}>Complete &amp; bill</Button>
                       </>
