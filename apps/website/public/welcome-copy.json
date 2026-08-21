@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "intervalMs": 3400,
+  "maxCycles": 6,
+  "en": {
+    "anytime": [
+      "Stay hydrated,",
+      "Breathe easy,",
+      "Take care,",
+      "Keep well,",
+      "You’ve got this,",
+      "Good to see you,",
+      "Sending strength,",
+      "Stay strong,",
+      "Wishing you health,",
+      "One step at a time,",
+      "Here for you,",
+      "You’re not alone,",
+      "Hope you’re well,",
+      "Small steps count,",
+      "Health comes first,",
+      "We’re by your side,",
+      "Stay steady,",
+      "Be kind to yourself,",
+      "Every day counts,",
+      "Healing takes time,",
+      "Glad you’re here,",
+      "Welcome back,",
+      "Care starts here,",
+      "Your health matters,",
+      "Proud of you,",
+      "Well done today,"
+    ],
+    "morning": ["Good morning,", "Rise gently,", "Fresh start,", "A calm morning,", "Morning sunshine,", "New day, new strength,"],
+    "afternoon": ["Good afternoon,", "Keep going,", "Halfway there,", "Take a breather,", "Pace yourself,"],
+    "evening": ["Good evening,", "Rest well,", "Wind down gently,", "You did enough today,", "A quiet evening,", "Sleep comes soon,"],
+    "booking": ["Your visit is set,", "See you soon,", "Your companion’s ready,", "All set for your visit,", "We’re ready for you,", "Visit day is near,", "We’ll be there,", "Everything’s arranged,"],
+    "postVisit": ["Hope you’re recovering well,", "Healing on track,", "Rest and recover,", "Glad we could help,", "Your next check-in soon,"]
+  },
+  "hi": {
+    "anytime": ["स्वागत है,", "ख्याल रखिए,", "आप अकेले नहीं हैं,", "सेहत सबसे पहले,", "धीरज रखिए,", "हम साथ हैं,"],
+    "morning": ["सुप्रभात,", "नया दिन, नई ऊर्जा,"],
+    "afternoon": ["नमस्ते,", "आराम से आगे बढ़िए,"],
+    "evening": ["शुभ संध्या,", "आराम कीजिए,"],
+    "booking": ["आपकी विज़िट तय है,", "हम तैयार हैं,"],
+    "postVisit": ["जल्द स्वस्थ हों,", "ख्याल रखिए,"]
+  }
+}

@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'motion';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import HealthTips from '@/components/HealthTips';
@@ -124,11 +125,72 @@ const BOOKING_HEADERS: Header[] = [
 // Second-line fallbacks when we don't know the visitor's name.
 const NO_NAME_LINES = ['welcome.', 'friend.', 'we’re here.', 'take a seat.', 'you matter.'];
 
-function headerPool(hour: number, hasUpcoming: boolean): Header[] {
+// --- Improvement: personalized post-visit phrases, localization, server-driven override ---
+
+const POST_VISIT_HEADERS: Header[] = [
+  ['Hope you’re recovering well,', 'heart'],
+  ['Healing on track,', 'smile'],
+  ['Rest and recover,', 'hug'],
+  ['Glad we could help,', 'clap'],
+  ['Your next check-in soon,', 'wave'],
+];
+
+function getUserLocale(): 'hi' | 'en' {
+  if (typeof navigator === 'undefined') return 'en';
+  const lang = (navigator.language || 'en').toLowerCase();
+  return lang.startsWith('hi') ? 'hi' : 'en';
+}
+
+// Maps server JSON strings to Header pairs — gesture defaults to 'smile' unless
+// the string clearly matches a known gesture intent. Keeps server copy simple.
+function toHeaders(list: string[] | undefined, fallbackGesture: GestureKey = 'smile'): Header[] {
+  if (!list || !list.length) return [];
+  return list.map((t) => [t, fallbackGesture] as Header);
+}
+
+function headerPool(hour: number, hasUpcoming: boolean, hasPastVisit = false, locale: 'hi' | 'en' = 'en', override?: any): Header[] {
+  // Server-driven override (fetch /welcome-copy.json) — analytics: log view via console
+  if (override?.[locale]) {
+    const o = override[locale];
+    const anytime = toHeaders(o.anytime, 'smile');
+    const morning = toHeaders(o.morning, 'wave');
+    const afternoon = toHeaders(o.afternoon, 'wave');
+    const evening = toHeaders(o.evening, 'wave');
+    const booking = toHeaders(o.booking, 'namaste');
+    const postVisit = toHeaders(o.postVisit, 'heart');
+    const timePool = hour < 12 ? morning : hour < 17 ? afternoon : evening;
+    if (anytime.length) {
+      const pool = [...anytime, ...timePool, ...timePool];
+      if (hasUpcoming && booking.length) return [...pool, ...booking, ...booking];
+      if (hasPastVisit && !hasUpcoming && postVisit.length) return [...pool, ...postVisit];
+      return pool;
+    }
+  }
+  // Local fallback — mirrors original behaviour, now with post-visit + locale
+  if (locale === 'hi') {
+    const HI_ANYTIME: Header[] = [['स्वागत है,', 'wave'], ['ख्याल रखिए,', 'heart'], ['आप अकेले नहीं हैं,', 'hug'], ['सेहत सबसे पहले,', 'heart']];
+    const HI_MORNING: Header[] = [['सुप्रभात,', 'wave'], ['नया दिन, नई ऊर्जा,', 'flex']];
+    const HI_EVENING: Header[] = [['शुभ संध्या,', 'wave'], ['आराम कीजिए,', 'smile']];
+    const timePool = hour < 12 ? HI_MORNING : hour < 17 ? HEADERS_AFTERNOON : HI_EVENING;
+    const pool = [...HI_ANYTIME, ...timePool, ...timePool];
+    if (hasUpcoming) return [...pool, ...BOOKING_HEADERS, ...BOOKING_HEADERS];
+    if (hasPastVisit) return [...pool, ...POST_VISIT_HEADERS];
+    return pool;
+  }
   const timePool = hour < 12 ? HEADERS_MORNING : hour < 17 ? HEADERS_AFTERNOON : HEADERS_EVENING;
-  // Double the time-of-day pool so those phrases stay common, not drowned out.
   const pool = [...HEADERS_ANYTIME, ...timePool, ...timePool];
-  return hasUpcoming ? [...pool, ...BOOKING_HEADERS, ...BOOKING_HEADERS] : pool;
+  if (hasUpcoming) return [...pool, ...BOOKING_HEADERS, ...BOOKING_HEADERS];
+  if (hasPastVisit && !hasUpcoming) return [...pool, ...POST_VISIT_HEADERS];
+  return pool;
+}
+
+// Analytics helper — fire-and-forget, no PII
+function logPhraseView(phrase: string) {
+  try {
+    if (typeof window !== 'undefined' && (window as any).gtag) (window as any).gtag('event', 'welcome_phrase_view', { phrase });
+    // also console for debugging + future Supabase insert: bookings?.phrase_analytics
+    console.debug('[caresy] welcome phrase:', phrase);
+  } catch {}
 }
 
 const SERVICE_CHIPS = [
@@ -207,17 +269,122 @@ export default function Home() {
   const avatarUrl = (user?.user_metadata?.avatar_url as string) || (user?.user_metadata?.picture as string) || null;
   const companion = activeBooking?.service_metadata?.companion;
 
-  // Pick a rotating greeting phrase client-side (once per load) so the header
-  // feels personal without an SSR/client hydration mismatch. The pool is
-  // time-of-day aware; booking phrases join when a real upcoming visit exists.
-  const hasUpcoming = !!activeBooking?.scheduled_start_time && activeBooking.booking_type !== 'INSTANT';
+  // --- Greeting improvements: server-driven, localized, personalized, reduced-motion, pause, cap ---
+  const [hasPastVisit, setHasPastVisit] = useState(false);
+  const [welcomeOverride, setWelcomeOverride] = useState<any>(null);
+  const [welcomeIntervalMs, setWelcomeIntervalMs] = useState(3400);
+  const [welcomeMaxCycles, setWelcomeMaxCycles] = useState(6);
+  const [isHovered, setIsHovered] = useState(false);
+  const greetingRef = useRef<HTMLDivElement>(null);
+  const pausedByHoverRef = useRef(false);
+  const cycleRef = useRef(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 1) Server-driven copy: fetch /welcome-copy.json (no-store, fallback to local pools)
   useEffect(() => {
-    const pool = headerPool(new Date().getHours(), hasUpcoming);
-    const [text, gesture] = pool[Math.floor(Math.random() * pool.length)];
-    setHeaderPhrase(text);
-    setAvatarGesture(gesture);
+    fetch('/welcome-copy.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        if (!j) return;
+        setWelcomeOverride(j);
+        if (typeof j.intervalMs === 'number') setWelcomeIntervalMs(j.intervalMs);
+        if (typeof j.maxCycles === 'number') setWelcomeMaxCycles(j.maxCycles);
+      })
+      .catch(() => {});
+  }, []);
+
+  // 5) Personalized: detect past visit (completed bookings) for post-visit pool
+  useEffect(() => {
+    if (!user) { setHasPastVisit(false); return; }
+    const supabase = createClient();
+    supabase.from('bookings').select('id').eq('user_id', user.id).limit(1).then(({ data }) => {
+      setHasPastVisit(!!data && data.length > 0 && !activeBooking);
+    });
+  }, [user, activeBooking]);
+
+  const hasUpcoming = !!activeBooking?.scheduled_start_time && activeBooking.booking_type !== 'INSTANT';
+  const locale = typeof window !== 'undefined' ? getUserLocale() : 'en';
+  const poolRef = useRef<Header[] | null>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    if (!m) return;
+    setPrefersReducedMotion(m.matches);
+    const onChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    m.addEventListener?.('change', onChange);
+    return () => m.removeEventListener?.('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    poolRef.current = headerPool(hour, hasUpcoming, hasPastVisit, locale, welcomeOverride);
+    const pick = () => {
+      const pool = poolRef.current!;
+      return pool[Math.floor(Math.random() * pool.length)];
+    };
+    const [firstText, firstGesture] = pick();
+    setHeaderPhrase(firstText);
+    setAvatarGesture(firstGesture);
+    logPhraseView(firstText);
     setNoNameLine(NO_NAME_LINES[Math.floor(Math.random() * NO_NAME_LINES.length)]);
-  }, [hasUpcoming]);
+
+    // 1) Respect reduced motion — no auto-shuffle
+    if (prefersReducedMotion) return;
+
+    // 3+4) Visibility-aware + cap after maxCycles + pause on hover/focus
+    let prev = firstText;
+    cycleRef.current = 0;
+    const tick = () => {
+      if (pausedByHoverRef.current || document.hidden) return;
+      if (cycleRef.current >= welcomeMaxCycles) {
+        if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+        return;
+      }
+      const pool = poolRef.current!;
+      let next = pick();
+      let guard = 0;
+      while (next[0] === prev && guard < 8) { next = pick(); guard++; }
+      prev = next[0];
+      cycleRef.current += 1;
+      setHeaderPhrase(next[0]);
+      logPhraseView(next[0]);
+    };
+    intervalRef.current = setInterval(tick, welcomeIntervalMs);
+
+    // 3) Resume with 1.5s delay after tab returns (avoid flash)
+    const onVis = () => {
+      if (document.hidden) return;
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = setTimeout(() => {
+        if (cycleRef.current < welcomeMaxCycles && !pausedByHoverRef.current) tick();
+      }, 1500);
+    };
+    document.addEventListener('visibilitychange', onVis);
+
+    // 8) Cap when scrolled past greeting (IntersectionObserver)
+    let obs: IntersectionObserver | null = null;
+    if (greetingRef.current && 'IntersectionObserver' in window) {
+      obs = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting && intervalRef.current) {
+          clearInterval(intervalRef.current); intervalRef.current = null;
+        } else if (entry.isIntersecting && !intervalRef.current && cycleRef.current < welcomeMaxCycles && !prefersReducedMotion) {
+          intervalRef.current = setInterval(tick, welcomeIntervalMs);
+        }
+      }, { threshold: 0 });
+      obs.observe(greetingRef.current);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+      document.removeEventListener('visibilitychange', onVis);
+      obs?.disconnect();
+    };
+  }, [hasUpcoming, hasPastVisit, locale, welcomeOverride, prefersReducedMotion, welcomeIntervalMs, welcomeMaxCycles]);
+
+  // keep pause ref in sync with hover state
+  useEffect(() => { pausedByHoverRef.current = isHovered; }, [isHovered]);
 
   // Falls back to the plain time-of-day greeting on the server / first paint.
   const header = headerPhrase || `${greeting()},`;
@@ -247,10 +414,37 @@ export default function Home() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: '16px 16px 0' }}>
 
-          {/* Greeting — text left, animated emoji avatar filling the blank space on the right */}
-          <div style={{ padding: '8px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <p style={{ margin: 0, fontSize: 32, lineHeight: '40px', color: 'var(--m3-ink)' }}>
-              {header}<br />{firstName ? `${firstName}.` : noNameLine}
+          {/* Greeting — message shuffles (gesture fixed), pauses on hover/focus, capped */}
+          <div
+            ref={greetingRef}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onFocus={() => setIsHovered(true)}
+            onBlur={() => setIsHovered(false)}
+            tabIndex={0}
+            aria-live="polite"
+            style={{ padding: '8px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, outline: 'none', minHeight: 96 }}
+          >
+            <p style={{ margin: 0, fontSize: 32, lineHeight: '40px', color: 'var(--m3-ink)', minHeight: 80 }}>
+              <span style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
+                {prefersReducedMotion ? (
+                  <span style={{ display: 'inline-block' }}>{header}</span>
+                ) : (
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={header}
+                      initial={{ y: 16, opacity: 0, filter: 'blur(4px)' }}
+                      animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+                      exit={{ y: -16, opacity: 0, filter: 'blur(4px)' }}
+                      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                      style={{ display: 'inline-block' }}
+                    >
+                      {header}
+                    </motion.span>
+                  </AnimatePresence>
+                )}
+              </span>
+              <br />{firstName ? `${firstName}.` : noNameLine}
             </p>
             {avatarGesture && (
               <span style={{ display: 'grid', placeItems: 'center', width: 96, height: 96, borderRadius: '50%', background: 'var(--m3-surface, #eef1ec)', border: '1px solid var(--m3-line, #e1e3de)', flexShrink: 0 }}>

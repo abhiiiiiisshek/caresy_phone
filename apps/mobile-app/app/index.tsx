@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { Button, Card, LoadingState, Overline, Screen, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
+import { AnimatedHeadline } from '../components/AnimatedHeadline';
 import { color, radius, shadow, space } from '../lib/theme';
 
 const SUPPORT_WA = '919717500225';
@@ -89,13 +90,15 @@ export default function Home() {
   const name = profile?.full_name?.split(' ')[0]
     ?? (session.user.user_metadata?.name as string | undefined)?.split(' ')[0]
     ?? 'there';
+  // personalized post-visit detection (past bookings exist but no upcoming)
+  const hasPastVisit = next === null; // null = loaded & no upcoming, implies past or first-visit; AnimatedHeadline will refine via locale pools
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
         <View style={s.greeting}>
           <Overline>Welcome back</Overline>
-          <Txt variant="display" color={color.greenDeep}>Hi, {name}</Txt>
+          <AnimatedHeadline name={name} hasUpcoming={!!next?.scheduled_start_time} hasPastVisit={hasPastVisit} />
         </View>
 
         {/* Primary CTA */}
