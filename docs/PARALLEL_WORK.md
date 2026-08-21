@@ -36,11 +36,19 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-21 — Muse — branch `feature/mobile-reschedule` (worktree: `caresy_reschedule_worktree`) — native picker v2
+Did: user flagged date/time selective list as weird — replaced BottomSheet `nextDays`/`availableSlots` pickers with native `@react-native-community/datetimepicker` (8.4.4) per choice 1. `my-bookings.tsx` now uses single `Date rescheduleAt` + two `FieldButton`s (Date/Time) opening native `DateTimePicker` (iOS spinner, Android calendar/clock), `minimumDate` today, `maximumDate` +90d, 60-min lead + 90-day guards before `reschedule_booking` RPC. Installed dep via `npm install -w @caresy/mobile-app`, `tsc --noEmit` → EXIT 0. `package.json` + `package-lock.json` added.
+Left mid-flight: `my-bookings.tsx`, `apps/mobile-app/package.json`, `package-lock.json` modified, need `pod install` before device shows picker (autolinks).
+Don't touch: `booking.tsx`, `ui.tsx`, `ios/` (needs pod install but no manual edit), `supabase/migrations/*`.
+Next: `git add apps/mobile-app/app/my-bookings.tsx apps/mobile-app/package.json package-lock.json && git commit && npx pod-install ios && expo run:ios`; verify native Date/Time pickers and RPC still correct.
+
+---
+
 ### 2026-08-21 — Muse — branch `feature/mobile-reschedule` (worktree: `caresy_reschedule_worktree`)
 Did: implemented native Reschedule for My Bookings per `PARALLEL_WORK.md` 2026-08-21 task spec (deferred #4). Single-file change in `apps/mobile-app/app/my-bookings.tsx` (branch `feature/mobile-reschedule` off `a4c678e`, isolated worktree): duplicated `nextDays(count=14)` from `app/booking.tsx:48` (intentional dup, didn't touch `booking.tsx`), imported `availableSlots` from `@caresy/utils/slots` and `FieldButton`+`BottomSheet` from `../components/ui` (import only, no edit to `ui.tsx`), added `fmtSlot` + `isReschedulable()` (checks `isPastBooking` + status PENDING/ACCEPTED/ASSIGNED). Added Reschedule state (target/date/time + sheet visibilities + loading), inline reschedule card above list with Date `FieldButton`→`BottomSheet` and Time `FieldButton`→`BottomSheet` mirroring `booking.tsx:493-521`, 60-min UX guard (warn, RPC authoritative), and `supabase.rpc('reschedule_booking', { p_booking, p_start: iso })` with Haptics + fetch + Alert pattern same as Cancel. Added "Reschedule" button on `BookingCard` next to Cancel, gated by `isReschedulable` (hidden for past/IN_PROGRESS etc). Verified `tsc` clean via: copied file into `caresy_m3_worktree` and ran `./node_modules/.bin/tsc --noEmit -p apps/mobile-app/tsconfig.json` → EXIT 0 (Cancel unchanged).
 Left mid-flight: `my-bookings.tsx` + this `PARALLEL_WORK.md` entry modified, not yet committed in `caresy_reschedule_worktree`.
 Don't touch: `apps/mobile-app/app/booking.tsx`, `apps/mobile-app/components/ui.tsx`, `ios/`, `apps/mobile-app/app/index.tsx`, `supabase/migrations/*` — read-only per task. Primary `caresy_m3_worktree` gradient debug (uncommitted `app/index.tsx`, `ios/Pods`, `[gradient-debug]` log) stays isolated; don't merge until that lands.
-Next: `git add apps/mobile-app/app/my-bookings.tsx docs/PARALLEL_WORK.md && git commit -m "mobile: add Reschedule to My Bookings (deferred #4, BottomSheet pickers)" && git push -u origin feature/mobile-reschedule`; manual device verify Reschedule visibility, Cancel regression, and RPC error for <60min / >90d.
+Next: updated to native picker v2 (this edit) — see new entry below.
 
 ---
 

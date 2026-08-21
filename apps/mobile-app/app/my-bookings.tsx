@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, FlatList, Platform, RefreshControl, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { formatINR, runningTotalPaise } from '@caresy/utils/pricing';
-import { availableSlots } from '@caresy/utils/slots';
-import { BottomSheet, Button, Card, Chip, EmptyState, ErrorState, FieldButton, LoadingState, Screen, Stagger, Txt } from '../components/ui';
+import { Button, Card, Chip, EmptyState, ErrorState, FieldButton, LoadingState, Screen, Stagger, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
 import { color, radius, space } from '../lib/theme';
 
@@ -51,23 +51,6 @@ function whenLabel(iso: string | null) {
   return new Date(iso).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 }
 
-function fmtSlot(t: string) {
-  const [h, m] = t.split(':').map(Number);
-  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
-}
-
-// Duplicated from app/booking.tsx:48 — intentional, don't extract into shared module
-// while booking.tsx is dirty in another worktree (see PARALLEL_WORK.md Don't touch).
-function nextDays(count = 14) {
-  const base = new Date(); base.setHours(0, 0, 0, 0);
-  return Array.from({ length: count }, (_, i) => {
-    const d = new Date(base); d.setDate(base.getDate() + i);
-    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
-    return { iso, label };
-  });
-}
-
 function isReschedulable(b: BookingRecord) {
   if (isPastBooking(b)) return false;
   const s = b.status.toUpperCase();
@@ -83,16 +66,12 @@ export default function MyBookings() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
 
-  // Reschedule state — mirrors booking.tsx day/slot picker exactly, no new deps
+  // Native reschedule — single Date object, two pickers (date + time)
   const [rescheduleTarget, setRescheduleTarget] = useState<BookingRecord | null>(null);
-  const [rescheduleDate, setRescheduleDate] = useState('');
-  const [rescheduleTime, setRescheduleTime] = useState('');
-  const [rescheduleDateSheet, setRescheduleDateSheet] = useState(false);
-  const [rescheduleTimeSheet, setRescheduleTimeSheet] = useState(false);
+  const [rescheduleAt, setRescheduleAt] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [rescheduling, setRescheduling] = useState(false);
-
-  const days = useMemo(() => nextDays(), []);
-  const slots = useMemo(() => availableSlots(rescheduleDate), [rescheduleDate]);
 
   const fetch = useCallback(async (mode: 'full' | 'quiet' | 'pull' = 'full') => {
     if (mode === 'full') setLoading(true);
@@ -141,32 +120,60 @@ export default function MyBookings() {
   const openReschedule = (b: BookingRecord) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRescheduleTarget(b);
-    setRescheduleDate('');
-    setRescheduleTime('');
-    setRescheduleDateSheet(false);
-    setRescheduleTimeSheet(false);
+    // Start from current scheduled time if available, otherwise now + 24h
+    const base = b.scheduled_start_time ? new Date(b.scheduled_start_time) : new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // Ensure base is in future +60m
+    if (base.getTime() < Date.now() + 62 * 60 * 1000) base.setTime(Date.now() + 62 * 60 * 1000);
+    setRescheduleAt(base);
+    setShowDatePicker(false);
+    setShowTimePicker(false);
   };
 
   const closeReschedule = () => {
     setRescheduleTarget(null);
-    setRescheduleDate('');
-    setRescheduleTime('');
-    setRescheduleDateSheet(false);
-    setRescheduleTimeSheet(false);
+    setRescheduleAt(null);
+    setShowDatePicker(false);
+    setShowTimePicker(false);
     setRescheduling(false);
   };
 
+  const onDateChange = (_: any, selected?: Date) => {
+    if (Platform.OS === 'android') setShowDatePicker(false);
+    if (!selected) return;
+    setRescheduleAt((prev) => {
+      const base = prev ?? new Date();
+      const next = new Date(base);
+      next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
+      return next;
+    });
+    // On iOS keep date picker open until user taps elsewhere; on Android chain to time picker
+    if (Platform.OS === 'android' && selected) {
+      // auto-open time picker after date pick for smooth flow
+      setTimeout(() => setShowTimePicker(true), 300);
+    }
+  };
+
+  const onTimeChange = (_: any, selected?: Date) => {
+    if (Platform.OS === 'android') setShowTimePicker(false);
+    if (!selected) return;
+    setRescheduleAt((prev) => {
+      const base = prev ?? new Date();
+      const next = new Date(base);
+      next.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
+      return next;
+    });
+  };
+
   const confirmReschedule = async () => {
-    if (!rescheduleTarget) return;
-    if (!rescheduleDate || !rescheduleTime) {
-      Alert.alert('Pick a date and time', 'Choose both a day and a time slot to reschedule.');
+    if (!rescheduleTarget || !rescheduleAt) return;
+    const iso = rescheduleAt.toISOString();
+    const leadCutoff = Date.now() + 60 * 60 * 1000;
+    if (rescheduleAt.getTime() < leadCutoff) {
+      Alert.alert('Too soon', 'Pick a time at least 60 minutes from now. The server will enforce this.');
       return;
     }
-    const iso = new Date(`${rescheduleDate}T${rescheduleTime}:00`).toISOString();
-    // UX-only lead-window check — RPC is authoritative, this just warns early
-    const leadCutoff = Date.now() + 60 * 60 * 1000;
-    if (new Date(iso).getTime() < leadCutoff) {
-      Alert.alert('Too soon', 'Pick a time at least 60 minutes from now. The server will enforce this.');
+    if (rescheduleAt.getTime() > Date.now() + 90 * 24 * 60 * 60 * 1000) {
+      Alert.alert('Too far', 'Pick a time within the next 90 days.');
       return;
     }
     try {
@@ -189,6 +196,9 @@ export default function MyBookings() {
 
   const shown = bookings.filter((b) => (filter === 'past' ? isPastBooking(b) : !isPastBooking(b)));
 
+  const dateLabel = rescheduleAt ? rescheduleAt.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  const timeLabel = rescheduleAt ? rescheduleAt.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: true, title: 'My Bookings' }} />
@@ -197,44 +207,48 @@ export default function MyBookings() {
         <Chip label="Past" selected={filter === 'past'} onPress={() => setFilter('past')} />
       </Stagger>
 
-      {rescheduleTarget ? (
+      {rescheduleTarget && rescheduleAt ? (
         <Card style={s.rescheduleCard}>
           <Txt variant="title" color={color.ink}>Reschedule · {rescheduleTarget.reference_code}</Txt>
-          <Txt variant="caption" color={color.muted}>Pick a new day and time. The server checks the 60-minute lead time.</Txt>
+          <Txt variant="caption" color={color.muted}>Pick a new date and time. The server enforces 60-min lead and 90-day window.</Txt>
+
           <FieldButton
             label="Date"
-            value={rescheduleDate ? (days.find((d) => d.iso === rescheduleDate)?.label ?? rescheduleDate) : ''}
-            placeholder="Choose a day"
-            onPress={() => setRescheduleDateSheet(true)}
+            value={dateLabel}
+            placeholder="Choose a date"
+            onPress={() => { Haptics.selectionAsync(); setShowDatePicker(true); }}
           />
-          <BottomSheet
-            visible={rescheduleDateSheet}
-            title="Choose a day"
-            selectedKey={rescheduleDate || null}
-            onSelect={(k) => { setRescheduleDate(k); setRescheduleTime(''); }}
-            onClose={() => setRescheduleDateSheet(false)}
-            options={days.map((d) => ({ key: d.iso, label: d.label }))}
+          <FieldButton
+            label="Time"
+            value={timeLabel}
+            placeholder="Choose a time"
+            onPress={() => { Haptics.selectionAsync(); setShowTimePicker(true); }}
           />
-          {rescheduleDate ? (
-            slots.length ? (
-              <>
-                <FieldButton
-                  label="Time slot"
-                  value={rescheduleTime ? fmtSlot(rescheduleTime) : ''}
-                  placeholder="Choose a time"
-                  onPress={() => setRescheduleTimeSheet(true)}
-                />
-                <BottomSheet
-                  visible={rescheduleTimeSheet}
-                  title="Choose a time"
-                  selectedKey={rescheduleTime || null}
-                  onSelect={setRescheduleTime}
-                  onClose={() => setRescheduleTimeSheet(false)}
-                  options={slots.map((t) => ({ key: t, label: fmtSlot(t) }))}
-                />
-              </>
-            ) : <Txt variant="body" color={color.muted}>No slots left that day. Pick another.</Txt>
-          ) : <Txt variant="body" color={color.muted}>Choose a day to see available slots.</Txt>}
+
+          {showDatePicker ? (
+            <DateTimePicker
+              value={rescheduleAt}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              minimumDate={new Date()}
+              maximumDate={new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)}
+              onChange={onDateChange}
+            />
+          ) : null}
+          {showTimePicker ? (
+            <DateTimePicker
+              value={rescheduleAt}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onTimeChange}
+            />
+          ) : null}
+
+          {Platform.OS === 'ios' && (showDatePicker || showTimePicker) ? (
+            <View style={s.iosPickerActions}>
+              <Button title="Done" onPress={() => { setShowDatePicker(false); setShowTimePicker(false); }} style={s.iosDone} />
+            </View>
+          ) : null}
 
           <View style={s.rescheduleActions}>
             <Button title="Cancel" variant="secondary" onPress={closeReschedule} disabled={rescheduling} style={s.rescheduleBtn} />
@@ -339,4 +353,6 @@ const s = StyleSheet.create({
   rescheduleCard: { marginHorizontal: space.xl, marginBottom: space.md, gap: space.md, borderWidth: 1.5, borderColor: color.green },
   rescheduleActions: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
   rescheduleBtn: { flex: 1 },
+  iosPickerActions: { alignItems: 'flex-end' },
+  iosDone: { paddingHorizontal: space.xl },
 });
