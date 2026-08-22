@@ -36,6 +36,17 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-22 — Muse — branch `feature/mobile-reschedule` (worktree: `caresy_reschedule_worktree`) — DETAILED BUG CHECK + FIXES — TO BE REVIEWED — done by Muse
+Did: per your “DO A DETAILED BUG CHECK” and “proceed your self”, ran full static + logic audit on `apps/mobile-app/app/my-bookings.tsx` native-reschedule (c8895cb). `tsc --noEmit -p apps/mobile-app/tsconfig.json` → EXIT 0, no console.log, no TODO. Found 10 issues (see commit f934eb5 message): (1) `isReschedulable` blocked past PENDING rescue (used `isPastBooking`); (2) `whenLabel`/`dateLabel`/`timeLabel` used device TZ vs server IST; (3) `openReschedule` NaN/>90d not clamped + race when `rescheduling`; (4) dual iOS spinners (both `showDatePicker`+`showTimePicker` true stacked); (5) hardcoded 60m/90d client early returns blocked RPC (spec says warn, let RPC authoritative); (6) `Haptics` unguarded on web; (7) `fetch()` not quiet + `catch(err:any)` loose; (8) `onDateChange`/`onTimeChange` typed `any`; (9) `ios/Podfile.lock`/`Info.plist` collateral from prebuild (EXConstants bump, RCTNewArchEnabled). Fixed all Major+Moderate in `f934eb5` (`my-bookings.tsx` only): `isReschedulable` now checks terminal statuses only (past time no longer blocks, RPC decides); `whenLabel`/labels now `timeZone:'Asia/Kolkata'`; `openReschedule` clamps NaN/>90d and guards `if(rescheduling) return`; pickers now mutually exclusive (`setShowTimePicker(false)` on date open etc.); removed hardcoded early returns (client hints only, RPC `31_CUSTOMER_ACTIONS.reschedule_booking` authoritative); added `.catch(()=>{})` to all Haptics, `fetch('quiet')`, `unknown` typing. Re-verified `tsc --noEmit` → EXIT 0 and pushed.
+
+Left mid-flight: `f934eb5` pushed to `origin/feature/mobile-reschedule` (now 4 commits ahead of `a4c678e`: `7ce05e5` spec → `c8895cb` native picker → `1a38bb9` ios sync → `f934eb5` bug fixes). Working tree clean.
+
+Don't touch: `apps/mobile-app/app/booking.tsx`, `apps/mobile-app/components/ui.tsx`, `supabase/migrations/*` (still read-only per original spec). `caresy_m3_worktree` still has your gradient debug (`app/index.tsx` + `ios/Pods` `[gradient-debug]`).
+
+Next: **TO BE REVIEWED** — please review `my-bookings.tsx` f934eb5 (esp. `isReschedulable` past logic + native picker UX + IST labels) and the `ios/` Podfile diff. If OK, merge `feature/mobile-reschedule` → `feature/companion-portal` or `main` as you decide; otherwise flag which fixes to revert. Done by Muse — awaiting your review.
+
+---
+
 ### 2026-08-21 — Muse — branch `feature/mobile-reschedule` (worktree: `caresy_reschedule_worktree`) — native picker v2
 Did: user flagged date/time selective list as weird — replaced BottomSheet `nextDays`/`availableSlots` pickers with native `@react-native-community/datetimepicker` (8.4.4) per choice 1. `my-bookings.tsx` now uses single `Date rescheduleAt` + two `FieldButton`s (Date/Time) opening native `DateTimePicker` (iOS spinner, Android calendar/clock), `minimumDate` today, `maximumDate` +90d, 60-min lead + 90-day guards before `reschedule_booking` RPC. Installed dep via `npm install -w @caresy/mobile-app`, `tsc --noEmit` → EXIT 0. `package.json` + `package-lock.json` added.
 Left mid-flight: `my-bookings.tsx`, `apps/mobile-app/package.json`, `package-lock.json` modified, need `pod install` before device shows picker (autolinks).
