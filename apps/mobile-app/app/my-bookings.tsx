@@ -19,6 +19,7 @@ interface BookingRecord {
   status: string;
   created_at: string;
   scheduled_start_time: string | null;
+  booking_type: string;
   service_type: string;
   service_metadata: any;
   actual_start_time: string | null;
@@ -29,7 +30,7 @@ interface BookingRecord {
 
 const SELECT = `
   id, reference_code, share_token, status, created_at, scheduled_start_time,
-  service_type, service_metadata, actual_start_time, final_amount_paise, payment_status,
+  booking_type, service_type, service_metadata, actual_start_time, final_amount_paise, payment_status,
   patient:patients ( full_name )
 `;
 
@@ -52,6 +53,12 @@ function whenLabel(iso: string | null) {
 }
 
 function isReschedulable(b: BookingRecord) {
+  // Urgent (INSTANT) bookings have no fixed time to move — "reschedule" only
+  // makes sense for a SCHEDULED visit. The RPC itself will happily convert an
+  // INSTANT booking to SCHEDULED if called directly (see 31_CUSTOMER_ACTIONS.sql),
+  // but exposing that as a client action on an urgent-need booking is confusing:
+  // the customer asked for a companion now, not "pick a future slot instead."
+  if (b.booking_type !== 'SCHEDULED') return false;
   const s = b.status.toUpperCase();
   if (s === 'COMPLETED' || s === 'CANCELLED' || s === 'EXPIRED') return false;
   if (s !== 'PENDING' && s !== 'ACCEPTED' && s !== 'ASSIGNED') return false;
