@@ -329,15 +329,12 @@ export default function Home() {
     logPhraseView(firstText);
     setNoNameLine(NO_NAME_LINES[Math.floor(Math.random() * NO_NAME_LINES.length)]);
 
-    // 1) Respect reduced motion — no auto-shuffle
-    if (prefersReducedMotion) return;
-
-    // 3+4) Visibility-aware + cap after maxCycles + pause on hover/focus
+    // keep shuffling even with reduced-motion — just use simpler fade (render handles it)
     let prev = firstText;
     cycleRef.current = 0;
     const tick = () => {
       if (pausedByHoverRef.current || document.hidden) return;
-      if (cycleRef.current >= welcomeMaxCycles) {
+      if (welcomeMaxCycles !== Infinity && cycleRef.current >= welcomeMaxCycles) {
         if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
         return;
       }
@@ -357,7 +354,7 @@ export default function Home() {
       if (document.hidden) return;
       if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
       resumeTimeoutRef.current = setTimeout(() => {
-        if (cycleRef.current < welcomeMaxCycles && !pausedByHoverRef.current) tick();
+        if ((welcomeMaxCycles === Infinity || cycleRef.current < welcomeMaxCycles) && !pausedByHoverRef.current) tick();
       }, 1500);
     };
     document.addEventListener('visibilitychange', onVis);
@@ -368,7 +365,7 @@ export default function Home() {
       obs = new IntersectionObserver(([entry]) => {
         if (!entry.isIntersecting && intervalRef.current) {
           clearInterval(intervalRef.current); intervalRef.current = null;
-        } else if (entry.isIntersecting && !intervalRef.current && cycleRef.current < welcomeMaxCycles && !prefersReducedMotion) {
+        } else if (entry.isIntersecting && !intervalRef.current && (welcomeMaxCycles === Infinity || cycleRef.current < welcomeMaxCycles)) {
           intervalRef.current = setInterval(tick, welcomeIntervalMs);
         }
       }, { threshold: 0 });

@@ -213,7 +213,9 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
   const [phrase, setPhrase] = useState<string>(initial[0]);
   const [gesture] = useState<GestureKey>(initial[1]);
   const phraseRef = useRef(phrase);
+  const pausedByPressRef = useRef(false);
   useEffect(() => { phraseRef.current = phrase; }, [phrase]);
+  useEffect(() => { pausedByPressRef.current = pausedByPress; }, [pausedByPress]);
 
   useEffect(() => {
     poolRef.current = headerPool(new Date().getHours(), hasUpcoming, hasPastVisit, locale, override);
@@ -239,8 +241,12 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
   const animateTo = useCallback(
     (nextPhrase: string) => {
       if (reduceMotion) {
+        // still shuffle, but with simple fade — respects reduce-motion without going static
         setPhrase(nextPhrase);
         logPhraseView(nextPhrase);
+        // gentle opacity fade only
+        anim.setValue(0);
+        Animated.timing(anim, { toValue: 1, duration: 200, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
         return;
       }
       Animated.timing(anim, { toValue: 0, duration: 220, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start(() => {
@@ -252,18 +258,16 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
     [anim, reduceMotion]
   );
 
-  // Active auto mode — capped cycles, pause on long-press & background, resume with delay
+  // Active auto mode — continuous shuffle, pause on long-press & background, resume with delay
   useEffect(() => {
-    if (reduceMotion) return;
     let id: ReturnType<typeof setInterval> | null = null;
     let resumeTimeout: ReturnType<typeof setTimeout> | null = null;
     let appState = AppState.currentState;
     let cycles = 0;
-    const pausedByPressRef = { current: pausedByPress };
-    // keep ref in sync without recreating interval
+    // use the component-level pausedByPressRef (kept in sync via effect above)
     const tick = () => {
       if (pausedByPressRef.current || AppState.currentState !== 'active') return;
-      if (cycles >= maxCycles) {
+      if (maxCycles !== Infinity && cycles >= maxCycles) {
         if (id) { clearInterval(id); id = null; }
         return;
       }
@@ -271,12 +275,9 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
       cycles += 1;
       animateTo(nextPhrase);
     };
-    // update ref when prop changes
-    const syncPause = () => { pausedByPressRef.current = pausedByPress; };
-    syncPause();
 
     const start = () => {
-      if (id || cycles >= maxCycles) return;
+      if (id || (maxCycles !== Infinity && cycles >= maxCycles)) return;
       id = setInterval(tick, intervalMs);
     };
     const stop = () => { if (id) { clearInterval(id); id = null; } };
@@ -285,7 +286,7 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
     const sub = AppState.addEventListener('change', (next) => {
       if (appState.match(/inactive|background/) && next === 'active') {
         if (resumeTimeout) clearTimeout(resumeTimeout);
-        resumeTimeout = setTimeout(() => { if (cycles < maxCycles && !pausedByPressRef.current) tick(); }, 1500);
+        resumeTimeout = setTimeout(() => { if ((maxCycles === Infinity || cycles < maxCycles) && !pausedByPressRef.current) tick(); }, 1500);
         start();
       } else if (next.match(/inactive|background/)) {
         stop();
@@ -297,7 +298,7 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
       if (resumeTimeout) clearTimeout(resumeTimeout);
       sub.remove();
     };
-  }, [animateTo, intervalMs, maxCycles, reduceMotion, pausedByPress]);
+  }, [animateTo, intervalMs, maxCycles]);
 
   const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [14, 0] });
   const opacity = anim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
@@ -306,7 +307,7 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
   const content = (
     <View style={s.row}>
       <View style={s.textCol}>
-        <Animated.View style={reduceMotion ? undefined : { opacity, transform: [{ translateY }, { scale }] }}>
+        <Animated.View style={reduceMotion ? { opacity } : { opacity, transform: [{ translateY }, { scale }] }}>
           <Text style={s.phrase} numberOfLines={1} adjustsFontSizeToFit accessibilityRole="header">
             {phrase}
           </Text>
@@ -326,8 +327,7 @@ export function AnimatedHeadline({ name, hasUpcoming = false, hasPastVisit = fal
     </View>
   );
 
-  // Pause on long-press (improvement #2) — keep gesture static per request
-  if (reduceMotion) return <View style={s.wrap}>{content}</View>;
+  // Pause on long-press (improvement #2) — gesture stays static, works with reduce-motion too
   return (
     <Pressable
       onPressIn={() => setPausedByPress(true)}
