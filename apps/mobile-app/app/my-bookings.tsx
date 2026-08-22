@@ -48,13 +48,15 @@ function patientName(b: BookingRecord): string | null {
 }
 function whenLabel(iso: string | null) {
   if (!iso) return 'Time to be confirmed';
-  return new Date(iso).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  return new Date(iso).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 }
 
 function isReschedulable(b: BookingRecord) {
-  if (isPastBooking(b)) return false;
   const s = b.status.toUpperCase();
-  return s === 'PENDING' || s === 'ACCEPTED' || s === 'ASSIGNED';
+  if (s === 'COMPLETED' || s === 'CANCELLED' || s === 'EXPIRED') return false;
+  if (s !== 'PENDING' && s !== 'ACCEPTED' && s !== 'ASSIGNED') return false;
+  // Past scheduled time does NOT block reschedule — a PENDING whose time slipped past can still be moved to a future slot; RPC is authoritative (see 31_CUSTOMER_ACTIONS.sql) and will reject only if p_start is < NOW()+lead.
+  return true;
 }
 
 export default function MyBookings() {
@@ -81,8 +83,8 @@ export default function MyBookings() {
       const { data, error: e } = await supabase.from('bookings').select(SELECT).order('created_at', { ascending: false }).limit(50);
       if (e) throw e;
       setBookings((data as unknown as BookingRecord[]) || []);
-    } catch (err: any) {
-      setError(err.message || 'Could not load your bookings.');
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Could not load your bookings.');
     } finally {
       setLoading(false); setRefreshing(false);
     }
@@ -102,7 +104,7 @@ export default function MyBookings() {
   }, [hasLiveVisit, fetch]);
 
   const cancel = (b: BookingRecord) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(()=>{});
     Alert.alert('Cancel booking?', `${serviceLabel(b)} · ${b.reference_code}`, [
       { text: 'Keep booking', style: 'cancel' },
       {
@@ -110,20 +112,23 @@ export default function MyBookings() {
         onPress: async () => {
           const { error: e } = await supabase.rpc('cancel_booking', { p_booking: b.id, p_reason: null });
           if (e) { Alert.alert('Could not cancel', e.message); return; }
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          fetch();
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(()=>{});
+          fetch('quiet');
         },
       },
     ]);
   };
 
   const openReschedule = (b: BookingRecord) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (rescheduling) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(()=>{});
     setRescheduleTarget(b);
-    // Start from current scheduled time if available, otherwise now + 24h
-    const base = b.scheduled_start_time ? new Date(b.scheduled_start_time) : new Date(Date.now() + 24 * 60 * 60 * 1000);
-    // Ensure base is in future +60m
-    if (base.getTime() < Date.now() + 62 * 60 * 1000) base.setTime(Date.now() + 62 * 60 * 1000);
+    const now = Date.now();
+    const maxDate = new Date(now + 90 * 24 * 60 * 60 * 1000);
+    let base = b.scheduled_start_time ? new Date(b.scheduled_start_time) : new Date(now + 24 * 60 * 60 * 1000);
+    if (isNaN(base.getTime())) base = new Date(now + 24 * 60 * 60 * 1000);
+    if (base.getTime() < now + 62 * 60 * 1000) base = new Date(now + 62 * 60 * 1000);
+    if (base.getTime() > maxDate.getTime()) base = new Date(now + 24 * 60 * 60 * 1000);
     setRescheduleAt(base);
     setShowDatePicker(false);
     setShowTimePicker(false);
@@ -137,7 +142,7 @@ export default function MyBookings() {
     setRescheduling(false);
   };
 
-  const onDateChange = (_: any, selected?: Date) => {
+  const onDateChange = (_: unknown, selected?: Date) => {
     if (Platform.OS === 'android') setShowDatePicker(false);
     if (!selected) return;
     setRescheduleAt((prev) => {
@@ -146,14 +151,12 @@ export default function MyBookings() {
       next.setFullYear(selected.getFullYear(), selected.getMonth(), selected.getDate());
       return next;
     });
-    // On iOS keep date picker open until user taps elsewhere; on Android chain to time picker
     if (Platform.OS === 'android' && selected) {
-      // auto-open time picker after date pick for smooth flow
-      setTimeout(() => setShowTimePicker(true), 300);
+      setTimeout(() => { setShowDatePicker(false); setShowTimePicker(true); }, 300);
     }
   };
 
-  const onTimeChange = (_: any, selected?: Date) => {
+  const onTimeChange = (_: unknown, selected?: Date) => {
     if (Platform.OS === 'android') setShowTimePicker(false);
     if (!selected) return;
     setRescheduleAt((prev) => {
@@ -167,25 +170,18 @@ export default function MyBookings() {
   const confirmReschedule = async () => {
     if (!rescheduleTarget || !rescheduleAt) return;
     const iso = rescheduleAt.toISOString();
-    const leadCutoff = Date.now() + 60 * 60 * 1000;
-    if (rescheduleAt.getTime() < leadCutoff) {
-      Alert.alert('Too soon', 'Pick a time at least 60 minutes from now. The server will enforce this.');
-      return;
-    }
-    if (rescheduleAt.getTime() > Date.now() + 90 * 24 * 60 * 60 * 1000) {
-      Alert.alert('Too far', 'Pick a time within the next 90 days.');
-      return;
-    }
+    // Client hints only — RPC 31_CUSTOMER_ACTIONS.reschedule_booking is authoritative for 60m lead / 90d window; don't block here so server message surfaces.
+
     try {
       setRescheduling(true);
       const { error: e } = await supabase.rpc('reschedule_booking', { p_booking: rescheduleTarget.id, p_start: iso });
       if (e) throw e;
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(()=>{});
       closeReschedule();
-      fetch();
+      fetch('quiet');
     } catch (err: any) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Could not reschedule', err.message || 'Please try again.');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(()=>{});
+      Alert.alert('Could not reschedule', (err as Error)?.message || 'Please try again.');
     } finally {
       setRescheduling(false);
     }
@@ -196,8 +192,8 @@ export default function MyBookings() {
 
   const shown = bookings.filter((b) => (filter === 'past' ? isPastBooking(b) : !isPastBooking(b)));
 
-  const dateLabel = rescheduleAt ? rescheduleAt.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '';
-  const timeLabel = rescheduleAt ? rescheduleAt.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+  const dateLabel = rescheduleAt ? rescheduleAt.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' }) : '';
+  const timeLabel = rescheduleAt ? rescheduleAt.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }) : '';
 
   return (
     <Screen>
@@ -216,13 +212,13 @@ export default function MyBookings() {
             label="Date"
             value={dateLabel}
             placeholder="Choose a date"
-            onPress={() => { Haptics.selectionAsync(); setShowDatePicker(true); }}
+            onPress={() => { Haptics.selectionAsync().catch(()=>{}); setShowTimePicker(false); setShowDatePicker(true); }}
           />
           <FieldButton
             label="Time"
             value={timeLabel}
             placeholder="Choose a time"
-            onPress={() => { Haptics.selectionAsync(); setShowTimePicker(true); }}
+            onPress={() => { Haptics.selectionAsync().catch(()=>{}); setShowDatePicker(false); setShowTimePicker(true); }}
           />
 
           {showDatePicker ? (
