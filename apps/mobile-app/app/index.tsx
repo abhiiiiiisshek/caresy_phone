@@ -3,18 +3,11 @@ import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View, Acc
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
-
-let LinearGradient: any = null;
-const _execEnv = (Constants as any).executionEnvironment;
-const _ownership = (Constants as any).appOwnership;
-const _isExpoGo = _execEnv === 'storeClient' || _ownership === 'expo';
-if (!_isExpoGo) {
-  try {
-    LinearGradient = eval("require")('expo-linear-gradient').LinearGradient;
-  } catch {
-    LinearGradient = null;
-  }
-}
+// Static import — SDK 57 dev-client only (never published to Expo Go, too
+// new), so the old lazy eval("require") Expo-Go dodge was dead weight and,
+// worse, appeared to make the native module resolve to null at runtime,
+// which silently fell back to a flat opacity overlay instead of a gradient.
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -233,12 +226,12 @@ export default function Home() {
         {/* Quick actions — stagger 56ms */}
         <View style={s.actions}>
           {[
-            { label: 'My bookings', sub: 'Track & manage', route: '/my-bookings' as const, sf: SF.bookings, fb: FallbackGlyph.bookings },
-            { label: 'Care guides', sub: 'Recovery tips', route: '/care' as const, sf: SF.care, fb: FallbackGlyph.care },
-            { label: 'Get help', sub: 'Chat or call', route: '/support' as const, sf: SF.help, fb: FallbackGlyph.help },
-            { label: 'Profile', sub: 'You & family', route: '/profile' as const, sf: SF.profile, fb: FallbackGlyph.profile },
+            { label: 'My bookings', sub: 'Track & manage', route: '/my-bookings' as const, sf: SF.bookings, fb: FallbackGlyph.bookings, tint: color.greenTint, iconColor: color.green },
+            { label: 'Care guides', sub: 'Recovery tips', route: '/care' as const, sf: SF.care, fb: FallbackGlyph.care, tint: color.terracottaSoft, iconColor: color.terracottaDeep },
+            { label: 'Get help', sub: 'Chat or call', route: '/support' as const, sf: SF.help, fb: FallbackGlyph.help, tint: color.successSoft, iconColor: color.success },
+            { label: 'Profile', sub: 'You & family', route: '/profile' as const, sf: SF.profile, fb: FallbackGlyph.profile, tint: color.chip, iconColor: color.muted },
           ].map((a, i) => (
-              <Stagger key={a.label} index={4 + i}><QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} sf={a.sf} fallback={a.fb} /></Stagger>
+              <Stagger key={a.label} index={4 + i} style={s.actionStagger}><QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} sf={a.sf} fallback={a.fb} tint={a.tint} iconColor={a.iconColor} /></Stagger>
           ))}
         </View>
 
@@ -282,20 +275,18 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback
       {/* Photo bleed — exact website ActionCard: image covers right 64% */}
       {img ? (
         <>
-          <Image source={img} style={s.actionImg} resizeMode="cover" accessibilityIgnoresInvertColors />
+          <View style={s.actionImgBox}>
+            <Image source={img} style={s.actionImgFill} resizeMode="cover" accessibilityIgnoresInvertColors />
+          </View>
           {/* Fade into card colour so copy stays legible — matches website: linear-gradient(90deg, bg 0%, bg 36%, transparent 84%) */}
-          {LinearGradient ? (
-            <LinearGradient
-              colors={[bg, bg, 'transparent']}
-              locations={[0, 0.36, 0.84]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={s.actionImgFade}
-              pointerEvents="none"
-            />
-          ) : (
-            <View style={[s.actionImgFade, { backgroundColor: bg, opacity: 0.92 }]} pointerEvents="none" />
-          )}
+          <LinearGradient
+            colors={[bg, bg, 'transparent']}
+            locations={[0, 0.36, 0.84]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={s.actionImgFade}
+            pointerEvents="none"
+          />
         </>
       ) : (
         <View style={[s.actionDecor, decor === 'urgent' ? s.actionDecorUrgent : s.actionDecorGreen]} pointerEvents="none">
@@ -325,7 +316,7 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback
   );
 }
 
-function QuickAction({ label, sub, onPress, sf, fallback }: { label: string; sub?: string; onPress: () => void; sf?: string; fallback?: string }) {
+function QuickAction({ label, sub, onPress, sf, fallback, tint, iconColor }: { label: string; sub?: string; onPress: () => void; sf?: string; fallback?: string; tint: string; iconColor: string }) {
   const useSF = Platform.OS === 'ios' && !!SymbolView && !!sf;
   return (
     <Pressable
@@ -334,11 +325,11 @@ function QuickAction({ label, sub, onPress, sf, fallback }: { label: string; sub
       accessibilityLabel={label}
       style={({ pressed }) => [s.action, shadow.raised, pressed && s.pressedCard, Platform.OS === 'ios' ? s.actionIos : s.actionAndroid]}
     >
-      <View style={s.actionIcon}>
+      <View style={[s.actionIcon, { backgroundColor: tint }]}>
         {useSF ? (
-          <SymbolView name={sf!} size={18} tintColor={color.green} fallback={null} />
+          <SymbolView name={sf!} size={20} tintColor={iconColor} fallback={null} />
         ) : (
-          <Txt variant="caption" color={color.green}>{fallback ?? '•'}</Txt>
+          <Txt variant="title" color={iconColor}>{fallback ?? '•'}</Txt>
         )}
       </View>
       <Txt variant="title" color={color.greenDeep}>{label}</Txt>
@@ -351,7 +342,6 @@ const s = StyleSheet.create({
   body: { padding: space.xl, gap: space.xl, paddingBottom: space.xxl },
   flex1: { flex: 1 },
   centerText: { textAlign: 'center' },
-  actionWrap: { flexBasis: '46%', flexGrow: 1 },
   pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] }, // legacy
   pressedCard: { opacity: 0.97, transform: [{ scale: 0.97 }] },
 
@@ -369,7 +359,8 @@ const s = StyleSheet.create({
   actionTitle: { fontSize: 19, lineHeight: 24 },
   actionDesc: { lineHeight: 16, opacity: 0.9 },
   actionArrow: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', flexShrink: 0, zIndex: 1 },
-  actionImg: { position: 'absolute', top: 0, right: 0, bottom: 0, width: '64%' },
+  actionImgBox: { position: 'absolute', top: 0, right: 0, bottom: 0, width: '64%', overflow: 'hidden' },
+  actionImgFill: { width: '100%', height: '100%' },
   actionImgFade: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0 },
   // Fallback decor when no image
   actionDecor: { position: 'absolute', right: -8, bottom: -8, width: 96, height: 96, alignItems: 'center', justifyContent: 'center', opacity: 1 },
@@ -386,8 +377,9 @@ const s = StyleSheet.create({
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.sm, marginBottom: space.xs },
 
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  action: { flexBasis: '46%', flexGrow: 1, backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, minHeight: 88, justifyContent: 'center', gap: 4, borderWidth: 1, borderColor: 'transparent' },
-  actionIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: color.greenTint, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  actionStagger: { width: '48%' },
+  action: { width: '100%', backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, height: 106, justifyContent: 'center', gap: 4, borderWidth: 1, borderColor: 'transparent' },
+  actionIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   actionIos: { backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.06)' },
   actionAndroid: { backgroundColor: color.surface, borderColor: color.line, elevation: 1 },
   skeletonRow: { gap: space.sm },

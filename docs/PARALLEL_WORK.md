@@ -36,6 +36,43 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-22 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`) — reviewed + merged Muse's reschedule work
+Did: reviewed Muse's `feature/mobile-reschedule` (commits `7ce05e5`..`f934eb5`)
+against the task spec below and the `reschedule_booking` RPC contract
+(`supabase/migrations/31_CUSTOMER_ACTIONS.sql:81`). Checked independently
+(not just trusting Muse's self-report): `npx tsc --noEmit` clean in
+`caresy_reschedule_worktree`, RPC param names/types match exactly, status
+whitelist (`PENDING`/`ACCEPTED`/`ASSIGNED`) matches the server's own check
+so the client and RPC never disagree about what's reschedulable, IST display
+labels don't affect the actual `p_start` payload (that's `.toISOString()`,
+timezone-safe), `ChipRow`/`BottomSheet` imports were cleanly dropped (no
+dangling refs) after the v1→v2 pivot to a native date/time picker, and the
+`ios/Podfile.lock`/`Info.plist` diff is just prebuild collateral from linking
+`@react-native-community/datetimepicker` — consistent with `app.json`'s
+existing `newArchEnabled: true`. Found one real issue: `confirmReschedule`'s
+`catch (err: any)` was missed when the sibling `fetch()` catch got fixed to
+`unknown` in the "detailed bug check" pass — `CLAUDE.md` bans `any` in
+committed code. Fixed and committed (`fcb1eee`, `caresy_reschedule_worktree`).
+Merged `feature/mobile-reschedule` → `feature/companion-portal` (fast-forward,
+`fcb1eee`) in this worktree: stashed the pending SDK-version-bump +
+gradient-fix uncommitted changes first (git refused the merge otherwise —
+`package.json`/`package-lock.json`/this file all had local edits it wouldn't
+overwrite), merged clean, then popped the stash back — this file was the only
+real conflict (both sides appended entries in the same place), resolved by
+keeping both, newest first. `package.json`/`package-lock.json` auto-merged
+without conflict (the SDK bump and the new `datetimepicker` dependency don't
+touch the same lines).
+Left mid-flight: the SDK-version-bump + gradient/crop-fix changes from the
+entry below are still uncommitted in this worktree (untouched by the merge
+itself, just carried through the stash) — see that entry's own "Next".
+Don't touch: `apps/mobile-app/app/my-bookings.tsx` — just merged, verify on
+device before changing further.
+Next: commit the still-pending gradient/crop fix (entry below) as its own
+change. Reschedule flow is merged and ready for on-device verification
+(native Date/Time pickers, Cancel still unaffected).
+
+---
+
 ### 2026-08-22 — Muse — branch `feature/mobile-reschedule` (worktree: `caresy_reschedule_worktree`) — DETAILED BUG CHECK + FIXES — TO BE REVIEWED — done by Muse
 Did: per your “DO A DETAILED BUG CHECK” and “proceed your self”, ran full static + logic audit on `apps/mobile-app/app/my-bookings.tsx` native-reschedule (c8895cb). `tsc --noEmit -p apps/mobile-app/tsconfig.json` → EXIT 0, no console.log, no TODO. Found 10 issues (see commit f934eb5 message): (1) `isReschedulable` blocked past PENDING rescue (used `isPastBooking`); (2) `whenLabel`/`dateLabel`/`timeLabel` used device TZ vs server IST; (3) `openReschedule` NaN/>90d not clamped + race when `rescheduling`; (4) dual iOS spinners (both `showDatePicker`+`showTimePicker` true stacked); (5) hardcoded 60m/90d client early returns blocked RPC (spec says warn, let RPC authoritative); (6) `Haptics` unguarded on web; (7) `fetch()` not quiet + `catch(err:any)` loose; (8) `onDateChange`/`onTimeChange` typed `any`; (9) `ios/Podfile.lock`/`Info.plist` collateral from prebuild (EXConstants bump, RCTNewArchEnabled). Fixed all Major+Moderate in `f934eb5` (`my-bookings.tsx` only): `isReschedulable` now checks terminal statuses only (past time no longer blocks, RPC decides); `whenLabel`/labels now `timeZone:'Asia/Kolkata'`; `openReschedule` clamps NaN/>90d and guards `if(rescheduling) return`; pickers now mutually exclusive (`setShowTimePicker(false)` on date open etc.); removed hardcoded early returns (client hints only, RPC `31_CUSTOMER_ACTIONS.reschedule_booking` authoritative); added `.catch(()=>{})` to all Haptics, `fetch('quiet')`, `unknown` typing. Re-verified `tsc --noEmit` → EXIT 0 and pushed.
 
@@ -60,6 +97,179 @@ Did: implemented native Reschedule for My Bookings per `PARALLEL_WORK.md` 2026-0
 Left mid-flight: `my-bookings.tsx` + this `PARALLEL_WORK.md` entry modified, not yet committed in `caresy_reschedule_worktree`.
 Don't touch: `apps/mobile-app/app/booking.tsx`, `apps/mobile-app/components/ui.tsx`, `ios/`, `apps/mobile-app/app/index.tsx`, `supabase/migrations/*` — read-only per task. Primary `caresy_m3_worktree` gradient debug (uncommitted `app/index.tsx`, `ios/Pods`, `[gradient-debug]` log) stays isolated; don't merge until that lands.
 Next: updated to native picker v2 (this edit) — see new entry below.
+
+---
+
+### 2026-08-22 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`)
+Did: resolved the gradient issue left open by the 2026-08-21 entry below, and
+found + fixed a second, worse bug in the same `ActionCard` (`app/index.tsx`)
+photo. **Gradient:** wasn't a pod/linking issue after all (that was a dead
+end — Pods were fine). Root cause was the old `eval("require")('expo-linear-
+gradient')` lazy-import guard (a leftover Expo-Go dodge; this app's SDK 57
+was never published to Expo Go, so the guard was dead weight) resolving to
+null at runtime and silently falling back to the flat `opacity: 0.92`
+overlay. Fixed: switched to a plain static `import { LinearGradient } from
+'expo-linear-gradient'` and deleted the now-dead fallback branch. **Crop:**
+once the gradient was visibly correct, the photo underneath was still
+showing the wrong part of the source image — ceiling tiles and an
+"ELEVATORS" sign instead of the patient/companion, on both cards. Verified
+with a pixel-measured crop of a real screenshot against a percentage-gridded
+copy of `assets/caresy-hospital-support.webp`: the visible window was
+anchored to the top ~20% of the square source, not centered, even though
+`resizeMode="cover"` should center by default and the website's identical
+CSS (`background-position: center`, confirmed in
+`apps/website/src/app/page.tsx:161`) renders it correctly. Root cause: the
+`Image` itself was the absolutely-positioned element (`top/right/bottom` +
+`width:'64%'`, no explicit height) — RN's cover-crop calc doesn't reliably
+center under that shape. Fixed by wrapping it in a plain sized `View`
+(`overflow:'hidden'`, same absolute positioning, new `s.actionImgBox`) and
+letting the `Image` fill it at `width:'100%', height:'100%'`
+(`s.actionImgFill`) — the standard workaround for this RN quirk. Confirmed
+fixed via a full clean rebuild + screenshot (not just a JS reload — see
+below), both cards now show the actual photo subjects matching the website.
+Also worth logging: mid-session, `curl -X POST localhost:8081/reload` and
+even killing/relaunching the app repeatedly showed **zero** effect from
+several real edits (confirmed by directly fetching the Metro bundle and
+grep-ing for a marker string that provably wasn't in it) — something about
+this Metro instance's fast-refresh/reload path was unreliable this session. Only a full `expo run:ios` rebuild reliably picked up JS-only changes.
+If a future session sees an edit "not take effect," don't trust `/reload` —
+do a full rebuild before concluding the code is wrong. Separately: this
+repo's long-running `expo run:ios` process never exits on its own (it stays
+attached streaming device logs forever) — don't wait on it to "complete";
+poll for the new `Caresy.app` process pid / a fresh install path instead.
+Left mid-flight: nothing — `app/index.tsx` is clean, no debug logs or
+scaffolding left in it (added and removed a `console.log('[gradient-
+debug]'...)`, an `onLayout` probe, and a bright lime debug border during
+diagnosis; all removed). `npx tsc --noEmit` clean. Not yet committed.
+Don't touch: `app/index.tsx` until this is committed (still local/uncommitted
+same as everything else per the dirty-file list two entries below).
+Next: commit this fix (Home screen gradient + photo crop) as its own change
+before picking up anything else. Muse's reschedule assignment (below) is
+still open and still non-overlapping with this.
+
+---
+
+### 2026-08-21 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`)
+Did: user QA'd the rebuilt app on iPhone 17 simulator. Fixed two Home-screen
+(`app/index.tsx`) bugs live: (1) the quick-action 2×2 grid was rendering as
+4 near-zero-width columns with per-character text wrap — root cause was
+`Stagger`'s `Animated.View` wrapper (no width) being the actual flex-wrap row
+item while `width: '48%'` sat on the inner `Pressable` one level too deep, so
+the percentage resolved against an unsized parent and collapsed. Fix: added
+`s.actionStagger = { width: '48%' }` passed as `style` to each `<Stagger>`,
+changed inner `s.action` to `width: '100%'`. (2) the Urgent Booking / Schedule
+Appointment `ActionCard` photos were washed out to near-invisible — confirmed
+via screenshot the LinearGradient fade wasn't rendering as a gradient (a hard
+edge at the image's 36% boundary, not a smooth fade), consistent with the
+`expo-linear-gradient` require throwing and falling back to the flat
+`opacity: 0.92` overlay defined at `app/index.tsx` (search `LinearGradient ? ... : `
+fallback branch). Ran `pod install` in `ios/` (was stale — confirmed
+`ExpoLinearGradient` autolinks correctly via `npx expo-modules-autolinking
+search`, package.json has it at `~57.0.1`) and a full `expo run:ios` rebuild.
+**Not yet confirmed fixed** — added a temporary `console.log('[gradient-debug]
+...')` around the `require('expo-linear-gradient')` in `app/index.tsx` (top of
+file, ~line 12) to nail down true/false definitively before removing it;
+mid-rebuild when this entry was written, screenshot after the pod-install
+rebuild still looked identical to before, so the root cause is still open —
+next session should read the `[gradient-debug]` log line first, not re-guess.
+Separately, browser-side: fixed Google OAuth mid-login landing on the plain
+website instead of returning to the app — `caresy://auth/callback` was
+missing from Supabase Dashboard → Authentication → URL Configuration →
+Redirect URLs; user added it, sign-in now returns to the app correctly (no
+code change, dashboard-only).
+Left mid-flight: `app/index.tsx` has the grid fix (keep) + the temporary
+`[gradient-debug]` console.log (remove once the gradient root-cause is
+confirmed and fixed — don't ship it). Rebuild via `expo run:ios --device
+"iPhone 17"` was running when this was written; check its output before
+assuming the gradient is fixed.
+Don't touch: `app/index.tsx`, `ios/` (Pods/Podfile.lock — mid pod-install
+troubleshooting), `assets/caresy-hospital-support.webp`,
+`assets/caresy-family-app.webp` until the gradient issue is resolved and this
+entry is updated. Also noticed (not touched, pre-existing uncommitted from an
+earlier session): `app.json`, `app/booking.tsx`, `app/quick-help.tsx`,
+`components/ui.tsx`, `package.json`, `package-lock.json` all show `M` in `git
+status` — don't assume clean, check before editing.
+Next: **for the primary/user session** — read the `[gradient-debug]` log,
+fix the actual root cause (likely something other than pod-staleness since a
+full rebuild didn't visibly change the screenshot), remove the debug log,
+re-screenshot to confirm the photos render like the website reference
+(visible photo bleeding in from ~40% width, not just a thin sliver at the
+edge). **For Muse** — see the assignment directly below; distinct files, zero
+overlap with the above.
+
+**Housekeeping while here:** `apps/mobile-app/NATIVE_CHECKLIST.md` is stale on
+two store-blockers — checked both against the actual code and they're done,
+not `⬜`:
+- "Account deletion" (checklist line 28 screens table, line 58 deferred #8,
+  line 64 blockers list) — `app/account-delete.tsx` exists, fully implements
+  the confirm-`DELETE`-then-POST flow against the website's
+  `/api/account/delete` (bearer-token path, built for exactly this), wired
+  from `app/profile.tsx:197`. Nothing left to build here.
+- "Sign in with Apple" (checklist line 62 blockers list) — `AuthProvider.tsx`
+  has a complete `signInWithApple()` (nonce, `expo-apple-authentication`,
+  `supabase.auth.signInWithIdToken`), and `app/index.tsx` renders the button
+  in the signed-out state (search `Sign in with Apple` in that file) alongside
+  Google. `app.json` already has `usesAppleSignIn: true`. Nothing left to
+  build here either — at most needs a real-device confirmation, not new code.
+Didn't edit the checklist file itself this session (time-boxed to the visual
+bugs) — whoever picks this up next should update `NATIVE_CHECKLIST.md` lines
+28/58/62/64 to `✅` so the store-blockers list stops looking scarier than it is.
+
+---
+
+### 2026-08-21 — task for Muse — new work, claim your own worktree/branch
+**Assignment: native Reschedule for My Bookings** (`NATIVE_CHECKLIST.md`
+deferred item #4, line 46-48) — the only remaining item on that deferred list
+that's genuinely open, self-contained, and needs no new native dependency (so
+it can't collide with the pod-install/gradient debugging happening in `ios/`
+above — don't touch `ios/` or `app/index.tsx` for this task).
+
+**What:** `app/my-bookings.tsx` ships Cancel (`cancel_booking` RPC, see line
+98) but not Reschedule. The server RPC already exists and does the real work
+— `reschedule_booking(p_booking UUID, p_start TIMESTAMPTZ)` in
+`supabase/migrations/31_CUSTOMER_ACTIONS.sql:81` (ownership + status-window +
+60-minute lead-time checks are server-side, already enforced — the native UI
+only needs to collect a new date/time and call it). Nothing to add or change
+in `supabase/migrations/*` — read-only reference, don't touch.
+
+**How — mirror `app/booking.tsx`'s existing day/slot picker exactly** (it's
+plain JS chips over a `BottomSheet`, no native date-picker dependency, so
+this needs zero new pods and zero rebuild):
+1. Copy the (private, unexported) `nextDays(count = 14)` helper from
+   `app/booking.tsx:48` into `my-bookings.tsx` — duplicating ~6 lines is
+   correct here, don't extract it into a shared module mid another session's
+   edits to `booking.tsx` (that file is currently uncommitted/dirty from
+   someone else's work per the `Don't touch` list above — read it for the
+   pattern, never write to it).
+2. Use `availableSlots(date)` from `@caresy/utils/slots` (already imported
+   the same way in `booking.tsx:9`) for the time-slot options.
+3. Use `FieldButton` + `BottomSheet` from `../components/ui` (already
+   exported, `ui.tsx:214` and `:231` — import only, don't edit that file,
+   it's also currently dirty from someone else's session) exactly like
+   `booking.tsx:493-521` does for its Date/Time slot pickers, inside a sheet
+   or inline card triggered from a new "Reschedule" action on `BookingCard`
+   (`my-bookings.tsx:148`) next to the existing Cancel action.
+4. On confirm: `await supabase.rpc('reschedule_booking', { p_booking: b.id,
+   p_start: <iso timestamp from date+time> })`, same try/catch + haptics +
+   refetch pattern already used for cancel in that file (~line 98).
+5. Respect the RPC's own constraints client-side for UX only (don't
+   re-derive them, the RPC is authoritative): don't show Reschedule at all
+   once a booking has passed `ASSIGNED`/Start, and warn if the new slot is
+   inside the 60-minute lead window — let the RPC's error message surface if
+   the user gets there anyway rather than trying to fully replicate the
+   window logic client-side.
+
+**Verify:** `npx tsc --noEmit` in `apps/mobile-app` clean; manual check that
+Cancel still works unchanged (don't regress the existing action while adding
+the new one next to it).
+
+Branch: `feature/mobile-reschedule` off current `feature/companion-portal`.
+Worktree: **do not reuse `caresy_m3_worktree`** while the primary session's
+gradient debugging is live in it (rule 7 above) — `git worktree add
+../caresy_reschedule_worktree feature/mobile-reschedule` from a fresh branch,
+or a separate clone, so neither session's `git checkout`/rebuild can step on
+the other's uncommitted files. Append your own session-log entry here (don't
+edit this one) when you start and when you hand off.
 
 ---
 
