@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -9,6 +9,8 @@ import { formatINR, priceForMinutes, eveningSurchargePaise } from '@caresy/utils
 import { availableSlots } from '@caresy/utils/slots';
 import { toE164, isValidIndianMobile } from '@caresy/utils/phone';
 import { isValidPincode } from '@caresy/utils';
+import { checkPincodeServed } from '@caresy/utils/serviceArea';
+import { HOSPITALS, pincodeForArea, type Hospital } from '../lib/hospitals';
 import { Button, Card, Chip, ChipRow, Field, FormScreen, Overline, Screen, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
 
@@ -62,6 +64,9 @@ export default function Booking() {
 
   const [hospital, setHospital] = useState('');
   const [pincode, setPincode] = useState('');
+  const [pincodeServed, setPincodeServed] = useState<null | { served: boolean; area?: string }>(null);
+  const [pincodeChecking, setPincodeChecking] = useState(false);
+  const [hospitalFocused, setHospitalFocused] = useState(false);
   const [department, setDepartment] = useState('');
   const [doctor, setDoctor] = useState('');
   const [meetAddress, setMeetAddress] = useState('');
@@ -91,6 +96,35 @@ export default function Booking() {
 
   useEffect(() => { setDurationHours(chosenService.hours); }, [serviceKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Live served-area check — debounced, mirrors web's checkPincodeServed.
+  useEffect(() => {
+    if (!isValidPincode(pincode.trim())) { setPincodeServed(null); return; }
+    let alive = true;
+    setPincodeChecking(true);
+    const t = setTimeout(() => {
+      checkPincodeServed(supabase, pincode.trim()).then((r) => {
+        if (!alive) return;
+        setPincodeServed({ served: r.served, area: r.area?.area_name ?? r.area?.city });
+        setPincodeChecking(false);
+      });
+    }, 400);
+    return () => { alive = false; clearTimeout(t); };
+  }, [pincode]);
+
+  const hospitalMatches = useMemo(() => {
+    const q = hospital.trim().toLowerCase();
+    if (!q) return HOSPITALS.slice(0, 6);
+    return HOSPITALS.filter((h) => `${h.name} ${h.area}`.toLowerCase().includes(q)).slice(0, 6);
+  }, [hospital]);
+
+  const pickHospital = useCallback((h: Hospital) => {
+    setHospital(h.name);
+    setHospitalFocused(false);
+    const pin = pincodeForArea(h.area);
+    if (pin) setPincode(pin);
+    Haptics.selectionAsync();
+  }, []);
+
   useEffect(() => {
     if (!session) return;
     supabase.from('patients').select('id, full_name, age, emergency_contact_phone').eq('customer_user_id', session.user.id)
@@ -105,12 +139,22 @@ export default function Booking() {
 
   // Field-level errors surface only after a Continue attempt on that step.
   const hospitalErr = tried && step === 2 && !hospital.trim() ? 'Enter the hospital or clinic name.' : null;
-  const pincodeErr = tried && step === 2 && !isValidPincode(pincode.trim()) ? 'Enter a valid 6-digit pincode.' : null;
+  const pincodeErr = (() => {
+    if (!(tried && step === 2)) return null;
+    if (!isValidPincode(pincode.trim())) return 'Enter a valid 6-digit pincode.';
+    if (pincodeServed && !pincodeServed.served) return "We don't serve this pincode yet — WhatsApp us and we'll confirm.";
+    return null;
+  })();
   const nameErr = tried && step === 3 && !patientName.trim() ? 'Enter the patient name.' : null;
   const phoneErr = tried && step === 3 && !isValidIndianMobile(phone) ? 'Enter a valid 10-digit mobile number.' : null;
 
   const stepError = (): string | null => {
-    if (step === 2) return (!hospital.trim() && 'hospital') || (!isValidPincode(pincode.trim()) && 'pincode') ? ' ' : null;
+    if (step === 2) {
+      if (!hospital.trim()) return 'Enter the hospital or clinic name.';
+      if (!isValidPincode(pincode.trim())) return 'Enter a valid 6-digit pincode.';
+      if (pincodeServed && !pincodeServed.served) return "We don't serve this area yet.";
+      return null;
+    }
     if (step === 3) return (!patientName.trim() && 'name') || (!isValidIndianMobile(phone) && 'phone') ? ' ' : null;
     if (step === 4) {
       if (!date || !time) return 'Pick a date and a time slot.';
@@ -250,8 +294,34 @@ export default function Booking() {
 
       {step === 2 && (
         <>
-          <Field label="Hospital / clinic" value={hospital} onChangeText={setHospital} placeholder="e.g. Max Hospital, Noida" error={hospitalErr} />
+          {/* Hospital autocomplete — typing filters, picking autofills pincode */}
+          <View style={s.fieldWrap}>
+            <Field label="Hospital / clinic" value={hospital} onChangeText={(v) => { setHospital(v); setHospitalFocused(true); }} placeholder="Search or type hospital name" error={hospitalErr} onFocus={() => setHospitalFocused(true)} onBlur={() => setTimeout(() => setHospitalFocused(false), 180)} />
+            {hospitalFocused && hospitalMatches.length > 0 && (
+              <View style={s.suggestBox}>
+                <ScrollView keyboardShouldPersistTaps="handled" style={s.suggestScroll} nestedScrollEnabled>
+                  {hospitalMatches.map((h) => (
+                    <Pressable key={`${h.name}-${h.area}`} onPress={() => pickHospital(h)} style={({ pressed }) => [s.suggestRow, pressed && s.suggestPressed]}>
+                      <Text style={s.suggestName} numberOfLines={1}>{h.name}</Text>
+                      <Text style={s.suggestArea}>{h.area}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
           <Field label="Pincode" value={pincode} onChangeText={setPincode} placeholder="201301" keyboardType="number-pad" error={pincodeErr} />
+          {isValidPincode(pincode.trim()) && (
+            <View style={s.pincodeHint}>
+              {pincodeChecking ? (
+                <Txt variant="caption" color={color.faint}>Checking coverage…</Txt>
+              ) : pincodeServed?.served ? (
+                <Txt variant="caption" color={color.success}>✓ Served — {pincodeServed.area ?? 'Noida / Greater Noida'}</Txt>
+              ) : pincodeServed && !pincodeServed.served ? (
+                <Txt variant="caption" color={color.terracottaDeep}>Not in served area yet. Our team on WhatsApp can confirm — you can still submit and we'll call.</Txt>
+              ) : null}
+            </View>
+          )}
           <Field label="Department (optional)" value={department} onChangeText={setDepartment} placeholder="Cardiology" />
           <Field label="Doctor (optional)" value={doctor} onChangeText={setDoctor} placeholder="Dr. Sharma" />
           <Field label="Meeting point (optional)" value={meetAddress} onChangeText={setMeetAddress} placeholder="Main gate / reception" />
@@ -327,6 +397,14 @@ const s = StyleSheet.create({
   optOn: { borderColor: color.green, backgroundColor: color.greenTint },
   summary: { marginTop: space.md, gap: space.xs },
   summaryAmount: { marginTop: space.sm },
+  fieldWrap: { position: 'relative', zIndex: 5 },
+  suggestBox: { position: 'absolute', top: 76, left: 0, right: 0, backgroundColor: color.surface, borderRadius: radius.md, borderWidth: 1, borderColor: color.line, maxHeight: 220, overflow: 'hidden', ...{ elevation: 8, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } } },
+  suggestScroll: { maxHeight: 220 },
+  suggestRow: { paddingHorizontal: space.lg, paddingVertical: space.md, borderBottomWidth: 1, borderBottomColor: color.line },
+  suggestPressed: { backgroundColor: color.greenTint },
+  suggestName: { fontSize: 15, fontWeight: '600', color: color.ink },
+  suggestArea: { fontSize: 12, color: color.faint, marginTop: 2 },
+  pincodeHint: { marginTop: -space.sm, marginBottom: space.xs },
   footer: { flexDirection: 'row', gap: space.md, padding: space.lg, borderTopWidth: 1, borderTopColor: color.line, backgroundColor: color.surface },
   back: { flex: 1 },
   cta: { flex: 2 },

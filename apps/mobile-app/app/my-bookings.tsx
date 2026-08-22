@@ -103,6 +103,11 @@ export default function MyBookings() {
     ]);
   };
 
+  const reschedule = (b: BookingRecord) => {
+    Haptics.selectionAsync();
+    router.push({ pathname: '/reschedule', params: { id: b.id, ref: b.reference_code } });
+  };
+
   if (authLoading || loading) return <Screen><Stack.Screen options={{ headerShown: true, title: 'My Bookings' }} /><LoadingState label="Loading your bookings…" /></Screen>;
   if (!session) return <Redirect href="/" />;
 
@@ -131,14 +136,14 @@ export default function MyBookings() {
               action={filter === 'upcoming' ? <Button title="Book care" onPress={() => router.push('/booking')} style={s.emptyBtn} /> : undefined}
             />
           }
-          renderItem={({ item }) => <BookingCard b={item} onCancel={cancel} onTrack={(bk) => router.push({ pathname: '/tracking', params: { token: bk.share_token } })} />}
+          renderItem={({ item }) => <BookingCard b={item} onCancel={cancel} onReschedule={reschedule} onTrack={(bk) => router.push({ pathname: '/tracking', params: { token: bk.share_token } })} />}
         />
       )}
     </Screen>
   );
 }
 
-function BookingCard({ b, onCancel, onTrack }: { b: BookingRecord; onCancel: (b: BookingRecord) => void; onTrack: (b: BookingRecord) => void }) {
+function BookingCard({ b, onCancel, onReschedule, onTrack }: { b: BookingRecord; onCancel: (b: BookingRecord) => void; onReschedule: (b: BookingRecord) => void; onTrack: (b: BookingRecord) => void }) {
   const name = patientName(b);
   const isLive = b.status.toLowerCase().includes('progress');
   const isBilled = b.final_amount_paise != null;
@@ -164,6 +169,7 @@ function BookingCard({ b, onCancel, onTrack }: { b: BookingRecord; onCancel: (b:
 
       <View style={s.actions}>
         {trackable ? <Button title="Track visit" onPress={() => onTrack(b)} style={s.actionBtn} /> : null}
+        {cancellable ? <Button title="Reschedule" variant="secondary" onPress={() => onReschedule(b)} style={s.actionBtn} /> : null}
         {cancellable ? <Button title="Cancel" variant="danger" onPress={() => onCancel(b)} style={s.actionBtn} /> : null}
       </View>
     </Card>

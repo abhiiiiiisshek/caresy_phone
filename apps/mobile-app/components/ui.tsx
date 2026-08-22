@@ -146,7 +146,7 @@ export function ChipRow({ children }: { children: ReactNode }) {
 /* ---------- Field ---------- */
 
 export function Field({
-  label, value, onChangeText, placeholder, keyboardType, error, autoCapitalize, multiline,
+  label, value, onChangeText, placeholder, keyboardType, error, autoCapitalize, multiline, onFocus, onBlur,
 }: {
   label: string;
   value: string;
@@ -156,6 +156,8 @@ export function Field({
   error?: string | null;
   autoCapitalize?: 'none' | 'sentences' | 'words';
   multiline?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }) {
   return (
     <View style={s.field}>
@@ -169,6 +171,8 @@ export function Field({
         keyboardType={keyboardType ?? 'default'}
         autoCapitalize={autoCapitalize ?? (keyboardType === 'email-address' ? 'none' : 'sentences')}
         multiline={multiline}
+        onFocus={onFocus}
+        onBlur={onBlur}
         accessibilityLabel={label}
       />
       {error ? <Text style={[type.caption, { color: color.terracottaDeep }]}>{error}</Text> : null}
