@@ -179,7 +179,7 @@ export default function MyBookings() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(()=>{});
       closeReschedule();
       fetch('quiet');
-    } catch (err: any) {
+    } catch (err: unknown) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(()=>{});
       Alert.alert('Could not reschedule', (err as Error)?.message || 'Please try again.');
     } finally {
