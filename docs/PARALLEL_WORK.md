@@ -36,6 +36,108 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-22 — task for Muse — Android first-run + verification pass
+
+Everything built so far (Phases 1-4, the reschedule flow just merged, the
+Home-screen gradient/crop fix) has **only ever run on iOS simulator**. Per
+`NATIVE_CHECKLIST.md` line 71 ("Real-device QA (iOS + Android)") and the
+store-blockers list, Android has never been booted. That's the job: get it
+running, walk every screen, log what's broken. This is verification +
+targeted fixes, not a rewrite — the RN code is cross-platform already, most
+of this should just work. Don't restructure anything preemptively.
+
+**0. Isolation.** `caresy_reschedule_worktree` is idle and clean at `fcb1eee`
+(its branch already merged into `feature/companion-portal`). Reuse it:
+```
+cd ../caresy_reschedule_worktree
+git fetch origin
+git checkout -b feature/android-verify origin/feature/companion-portal
+git pull --ff-only  # or just re-point if origin is behind your local — check first
+```
+Confirm you're NOT pointed at `caresy_m3_worktree` (primary session's active
+dir) — rule 7 in this doc. Append your own session-log entry (don't edit
+this one) when you start.
+
+**1. Environment.** Confirm before touching code:
+- Android Studio installed, `ANDROID_HOME`/`ANDROID_SDK_ROOT` set, `adb`
+  on PATH (`adb devices` runs without error).
+- One target booted: either an AVD emulator (Android Studio → Device
+  Manager → launch one, API 34+ to match `compileSdkVersion`) or a
+  physical device with USB debugging on, showing in `adb devices`.
+- `android/` is already a prebuilt native project (checked into the repo,
+  same as `ios/`) with `google-services.json` already present at
+  `apps/mobile-app/google-services.json` — you should NOT need to run
+  `expo prebuild` fresh. If `npx expo run:android` complains about missing
+  native config, stop and flag it rather than regenerating `android/`
+  blind — that folder may have hand edits.
+
+**2. Install + build.**
+```
+cd apps/mobile-app
+npm install          # workspace root — the reschedule merge added
+                      # @react-native-community/datetimepicker, needs installing
+npx expo run:android --device <deviceId from `adb devices`>
+```
+First build will be slow (Gradle cold start, ~10-15 min). Same caveat as the
+iOS side this session: `expo run:android` stays attached streaming logs and
+never "completes" on its own — don't wait on the process to exit, poll for
+the app process / a fresh install instead (`adb shell pidof
+in.co.caresy.app`, or just check the emulator screen).
+
+**3. Walk every screen** (sign in fresh, this is also your first real Google
+OAuth test on Android):
+- **Sign-in** — Google only on Android (`appleAvailable` in `app/index.tsx`
+  already gates Sign in with Apple to `Platform.OS === 'ios'`, so its
+  absence here is correct, not a bug). Confirm the `caresy://auth/callback`
+  redirect actually returns to the app after Google auth — this exact class
+  of bug bit iOS earlier this week (Supabase redirect allowlist), worth
+  double-checking Android's OAuth round-trip specifically.
+- **Home** — the quick-actions grid and the Urgent Booking / Schedule
+  Appointment gradient+photo cards (just fixed this session, `bfd2bbf`) are
+  plain RN Flexbox/Image, should render identically, but confirm — this is
+  their first Android render ever.
+- **Booking** (`booking.tsx`) — 4-step wizard, location permission prompt
+  (Android's permission dialog differs from iOS's, this is a first test),
+  photo/doc picker if you reach that step.
+- **My Bookings + Reschedule** — the part that most needs your attention.
+  `@react-native-community/datetimepicker` renders **completely differently
+  per platform**: iOS got the `spinner` display (see `my-bookings.tsx`
+  `Platform.OS === 'ios' ? 'spinner' : 'default'`), Android gets `'default'`
+  — a native calendar dialog for date, a native clock dialog for time,
+  each auto-closing on select (that's why `onDateChange`/`onTimeChange`
+  already branch on `Platform.OS === 'android'` to close the picker and
+  chain date→time). This was written against the iOS behavior you could
+  actually see; the Android path is unverified. Check: does the date
+  dialog open, select, and auto-advance to the time dialog correctly? Does
+  Cancel on either dialog leave state sane (not stuck open, not silently
+  setting a bad date)?
+- **Tracking, Quick Help, Care Guides, Profile, Account deletion, Sign
+  out** — full pass, same as the original mobile-app QA in the 2026-08-14
+  entries below (that pass was iOS-only too).
+- **Push notifications** — `AuthProvider.tsx` already branches
+  `Platform.OS === 'android'` to create a notification channel before
+  requesting permission (required on Android 8+, iOS doesn't need it) —
+  first real test of that path.
+
+**4. Fix what's broken, in the same worktree/branch**, same discipline as
+the reschedule work: small commits, `npx tsc --noEmit` clean before each,
+note anything you deliberately deferred rather than silently skip it.
+
+**5. Report back** in a session-log entry here: what worked untouched, what
+you fixed, what's still broken/deferred and why (e.g. if something needs a
+design decision rather than a bug fix, flag it — don't guess). Known,
+already-accepted Android gaps (not yours to fix, just don't be surprised):
+Android production signing/keystore (`NATIVE_CHECKLIST.md` line 69) and Play
+Store closed-testing enrollment are separate, later store-submission steps,
+not part of this pass.
+
+**Don't touch:** `apps/mobile-app/app/index.tsx` (my gradient/crop fix,
+freshly committed `bfd2bbf` — if Android reveals a real bug in it, flag it
+here rather than editing past me) unless you find an Android-specific
+regression there, in which case fix it and say exactly what and why.
+
+---
+
 ### 2026-08-22 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`) — reviewed + merged Muse's reschedule work
 Did: reviewed Muse's `feature/mobile-reschedule` (commits `7ce05e5`..`f934eb5`)
 against the task spec below and the `reschedule_booking` RPC contract
