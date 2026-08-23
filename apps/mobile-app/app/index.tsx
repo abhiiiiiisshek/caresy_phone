@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, AppState, Easing, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
-import { Button, Card, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
+import { Button, Card, Field, FormScreen, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
 import { AnimatedHeadline } from '../components/AnimatedHeadline';
 import { CapyMascot, FloatDot } from '../components/CapyMascot';
@@ -40,7 +40,7 @@ const FallbackGlyph: Record<string, string> = {
 
 const SUPPORT_WA = '919717500225';
 
-type Profile = { full_name: string | null };
+type Profile = { full_name: string | null; onboarding_completed: boolean };
 interface NextBooking {
   id: string;
   reference_code: string;
@@ -68,9 +68,19 @@ export default function Home() {
   const { session, loading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [next, setNext] = useState<NextBooking | null | undefined>(undefined); // undefined = not loaded
   const [signingIn, setSigningIn] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(Platform.OS === 'ios');
+
+  // First-time sign-up detail capture. Google/Apple OAuth auto-creates the
+  // account either way (no separate "register" step at the provider), so a
+  // new profiles row — or one with onboarding_completed still false — is how
+  // we know to ask for a name before showing the dashboard. Mirrors the
+  // web app's AuthModal onboarding against the same `profiles` table.
+  const [obName, setObName] = useState('');
+  const [obSaving, setObSaving] = useState(false);
+  const [obError, setObError] = useState('');
 
   useEffect(() => {
     if (Platform.OS !== 'ios') return;
@@ -88,10 +98,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!session) { setProfile(null); setNext(undefined); return; }
+    if (!session) { setProfile(null); setProfileLoaded(false); setNext(undefined); return; }
     let cancelled = false;
-    supabase.from('profiles').select('full_name').eq('id', session.user.id).maybeSingle()
-      .then(({ data }) => { if (!cancelled) setProfile(data); });
+    supabase.from('profiles').select('full_name, onboarding_completed').eq('id', session.user.id).maybeSingle()
+      .then(({ data }) => { if (!cancelled) { setProfile(data); setProfileLoaded(true); } });
     // Efficiency: limit + server-side ordering avoids fetching entire history; client still picks live vs upcoming.
     supabase.from('bookings')
       .select('id, reference_code, share_token, status, scheduled_start_time, service_type, service_metadata')
@@ -108,10 +118,28 @@ export default function Home() {
     return () => { cancelled = true; };
   }, [session]);
 
-  // Marvel-ready derived memo: avoids re-sorting on every render.
-  const greetingMemo = useMemo(() => name, [profile?.full_name, session?.user?.user_metadata]);
+  const needsOnboarding = !!session && profileLoaded && !profile?.onboarding_completed;
 
-  if (loading) return <Screen><LoadingState /></Screen>;
+  useEffect(() => {
+    if (needsOnboarding && !obName) {
+      const meta = session?.user?.user_metadata as { full_name?: string; name?: string } | undefined;
+      setObName(profile?.full_name || meta?.full_name || meta?.name || '');
+    }
+  }, [needsOnboarding]);
+
+  async function handleOnboardingSubmit() {
+    if (!session) return;
+    const trimmed = obName.trim();
+    if (!trimmed) { setObError('Name is required.'); return; }
+    setObSaving(true);
+    setObError('');
+    const { error } = await supabase.from('profiles').upsert({ id: session.user.id, full_name: trimmed, onboarding_completed: true });
+    setObSaving(false);
+    if (error) { setObError(error.message); return; }
+    setProfile({ full_name: trimmed, onboarding_completed: true });
+  }
+
+  if (loading || (session && !profileLoaded)) return <Screen><LoadingState /></Screen>;
 
   /* ---- Signed out: beautiful auth with capy mascot ---- */
   if (!session) {
@@ -127,6 +155,19 @@ export default function Home() {
           setSigningIn(true);
           try { await signInWithApple(); } finally { setSigningIn(false); }
         }}
+      />
+    );
+  }
+
+  /* ---- Signed in, first time: capture a name before the dashboard ---- */
+  if (needsOnboarding) {
+    return (
+      <Onboarding
+        name={obName}
+        setName={setObName}
+        error={obError}
+        saving={obSaving}
+        onSubmit={handleOnboardingSubmit}
       />
     );
   }
@@ -324,10 +365,38 @@ function QuickAction({ label, sub, onPress, sf, fallback, tint, iconColor }: { l
   );
 }
 
+/* ── First-time sign-up: capture a name before the dashboard ── */
+function Onboarding({ name, setName, error, saving, onSubmit }: {
+  name: string; setName: (v: string) => void; error: string; saving: boolean; onSubmit: () => void;
+}) {
+  return (
+    <FormScreen footer={
+      <View style={s.obFooter}>
+        <Button title={saving ? 'Saving…' : 'Continue'} onPress={onSubmit} loading={saving} />
+      </View>
+    }>
+      <View style={s.obHeader}>
+        <Txt variant="display" color={color.ink}>Welcome to Caresy</Txt>
+        <Txt variant="body" color={color.muted}>What should we call you?</Txt>
+      </View>
+      <Field
+        label="Full name"
+        value={name}
+        onChangeText={setName}
+        placeholder="e.g. Ananya Rao"
+        autoCapitalize="words"
+        error={error || null}
+      />
+    </FormScreen>
+  );
+}
+
 /* ── Beautiful Auth (Q-learn + capy inspo) — signed-out login/registration screen ── */
 function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
   signingIn: boolean; appleAvailable: boolean; onGoogle: () => void; onApple: () => void;
 }) {
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const isSignup = mode === 'signup';
   const cardIn = useRef(new Animated.Value(40)).current;
   const cardOp = useRef(new Animated.Value(0)).current;
   const deco = useRef(new Animated.Value(0)).current;
@@ -348,6 +417,16 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
       <View style={a.topBrand}>
         <Text style={a.brandStar}>✦</Text>
         <Text style={a.brandName}>Caresy</Text>
+      </View>
+
+      {/* medical touch — makes the "hospital companion" framing visible at a glance */}
+      <View style={a.medicalBadge}>
+        {Platform.OS === 'ios' && SymbolView ? (
+          <SymbolView name="stethoscope" size={12} tintColor="#1B4D3E" />
+        ) : (
+          <Text style={a.medicalBadgeGlyph}>🩺</Text>
+        )}
+        <Text style={a.medicalBadgeTxt}>Verified hospital companions</Text>
       </View>
 
       {/* mascot stage — sky like capy photo */}
@@ -374,8 +453,31 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
 
       {/* bottom sheet card — like Q-learn Sign Up */}
       <Animated.View style={[a.card, { opacity: cardOp, transform: [{ translateY: cardIn }] }]}>
-        <Text style={a.h1}>Care you can{'\n'}trust, instantly.</Text>
-        <Text style={a.sub}>Book a trained hospital companion in minutes. Queues, paperwork, pharmacy — we handle it, you stay with family.</Text>
+        <View style={a.modeToggle}>
+          <Pressable
+            onPress={() => { Haptics.selectionAsync(); setMode('login'); }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: !isSignup }}
+            style={[a.modeSeg, !isSignup && a.modeSegOn]}
+          >
+            <Text style={!isSignup ? a.modeTxtOn : a.modeTxtOff}>Log in</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => { Haptics.selectionAsync(); setMode('signup'); }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isSignup }}
+            style={[a.modeSeg, isSignup && a.modeSegOn]}
+          >
+            <Text style={isSignup ? a.modeTxtOn : a.modeTxtOff}>Sign up</Text>
+          </Pressable>
+        </View>
+
+        <Text style={a.h1}>{isSignup ? 'Join thousands who\ntrust Caresy.' : 'Care you can\ntrust, instantly.'}</Text>
+        <Text style={a.sub}>
+          {isSignup
+            ? 'Create your account in seconds. Queues, paperwork, pharmacy — we handle it, you stay with family.'
+            : 'Book a trained hospital companion in minutes. Queues, paperwork, pharmacy — we handle it, you stay with family.'}
+        </Text>
 
         <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onGoogle(); }} disabled={signingIn} style={({ pressed }) => [a.primaryBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }]}>
           {signingIn ? <Text style={a.primaryTxt}>Signing in…</Text> : (
@@ -388,7 +490,12 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
 
         {appleAvailable ? (
           <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onApple(); }} disabled={signingIn} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.9 }]}>
-            <Text style={a.secondaryTxt}>Continue with Apple</Text>
+            <View style={a.btnRow}>
+              <View style={a.aBadge}>
+                {SymbolView ? <SymbolView name="apple.logo" size={14} tintColor="#fff" /> : <Text style={a.aTxt}>A</Text>}
+              </View>
+              <Text style={a.secondaryTxt}>Continue with Apple</Text>
+            </View>
           </Pressable>
         ) : null}
 
@@ -418,6 +525,14 @@ const a = StyleSheet.create({
   topBrand: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 52, paddingBottom: 10 },
   brandStar: { fontSize: 16, color: '#1B4D3E', fontWeight: '800' },
   brandName: { fontSize: 16, color: '#1B4D3E', fontWeight: '800', letterSpacing: 0.6 },
+  medicalBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingBottom: 6 },
+  medicalBadgeGlyph: { fontSize: 12 },
+  medicalBadgeTxt: { fontSize: 11, fontWeight: '700', color: '#1B4D3E', letterSpacing: 0.2 },
+  modeToggle: { flexDirection: 'row', backgroundColor: '#F1F5F3', borderRadius: 999, padding: 4, marginBottom: 4 },
+  modeSeg: { flex: 1, minHeight: 44, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  modeSegOn: { backgroundColor: '#fff', ...shadow.card, shadowOpacity: 0.08, shadowRadius: 6 },
+  modeTxtOn: { fontSize: 14, fontWeight: '800', color: '#1B4D3E' },
+  modeTxtOff: { fontSize: 14, fontWeight: '700', color: '#8A968F' },
   stage: { height: 300, alignItems: 'center', justifyContent: 'flex-end', overflow: 'hidden', paddingBottom: 18 },
   mascotWrap: { zIndex: 2, marginBottom: 2 },
   ground: { position: 'absolute', bottom: -22, width: 320, height: 44, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.55)' },
@@ -436,6 +551,8 @@ const a = StyleSheet.create({
   btnRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   gBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   gTxt: { fontSize: 14, fontWeight: '800', color: '#1B4D3E' },
+  aBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
+  aTxt: { fontSize: 13, fontWeight: '800', color: '#fff' },
   primaryTxt: { fontSize: 16, fontWeight: '700', color: '#fff' },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 2 },
   divLine: { flex: 1, height: 1, backgroundColor: '#E8ECE9' },
@@ -495,4 +612,7 @@ const s = StyleSheet.create({
   emptyIcon: { width: 48, height: 48, borderRadius: 24, backgroundColor: color.greenTint, alignItems: 'center', justifyContent: 'center' },
   emptyCta: { marginTop: space.sm, backgroundColor: color.green, paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill },
   signOut: { marginTop: space.sm },
+
+  obHeader: { gap: space.xs, marginBottom: space.lg },
+  obFooter: { padding: space.xl },
 });
