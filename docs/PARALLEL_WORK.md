@@ -36,6 +36,75 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-24 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`, work done in `caresy_structured_worktree` on `feature/mobile-auth-polish`, then merged)
+Did: user asked directly for the Login/Sign-up framing + medical touch on
+`BeautifulAuth` (`app/index.tsx`) — this overlaps Section 2 of the
+2026-08-23 mascot/login-signup task below, which hadn't been started (no
+`feature/mobile-auth-polish` branch existed anywhere yet). Did it in this
+session instead of waiting on Muse, in the reserved `caresy_structured_worktree`
+per that task's own isolation plan (branched `feature/mobile-auth-polish` off
+local `feature/companion-portal`, not origin — origin was 13 commits behind).
+Delivered, in `app/index.tsx` only: (1) a Log in / Sign up segmented pill
+toggle above the OAuth buttons (`accessibilityRole="tab"`, `accessibilityState`,
+44pt hit target) — copy-only, same as spec'd below, headline/sub-copy switch
+per mode, default "Log in"; (2) a small "🩺 Verified hospital companions"
+badge under the wordmark (SF Symbol `stethoscope` on iOS, emoji fallback)
+for the medical-context "touch" the user asked for; (3) a matching Apple
+icon badge (SF Symbol `apple.logo`, black circle) next to the existing
+Google "G" badge, so both OAuth buttons carry a small icon. **Went beyond
+the doc spec below** (which deliberately left onboarding out, "no separate
+registration screen anywhere in the codebase"): user explicitly wanted users
+able "to add their detail for first time as sign up," so added a real
+first-time-only step — after OAuth, if `profiles.onboarding_completed` is
+false (or no row yet), a one-field FormScreen (`Onboarding`, new component
+in the same file, reuses `Field`/`FormScreen`/`Button` from `components/ui.tsx`)
+asks for a name, prefilled from the OAuth provider's name, and upserts
+`{ full_name, onboarding_completed: true }` into `profiles` — same
+table/RLS/columns the web app's `AuthModal` onboarding already uses, no new
+migration, no `packages/auth` changes. Also deleted a genuinely dead,
+buggy `greetingMemo` (`useMemo(() => name, ...)`) a few lines above where I
+was editing — it referenced the `const name` declared later in the same
+function (a real TDZ bug, `grep` confirmed the variable was never read
+anywhere; only survived because Hermes doesn't strictly enforce TDZ there).
+`npx tsc --noEmit` clean (ran `npm install` at the workspace root first —
+`expo-linear-gradient`/`@react-native-community/datetimepicker` weren't
+installed in `caresy_structured_worktree`'s `node_modules` yet; no
+`package.json`/`package-lock.json` diff resulted, both apps already declared
+the deps). Committed (`55cfeea`) on `feature/mobile-auth-polish`, fast-forward
+merged into `feature/companion-portal` here. Verified live on the already-
+booted iPhone 17 simulator (Metro already running, PID 8602): screenshotted
+the onboarding step mid-flow on the real signed-in Google account (name
+correctly prefilled "Workabhi" from OAuth metadata, proving the
+`onboarding_completed` column/query actually works against the live DB, not
+just tsc-clean) and the signed-out toggle/medical-badge/Apple-icon screen
+(cleared only the local `RCTAsyncLocalStorage_V1` cache under the sim's app
+container to force a fresh signed-out render — non-destructive, just a local
+session-cache clear, not a server-side sign-out; the account itself is
+unaffected and can sign back in normally). Did not tap through to submit the
+onboarding form or toggle to "Sign up" on-device (no `idb`/tap automation
+available in this environment) — reasoned safe from the diff: `isSignup` is
+a simple ternary over already-rendered JSX, and the upsert is a two-line
+Supabase call mirroring the web app's proven pattern.
+Left mid-flight: nothing uncommitted — clean on both `feature/mobile-auth-polish`
+(now redundant, its one commit is already in `feature/companion-portal`) and
+here. Simulator's local session cache is currently cleared (app will show
+signed-out `BeautifulAuth` on next open) — not a bug, just where verification
+left it; sign in again with Google/Apple to get back to a signed-in state.
+Don't touch: nothing new — this consumes (not blocks) part of the mascot/
+login-signup task directly below. `CapyMascot.tsx` (Section 1, the cuteness
+resize) is **still open and untouched** — Muse's task there is unaffected,
+still valid, still assigned. Section 2 (the toggle) and part of Section 3
+(this note explains the onboarding proposal that section asked to be written
+up, not implemented — it's now implemented) are done; skip re-doing them.
+Next: whoever picks up the mascot task should re-read Section 1 only (eye/
+snout/head-ratio benchmarks) — Section 2's acceptance checklist is satisfied
+already by this entry, no need to redo the toggle. On-device tap-through of
+the actual OAuth submit + "Sign up" segment + onboarding-save round-trip
+would be good to confirm on a session with `idb` or a physical-device pass,
+not blocking.
+
+---
+
 ### 2026-08-23 — task for Muse — TestFlight-prep pass (audit + fixes you CAN do without an Apple account)
 
 Status check on your two other open tasks first, since this is a third one
