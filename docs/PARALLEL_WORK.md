@@ -36,6 +36,188 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-23 — task for Muse — Mascot redesign + Login/Sign-up screen restructure
+
+Two connected UI tasks on the signed-out auth screen you built (`BeautifulAuth`
++ `CapyMascot`, originally on `feature/structured-data`, now ported cleanly
+into `feature/companion-portal` at `579353b` / `7734a94` — that port is your
+new baseline, not `feature/structured-data`, which is now behind). Primary
+session reviewed your mascot/auth work and liked the direction, but flagged
+two gaps: the mascot's face reads a bit generic/adult, not "cute", and the
+screen jumps straight to OAuth buttons with no Login-vs-Sign-up framing. Both
+are scoped, both ship in the same branch.
+
+**Why this doc entry is longer than usual:** the last time UI work landed
+without agreed benchmarks (the broader `feature/structured-data` dashboard
+redesign), primary session had to reject the whole thing on sight ("hell to
+UI, fall back") and re-extract only the pieces that worked. That cost a full
+review cycle. This time the acceptance bar is written down up front so the
+result lands clean on the first pass — read Section 3 (Benchmarks) before
+you write any code, not after.
+
+**0. Isolation.** `caresy_structured_worktree` is idle (its `feature/structured-data`
+work is fully superseded — the two pieces worth keeping are already ported
+into `feature/companion-portal`). Reuse it:
+```
+cd ../caresy_structured_worktree
+git fetch origin
+git checkout -b feature/mobile-auth-polish origin/feature/companion-portal
+```
+This pulls in `579353b` (AnimatedHeadline) and `7734a94` (BeautifulAuth +
+CapyMascot port) as your starting point — confirm both are in `git log
+--oneline -5` before touching anything. Do NOT branch off
+`feature/structured-data` — it's stale relative to companion-portal now.
+Confirm `git branch --show-current` before writing code (rule 7 above).
+
+---
+
+**1. Mascot — make the face read as "cute", not just "a bear/capybara face".**
+
+Current implementation: `apps/mobile-app/components/CapyMascot.tsx` — pure
+`View`-based vector art (no image asset), scale-only prop (`compact?:
+boolean`), three animation loops (peek-in spring, bob, ear wiggle) plus a
+blink timer. Keep all of that machinery — the ask is proportions and facial
+feature sizing, not a rewrite.
+
+What reads as "generic" right now (`s.head`, `s.eye`, `s.snout` etc., lines
+133–161): eyes are 18×18 circles on a 176-wide head (~10% of head width) —
+too small for "cute"; the snout block is 108×86, nearly half the head height,
+which pulls the face proportions toward "animal muzzle" instead of "kawaii".
+
+**Benchmarks — hit these ranges, don't eyeball it:**
+
+| Feature | Current | Target | Why |
+|---|---|---|---|
+| Eye diameter : head width | ~10% (18/176) | **18–24%** | kawaii-style faces read as cute primarily via oversized eyes; below 15% reads as realistic/adult |
+| Eye spacing (gap between inner eye edges) | tight, ~64px between left/right eye centers on 176 head | keep eyes closer to head center-vertical, slightly lower (mid-to-lower third) — avoid pushing them up near the ears | lower-set eyes read as younger/cuter (baby schema — bigger head, bigger eyes, lower facial features) |
+| Snout height : head height | ~55% (86/156) | **≤35%** | smaller muzzle relative to head is the single biggest "cute vs realistic" lever |
+| Head width : body width ratio | roughly 176:210 (head slightly smaller than body) | **head ≥ body width**, or at minimum equal | classic "big head, small body" chibi proportion |
+| Corner radii on all shapes | already fully rounded (radius = half-dimension in most places) | keep — don't introduce any hard corners | consistency |
+| Color palette | `#E8933A` body, `#6B3E2E`/`#7A4A33` ears/snout, `#3B2316` features | reuse these exact hex values, do not introduce new colors | matches the sky bg (`#AEDFF5`) and card in `BeautifulAuth` — a palette change here is a change to a file outside your scope (the screen background lives in `app/index.tsx`) |
+| Blush | one dot, right side only (asymmetric) | make it **two dots, symmetric** (one each cheek) | asymmetric blush reads as unintentional/broken at a glance, not stylistic |
+| Animation | peek-spring + bob + ear-wiggle + blink, all `useNativeDriver: true` | keep all four, keep native-driver — do not add a JS-driven animation | perf: this runs on the screen every signed-out user sees first |
+
+**Explicitly do not:** add an image/SVG asset (stay pure `View`+`StyleSheet`,
+matching the existing "no image asset" comment at the top of the file), add
+new props beyond what's needed for the resize, or touch `FloatDot` (the
+star/planet decor component in the same file) — it's unrelated and already
+fine.
+
+**Self-check before calling this done:** take a simulator screenshot of just
+the mascot at 2x zoom (crop it) and compare eye-diameter-to-head-width and
+snout-height-to-head-height against the benchmark table above with a ruler/
+pixel-measure, not by eye. Paste the actual measured ratios in your session
+log entry, not "looks cuter now".
+
+---
+
+**2. Login / Sign-up framing above the OAuth buttons.**
+
+Current `BeautifulAuth` (in `app/index.tsx`, function starting around line
+263 after this session's edits — search for `function BeautifulAuth`) goes
+straight from the headline (`"Care you can trust, instantly."`) to the
+Google button. Add an explicit mode toggle above the button stack:
+
+- A two-segment pill control: **"Log in"** / **"Sign up"**, matching the
+  existing pill/segmented visual language already in the app (see `Chip`/
+  `ChipRow` in `components/ui.tsx` for the established selected/unselected
+  pill styling — reuse that pattern's *visual weight*, you don't have to
+  reuse the literal component if `BeautifulAuth` needs its own styled
+  version to fit the sky-blue background).
+- Selecting a segment changes copy only, **not which auth function runs**:
+  Supabase's OAuth flow can't distinguish "log in" from "sign up" ahead of
+  time (a new Google/Apple identity auto-creates the account, an existing
+  one signs in — this is why there's no separate registration screen
+  anywhere in the codebase, confirmed by primary session this session: `find
+  app -iname "*regist*" -o -iname "*onboard*"` returns nothing). So:
+  - "Log in" selected → headline stays close to current: `"Care you can
+    trust, instantly."` / sub-copy as-is.
+  - "Sign up" selected → headline switches to something like `"Join
+    thousands who trust Caresy."` (your call on exact copy, keep it in the
+    same voice) — sub-copy can stay the same or adjust slightly.
+  - The button labels (`Continue with Google` / `Continue with Apple`) do
+    **not** need to change per-segment — "Continue with X" already reads
+    correctly for both login and signup. Don't build a "Sign up with
+    Google" vs "Log in with Google" label-swap unless it's trivial; not
+    required for acceptance.
+- Default segment on first mount: **"Log in"**.
+- This is presentational state (`useState` inside `BeautifulAuth`), not
+  auth state — don't thread it up into `Home()` or persist it.
+
+**Accessibility (hard requirement, not optional):** each segment needs
+`accessibilityRole="tab"` (or `"button"` if you don't implement a real tab
+semantics), `accessibilityState={{ selected: mode === 'login' }}`, and a
+minimum 44×44pt hit target — this is an App Store review item (Apple HIG
+minimum touch target), not a nice-to-have.
+
+---
+
+**3. "Other platforms" — investigate, don't fabricate.**
+
+Primary session checked `apps/mobile-app/lib/AuthProvider.tsx` this session:
+it exposes exactly `signInWithGoogle` and `signInWithApple`. Nothing else is
+wired — no phone/OTP, no Facebook, no email/password. The website has phone
+OTP via `packages/auth/src/msg91.ts`, but per the ownership table above and
+the existing "Don't touch" rule from the 2026-08-13 split, **`packages/auth`
+is Agent 1's territory** — do not add a new auth provider call there or wire
+a new button that calls into it without a call-out in this doc first, even
+if it looks like a two-line change.
+
+What to actually do for this task:
+- Google + Apple stay the two real buttons (already correct, already
+  preserves Apple — see the 2026-08-23 primary-session entry below on why
+  that mattered: your original `BeautifulAuth` had dropped Apple, primary
+  session added it back during the port).
+- If you want to represent "more sign-in options exist" for future-proofing,
+  a disabled/greyed "More options coming soon" text link is acceptable — an
+  actual non-functional third OAuth button is not (never ship a button that
+  does nothing when tapped, that's a worse user experience than not showing
+  it).
+- If you think phone/OTP genuinely should come to mobile, **write that as a
+  proposal in your session-log entry below**, don't implement it — that's a
+  cross-boundary call the two of you need to agree on first per Ground Rule 3.
+
+---
+
+**4. Acceptance checklist — go through this explicitly in your session-log entry:**
+
+- [ ] `git branch --show-current` confirms `feature/mobile-auth-polish`,
+      based on `origin/feature/companion-portal` (not `feature/structured-data`)
+- [ ] Only these files changed: `apps/mobile-app/components/CapyMascot.tsx`,
+      `apps/mobile-app/app/index.tsx` (only inside `BeautifulAuth` + the `a`
+      StyleSheet block — the signed-in dashboard, `ActionCard`,
+      `QuickAction`, `AnimatedHeadline` wiring, and the `s` StyleSheet are
+      **out of scope**, don't touch them)
+- [ ] No new npm dependencies added (`git diff package.json` empty)
+- [ ] No new colors introduced outside the existing palette (`#E8933A`,
+      `#6B3E2E`, `#7A4A33`, `#3B2316`, `#AEDFF5`, plus whatever's already in
+      `lib/theme.ts` `color.*`) — if a genuinely new color is unavoidable,
+      call it out explicitly in your log entry with why, don't slip it in
+      silently
+- [ ] `npx tsc --noEmit` clean
+- [ ] Verified live in iOS Simulator — actual screenshot, not "should work".
+      Include: (a) mascot close-up with measured eye/snout ratios per
+      Section 1, (b) full auth screen in "Log in" mode, (c) full auth screen
+      in "Sign up" mode
+- [ ] Both OAuth buttons still present and wired to the same
+      `onGoogle`/`onApple` props `BeautifulAuth` already receives from
+      `Home()` — don't change that prop contract
+- [ ] Toggle has `accessibilityRole` + `accessibilityState` + 44×44pt hit
+      target (Section 2)
+- [ ] All animations still `useNativeDriver: true`
+- [ ] Session-log entry appended below (not edited into this one) with: what
+      changed, the measured mascot ratios, screenshots described, and the
+      phone/OTP proposal if you have one
+
+**Don't touch:** anything in the signed-in dashboard path (everything from
+`if (!session) { ... }` downward in `app/index.tsx` is out of scope — that's
+the gradient ActionCards / quick-actions / AnimatedHeadline work from
+`bfd2bbf` and `579353b`, already reviewed and accepted, don't re-touch it),
+`components/AnimatedHeadline.tsx`, `assets/welcome-copy.json`,
+`packages/auth/*`, anything web (`apps/website`).
+
+---
+
 ### 2026-08-22 — task for Muse — Android first-run + verification pass
 
 Everything built so far (Phases 1-4, the reschedule flow just merged, the
