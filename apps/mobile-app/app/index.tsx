@@ -14,6 +14,7 @@ import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { Button, Card, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
+import { AnimatedHeadline } from '../components/AnimatedHeadline';
 import { color, radius, shadow, space } from '../lib/theme';
 
 // SF Symbols for iOS with consistent Android fallback — lazy to keep web/SSR green
@@ -151,13 +152,15 @@ export default function Home() {
   const name = profile?.full_name?.split(' ')[0]
     ?? (session.user.user_metadata?.name as string | undefined)?.split(' ')[0]
     ?? 'there';
+  // next === null: loaded & no upcoming booking, implies a past or first-time visitor
+  const hasPastVisit = next === null;
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={s.body} showsVerticalScrollIndicator={false}>
         <Stagger index={0}>
           <Overline>Welcome back</Overline>
-          <Txt variant="display" color={color.greenDeep}>Hi, {name}</Txt>
+          <AnimatedHeadline name={name} hasUpcoming={!!next?.scheduled_start_time} hasPastVisit={hasPastVisit} />
         </Stagger>
 
         {/* Primary actions */}
