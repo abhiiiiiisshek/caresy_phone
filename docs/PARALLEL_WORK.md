@@ -36,6 +36,111 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-23 — task for Muse — TestFlight-prep pass (audit + fixes you CAN do without an Apple account)
+
+Status check on your two other open tasks first, since this is a third one
+stacking up: **neither the 2026-08-22 Android verify task nor the
+2026-08-23 mascot/login-signup task has been started yet** — no
+`feature/android-verify` or `feature/mobile-auth-polish` branch exists
+locally or on origin as of this entry. This task doesn't replace either —
+it's small, mostly config/doc work, and deliberately kept separate so it
+doesn't block or collide with whichever of the other two you pick up first.
+
+**Why this task exists:** user asked "what's pending to push to TestFlight."
+Primary session audited actual state via `eas build:list` / `eas
+submit:list` (not the old checklist, which was stale and wrong on several
+items — corrected this session, see `NATIVE_CHECKLIST.md`). Finding: zero
+production builds, zero submissions, ever. Real blockers left are a mix of
+"needs the Apple Developer account holder personally" (can't delegate) and
+"needs research/config verification" (can delegate — that's this task).
+
+**0. Isolation.** `caresy_reschedule_worktree` is idle (`feature/mobile-reschedule`
+already merged). Reuse it — don't touch `caresy_structured_worktree`, that's
+reserved for the mascot task above, even though it hasn't started yet:
+```
+cd ../caresy_reschedule_worktree
+git fetch origin
+git checkout -b feature/testflight-prep origin/feature/companion-portal
+```
+Confirm `git branch --show-current` before writing anything.
+
+**1. Research: does EAS Build auto-patch `aps-environment` for bare iOS
+projects, or not?** `ios/Caresy/Caresy.entitlements` is checked into the
+repo (bare workflow, no prebuild-time regeneration) and hard-codes
+`aps-environment` to `development`. A store/production build needs
+`production` or push notifications silently fail at runtime with no build-
+time error. Find out (EAS docs, `eas build` changelogs, or a scratch
+`eas build --profile preview --platform ios --non-interactive --no-wait` if
+you want to inspect the generated build's actual entitlements without
+waiting for it to finish) whether EAS's credentials service rewrites this
+value per build profile for a bare/non-CNG project. **Deliverable: a written
+finding in your session-log entry, not a blind edit.** If you confirm it
+needs a manual fix, propose *how* (e.g. two entitlements files swapped by
+build profile, or a `eas-build-pre-install` hook) rather than just flipping
+the committed file to `production` — that would break the current working
+`development`-profile signing for local dev builds.
+
+**2. Fix the Android manifest permission gaps found this pass.**
+`android/app/src/main/AndroidManifest.xml` is missing:
+- `android.permission.POST_NOTIFICATIONS` — required on Android 13+
+  (API 33+) for `expo-notifications` to actually show the permission
+  prompt; without it, `Notifications.requestPermissionsAsync()` in
+  `AuthProvider.tsx` line ~81 silently no-ops on newer Android.
+- `android.permission.CAMERA` — `NSCameraUsageDescription` is set on iOS
+  for the same feature (prescription/report photo capture), Android's
+  manifest has no matching line.
+Add both, confirm they don't collide with anything `expo-image-picker`/
+`expo-notifications` config plugins would auto-generate on a fresh
+`expo prebuild` (check `npx expo config --type introspect` output or diff
+against what prebuild would produce, don't just hand-edit and hope).
+
+**3. Verify `eas.json` beyond the placeholder fields.** Don't touch
+`submit.production.ios.appleId`/`ascAppId`/`appleTeamId` — those need real
+account info only the account holder has (flag what's needed, don't guess
+or invent values). Do check: `cli.version` constraint (`>= 21.8.0`) against
+the currently-installed `eas-cli` (`npx eas-cli --version` warned about an
+outdated local version this session, `22.2.0` available) — decide if
+pinning `cli.version` in `eas.json` per Expo's own recommendation is worth
+doing here. Confirm `production.autoIncrement: true` + `appVersionSource:
+"remote"` is actually sufficient for TestFlight's build-number-must-
+increase rule (research, don't assume).
+
+**4. Draft App Store Connect listing content — text only, no account
+needed.** App name, subtitle, description, keywords, support URL,
+marketing URL, and confirm a privacy-policy URL exists and is live
+(`apps/website/src/app/privacy` — check it resolves, don't just check the
+file exists locally). Write this as a plain doc (new file,
+`apps/mobile-app/docs/APP_STORE_LISTING.md` or similar — your call on
+exact path) so whoever has App Store Connect access can paste it in
+directly. Do not create or touch anything in `apps/website` itself for
+this — read-only check that the privacy page is real and reachable.
+
+**5. Do NOT run `eas build --profile production` or `eas submit` yourself**
+unless you're prepared to handle an interactive Apple ID + 2FA prompt — if
+you can't complete that interactively, don't start it (a half-finished
+interactive credential setup left hanging is worse than not starting).
+Flag in your log entry that this step is ready and waiting on the account
+holder.
+
+**6. Logging — this matters for how this gets merged.** Commit your work
+in small, `tsc`-clean commits as usual. **Do not push `feature/testflight-prep`
+to origin yourself.** Append your session-log entry below (per the format
+at the top of this doc) with: what you found in step 1, exactly what you
+changed in steps 2–4, and what's still open. Primary session will pull your
+branch from your local `caresy_reschedule_worktree` (or you push it to
+origin under its own branch name if that's easier for handoff — either way,
+say which in your log entry), review the diff independently the same way
+the reschedule work was reviewed (`263560b` → `f934eb5` → merged in
+`primary session — reviewed + merged` below), and push/merge from primary
+session's side once confirmed — not before.
+
+**Don't touch:** anything already in progress or assigned elsewhere —
+`app/index.tsx`'s `BeautifulAuth`/`CapyMascot` (mascot task, above),
+`my-bookings.tsx`/reschedule flow (already merged, don't re-touch),
+`packages/auth/*` (Agent 1's territory, unrelated to this).
+
+---
+
 ### 2026-08-23 — task for Muse — Mascot redesign + Login/Sign-up screen restructure
 
 Two connected UI tasks on the signed-out auth screen you built (`BeautifulAuth`
