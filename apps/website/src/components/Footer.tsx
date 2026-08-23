@@ -96,7 +96,11 @@ export default function Footer() {
             <span className="footer-divider">|</span>
             <a href="tel:+919717500225">+91 97175 00225</a>
             <span className="footer-divider">|</span>
-            <a href="mailto:support@caresy.co">support@caresy.co</a>
+            <a href="mailto:support@caresy.co.in">support@caresy.co.in</a>
+            <span className="footer-divider">|</span>
+            <a href="/terms">Terms</a>
+            <span className="footer-divider">|</span>
+            <a href="/privacy">Privacy</a>
           </div>
         </div>
       </div>
