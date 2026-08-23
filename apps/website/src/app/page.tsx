@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion';
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import HealthTips from '@/components/HealthTips';
