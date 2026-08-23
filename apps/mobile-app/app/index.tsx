@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AppState, Image, Platform, Pressable, ScrollView, StyleSheet, View, AccessibilityInfo } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AccessibilityInfo, Animated, AppState, Easing, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -15,6 +15,7 @@ import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { Button, Card, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
 import { AnimatedHeadline } from '../components/AnimatedHeadline';
+import { CapyMascot, FloatDot } from '../components/CapyMascot';
 import { color, radius, shadow, space } from '../lib/theme';
 
 // SF Symbols for iOS with consistent Android fallback — lazy to keep web/SSR green
@@ -112,39 +113,21 @@ export default function Home() {
 
   if (loading) return <Screen><LoadingState /></Screen>;
 
-  /* ---- Signed out: branded welcome ---- */
+  /* ---- Signed out: beautiful auth with capy mascot ---- */
   if (!session) {
     return (
-      <Screen>
-        <View style={s.welcome}>
-          <View style={s.logoBadge}><Txt variant="display" color={color.onGreen}>C</Txt></View>
-          <Txt variant="display" color={color.greenDeep}>Caresy</Txt>
-          <Txt variant="body" color={color.muted} style={s.centerText}>
-            A trusted companion for every hospital visit — booked in minutes.
-          </Txt>
-          <Button
-            title="Sign in with Google"
-            loading={signingIn}
-            onPress={async () => {
-              setSigningIn(true);
-              try { await signInWithGoogle(); } finally { setSigningIn(false); }
-            }}
-            style={s.welcomeBtn}
-          />
-          {appleAvailable ? (
-            <Button
-              title="Sign in with Apple"
-              variant="secondary"
-              loading={signingIn}
-              onPress={async () => {
-                setSigningIn(true);
-                try { await signInWithApple(); } finally { setSigningIn(false); }
-              }}
-              style={s.welcomeBtn}
-            />
-          ) : null}
-        </View>
-      </Screen>
+      <BeautifulAuth
+        signingIn={signingIn}
+        appleAvailable={appleAvailable}
+        onGoogle={async () => {
+          setSigningIn(true);
+          try { await signInWithGoogle(); } finally { setSigningIn(false); }
+        }}
+        onApple={async () => {
+          setSigningIn(true);
+          try { await signInWithApple(); } finally { setSigningIn(false); }
+        }}
+      />
     );
   }
 
@@ -341,16 +324,137 @@ function QuickAction({ label, sub, onPress, sf, fallback, tint, iconColor }: { l
   );
 }
 
+/* ── Beautiful Auth (Q-learn + capy inspo) — signed-out login/registration screen ── */
+function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
+  signingIn: boolean; appleAvailable: boolean; onGoogle: () => void; onApple: () => void;
+}) {
+  const cardIn = useRef(new Animated.Value(40)).current;
+  const cardOp = useRef(new Animated.Value(0)).current;
+  const deco = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(cardIn, { toValue: 0, duration: 700, delay: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(cardOp, { toValue: 1, duration: 700, delay: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+    Animated.loop(Animated.sequence([
+      Animated.timing(deco, { toValue: 1, duration: 2400, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      Animated.timing(deco, { toValue: 0, duration: 2400, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+    ])).start();
+  }, [cardIn, cardOp, deco]);
+
+  return (
+    <View style={a.screen}>
+      {/* top brand */}
+      <View style={a.topBrand}>
+        <Text style={a.brandStar}>✦</Text>
+        <Text style={a.brandName}>Caresy</Text>
+      </View>
+
+      {/* mascot stage — sky like capy photo */}
+      <View style={a.stage}>
+        {/* floating deco like Q-learn planets/stars */}
+        <Animated.View style={[a.floatA, { transform: [{ translateY: deco.interpolate({ inputRange: [0, 1], outputRange: [0, -6] }) }] }]}>
+          <View style={a.planet} />
+        </Animated.View>
+        <Animated.View style={[a.floatB, { transform: [{ translateY: deco.interpolate({ inputRange: [0, 1], outputRange: [0, 5] }) }] }]}>
+          <View style={a.ringPlanet} />
+        </Animated.View>
+        <View style={a.star1}><Text style={a.starTxt}>✦</Text></View>
+        <View style={a.star2}><Text style={a.starTxtSmall}>✦</Text></View>
+        <FloatDot size={6} color="rgba(255,255,255,0.9)" style={{ position: 'absolute', left: 34, top: 44 }} delay={200} />
+        <FloatDot size={10} color="rgba(255,255,255,0.7)" style={{ position: 'absolute', right: 28, top: 36 }} delay={600} />
+        <FloatDot size={5} color="#1B4D3E" style={{ position: 'absolute', left: 54, top: 18, opacity: 0.12 }} delay={400} />
+        {/* mascot */}
+        <View style={a.mascotWrap}>
+          <CapyMascot />
+        </View>
+        {/* subtle ground curve */}
+        <View style={a.ground} />
+      </View>
+
+      {/* bottom sheet card — like Q-learn Sign Up */}
+      <Animated.View style={[a.card, { opacity: cardOp, transform: [{ translateY: cardIn }] }]}>
+        <Text style={a.h1}>Care you can{'\n'}trust, instantly.</Text>
+        <Text style={a.sub}>Book a trained hospital companion in minutes. Queues, paperwork, pharmacy — we handle it, you stay with family.</Text>
+
+        <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onGoogle(); }} disabled={signingIn} style={({ pressed }) => [a.primaryBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }]}>
+          {signingIn ? <Text style={a.primaryTxt}>Signing in…</Text> : (
+            <View style={a.btnRow}>
+              <View style={a.gBadge}><Text style={a.gTxt}>G</Text></View>
+              <Text style={a.primaryTxt}>Continue with Google</Text>
+            </View>
+          )}
+        </Pressable>
+
+        {appleAvailable ? (
+          <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onApple(); }} disabled={signingIn} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.9 }]}>
+            <Text style={a.secondaryTxt}>Continue with Apple</Text>
+          </Pressable>
+        ) : null}
+
+        <View style={a.dividerRow}>
+          <View style={a.divLine} />
+          <Text style={a.divTxt}>or</Text>
+          <View style={a.divLine} />
+        </View>
+
+        <Pressable onPress={() => Linking.openURL(`https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent('Hi Caresy, I need help booking a companion')}`)} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.9 }]}>
+          <Text style={a.secondaryTxt}>Chat on WhatsApp</Text>
+        </Pressable>
+
+        <Text style={a.legal}>By continuing you agree to our <Text style={a.link} onPress={() => Linking.openURL('https://caresy.co.in/terms')}>Terms</Text> · <Text style={a.link} onPress={() => Linking.openURL('https://caresy.co.in/privacy')}>Privacy</Text></Text>
+
+        <View style={a.trustRow}>
+          <View style={a.trustPill}><Text style={a.trustTxt}>✓ Trusted in Noida</Text></View>
+          <View style={a.trustPill}><Text style={a.trustTxt}>✓ 2k+ visits</Text></View>
+        </View>
+      </Animated.View>
+    </View>
+  );
+}
+
+const a = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#AEDFF5' },
+  topBrand: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingTop: 52, paddingBottom: 10 },
+  brandStar: { fontSize: 16, color: '#1B4D3E', fontWeight: '800' },
+  brandName: { fontSize: 16, color: '#1B4D3E', fontWeight: '800', letterSpacing: 0.6 },
+  stage: { height: 300, alignItems: 'center', justifyContent: 'flex-end', overflow: 'hidden', paddingBottom: 18 },
+  mascotWrap: { zIndex: 2, marginBottom: 2 },
+  ground: { position: 'absolute', bottom: -22, width: 320, height: 44, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.55)' },
+  floatA: { position: 'absolute', left: 22, top: 28 },
+  floatB: { position: 'absolute', right: 22, top: 18 },
+  planet: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#1B4D3E', opacity: 0.9 },
+  ringPlanet: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.0)', borderWidth: 2, borderColor: 'rgba(27,77,62,0.18)', transform: [{ rotate: '18deg' }] },
+  star1: { position: 'absolute', left: 86, top: 72 },
+  star2: { position: 'absolute', right: 76, top: 88 },
+  starTxt: { fontSize: 14, color: 'rgba(27,77,62,0.14)', fontWeight: '700' },
+  starTxtSmall: { fontSize: 10, color: 'rgba(27,77,62,0.12)', fontWeight: '700' },
+  card: { flex: 1, backgroundColor: '#FFFFFF', borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: 28, paddingHorizontal: 24, paddingBottom: 24, gap: 14, ...shadow.card, shadowOpacity: 0.12, shadowRadius: 24 },
+  h1: { fontSize: 28, lineHeight: 32, fontWeight: '800', color: '#0F1F1C', letterSpacing: -0.6 },
+  sub: { fontSize: 14, lineHeight: 20, color: '#5B6B64', marginTop: -4 },
+  primaryBtn: { marginTop: 6, minHeight: 56, borderRadius: 999, backgroundColor: color.green, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  btnRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  gBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  gTxt: { fontSize: 14, fontWeight: '800', color: '#1B4D3E' },
+  primaryTxt: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 2 },
+  divLine: { flex: 1, height: 1, backgroundColor: '#E8ECE9' },
+  divTxt: { fontSize: 12, color: '#9AA5A0', fontWeight: '600' },
+  secondaryBtn: { minHeight: 52, borderRadius: 999, borderWidth: 1.5, borderColor: '#1B4D3E', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  secondaryTxt: { fontSize: 15, fontWeight: '700', color: '#1B4D3E' },
+  legal: { textAlign: 'center', fontSize: 11, lineHeight: 16, color: '#9AA5A0', marginTop: 2 },
+  link: { color: '#1B4D3E', fontWeight: '700' },
+  trustRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 2 },
+  trustPill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: '#E7F2ED' },
+  trustTxt: { fontSize: 11, fontWeight: '700', color: '#1B4D3E' },
+});
+
 const s = StyleSheet.create({
   body: { padding: space.xl, gap: space.xl, paddingBottom: space.xxl },
   flex1: { flex: 1 },
   centerText: { textAlign: 'center' },
   pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] }, // legacy
   pressedCard: { opacity: 0.97, transform: [{ scale: 0.97 }] },
-
-  welcome: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
-  logoBadge: { width: 72, height: 72, borderRadius: radius.lg, backgroundColor: color.green, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
-  welcomeBtn: { alignSelf: 'stretch', marginTop: space.lg },
 
   greeting: { gap: space.xs },
   // Primary actions — 1:1 cards inside scroll, mirrors website ActionCard row
