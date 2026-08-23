@@ -57,8 +57,8 @@ const PRIVACY_SECTIONS = [
   {
     id: 'contact',
     title: '8. Grievance & Contact',
-    content: 'If you have any questions about this Privacy Policy, wish to exercise your data rights, or want to register a concern regarding how we handle customer data, please write to our designated Grievance Officer:\n\nCaresy Grievance Officer\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: privacy@caresy.co.in or support@caresy.co.in',
-    summary: 'For any questions or concerns about data privacy, email our Grievance Officer at privacy@caresy.co.in or write to our office in HSR Layout, Bengaluru.'
+    content: 'If you have any questions about this Privacy Policy, wish to exercise your data rights, or want to register a concern regarding how we handle customer data, please write to our designated Grievance Officer:\n\nCaresy Grievance Officer\nCaresy Care Services Private Limited\nThe sky boat cafe AFFECTION, PARAMOUNT EMOTIONS, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318\nEmail: privacy@caresy.co.in or support@caresy.co.in',
+    summary: 'For any questions or concerns about data privacy, email our Grievance Officer at privacy@caresy.co.in or write to our office at The sky boat cafe AFFECTION, PARAMOUNT EMOTIONS, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318.'
   }
 ];
 
@@ -78,7 +78,7 @@ export default function PrivacyPolicy() {
       <Reveal as="section" className="page-hero" style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px 24px' }}>
         <p className="eyebrow">Legal</p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>Privacy Policy</h1>
-        <p style={{ color: 'var(--muted)' }}>Effective Date: June 21, 2026</p>
+        <p style={{ color: 'var(--muted)' }}>Last updated: August 23, 2026 &nbsp;·&nbsp; Effective: August 23, 2026</p>
       </Reveal>
 
       <Reveal as="section" className="section" style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
@@ -146,6 +146,20 @@ export default function PrivacyPolicy() {
                 <div className="legal-text-content">
                   <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--charcoal)', marginBottom: '10px' }}>{section.title}</h2>
                   <p style={{ fontSize: '0.94rem', color: 'var(--charcoal)', lineHeight: '1.6', whiteSpace: 'pre-line' }}>{section.content}</p>
+                  {section.id === 'contact' && (
+                    <div style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--line)' }}>
+                      <iframe
+                        src="https://www.google.com/maps/search/The+sky+boat+cafe+AFFECTION+PARAMOUNT+EMOTIONS+Sector+1+Bisrakh+Jalalpur+Uttar+Pradesh+201318"
+                        width="100%"
+                        height="280"
+                        style={{ border: 0, display: 'block' }}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        allowFullScreen
+                        title="Caresy Grievance Office Location"
+                      />
+                    </div>
+                  )}
                 </div>
                 {showPlain && (
                   <div className="plain-english-card" style={{ padding: '16px', borderRadius: '16px', background: 'rgba(231, 163, 62, 0.06)', border: '1px solid rgba(231, 163, 62, 0.15)' }}>

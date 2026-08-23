@@ -62,8 +62,8 @@ const TERMS_SECTIONS = [
   {
     id: 'contact',
     title: '9. Grievance & Amendments',
-    content: 'We reserve the right to amend these Terms at any time. The updated Terms will be published on caresy.co.in/terms with a revised effective date.\n\nFor questions or requests, contact our corporate office:\n\nCaresy Legal Department\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: support@caresy.co.in or legal@caresy.co.in',
-    summary: 'We may update these terms occasionally. For any legal inquiries, write to legal@caresy.co.in or our HSR Layout office.'
+    content: 'We reserve the right to amend these Terms at any time. The updated Terms will be published on caresy.co.in/terms with a revised effective date.\n\nFor questions or requests, contact our corporate office:\n\nCaresy Legal Department\nCaresy Care Services Private Limited\nThe sky boat cafe AFFECTION, PARAMOUNT EMOTIONS, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318\nEmail: support@caresy.co.in or legal@caresy.co.in',
+    summary: 'We may update these terms occasionally. For any legal inquiries, write to legal@caresy.co.in or our Bisrakh Jalalpur office.'
   }
 ];
 
@@ -83,7 +83,7 @@ export default function TermsOfService() {
       <Reveal as="section" className="page-hero" style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px 24px' }}>
         <p className="eyebrow">Legal</p>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 800, margin: '10px 0' }}>Terms of Service</h1>
-        <p style={{ color: 'var(--muted)' }}>Effective Date: June 21, 2026</p>
+        <p style={{ color: 'var(--muted)' }}>Last updated: August 23, 2026 &nbsp;·&nbsp; Effective: August 23, 2026</p>
       </Reveal>
 
       <Reveal as="section" className="section" style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
@@ -173,6 +173,20 @@ export default function TermsOfService() {
                         : section.content
                       : section.content}
                   </p>
+                  {section.id === 'contact' && (
+                    <div style={{ marginTop: '16px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--line)' }}>
+                      <iframe
+                        src="https://www.google.com/maps/search/The+sky+boat+cafe+AFFECTION+PARAMOUNT+EMOTIONS+Sector+1+Bisrakh+Jalalpur+Uttar+Pradesh+201318"
+                        width="100%"
+                        height="280"
+                        style={{ border: 0, display: 'block' }}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        allowFullScreen
+                        title="Caresy Grievance Office Location"
+                      />
+                    </div>
+                  )}
                 </div>
                 {showPlain && (
                   <div className="plain-english-card" style={{ padding: '16px', borderRadius: '16px', background: 'rgba(231, 163, 62, 0.06)', border: '1px solid rgba(231, 163, 62, 0.15)' }}>

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
-import { Phone, Mail, LogOut, CalendarCheck, Loader2, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog, Trash2 } from 'lucide-react';
+import { Phone, Mail, LogOut, CalendarCheck, Loader2, UserRound, CreditCard, HeartHandshake, History, ClipboardList, Users, Bell, Lock, Globe, ChevronRight, Settings, Activity as ActivityIcon, UserCog, Trash2, MapPin, FileText, ShieldCheck } from 'lucide-react';
 import { Button, MotionSpot, Reveal } from '@caresy/ui';
 import { isValidIndianMobile } from '@caresy/utils/phone';
 
@@ -186,8 +186,32 @@ export default function Profile() {
         {/* App settings */}
         <Section icon={Settings} title="App Settings">
           <SettingsRow tinted icon={Bell} label="Notifications" href={supWa('notification preferences')} />
-          <SettingsRow tinted icon={Lock} label="Privacy & Security" href="/privacy" />
           <SettingsRow tinted icon={Globe} label="Language" sub="English" href={supWa('using Caresy in another language')} />
+          <SettingsRow tinted icon={FileText} label="Terms & Conditions" href="/terms" />
+          <SettingsRow tinted icon={ShieldCheck} label="Privacy Policy" href="/privacy" />
+          <SettingsRow tinted icon={Lock} label="Privacy & Security" href="/privacy" />
+          <div style={{ borderRadius: 12, background: 'var(--m3-surface)', border: '1px solid var(--m3-line)', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--m3-ink)', letterSpacing: '0.2px' }}>Grievance & Contact</div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <MapPin style={{ width: 16, height: 16, color: 'var(--m3-green)', flexShrink: 0, marginTop: 2 }} />
+              <p style={{ margin: 0, fontSize: 13, lineHeight: '18px', color: 'var(--m3-muted)' }}>
+                The sky boat cafe AFFECTION, PARAMOUNT EMOTIONS, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Mail style={{ width: 16, height: 16, color: 'var(--m3-green)', flexShrink: 0 }} />
+              <a href="mailto:support@caresy.co.in" style={{ fontSize: 13, fontWeight: 600, color: 'var(--m3-green-deep)', textDecoration: 'none' }}>support@caresy.co.in</a>
+            </div>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=The%20sky%20boat%20cafe%20AFFECTION%20PARAMOUNT%20EMOTIONS%20Sector%201%20Bisrakh%20Jalalpur%20Uttar%20Pradesh%20201318"
+              target="_blank"
+              rel="noopener"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start', padding: '6px 12px', borderRadius: 999, background: 'var(--m3-chip)', color: 'var(--m3-green-deep)', fontSize: 12, fontWeight: 600, textDecoration: 'none', border: '1px solid var(--m3-line)' }}
+            >
+              <MapPin style={{ width: 14, height: 14 }} />
+              View on Map — The sky boat cafe
+            </a>
+          </div>
         </Section>
 
         {/* Log out */}
