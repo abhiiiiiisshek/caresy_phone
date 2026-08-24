@@ -36,6 +36,40 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-24 (later) — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`)
+Did: user flagged the location-permission flow as sketchy — `booking.tsx`
+called `requestForegroundPermissionsAsync()` from a `useEffect` on `meetMode`
+AND silently again from the Continue handler if coords were still missing,
+with no recovery path if the user had already denied it. Extracted the
+request/loading/error/blocked state into `lib/useLocation.ts` (new, shared).
+Location is now only requested from an explicit tap (the "At home" card, or
+an inline "Share current location" link), and a `canAskAgain: false` denial
+gets a real "tap to open Settings" link instead of a dead-end string. Also
+wired the same hook into `quick-help.tsx` — the urgent/immediate-need flow —
+which previously hardcoded `latitude`/`longitude: null` on every submit,
+never touching GPS at all despite being the flow where exact location
+matters most. `npx tsc --noEmit` clean. Committed (`bfc6001`).
+Left mid-flight: **not verified live on-device** — no tap-automation tool
+(`idb`) available in this environment to navigate through sign-in →
+booking/quick-help step 2, so this is tsc-clean + code-reviewed only, not
+simulator-screenshotted like the auth-screen entry above. Flagging per
+`CLAUDE.md`'s "say so explicitly rather than claiming success" — whoever
+next has a live device/simulator session should walk both "At home" (booking)
+and the new location link (quick-help), including a denied-permission path.
+Don't touch: `apps/mobile-app/lib/useLocation.ts`, the `meetMode`/location
+block in `booking.tsx` (~line 365-410), the new location block in
+`quick-help.tsx` (~line 260-278) until that on-device pass lands.
+Next: on-device verification (above). Separately, user asked about a Google
+Maps integration for hospital autocomplete + meeting-point geocoding —
+scoped as a future task, not started: Places Autocomplete + Place Details
+via plain `fetch` (no new native dependency — `react-native-maps` is already
+installed for the map render itself), key must be proxied through a Supabase
+Edge Function rather than shipped in the app bundle, needs an ADR per
+`CLAUDE.md` (new paid third-party integration + new edge function) before
+implementation starts.
+
+---
+
 ### 2026-08-24 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`, work done in `caresy_structured_worktree` on `feature/mobile-auth-polish`, then merged)
 Did: user asked directly for the Login/Sign-up framing + medical touch on
 `BeautifulAuth` (`app/index.tsx`) — this overlaps Section 2 of the
