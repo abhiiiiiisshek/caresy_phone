@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Linking, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 import { useAuth } from '../lib/AuthProvider';
@@ -7,8 +7,9 @@ import { supabase } from '../lib/supabase';
 import { isValidIndianMobile, toE164 } from '@caresy/utils/phone';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
 import { eveningSurchargePaise } from '@caresy/utils/pricing';
-import { Button, Card, Chip, ChipRow, Field, FormScreen, Overline, Stagger, Txt } from '../components/ui';
+import { Button, Card, Chip, ChipRow, Field, FormScreen, Overline, Stagger, SuccessScreen, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
+import { useCurrentLocation } from '../lib/useLocation';
 
 // Mirrors apps/website/src/app/quick-help/page.tsx — 3-step wizard
 // Step1: contact, Step2: where (patient/hospital/pincode), Step3: urgency/notes
@@ -47,6 +48,7 @@ export default function QuickHelp() {
 
   const [family, setFamily] = useState<{ id: string; full_name: string }[]>([]);
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
+  const { coords, loading: locLoading, error: locError, blocked: locBlocked, request: requestLocation, openSettings: openLocationSettings } = useCurrentLocation();
 
   // Seed from session like web does + load family for 1-tap select
   useEffect(() => {
@@ -138,8 +140,8 @@ export default function QuickHelp() {
           city: areaLabel || 'Noida',
           state: 'Uttar Pradesh',
           pincode: pincode.trim(),
-          latitude: null,
-          longitude: null,
+          latitude: coords?.latitude ?? null,
+          longitude: coords?.longitude ?? null,
         })
         .select()
         .single();
@@ -183,24 +185,14 @@ export default function QuickHelp() {
 
   if (successRef) {
     return (
-      <View>
-        <Stack.Screen options={{ headerShown: true, title: 'Request received' }} />
-        <View style={s.tick}>
-          <Txt variant="h1" color={color.onGreen}>✓</Txt>
-        </View>
-        <Txt variant="h1" color={color.greenDeep} style={s.center}>Request received!</Txt>
-        <Txt variant="body" color={color.muted} style={s.center}>Operations will call {phone} within a few minutes.</Txt>
-        <Card level="raised" style={s.refBadge}>
-          <Overline>Reference</Overline>
-          <Txt variant="title" color={color.greenDeep}>{successRef}</Txt>
-        </Card>
-        <Button
-          title="Chat on WhatsApp"
-          onPress={() => Linking.openURL(`https://wa.me/919717500225?text=Hi,%20my%20quick%20help%20reference%20is%20${successRef}`)}
-          style={s.successBtn}
-        />
-        <Button title="View My Bookings" variant="secondary" onPress={() => router.replace('/my-bookings' as any)} style={s.successBtn} />
-      </View>
+      <SuccessScreen
+        headerTitle="Request received"
+        title="Request received!"
+        body={`Operations will call ${phone} within a few minutes.`}
+        refCode={successRef}
+        primaryAction={{ title: 'Chat on WhatsApp', onPress: () => Linking.openURL(`https://wa.me/919717500225?text=Hi,%20my%20quick%20help%20reference%20is%20${successRef}`) }}
+        secondaryAction={{ title: 'View My Bookings', onPress: () => router.replace('/my-bookings' as any) }}
+      />
     );
   }
 
@@ -254,6 +246,10 @@ export default function QuickHelp() {
           <Field label="Your name" value={customerName} onChangeText={setCustomerName} placeholder="Ananya Rao" error={nameErr} />
           <Field label="Mobile number" value={phone} onChangeText={(v) => setPhone(v.replace(/\D/g, '').slice(0, 10))} placeholder="98765 43210" keyboardType="phone-pad" error={phoneErr} />
           <Field label="Email address" value={email} onChangeText={setEmail} placeholder="name@example.com" keyboardType="email-address" autoCapitalize="none" error={emailErr} />
+          <Card style={s.privacyNote}>
+            <Txt variant="label" color={color.greenDeep}>🔒 Private by default</Txt>
+            <Txt variant="caption" color={color.muted}>We only use these details to call you back about this request — never shared or sold.</Txt>
+          </Card>
         </Stagger>
       )}
 
@@ -264,6 +260,25 @@ export default function QuickHelp() {
           <Field label="Pincode" value={pincode} onChangeText={(v) => setPincode(v.replace(/\D/g, '').slice(0, 6))} placeholder="201301" keyboardType="number-pad" error={pincodeErr} />
           <Txt variant="caption" color={pincodeHintColor}>{pincodeHint}</Txt>
           <Field label="Meeting point (optional)" value={meetAddress} onChangeText={setMeetAddress} placeholder="Main gate / reception" />
+          <View style={s.locRow}>
+            {locLoading ? (
+              <Txt variant="caption" color={color.muted}>Getting your location…</Txt>
+            ) : coords ? (
+              <Txt variant="caption" color={color.greenDeep}>✓ Shared — helps your companion find you faster</Txt>
+            ) : locBlocked ? (
+              <Pressable onPress={openLocationSettings}>
+                <Txt variant="caption" color={color.terracotta}>Location is off for Caresy — tap to open Settings</Txt>
+              </Pressable>
+            ) : locError ? (
+              <Pressable onPress={requestLocation}>
+                <Txt variant="caption" color={color.terracotta}>{locError} — tap to try again</Txt>
+              </Pressable>
+            ) : (
+              <Pressable onPress={requestLocation}>
+                <Txt variant="caption" color={color.greenDeep}>📍 Share my current location (urgent requests move faster)</Txt>
+              </Pressable>
+            )}
+          </View>
           <Txt variant="h2" color={color.ink}>What is happening now?</Txt>
           <ChipRow>
             {SERVICES.map((sv) => (
@@ -293,7 +308,6 @@ export default function QuickHelp() {
 }
 
 const s = StyleSheet.create({
-  center: { textAlign: 'center' },
   stepBody: { gap: space.lg },
   progressRow: { flexDirection: 'row', gap: space.xs },
   progressSeg: { flex: 1, height: 4, borderRadius: radius.pill },
@@ -304,8 +318,6 @@ const s = StyleSheet.create({
   back: { flex: 1 },
   cta: { flex: 2 },
   boundary: { gap: space.xs, backgroundColor: color.urgentBg, borderColor: color.warning },
-  success: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl },
-  tick: { width: 72, height: 72, borderRadius: radius.pill, backgroundColor: color.success, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
-  refBadge: { backgroundColor: color.greenTint, paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, marginVertical: space.sm, alignItems: 'center' },
-  successBtn: { alignSelf: 'stretch' },
+  privacyNote: { gap: 2, backgroundColor: color.greenTint },
+  locRow: { marginTop: -space.xs },
 });
