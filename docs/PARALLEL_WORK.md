@@ -68,6 +68,24 @@ Edge Function rather than shipped in the app bundle, needs an ADR per
 `CLAUDE.md` (new paid third-party integration + new edge function) before
 implementation starts.
 
+**Also found while here — worktree collision for Muse's queue.** Three tasks
+are stacked below (Android-verify 2026-08-22, mascot/login-signup 2026-08-23,
+TestFlight-prep 2026-08-23), none started. Two of them both claim
+`caresy_reschedule_worktree`: Android-verify and TestFlight-prep. Whichever
+Muse starts first there is fine; the **second one needs its own worktree** —
+don't both land in the same directory (ground rule 7). Suggested order:
+TestFlight-prep first (config/doc work, no emulator needed, unblocks store
+prep fastest) in `caresy_reschedule_worktree` as originally planned, then
+Android-verify in a fresh `git worktree add ../caresy_android_worktree
+feature/android-verify` off `feature/companion-portal`. Separately: the
+mascot task's worktree (`caresy_structured_worktree`, branch
+`feature/mobile-auth-polish`) is now 3 commits **behind**
+`feature/companion-portal` (the auth-toggle work above was done there then
+merged forward, but the location-fix + doc commits after that landed
+directly in `caresy_m3_worktree`) — `git merge feature/companion-portal`
+there before starting Section 1 (mascot cuteness), or the diff will be based
+on stale `app/index.tsx`.
+
 ---
 
 ### 2026-08-24 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`, work done in `caresy_structured_worktree` on `feature/mobile-auth-polish`, then merged)
