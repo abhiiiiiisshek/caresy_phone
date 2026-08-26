@@ -92,7 +92,7 @@ export default function Footer() {
         <div className="footer-bottom-container">
           <p className="copyright">&copy; 2026 Caresy Care Services Pvt. Ltd. All rights reserved.</p>
           <div className="footer-bottom-links">
-            <span className="footer-address-mini">4th Floor, Sector 7, HSR Layout, Bengaluru, KA 560102</span>
+            <span className="footer-address-mini">The Skyboat Affection, Paramount Emotions, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318</span>
             <span className="footer-divider">|</span>
             <a href="tel:+919717500225">+91 97175 00225</a>
             <span className="footer-divider">|</span>

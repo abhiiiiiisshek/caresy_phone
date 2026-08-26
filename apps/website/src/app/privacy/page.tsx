@@ -57,8 +57,8 @@ const PRIVACY_SECTIONS = [
   {
     id: 'contact',
     title: '8. Grievance & Contact',
-    content: 'If you have any questions about this Privacy Policy, wish to exercise your data rights, or want to register a concern regarding how we handle customer data, please write to our designated Grievance Officer:\n\nCaresy Grievance Officer\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: privacy@caresy.co.in or support@caresy.co.in',
-    summary: 'For any questions or concerns about data privacy, email our Grievance Officer at privacy@caresy.co.in or write to our office in HSR Layout, Bengaluru.'
+    content: 'If you have any questions about this Privacy Policy, wish to exercise your data rights, or want to register a concern regarding how we handle customer data, please write to our designated Grievance Officer:\n\nCaresy Grievance Officer\nCaresy Care Services Private Limited\nThe Skyboat Affection, Paramount Emotions, Sector 1,\nBisrakh Jalalpur, Uttar Pradesh 201318\nEmail: privacy@caresy.co.in or support@caresy.co.in',
+    summary: 'For any questions or concerns about data privacy, email our Grievance Officer at privacy@caresy.co.in or write to our office at The Skyboat Affection, Paramount Emotions, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318.'
   }
 ];
 

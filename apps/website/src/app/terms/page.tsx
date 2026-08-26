@@ -62,8 +62,8 @@ const TERMS_SECTIONS = [
   {
     id: 'contact',
     title: '9. Grievance & Amendments',
-    content: 'We reserve the right to amend these Terms at any time. The updated Terms will be published on caresy.co.in/terms with a revised effective date.\n\nFor questions or requests, contact our corporate office:\n\nCaresy Legal Department\nCaresy Care Services Private Limited\n4th Floor, Sector 7, HSR Layout,\nBengaluru, Karnataka 560102\nEmail: support@caresy.co.in or legal@caresy.co.in',
-    summary: 'We may update these terms occasionally. For any legal inquiries, write to legal@caresy.co.in or our HSR Layout office.'
+    content: 'We reserve the right to amend these Terms at any time. The updated Terms will be published on caresy.co.in/terms with a revised effective date.\n\nFor questions or requests, contact our corporate office:\n\nCaresy Legal Department\nCaresy Care Services Private Limited\nThe Skyboat Affection, Paramount Emotions, Sector 1,\nBisrakh Jalalpur, Uttar Pradesh 201318\nEmail: support@caresy.co.in or legal@caresy.co.in',
+    summary: 'We may update these terms occasionally. For any legal inquiries, write to legal@caresy.co.in or our office at The Skyboat Affection, Paramount Emotions, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318.'
   }
 ];
 
