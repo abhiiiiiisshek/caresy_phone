@@ -1,7 +1,6 @@
 # Architecture
 
-_Current as of 2026-07-31. Supersedes the layout sections of
-`DEVELOPER_HANDOFF.md`, which describes the pre-monorepo single-app tree._
+_Current as of 2026-07-31._
 
 Caresy books trained hospital companions for elderly patients in Noida /
 Greater Noida. Three human roles — customer, companion, admin — get one app

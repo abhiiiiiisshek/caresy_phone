@@ -96,4 +96,4 @@ plus `CANCELLED`, `EXPIRED`.
 - `docs/08_Database/` holds the older copies of migrations 1–15; the live source
   of truth is `supabase/migrations/`.
 - Duplicate patient rows exist from an earlier bug (fixed); a merge script is
-  still pending — see `docs/CURRENT.md`.
+  still pending — see `docs/NEXT_SESSION.md`.

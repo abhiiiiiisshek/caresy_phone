@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# graphify (generated — regenerate with `graphify update .`)
+graphify-out/
+
+# dead pre-Next.js static site, superseded by apps/website
+vanilla-backup/

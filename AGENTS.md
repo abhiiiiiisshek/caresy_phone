@@ -11,10 +11,9 @@ answers the question (budget rules in `CLAUDE.md`).
 
 | Question | File |
 |---|---|
-| **Restart / low context — read first** | `docs/NEXT_SESSION.md` then `docs/PROJECT_MEMORY.md` |
-| New here — what is this whole thing? | `docs/ENGINEER_ONBOARDING.md` |
+| **Restart / low context / what's in flight — read first** | `docs/NEXT_SESSION.md` then `docs/PROJECT_MEMORY.md` |
+| New here — what is this whole thing? | `docs/ENGINEER_ONBOARDING.md` (or `docs/JUNIOR_ONBOARDING.md` if new to dev) |
 | How do I write code here? | `CLAUDE.md` |
-| What is in flight / known broken right now? | `docs/CURRENT.md` — **read first after `/clear`** |
 | What owns this concern? How does a booking flow? | `docs/ARCHITECTURE.md` |
 | Why is it built this way? | `docs/ADR/` |
 | Where is mobile going? | `docs/MOBILE_PLAN.md` (ADR-0009) |
@@ -22,9 +21,6 @@ answers the question (budget rules in `CLAUDE.md`).
 | Who can read/write what? | `docs/SECURITY.md` |
 | It's broken / how do I deploy? | `docs/TROUBLESHOOTING.md` |
 | Where is the code for X? | `graphify query "X"`, then `rg` |
-
-`docs/DEVELOPER_HANDOFF.md` is history — it predates the monorepo. Do not follow
-its layout.
 
 # Finding code
 

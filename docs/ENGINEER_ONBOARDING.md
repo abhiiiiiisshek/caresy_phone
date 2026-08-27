@@ -84,9 +84,8 @@ supabase/
 docs/           You are here. ADR/ holds the "why".
 ```
 
-`docs/DEVELOPER_HANDOFF.md`, `docs/DEV_ONBOARDING.md`, and `docs/08_Database/`
-are **history** — they describe a two-repo, pre-monorepo era. Do not follow
-their layout. `supabase/migrations/` is the live SQL.
+`docs/08_Database/` describes a two-repo, pre-monorepo era — do not follow its
+layout. `supabase/migrations/` is the live SQL.
 
 ---
 
@@ -278,7 +277,7 @@ graphify update .                 # keep the knowledge graph current
 Then update the doc your change invalidated, **in the same commit**:
 `ARCHITECTURE.md` if a module boundary moved, `DATABASE.md` if you added a
 migration, a new `ADR/` entry if you made a choice a future reader would
-question, `CURRENT.md` if in-flight state changed.
+question, `NEXT_SESSION.md` if in-flight state changed.
 
 ---
 
@@ -317,14 +316,14 @@ Do not assume these are handled:
 - Duplicate patient rows from an earlier `/quick-help` bug; merge migration 32
   is written but not applied.
 
-Live status always in `docs/CURRENT.md` — **read it first after any `/clear`.**
+Live status always in `docs/NEXT_SESSION.md` — **read it first after any `/clear`.**
 
 ---
 
 ## 13. Reading order
 
 1. This file.
-2. `docs/CURRENT.md` — what is in flight and what is broken right now.
+2. `docs/NEXT_SESSION.md` — what is in flight and what is broken right now.
 3. `CLAUDE.md` — how code is written here.
 4. `docs/ARCHITECTURE.md` — module ownership table.
 5. `docs/DATABASE.md` + the header comments of migrations 13, 26, 31.

@@ -31,4 +31,4 @@ rather than an enum, so a new operator is a row, not a migration.
 - The bill a customer sees is Caresy's service only; transport is visible but
   separate. UI must never merge the two totals.
 - `CUSTOMER_VEHICLE` bookings depend on companion `can_drive`, which defaults
-  FALSE and currently has no admin UI (`docs/CURRENT.md`).
+  FALSE and currently has no admin UI (`docs/NEXT_SESSION.md`).

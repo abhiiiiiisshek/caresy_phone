@@ -22,7 +22,7 @@ supabase/
 |---|---|
 | [CLAUDE.md](CLAUDE.md) | Coding standards — read before writing code |
 | [AGENTS.md](AGENTS.md) | AI workflow + doc map |
-| [docs/CURRENT.md](docs/CURRENT.md) | What's in flight and known-broken right now |
+| [docs/NEXT_SESSION.md](docs/NEXT_SESSION.md) | What's in flight and known-broken right now |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Module ownership, request flow, environments |
 | [docs/ADR/](docs/ADR/README.md) | Why the big choices were made |
 | [docs/DATABASE.md](docs/DATABASE.md) | Migration ledger, tables, enforcement functions |
@@ -31,12 +31,11 @@ supabase/
 
 ## Live tracking
 
-Real-time companion location tracking spans this repo (Supabase backend) and the
-`caresy-app` mobile client.
-
-- **New developer? Start here:** [docs/DEV_ONBOARDING.md](docs/DEV_ONBOARDING.md)
-  — what it is, how to import & run it, do's/don'ts, and next steps.
-- Status, turn-it-on checklist & vision: [docs/LIVE_TRACKING_HANDOFF.md](docs/LIVE_TRACKING_HANDOFF.md).
+Real-time companion location tracking: `trips` + Supabase Realtime broadcast,
+plus a share token for guest viewing without an account
+([ADR-0007](docs/ADR/0007-share-token-for-guest-tracking.md)). Full flow in
+[docs/ENGINEER_ONBOARDING.md](docs/ENGINEER_ONBOARDING.md) §5, module ownership
+in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Develop
 

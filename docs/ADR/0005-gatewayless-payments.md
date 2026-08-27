@@ -38,7 +38,7 @@ means changing both in one commit.**
 ## Consequences
 
 - No automatic reconciliation: collected-vs-owed is an admin screen, not a
-  gateway dashboard. Unpaid bills need a UI (`docs/CURRENT.md`).
+  gateway dashboard. Unpaid bills need a UI (`docs/NEXT_SESSION.md`).
 - With `NEXT_PUBLIC_UPI_VPA` unset, UPI buttons hide and the flow is cash-only.
 - **Revisit when** volume makes chasing cash the bottleneck, or prepayment is
   needed to stop no-shows.

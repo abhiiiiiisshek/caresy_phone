@@ -4,7 +4,7 @@
 
 Single source of truth for how code is written here. `AGENTS.md` covers the AI
 workflow; this file covers the code. Architecture lives in `docs/ARCHITECTURE.md`,
-the *why* behind big choices in `docs/ADR/`, in-flight work in `docs/CURRENT.md`.
+the *why* behind big choices in `docs/ADR/`, in-flight work in `docs/NEXT_SESSION.md`.
 
 ## Prompt budget
 
@@ -20,7 +20,7 @@ Read the minimum that answers the question. In rough order of cost:
 Never paste a whole migration, whole page component, or a full report into
 context to answer a narrow question. `/clear` freely — the repo, not the chat,
 is the source of truth. If something must survive a `/clear`, it belongs in
-`docs/CURRENT.md` or an ADR, not in the conversation.
+`docs/NEXT_SESSION.md` or an ADR, not in the conversation.
 
 ## Stack (do not substitute)
 
@@ -95,7 +95,7 @@ graphify update .                 # keep the knowledge graph current
 
 Then update docs in the same commit: `docs/ARCHITECTURE.md` if a module boundary
 moved, `docs/DATABASE.md` if a migration was added, a new `docs/ADR/` entry if a
-choice was made that a future reader would question, `docs/CURRENT.md` if the
+choice was made that a future reader would question, `docs/NEXT_SESSION.md` if the
 state of in-flight work changed.
 
 ⚠️ Do not run `npm run dev` in a sandbox — Turbopack has spawned runaway
