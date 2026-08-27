@@ -59,16 +59,30 @@ Client-side validation is UX only — **server-side/RLS enforcement remains auth
 
 ## Store-submission blockers (do NOT submit until done)
 
-- [ ] Sign in with Apple (iOS requirement — Google is the only method today)
-- [ ] Push notifications (`expo-notifications` + delivery)
-- [ ] Account deletion in-app
-- [ ] Privacy / data-safety disclosures + iOS privacy manifest
-- [ ] Permissions strings (location, camera, notifications)
+- [x] Sign in with Apple — `expo-apple-authentication`, `ios.usesAppleSignIn`, wired in `lib/AuthProvider.tsx`
+- [x] Push notifications (`expo-notifications` plugin + AuthProvider registration; delivery unproven on device)
+- [x] Account deletion in-app — `app/account-delete.tsx`
+- [x] Privacy / data-safety disclosures + iOS privacy manifest — `app.json` `privacyManifests`, `PRIVACY_ANSWERS.md`
+- [x] Permissions strings (location, camera, notifications) — all `NS*UsageDescription` set
 - [ ] Offline / network-failure states across all screens
 - [ ] Accessibility pass (labels present via design system; needs audit)
 - [ ] Production signing (Android keystore, iOS certs)
 - [ ] Google Play closed testing (12 testers × 14 days, personal account) + TestFlight
 - [ ] Real-device QA (iOS + Android)
+
+### iOS submit credentials
+
+`eas.json` carries only `appleTeamId` — the repo is **public**, so the Apple ID
+stays out of it. Supply it at submit time instead:
+
+```bash
+EXPO_APPLE_ID=<apple-id-email> npx eas-cli submit -p ios --profile production
+```
+
+`ascAppId` is intentionally absent: no App Store Connect record exists yet for
+`in.co.caresy.app` (the Developer-portal App ID "caresy trial" is a different
+thing). EAS creates the ASC record on the first authenticated submit; pin
+`ascAppId` afterwards only if you want submits to stop prompting.
 
 ## Not yet verified on device
 

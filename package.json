@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "npm run dev -w @caresy/website",
     "build": "npm run build -w @caresy/website",
+    "smoke": "node scripts/smoke.mjs",
     "postinstall": "node scripts/fix-next-global-error.js"
   }
 }
