@@ -143,15 +143,20 @@ function PaymentsLedger() {
     setSavingId(id);
     setRows((cur) => (cur ?? []).map((r) => (r.id === id ? { ...r, payment_status: 'WAIVED' } : r)));
 
-    const { error: err } = await supabase
+    const { data, error: err } = await supabase
       .from('bookings')
       .update({ payment_status: 'WAIVED' })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('payment_status', 'PENDING')
+      .select('id');
     setSavingId(null);
 
     if (err) {
       setRows(snapshot);
       show(err.message, 'err');
+    } else if (!data || data.length === 0) {
+      setRows(snapshot);
+      show('This payment was already collected or waived — refresh to see current status.', 'err');
     } else {
       show('Marked waived');
     }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createClient } from '@caresy/auth/supabase/client';
+import type { BookingStatus } from '@caresy/types';
 import { Button, Input } from '@caresy/ui';
 import { AdminShell, AdminGuard, useToast } from '@/components/AdminShell';
 import { Inbox, Activity, CheckCircle2, Loader2, Zap } from 'lucide-react';
@@ -11,7 +12,7 @@ import { Inbox, Activity, CheckCircle2, Loader2, Zap } from 'lucide-react';
 // Saves are OPTIMISTIC: the card moves/updates instantly, the DB write runs in
 // the background and reverts on error — no full-board refetch per save.
 
-const STATUS_OPTIONS = [
+const STATUS_OPTIONS: BookingStatus[] = [
   'DRAFT',
   'PENDING',
   'ACCEPTED',
@@ -112,7 +113,7 @@ function OpsBoard() {
 
   const [bookings, setBookings] = useState<BookingRecord[] | null>(null);
   const [companions, setCompanions] = useState<ApprovedCompanion[]>([]);
-  const [edits, setEdits] = useState<Record<string, { companionId: string; status: string }>>({});
+  const [edits, setEdits] = useState<Record<string, { companionId: string; status: string; overrideReason: string }>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const [metrics, setMetrics] = useState<OpsMetrics | null>(null);
@@ -131,7 +132,7 @@ function OpsBoard() {
       if (!alive) return;
       const list = (bRes.data as unknown as BookingRecord[]) ?? [];
       setBookings(list);
-      setEdits(Object.fromEntries(list.map((b) => [b.id, { companionId: b.companion_user_id || '', status: b.status }])));
+      setEdits(Object.fromEntries(list.map((b) => [b.id, { companionId: b.companion_user_id || '', status: b.status, overrideReason: '' }])));
       setCompanions((cRes.data as ApprovedCompanion[]) ?? []);
       if (!mRes.error && mRes.data) setMetrics(mRes.data as OpsMetrics);
     })();
@@ -151,11 +152,22 @@ function OpsBoard() {
 
   // Optimistic save: the card updates (and moves columns) immediately; the DB
   // write runs in the background; on failure we restore the snapshot and keep
-  // the operator's selections so they can retry.
+  // the operator's selections so they can retry. Status changes go through the
+  // audited admin_override_booking_status RPC (state-machine + reason required);
+  // companion changes will move to reassign_booking() in Phase 2 — for Phase 1
+  // they still use a plain update but never bundled with a status change.
   const save = useCallback(async (bookingId: string) => {
     const edit = edits[bookingId];
     const booking = (bookings ?? []).find((b) => b.id === bookingId);
     if (!edit || !booking) return;
+
+    const statusChanged = edit.status !== booking.status;
+    const companionChanged = edit.companionId !== (booking.companion_user_id || '');
+
+    if (statusChanged && (!edit.overrideReason || edit.overrideReason.trim() === '')) {
+      show('A reason is required for a manual status override', 'err');
+      return;
+    }
 
     const matched = companions.find((c) => c.id === edit.companionId) || null;
     // Stored in the shape my-bookings/page.tsx expects to render.
@@ -179,20 +191,61 @@ function OpsBoard() {
     setSavingId(bookingId);
     show(`Updated ${booking.reference_code}`);
 
+    // Status change must go through audited RPC (state machine + reason)
+    if (statusChanged) {
+      const { error: rpcErr } = await supabase.rpc('admin_override_booking_status', {
+        p_booking: bookingId,
+        p_status: edit.status,
+        p_reason: edit.overrideReason.trim(),
+      });
+      if (rpcErr) {
+        setBookings(snapshot);
+        show(rpcErr.message, 'err');
+        setSavingId(null);
+        return;
+      }
+      // If companion also changed, reassign via RPC (resets clock if IN_PROGRESS, notifies both)
+      if (companionChanged) {
+        const { error: reassignErr } = await supabase.rpc('reassign_booking', {
+          p_booking: bookingId,
+          p_new_companion: edit.companionId || null,
+          p_reason: edit.overrideReason?.trim() || null,
+        });
+        if (reassignErr) {
+          setBookings(snapshot);
+          show(reassignErr.message, 'err');
+        }
+      }
+      setSavingId(null);
+      return;
+    }
+
+    // No status change — companion reassignment goes through RPC (notifies both, resets clock if IN_PROGRESS)
+    if (companionChanged) {
+      const { error } = await supabase.rpc('reassign_booking', {
+        p_booking: bookingId,
+        p_new_companion: edit.companionId || null,
+        p_reason: edit.overrideReason?.trim() || null,
+      });
+      setSavingId(null);
+      if (error) {
+        setBookings(snapshot);
+        show(error.message, 'err');
+      }
+      return;
+    }
+
     const { error } = await supabase.from('bookings').update({
-      status: edit.status,
-      companion_user_id: edit.companionId || null,
       service_metadata: updatedMetadata,
     }).eq('id', bookingId);
     setSavingId(null);
-
     if (error) {
       setBookings(snapshot);
       show(error.message, 'err');
     }
   }, [edits, bookings, companions, supabase, show]);
 
-  const setEdit = (id: string, patch: Partial<{ companionId: string; status: string }>) =>
+  const setEdit = (id: string, patch: Partial<{ companionId: string; status: string; overrideReason: string }>) =>
     setEdits((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
 
   const columns = useMemo(() => COLUMNS.map((col) => {
@@ -277,9 +330,9 @@ function JobCard({
 }: {
   booking: BookingRecord;
   companions: ApprovedCompanion[];
-  edit: { companionId: string; status: string };
+  edit: { companionId: string; status: string; overrideReason: string };
   saving: boolean;
-  onEdit: (patch: Partial<{ companionId: string; status: string }>) => void;
+  onEdit: (patch: Partial<{ companionId: string; status: string; overrideReason: string }>) => void;
   onSave: () => void;
 }) {
   const meta = b.service_metadata || {};
@@ -288,6 +341,7 @@ function JobCard({
     ? new Date(b.scheduled_start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
     : 'INSTANT';
   const dirty = edit.status !== b.status || edit.companionId !== (b.companion_user_id || '');
+  const needsReason = edit.status !== b.status && (!edit.overrideReason || edit.overrideReason.trim() === '');
 
   return (
     <article className={`adm-job${isUrgent ? ' adm-job-urgent' : ''}`}>
@@ -349,9 +403,17 @@ function JobCard({
         <select className="adm-select" value={edit.status} onChange={(e) => onEdit({ status: e.target.value })}>
           {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        {edit.status !== b.status && (
+          <>
+            <label>Reason for status override <span style={{ color: '#c45543' }}>*</span></label>
+            <textarea className="adm-select" rows={2} placeholder="Why is this status being overridden? (required)"
+              value={edit.overrideReason || ''} onChange={(e) => onEdit({ overrideReason: e.target.value })}
+              style={{ resize: 'vertical', fontFamily: 'inherit' }} />
+          </>
+        )}
 
         <div className="save-row">
-          <Button variant="primary" size="sm" full disabled={!dirty || saving} onClick={onSave}
+          <Button variant="primary" size="sm" full disabled={!dirty || saving || needsReason} onClick={onSave}
             iconLeft={saving ? <Loader2 className="animate-spin" style={{ width: 15, height: 15 }} /> : undefined}>
             {saving ? 'Saving…' : dirty ? 'Save updates' : 'Up to date'}
           </Button>
