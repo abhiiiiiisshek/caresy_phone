@@ -9,6 +9,33 @@ here is worse than nothing.
 
 Read this first after a `/clear`.
 
+## Where the code lives (read before cloning — 2026-08-27)
+
+**`origin/main` is authoritative.** Clone it fresh; do not copy a folder off
+anyone's machine. Seven working copies existed on the original dev machine and
+several were badly stale — one was 20 migrations behind. All work found in them
+has been merged to `main` or pushed to a branch; nothing is left stranded.
+
+Branches on GitHub, and what to do with each:
+
+| Branch | State |
+| --- | --- |
+| `main` | Authoritative. All four apps typecheck; website/companion/admin all build. |
+| `wip/docs-consolidation` | **Not merged.** Folds `CURRENT.md`/`DEVELOPER_HANDOFF.md`/`DEV_ONBOARDING.md`/`LIVE_TRACKING_HANDOFF.md` into `ENGINEER_ONBOARDING.md` + a new `JUNIOR_ONBOARDING.md`, gitignores `graphify-out`, deletes `vanilla-backup/`. Based behind `main` — rebase before reviewing. |
+| `feature/structured-data` | **Stale**, 45 commits behind. Its useful commits were already ported to `feature/companion-portal`. Delete once confirmed. |
+| `feature/mobile-reschedule` | Fully merged, 0 ahead. Safe to delete. |
+
+⚠️ **Migrations 37–40 are merged to `main` but NOT yet applied to Supabase.**
+`37_STAMP_COMPANION_PREFLIGHT` fixes companion `accept()`, broken since
+CARESY-7 — the job-acceptance flow is down until it runs. Apply 37→38→39→40 in
+order in the SQL editor; see `docs/BOOKING_LIFECYCLE_FIXES.md`.
+
+Verify a clone with `npx tsc --noEmit` per app, `npm run build`, and
+`npm run smoke` (backend checks: service-area validation, expiry sweep, RLS
+wall — needs Supabase URL + anon key in env or `apps/website/.env.local`).
+Note the anon key is now Supabase's newer `sb_publishable_…` format; legacy JWT
+anon keys are rejected by this project.
+
 ## Before the first customer — in order
 
 1. **Run `supabase/migrations/30_LAUNCH_FIXES.sql`, then `31_CUSTOMER_ACTIONS.sql`**
