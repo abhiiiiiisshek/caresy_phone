@@ -61,8 +61,7 @@
             ]
           }
         ]
-      },
-      "googleServicesFile": "./GoogleService-Info.plist"
+      }
     },
     "android": {
       "package": "in.co.caresy.app",
@@ -74,8 +73,15 @@
       "predictiveBackGestureEnabled": false,
       "usesCleartextTraffic": true
     },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f1c994af-5e87-43f4-8d64-f33366e6756d"
+    },
     "plugins": [
       "expo-router",
+      "expo-updates",
       "expo-secure-store",
       "expo-web-browser",
       [
