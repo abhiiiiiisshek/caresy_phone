@@ -25,10 +25,11 @@ Branches on GitHub, and what to do with each:
 | `feature/structured-data` | **Stale**, 45 commits behind. Its useful commits were already ported to `feature/companion-portal`. Delete once confirmed. |
 | `feature/mobile-reschedule` | Fully merged, 0 ahead. Safe to delete. |
 
-⚠️ **Migrations 37–40 are merged to `main` but NOT yet applied to Supabase.**
-`37_STAMP_COMPANION_PREFLIGHT` fixes companion `accept()`, broken since
-CARESY-7 — the job-acceptance flow is down until it runs. Apply 37→38→39→40 in
-order in the SQL editor; see `docs/BOOKING_LIFECYCLE_FIXES.md`.
+Migrations 37–40 are merged **and applied** (verified 2026-08-27 by probing
+`stamp_companion_on_booking`, `is_valid_booking_transition`,
+`admin_override_booking_status`, `reassign_booking`, `complete_booking`,
+`reschedule_booking` — all present). Companion `accept()`, broken since
+CARESY-7, is fixed. Background in `docs/BOOKING_LIFECYCLE_FIXES.md`.
 
 Verify a clone with `npx tsc --noEmit` per app, `npm run build`, and
 `npm run smoke` (backend checks: service-area validation, expiry sweep, RLS
@@ -55,15 +56,11 @@ anon keys are rejected by this project.
 
 ## In flight
 
-- **Mascot design system replaces emoji illustration.** One owned character,
-  requested by pose — `<Mascot pose="…" />` and the `EmptyState`/`LoadingState`/
-  `ErrorState`/`SuccessState` wrappers, all in `@caresy/ui` (ADR-0011). Art is a
-  registry swap (`POSE_ART`), not a code change; the placeholder character ships
-  until real art is registered (Lottie path per ADR-0010, dep already installed).
-  Wired: `login` (5 poses incl. covering-eyes on OTP), `my-bookings`, `profile`,
-  `care`. **Still emoji:** the 12 `careGuides.ts` topic thumbnails (content
-  taxonomy, not a mascot state — needs its own icon decision) and the ✓/✗ text
-  prefixes in `booking`/`quick-help` service-area copy. tsc + `build` green.
+- **Illustration is Phosphor duotone + Motion One, not a mascot.** ADR-0012
+  (2026-08-11) supersedes ADR-0010/0011 and deleted `packages/ui/src/mascot/`;
+  illustrated slots are `MotionSpot`, the 12 care-guide categories are
+  `apps/website/src/lib/guideIcons.tsx`. Left over: the ✓/✗ text prefixes in
+  `booking`/`quick-help` service-area copy are still emoji (issue #18).
 
 - **Migration 31 gives the customer their own two verbs.** Reschedule and Cancel
   in `my-bookings` were buttons that closed the sheet; every plan change arrived
