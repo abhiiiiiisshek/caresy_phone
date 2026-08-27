@@ -1,5 +1,6 @@
 'use client';
 
+import type { BookingStatus } from '@caresy/types';
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@caresy/auth/supabase/client';
@@ -40,8 +41,8 @@ function OverviewBody() {
     (async () => {
       const head = { count: 'exact' as const, head: true };
       const [p, a, t, q] = await Promise.all([
-        supabase.from('bookings').select('id', head).in('status', ['DRAFT', 'PENDING']),
-        supabase.from('bookings').select('id', head).in('status', ['ACCEPTED', 'ASSIGNED', 'IN_PROGRESS']),
+        supabase.from('bookings').select('id', head).in('status', ['DRAFT', 'PENDING'] as BookingStatus[]),
+        supabase.from('bookings').select('id', head).in('status', ['ACCEPTED', 'ASSIGNED', 'IN_PROGRESS'] as BookingStatus[]),
         supabase.from('trips').select('id', head).in('status', ACTIVE_TRIP),
         supabase.from('notifications').select('id', head).eq('status', 'QUEUED'),
       ]);

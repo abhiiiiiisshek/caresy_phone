@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import type { BookingStatus } from '@caresy/types';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import { Input, Button, Badge } from '@caresy/ui';
@@ -356,7 +357,7 @@ interface JobRow {
   reference_code: string | null;
   service_type: string;
   booking_type: string;
-  status: string;
+  status: BookingStatus;
   scheduled_start_time: string | null;
   actual_start_time: string | null;
   created_at: string;
@@ -402,8 +403,8 @@ function fmtWhen(iso: string | null): string {
   return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  ACCEPTED: 'Accepted', IN_PROGRESS: 'In progress', COMPLETED: 'Completed', CANCELLED: 'Cancelled', EXPIRED: 'Expired', PENDING: 'Pending',
+const STATUS_LABEL: Record<BookingStatus, string> = {
+  DRAFT: 'Draft', PENDING: 'Pending', ASSIGNED: 'Assigned', ACCEPTED: 'Accepted', IN_PROGRESS: 'In progress', COMPLETED: 'Completed', CANCELLED: 'Cancelled', EXPIRED: 'Expired',
 };
 
 /**
@@ -664,6 +665,30 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
   }, [user]);
 
   useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  // In-app notification panel for COMPANION role (cancel/reschedule/reassign) — must be
+  // declared before the poll effect below, which references fetchNotifications.
+  type CompanionNotification = { id: string; event: string; title: string; body: string; created_at: string; booking_id: string };
+  const [notifications, setNotifications] = useState<CompanionNotification[] | null>(null);
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('notifications')
+      .select('id, event, title, body, created_at, booking_id')
+      .eq('recipient_role', 'COMPANION')
+      .eq('recipient_user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setNotifications((data as CompanionNotification[]) ?? []);
+  }, [user]);
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+  // Freshness poll — mirrors mobile-app/my-bookings.tsx:83-88 pattern, gated to live jobs
+  useEffect(() => {
+    const hasLive = myJobs.some((j) => j.status === 'ACCEPTED' || j.status === 'IN_PROGRESS');
+    if (!hasLive) return;
+    const id = setInterval(() => { fetchJobs(); fetchNotifications(); }, 60_000);
+    return () => clearInterval(id);
+  }, [myJobs, fetchJobs, fetchNotifications]);
   useEffect(() => {
     if (!user) return;
     (async () => {
@@ -685,13 +710,18 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
     onChange();
   };
 
-  const setJobStatus = async (job: JobRow, status: string, extra: Record<string, unknown> = {}) => {
+  const setJobStatus = async (job: JobRow, status: BookingStatus, extra: Record<string, unknown> = {}) => {
     if (!user) return;
     setActioning(job.id);
     const supabase = createClient();
-    const { error } = await supabase.from('bookings').update({ status, ...extra }).eq('id', job.id);
+    const { data, error } = await supabase.from('bookings').update({ status, ...extra }).eq('id', job.id).select('id');
     setActioning(null);
     if (error) { alert(error.message); return; }
+    if (!data || data.length === 0) {
+      alert('This job is no longer available — refreshing.');
+      await fetchJobs();
+      return;
+    }
     await fetchJobs();
   };
 
@@ -701,9 +731,14 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
     const supabase = createClient();
     const { error: stampErr } = await supabase.rpc('stamp_companion_on_booking', { p_booking: job.id, p_companion: user.id });
     if (stampErr) { setActioning(null); alert(stampErr.message.includes('cannot drive') ? 'You need a verified driving licence before you can accept a driving job.' : stampErr.message); return; }
-    const { error } = await supabase.from('bookings').update({ status: 'ACCEPTED' }).eq('id', job.id);
+    const { data, error } = await supabase.from('bookings').update({ status: 'ACCEPTED' }).eq('id', job.id).select('id');
     setActioning(null);
     if (error) { alert(error.message); return; }
+    if (!data || data.length === 0) {
+      alert('This job is no longer available — refreshing.');
+      await fetchJobs();
+      return;
+    }
     await fetchJobs();
   };
 
@@ -726,13 +761,29 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
     await fetchJobs();
   };
 
-  // A completed job with money still owed stays in the active list — the
-  // companion is standing there and must not have to hunt through History for
-  // the collect button.
-  const activeMine = myJobs.filter((j) =>
-    ['ACCEPTED', 'IN_PROGRESS'].includes(j.status) || j.payment_status === 'PENDING');
-  const pastMine = myJobs.filter((j) =>
-    ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(j.status) && j.payment_status !== 'PENDING');
+  // Exhaustive split — every BookingStatus must appear in exactly one bucket.
+  // A completed job with money still owed stays in active — companion must not hunt History for collect.
+  const isActiveStatus = (s: BookingStatus): boolean => {
+    switch (s) {
+      case 'ACCEPTED':
+      case 'IN_PROGRESS':
+        return true;
+      case 'DRAFT':
+      case 'PENDING':
+      case 'ASSIGNED':
+      case 'COMPLETED':
+      case 'CANCELLED':
+      case 'EXPIRED':
+        return false;
+      default: {
+        const _exhaustive: never = s;
+        void _exhaustive;
+        return false;
+      }
+    }
+  };
+  const activeMine = myJobs.filter((j) => isActiveStatus(j.status) || j.payment_status === 'PENDING');
+  const pastMine = myJobs.filter((j) => !isActiveStatus(j.status) && j.payment_status !== 'PENDING');
   const visibleOpen = openJobs.filter((j) => !hidden.has(j.id));
 
   return (
@@ -763,6 +814,22 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
 
       {mayDrive === false && <div style={{ padding: '10px 12px', borderRadius: 10, background: '#FFF3E0', border: '1px solid #FFE0B2', fontSize: '0.8rem', color: '#6D4C41', margin: '10px 0' }}>You can’t accept <strong>driving</strong> jobs until an admin verifies your driving licence. Non-driving jobs are still available.</div>}
       <PendingDocsNote docs={pendingDocs} />
+
+      {/* Notifications — updates from admin/customer (cancel, reschedule, reassign) */}
+      {notifications && notifications.length > 0 && (
+        <section style={{ margin: '12px 0', padding: 12, borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--line)' }}>
+          <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: 8, color: 'var(--ink-teal)' }}>Updates ({notifications.length})</div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {notifications.map((n) => (
+              <div key={n.id} style={{ padding: '8px 10px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--line)' }}>
+                <div style={{ fontWeight: 600, fontSize: '0.8rem' }}>{n.title}</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>{n.body}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 4 }}>{new Date(n.created_at).toLocaleString('en-IN')}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {loadingJobs ? (
         <div style={{ display: 'grid', placeItems: 'center', padding: 32 }}><Loader2 className="animate-spin" style={{ width: 22, height: 22, color: 'var(--teal)' }} /></div>

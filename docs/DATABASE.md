@@ -52,6 +52,12 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 32 | `32_MERGE_DUPLICATE_PATIENTS.sql` | one-off data fix: merges the patient rows `/quick-help` duplicated, soft-deleting the losers | ⬜* |
 | 33 | `33_PHONE_SIGNIN.sql` | `find_user_by_phone()` (service-role only) — matches an MSG91 OTP number against `profiles.phone` AND `auth.users.phone` so OTP sign-in reuses the existing account | ✅ |
 | 34 | `34_SECURITY_HARDENING.sql` | pins `search_path` on `is_admin()` and `guard_companion_privileged_fields()`; closes the `trips` column-guard gap (`guard_trip_status_columns()`) the same way 31 closed it on `bookings` | ✅ |
+| 35 | `35_TRIP_NOTIFICATIONS.sql` | trip status → customer notifications (IN_PROGRESS/COMPLETED) | ✅ |
+| 36 | `36_NOTIFICATIONS_CLAIM.sql` | exactly-once claim-before-send for notifications (`claimed_at`, `claim_notifications()` with FOR UPDATE SKIP LOCKED) | ✅ |
+| 37 | `37_STAMP_COMPANION_PREFLIGHT.sql` | fixes shipped CARESY-7 Accept bug — second overload `stamp_companion_on_booking(UUID,UUID)` preflight (driving-licence gate) | ✅ |
+| 38 | `38_BOOKING_STATE_MACHINE.sql` | DB-level state machine (`is_valid_booking_transition`, `trg_enforce_booking_transition`) + audited `admin_override_booking_status` RPC | ✅ |
+| 39 | `39_BOOKING_REASSIGNMENT.sql` | first-class `reassign_booking` RPC (resets clock if IN_PROGRESS, notifies both companions) | ✅ |
+| 40 | `40_BOOKING_RACE_FIXES.sql` | closes double-tap `complete_booking` and `reschedule_booking` vs expiry-sweep races (FOR UPDATE + status re-check) | ✅ |
 
 \* 32 is a one-off data fix — re-run `select * from patients where customer_user_id = auth.uid() and deleted_at is null group by full_name having count(*) >1` after; flip to ✅ once merged (see `32_MERGE_DUPLICATE_PATIENTS.sql` foot query).
 

@@ -1,5 +1,6 @@
 'use client';
 
+import type { BookingStatus } from '@caresy/types';
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@caresy/auth/supabase/client';
@@ -13,11 +14,11 @@ import { ClipboardList, Users, CalendarClock, IndianRupee } from 'lucide-react';
 // tile says how many rows are still projections instead of quietly mixing them.
 // Per-booking money detail lives on /payments.
 
-const STATUS_ORDER = ['DRAFT', 'PENDING', 'ACCEPTED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
-const MUTED_STATUSES = new Set(['CANCELLED', 'EXPIRED']);
+const STATUS_ORDER: BookingStatus[] = ['DRAFT', 'PENDING', 'ACCEPTED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
+const MUTED_STATUSES = new Set<BookingStatus>(['CANCELLED', 'EXPIRED']);
 
 interface Stats {
-  byStatus: Record<string, number>;
+  byStatus: Record<BookingStatus, number>;
   totalBookings: number;
   todayBookings: number;
   activeCompanions: number;

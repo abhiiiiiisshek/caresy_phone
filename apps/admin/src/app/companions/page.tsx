@@ -107,6 +107,25 @@ function CompanionsBody() {
   // to the DB in the background. Revert on error.
   const applyStatus = useCallback(
     async (companion: CompanionRow, status: ApprovalStatus, rejection?: string) => {
+      if (status === 'SUSPENDED' || status === 'REJECTED') {
+        const { data: liveJobs } = await supabase
+          .from('bookings')
+          .select('id, reference_code, status')
+          .eq('companion_user_id', companion.id)
+          .in('status', ['ACCEPTED', 'IN_PROGRESS'])
+          .is('deleted_at', null)
+          .limit(10);
+        if (liveJobs && liveJobs.length > 0) {
+          const refs = liveJobs.map((j: { reference_code: string | null; id: string }) => j.reference_code || j.id.slice(0, 8)).join(', ');
+          const ok = typeof window !== 'undefined' ? window.confirm(
+            `${companion.full_name} has ${liveJobs.length} active job(s) (${refs}) in ACCEPTED/IN_PROGRESS. ` +
+            `Suspending/rejecting now will leave those visits without a companion. ` +
+            `Are you sure you want to ${status === 'SUSPENDED' ? 'suspend' : 'reject'} them?`
+          ) : true;
+          if (!ok) return;
+        }
+      }
+
       const snapshot = all;
       setAll((cur) => (cur ?? []).map((c) => c.id === companion.id
         ? { ...c, approval_status: status, rejection_reason: rejection ?? null,
