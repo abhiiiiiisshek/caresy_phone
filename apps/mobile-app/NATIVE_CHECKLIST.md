@@ -5,7 +5,7 @@ contracts, and Supabase queries/RPCs — **not** for layout or components. This
 file tracks what is built, what is deferred, and what must be restored before
 store submission.
 
-_Last updated: 2026-08-14._
+_Last updated: 2026-08-23 — corrected against actual repo/EAS state, several items below were stale (marked ⬜ while already built)._
 
 ## Design system
 
@@ -25,7 +25,8 @@ _Last updated: 2026-08-14._
 | Quick Help (urgent) | ✅ built | 3-step wizard, progress, chips, pincode `checkPincodeServed`, WhatsApp CTA | mirrors `apps/website/src/app/quick-help/page.tsx`; Settings folds into Profile per `MOBILE_PLAN.md` Phase 2 |
 | Profile (`app/profile.tsx`) | ✅ built | account info, activity links, help & support, sign out | folds Settings + Support per prior decision; read-only, "edit" routes to WhatsApp same as web |
 | Care / Guides (`app/care/index.tsx`, `app/care/[slug].tsx`) | ✅ built | list + detail, no icons/thumbnails, plain cards | content moved to `packages/utils/src/careGuides.ts` (was website-only `apps/website/src/lib/careGuides.ts`) so web + native share one source; website's 3 call sites + self-check repointed |
-| Account deletion | ⬜ todo | — | **store-compliance blocker** |
+| Account deletion (`app/account-delete.tsx`) | ✅ built | confirm form, signed-in gate | store-compliance blocker — resolved |
+| Auth (`app/index.tsx` signed-out) | ✅ built | Google + Apple Sign-In, animated mascot | Apple entitlement present (`com.apple.developer.applesignin`), wired in `AuthProvider.tsx` |
 
 ## Deferred functionality (must restore before submission)
 
@@ -43,9 +44,13 @@ Client-side validation is UX only — **server-side/RLS enforcement remains auth
    web has a map picker (`MeetingPoint`). Companion Open-in-Maps falls back to the
    address string. *Why:* needs native maps + location permission. *Restore:*
    native map picker + `expo-location` permission flow.
-4. **Rescheduling** — My Bookings ships Cancel (`cancel_booking` RPC) but not
-   Reschedule (`reschedule_booking`). *Why:* needs a native datetime picker. *Restore:*
-   reuse the Booking day/slot chooser (no extra dep) as a reschedule sheet.
+4. ~~**Rescheduling**~~ — **done** (`feature/mobile-reschedule`, merged
+   2026-08-22). Native `@react-native-community/datetimepicker` sheet in
+   `my-bookings.tsx`; client-side gated to `booking_type === 'SCHEDULED'`
+   only (urgent/INSTANT bookings can't be "rescheduled" — no fixed time to
+   move). Not yet verified on Android — picker renders per-platform
+   differently (`spinner` iOS vs native calendar/clock dialogs Android),
+   see the Android verify task below.
 5. **Embedded live map** — Tracking shows an "Open in Maps" deep link, not an
    inline map. Web embeds an OpenStreetMap iframe (no SDK). *Why deferred:* no
    WebView allowed; inline native map needs `react-native-maps` + platform config.
@@ -59,16 +64,62 @@ Client-side validation is UX only — **server-side/RLS enforcement remains auth
 
 ## Store-submission blockers (do NOT submit until done)
 
-- [x] Sign in with Apple — `expo-apple-authentication`, `ios.usesAppleSignIn`, wired in `lib/AuthProvider.tsx`
-- [x] Push notifications (`expo-notifications` plugin + AuthProvider registration; delivery unproven on device)
+- [x] Sign in with Apple — entitlement + `signInWithApple` wired, both on the
+      original companion-portal welcome screen and the ported `BeautifulAuth`
+      screen (`7734a94`)
+- [x] Push notifications — `expo-notifications` fully wired in
+      `AuthProvider.tsx`: permission request, Android notification channel,
+      `getExpoPushTokenAsync` → upserted to `push_tokens` (migration 21,
+      delivered via `api/cron/send-push`). Not yet proven end-to-end on a
+      real device (simulator can't receive real APNs/FCM pushes).
 - [x] Account deletion in-app — `app/account-delete.tsx`
-- [x] Privacy / data-safety disclosures + iOS privacy manifest — `app.json` `privacyManifests`, `PRIVACY_ANSWERS.md`
-- [x] Permissions strings (location, camera, notifications) — all `NS*UsageDescription` set
-- [ ] Offline / network-failure states across all screens
+- [ ] Privacy / data-safety disclosures — iOS `PrivacyInfo.xcprivacy` exists
+      and is filled in (not a stub — real `NSPrivacyAccessedAPITypes` /
+      `NSPrivacyCollectedDataTypes` entries). **Still open:** Play Console
+      Data Safety form (separate manual submission, not a code artifact) and
+      a public privacy-policy URL for App Store Connect's listing metadata —
+      confirm `apps/website/src/app/privacy` is live at a stable URL before
+      submission.
+- [x] Permissions strings — iOS: `NSLocationWhenInUseUsageDescription`,
+      `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription` all present
+      in `app.json`. Android: `ACCESS_FINE/COARSE_LOCATION`, `CAMERA` via
+      READ/WRITE_EXTERNAL_STORAGE, `RECORD_AUDIO` present in
+      `AndroidManifest.xml`. **Gap found this pass:** `POST_NOTIFICATIONS`
+      (required Android 13+ for `expo-notifications` to actually prompt) and
+      an explicit `CAMERA` permission line are both **missing** from
+      `AndroidManifest.xml` — fold into the Android verify task below.
+- [ ] Offline / network-failure states across all screens — not audited this
+      pass
 - [ ] Accessibility pass (labels present via design system; needs audit)
-- [ ] Production signing (Android keystore, iOS certs)
-- [ ] Google Play closed testing (12 testers × 14 days, personal account) + TestFlight
-- [ ] Real-device QA (iOS + Android)
+- [ ] Production signing — iOS: `DEVELOPMENT_TEAM` (`46CLB4HU9B`) set in the
+      Xcode project, `CODE_SIGN_STYLE = Automatic`, but that's the
+      dev-profile signing — **no production/store-distribution build has
+      ever been run** (`eas build:list` shows exactly one build, ever:
+      `development` profile, internal distribution, 2026-08-14). Android
+      keystore status unchecked this pass.
+- [ ] Google Play closed testing (12 testers × 14 days, personal account) +
+      **TestFlight — zero submissions exist** (`eas submit:list` returns
+      empty). `eas.json` `submit.production.ios` still has
+      `PLACEHOLDER_APPLE_ID` / `PLACEHOLDER_ASC_APP_ID` /
+      `PLACEHOLDER_APPLE_TEAM_ID` — needs a real App Store Connect app record
+      for `in.co.caresy.app` before this can be filled in.
+- [ ] Real-device QA — iOS: simulator only so far, no physical device.
+      Android: **never booted at all** — separate assigned task below,
+      not started as of this update.
+
+## Known open risk — `aps-environment` entitlement
+
+`ios/Caresy/Caresy.entitlements` hard-codes `aps-environment` to
+`development`. This is a static, checked-in bare-workflow file (no
+Continuous Native Generation on every build), so it's unclear whether EAS
+Build's credential service patches this automatically per build profile for
+a bare project, or whether it needs to become `production` by hand before a
+store build — get this wrong and push notifications silently fail at
+runtime (Apple does not reject the binary for it, so nothing surfaces until
+a real user reports missing pushes). **Do not blind-flip this value** —
+changing it to `production` without confirming EAS's behavior risks breaking
+the working `development`-profile signing that's currently fine. Needs
+research before either build, see the TestFlight-prep task below.
 
 ### iOS submit credentials
 

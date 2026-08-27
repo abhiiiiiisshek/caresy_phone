@@ -1,7 +1,7 @@
 // Native design-system primitives. Every screen composes these instead of
 // re-declaring StyleSheets. Haptics, accessibility and pressed-states live here
 // so they are consistent and free at the call site.
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -21,6 +21,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { Stack } from 'expo-router';
 
 import { color, material, radius, shadow, space, type } from '../lib/theme';
 
@@ -33,7 +34,9 @@ export function Stagger({ index = 0, children, style }: { index?: number; childr
   useEffect(() => {
     Animated.timing(a, { toValue: 1, duration: 480, delay: index * 56, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   }, [a, index]);
-  return <Animated.View style={[style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>{children}</Animated.View>;
+  // Default gap so multi-field steps get consistent, deterministic spacing
+  // instead of relying on incidental spacing from child components.
+  return <Animated.View style={[s.staggerGap, style, { opacity: a, transform: [{ translateY: a.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>{children}</Animated.View>;
 }
 
 /* ---------- Screen ---------- */
@@ -66,6 +69,54 @@ export function FormScreen({ children, footer }: { children: ReactNode; footer?:
         {footer}
       </KeyboardAvoidingView>
     </View>
+  );
+}
+
+/* ---------- SuccessScreen ---------- */
+
+// ONE shared completion screen for every flow that ends in a submit (quick
+// help, booking). A bare unstyled <View> here previously left the checkmark,
+// text and buttons crammed top-left with zero padding or gap — this is the
+// fix, plus haptic + a bouncy pop-in on the checkmark instead of a static one.
+export function SuccessScreen({
+  headerTitle, title, body, refCode, refLabel = 'Reference', primaryAction, secondaryAction,
+}: {
+  headerTitle?: string;
+  title: string;
+  body: string;
+  refCode?: string;
+  refLabel?: string;
+  primaryAction: { title: string; onPress: () => void };
+  secondaryAction?: { title: string; onPress: () => void };
+}) {
+  const [tick] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Animated.spring(tick, { toValue: 1, friction: 4, tension: 60, useNativeDriver: true }).start();
+  }, [tick]);
+
+  return (
+    <Screen>
+      {headerTitle ? <Stack.Screen options={{ headerShown: true, title: headerTitle, headerBackVisible: false }} /> : null}
+      <View style={s.successWrap}>
+        <Animated.View style={[s.tick, { transform: [{ scale: tick }] }]}>
+          <Txt variant="display" color={color.onGreen}>✓</Txt>
+        </Animated.View>
+        <Stagger index={1} style={s.successText}>
+          <Txt variant="h1" color={color.greenDeep} style={s.centerText}>{title}</Txt>
+          <Txt variant="body" color={color.muted} style={s.centerText}>{body}</Txt>
+        </Stagger>
+        {refCode ? (
+          <Stagger index={2}>
+            <View style={s.refBadge}><Txt variant="label" color={color.greenDeep}>{refLabel} {refCode}</Txt></View>
+          </Stagger>
+        ) : null}
+        <Stagger index={3} style={s.successActions}>
+          <Button title={primaryAction.title} onPress={primaryAction.onPress} style={s.successBtn} />
+          {secondaryAction ? <Button title={secondaryAction.title} variant="secondary" onPress={secondaryAction.onPress} style={s.successBtn} /> : null}
+        </Stagger>
+      </View>
+    </Screen>
   );
 }
 
@@ -202,9 +253,11 @@ export function BottomSheet({ visible, title, options, selectedKey, onSelect, on
                     <Txt variant="title" color={on ? color.greenDeep : color.ink}>{o.label}</Txt>
                     {o.desc ? <Txt variant="caption" color={color.muted}>{o.desc}</Txt> : null}
                   </View>
-                  <View style={[bs.check, on ? bs.checkOn : bs.checkOff]}>
-                    {on ? <Txt variant="label" color={color.onGreen}>✓</Txt> : null}
-                  </View>
+                  {on ? (
+                    <View style={bs.check}>
+                      <Txt variant="label" color={color.onGreen}>✓</Txt>
+                    </View>
+                  ) : null}
                 </Pressable>
               );
             })}
@@ -297,8 +350,15 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
 
 const s = StyleSheet.create({
   flex: { flex: 1 },
+  staggerGap: { gap: space.lg },
   screen: { flex: 1, backgroundColor: color.bg },
   formBody: { padding: space.xl, gap: space.lg, paddingBottom: space.xxl },
+  successWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.lg, padding: space.xl },
+  successText: { gap: space.xs, alignItems: 'center' },
+  successActions: { alignSelf: 'stretch', gap: space.md, marginTop: space.md },
+  successBtn: { alignSelf: 'stretch' },
+  tick: { width: 84, height: 84, borderRadius: radius.pill, backgroundColor: color.success, alignItems: 'center', justifyContent: 'center' },
+  refBadge: { backgroundColor: color.greenTint, paddingVertical: space.sm, paddingHorizontal: space.xl, borderRadius: radius.pill },
   card: { backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg },
   pressed: { opacity: 0.9, transform: [{ scale: 0.97 }] }, // legacy — prefer pressedCard
   pressedCard: { opacity: 0.97, transform: [{ scale: 0.97 }] }, // §1: 100ms scale 0.97, compositor-only §11
@@ -344,11 +404,9 @@ const bs = StyleSheet.create({
   handle: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: color.line, marginBottom: space.md },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xl, paddingBottom: space.md, borderBottomWidth: 1, borderBottomColor: color.line },
   closeBtn: { paddingVertical: 4, paddingHorizontal: space.sm },
-  list: { padding: space.md, gap: space.sm },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: space.lg, borderRadius: radius.lg, borderWidth: 1, borderColor: color.line, backgroundColor: color.surface, gap: space.md },
-  rowOn: { borderColor: color.green, backgroundColor: color.greenTint },
+  list: { paddingHorizontal: space.md },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: space.md, paddingHorizontal: space.sm, borderRadius: radius.md, borderBottomWidth: 1, borderBottomColor: color.line, gap: space.md },
+  rowOn: { borderBottomColor: 'transparent', backgroundColor: color.greenTint },
   rowLeft: { flex: 1, gap: 2 },
-  check: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
-  checkOff: { borderColor: color.line, backgroundColor: color.surface },
-  checkOn: { borderColor: color.green, backgroundColor: color.green },
+  check: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: color.green },
 });

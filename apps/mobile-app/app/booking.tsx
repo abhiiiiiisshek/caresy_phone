@@ -9,14 +9,13 @@ import { formatINR, priceForMinutes, eveningSurchargePaise } from '@caresy/utils
 import { availableSlots } from '@caresy/utils/slots';
 import { toE164, isValidIndianMobile } from '@caresy/utils/phone';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
-import { BottomSheet, Button, Card, Chip, ChipRow, Field, FieldButton, FormScreen, Overline, Screen, Stagger, Txt } from '../components/ui';
+import { BottomSheet, Button, Card, Chip, ChipRow, Field, FieldButton, FormScreen, Overline, Screen, Stagger, SuccessScreen, Txt } from '../components/ui';
 import { color, radius, space } from '../lib/theme';
 import { HOSPITALS, pincodeForArea } from '../lib/hospitals';
+import { useCurrentLocation } from '../lib/useLocation';
 
-// expo deps — dynamic require keeps tsc green until plugin native rebuild
-let Location: any = null;
+// expo dep — dynamic require keeps tsc green until plugin native rebuild
 let ImagePicker: any = null;
-try { Location = require('expo-location'); } catch {}
 try { ImagePicker = require('expo-image-picker'); } catch {}
 
 // Business rules mirror apps/website/src/app/booking (data contract, not layout).
@@ -74,9 +73,7 @@ export default function Booking() {
   const [meetMode, setMeetMode] = useState<'home' | 'hospital' | 'custom'>('custom');
   const [hospitalFocused, setHospitalFocused] = useState(false);
   const [pincodeCheck, setPincodeCheck] = useState<{ served: boolean; area?: string; city?: string } | null>(null);
-  const [locLoading, setLocLoading] = useState(false);
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [locError, setLocError] = useState<string | null>(null);
+  const { coords, loading: locLoading, error: locError, blocked: locBlocked, request: requestLocation, openSettings: openLocationSettings } = useCurrentLocation();
   const [docUri, setDocUri] = useState<string | null>(null);
   const [docUploading, setDocUploading] = useState(false);
 
@@ -137,25 +134,6 @@ export default function Booking() {
     else if (meetMode === 'home' && coords) setMeetAddress(`Current location · ${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`);
   }, [meetMode, hospital, coords]);
 
-  const requestLocation = async () => {
-    if (!Location) { setLocError('Location module not installed — run npm install then rebuild'); return false; }
-    setLocLoading(true); setLocError(null);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') { setLocError('Permission denied — enter address manually'); return false; }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy ? Location.Accuracy.Balanced : 3 });
-      setCoords({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-      return true;
-    } catch (e: any) {
-      setLocError(e?.message || 'Could not get location');
-      return false;
-    } finally { setLocLoading(false); }
-  };
-
-  useEffect(() => {
-    if (meetMode === 'home' && !coords && !locLoading && Location) { requestLocation(); }
-  }, [meetMode]);
-
   const pickSaved = (p: SavedPatient) => {
     setSelectedPatientId(p.id); setPatientName(p.full_name);
     setAge(p.age != null ? String(p.age) : ''); setEmergency(p.emergency_contact_phone ?? '');
@@ -186,13 +164,12 @@ export default function Booking() {
       if (err.trim()) Alert.alert('Almost there', err);
       return;
     }
-    // If At home and no coords yet, try to get location before advancing from step 2
-    if (step === 2 && meetMode === 'home' && !coords) {
-      const ok = await requestLocation();
-      if (!ok && !coords) {
-        // Allow continuing with manual address fallback
-        Alert.alert('Location', 'We could not get your location. Please check the meeting address field and continue.');
-      }
+    // "At home" needs either a captured location or a typed address — don't
+    // silently re-trigger the OS permission prompt on every Continue tap.
+    if (step === 2 && meetMode === 'home' && !coords && !meetAddress.trim()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Alert.alert('Meeting address needed', 'Tap "Share current location" above, or type the address by hand.');
+      return;
     }
     Haptics.selectionAsync();
     setTried(false);
@@ -274,17 +251,15 @@ export default function Booking() {
 
   if (successRef) {
     return (
-      <Screen>
-        <Stack.Screen options={{ headerShown: true, title: 'Booked', headerBackVisible: false }} />
-        <View>
-          <View style={s.tick}><Txt variant="display" color={color.onGreen}>✓</Txt></View>
-          <Txt variant="h1" color={color.greenDeep}>Request sent</Txt>
-          <Txt variant="body" color={color.muted} style={s.center}>We'll confirm a companion shortly and notify you.</Txt>
-          <View style={s.refBadge}><Txt variant="label" color={color.greenDeep}>Ref {successRef}</Txt></View>
-          <Button title="View my bookings" onPress={() => router.replace('/my-bookings')} style={s.successBtn} />
-          <Button title="Back home" variant="secondary" onPress={() => router.replace('/')} style={s.successBtn} />
-        </View>
-      </Screen>
+      <SuccessScreen
+        headerTitle="Booked"
+        title="Request sent"
+        body="We'll confirm a companion shortly and notify you."
+        refCode={successRef}
+        refLabel="Ref"
+        primaryAction={{ title: 'View my bookings', onPress: () => router.replace('/my-bookings') }}
+        secondaryAction={{ title: 'Back home', onPress: () => router.replace('/') }}
+      />
     );
   }
 
@@ -385,20 +360,24 @@ export default function Booking() {
               </Txt>
             </View>
           )}
-          {locError ? <Txt variant="caption" color={color.terracotta}>{locError}</Txt> : null}
-          {coords ? <Txt variant="caption" color={color.greenDeep}>✓ Location captured · {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}</Txt> : null}
-          {locLoading ? <Txt variant="caption" color={color.muted}>Getting your location…</Txt> : null}
           <Field label="Department (optional)" value={department} onChangeText={setDepartment} placeholder="Cardiology" />
           <Field label="Doctor (optional)" value={doctor} onChangeText={setDoctor} placeholder="Dr. Sharma" />
           <View style={s.meetGrid}>
             {[
-              { key: 'home', label: 'At home', sub: 'Use my location', tint: color.greenTint },
+              { key: 'home', label: 'At home', sub: 'Use my location', tint: color.card },
               { key: 'hospital', label: 'At hospital', sub: hospital || 'Hospital address', tint: color.card },
               { key: 'custom', label: 'Custom address', sub: 'Enter manually', tint: color.surface },
             ].map((o) => {
               const on = meetMode === o.key;
               return (
-                <Card key={o.key} onPress={() => setMeetMode(o.key as any)} style={[s.meetCard, on && s.optOn, { backgroundColor: on ? color.greenTint : o.tint }]}>
+                <Card
+                  key={o.key}
+                  onPress={() => {
+                    setMeetMode(o.key as any);
+                    if (o.key === 'home' && !coords) requestLocation();
+                  }}
+                  style={[s.meetCard, on && s.optOn, { backgroundColor: on ? color.greenTint : o.tint }]}
+                >
                   <View style={[s.meetAccent, on && s.meetAccentOn]} />
                   <Txt variant="title" color={on ? color.greenDeep : color.ink}>{o.label}</Txt>
                   <Txt variant="caption" color={color.muted} numberOfLines={1}>{o.sub}</Txt>
@@ -406,6 +385,27 @@ export default function Booking() {
               );
             })}
           </View>
+          {meetMode === 'home' && (
+            <View style={s.locRow}>
+              {locLoading ? (
+                <Txt variant="caption" color={color.muted}>Getting your location…</Txt>
+              ) : coords ? (
+                <Txt variant="caption" color={color.greenDeep}>✓ Location captured · {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}</Txt>
+              ) : locBlocked ? (
+                <Pressable onPress={openLocationSettings}>
+                  <Txt variant="caption" color={color.terracotta}>Location is off for Caresy — tap to open Settings</Txt>
+                </Pressable>
+              ) : locError ? (
+                <Pressable onPress={requestLocation}>
+                  <Txt variant="caption" color={color.terracotta}>{locError} — tap to try again</Txt>
+                </Pressable>
+              ) : (
+                <Pressable onPress={requestLocation}>
+                  <Txt variant="caption" color={color.greenDeep}>📍 Share current location</Txt>
+                </Pressable>
+              )}
+            </View>
+          )}
           <Field label="Meeting address" value={meetAddress} onChangeText={setMeetAddress} placeholder={meetMode === 'home' ? 'House no., street, landmark' : meetMode === 'hospital' ? (hospital || 'Hospital address') : 'Main gate / reception'} />
           <Txt variant="h2" color={color.ink}>Getting there</Txt>
           <FieldButton
@@ -542,7 +542,6 @@ export default function Booking() {
 }
 
 const s = StyleSheet.create({
-  center: { textAlign: 'center' },
   stepBody: { gap: space.lg },
   progressRow: { flexDirection: 'row', gap: space.xs },
   progressSeg: { flex: 1, height: 4, borderRadius: radius.pill },
@@ -560,10 +559,6 @@ const s = StyleSheet.create({
   footer: { flexDirection: 'row', gap: space.md, padding: space.lg, borderTopWidth: 1, borderTopColor: color.line, backgroundColor: color.surface },
   back: { flex: 1 },
   cta: { flex: 2 },
-  success: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.md, padding: space.xl },
-  tick: { width: 72, height: 72, borderRadius: radius.pill, backgroundColor: color.success, alignItems: 'center', justifyContent: 'center', marginBottom: space.sm },
-  refBadge: { backgroundColor: color.greenTint, paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, marginVertical: space.sm },
-  successBtn: { alignSelf: 'stretch' },
   suggestBox: { backgroundColor: color.surface, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, overflow: 'hidden', marginTop: -space.sm },
   suggestRow: { paddingVertical: space.sm, paddingHorizontal: space.md, borderBottomWidth: 1, borderBottomColor: color.line, gap: 2 },
   pincodeBadge: { marginTop: -space.sm, paddingVertical: 6, paddingHorizontal: space.md, borderRadius: radius.sm },
@@ -574,6 +569,7 @@ const s = StyleSheet.create({
   meetAccent: { height: 4, marginHorizontal: -space.lg, marginTop: -space.lg, marginBottom: space.xs, backgroundColor: color.line },
   meetAccentOn: { backgroundColor: color.green },
   meetLabel: { marginTop: space.sm },
+  locRow: { marginTop: -space.xs },
   meetHint: { gap: space.sm, backgroundColor: color.card },
   docCard: { gap: space.sm },
   docRow: { flexDirection: 'row', gap: space.sm },
