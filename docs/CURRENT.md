@@ -104,7 +104,21 @@ anon keys are rejected by this project.
   self-check live in `packages/utils/src/slots.ts`.
 - **Booking lifecycle state machine shipped (migrations 37-40).** `bookings.status` is now DB-enforced (`is_valid_booking_transition` + `trg_enforce_booking_transition`); status overrides require `admin_override_booking_status` with reason audit; companion reassignment is a first-class `reassign_booking` RPC (clock reset if IN_PROGRESS, dual notifications); `complete_booking`/`reschedule_booking` races closed with FOR UPDATE; companion Accept preflight overload unblocks every Accept; admin waive is stale-safe and companion suspend warns on live jobs; companion portal now polls every 60s when live, shows 20-row Updates panel, and handles 0-row races. Migrations 37-40 confirmed applied by hand in the Supabase SQL editor.
   Reviewed line-by-line against source (not just the diff) after first-pass implementation: found and fixed one real crash — `apps/companion/src/app/page.tsx`'s new poll `useEffect` referenced `fetchNotifications` before its own `const` declaration (temporal-dead-zone `ReferenceError` on every render of the companion dashboard). Fixed by reordering; `npx tsc --noEmit` clean on both `@caresy/admin` and `@caresy/companion` after the fix. Lint errors present in both apps (4 admin, 3 companion, all `no-explicit-any`/`react-hooks/set-state-in-effect`) traced individually to files/lines this work never touched — pre-existing, not regressions. `npm run build` for either app was **not** run as part of this review — do that before calling this fully shipped, since this repo's own `CLAUDE.md` calls it the real gate (catches server/client boundary issues `tsc` alone won't).
-  Open, non-blocking polish noted but not fixed: the combined admin "status + companion changed" save is two separate RPC calls, not one transaction (a mid-sequence failure leaves a partial save, correctly rejected but visible to the operator as two steps); the suspend/reject live-job warning uses a native `window.confirm` instead of the app's existing two-step-button confirm pattern; `reassign_booking` has no driving-licence pre-check, so reassigning a `CUSTOMER_VEHICLE` job to an unlicensed companion surfaces `guard_drive_assignment`'s raw trigger exception rather than a friendly message.
+  Polish items are now closed (2026-08-29, merged in d1de649): the combined admin
+  save is one transactional RPC (`42_ADMIN_SAVE_INTENT.sql` — explicit
+  `p_change_status`/`p_change_companion` flags, `FOR UPDATE`; migration 41 was a
+  first attempt whose NULL-means-two-things defect it supersedes); both native
+  `confirm()` sites use the app's two-step pattern; `reassign_booking` has a
+  `can_drive` pre-check before the RPC. Admin gates all green on `main`: tsc,
+  lint 0 errors, `next build` 14/14 routes, self-check exit 0. Companion app's
+  3 lint errors and its `npm run build` remain open (issues #20, #12).
+- **`is_admin()` failed open for anonymous callers — fixed 2026-08-29.** COALESCE
+  sat inside the scalar subquery, so a session with no `auth.uid()` returned NULL
+  rather than FALSE, and plpgsql does not take `IF NOT NULL THEN`. Three admin
+  RPCs were callable over PostgREST with only the publishable anon key. RLS still
+  hid booking IDs so exploitation needed a UUID leaked from elsewhere. Fixed in
+  `43_FIX_IS_ADMIN_NULL.sql` (applied); re-probed after — all three now 401.
+  Rule recorded in `docs/SECURITY.md`.
 - **Billing pipeline (migration 26) is shipped but still never exercised end to
   end by a human.** See step 5 above.
 - **Admin coverage is nearly complete.** `/payments` (owed / collected / waive)

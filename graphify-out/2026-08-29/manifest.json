@@ -249,9 +249,9 @@
     "semantic_hash": "e8a1e36484ce971b6ceb08a85fceda77"
   },
   "apps/admin/next.config.ts": {
-    "mtime": 1787942553.0138643,
-    "seen": 1787942717.686388,
-    "ast_hash": "18743e439cf825b80f6d91ae9b2d9ea4",
+    "mtime": 1787816154.5880902,
+    "seen": 1787842822.081268,
+    "ast_hash": "2fe0bd49bb005526992f19fd84a943a4",
     "semantic_hash": ""
   },
   "apps/admin/package.json": {
@@ -279,9 +279,9 @@
     "semantic_hash": ""
   },
   "apps/admin/src/app/companions/page.tsx": {
-    "mtime": 1787942553.0150073,
-    "seen": 1787942717.6867971,
-    "ast_hash": "f2cffd95f1b96568164e636462f7f4f0",
+    "mtime": 1787816154.5914474,
+    "seen": 1787842822.0812988,
+    "ast_hash": "643a714f05777f823c552672464c17d5",
     "semantic_hash": ""
   },
   "apps/admin/src/app/layout.tsx": {
@@ -297,9 +297,9 @@
     "semantic_hash": ""
   },
   "apps/admin/src/app/ops/page.tsx": {
-    "mtime": 1787942553.0185583,
-    "seen": 1787942717.686978,
-    "ast_hash": "68d4684f8c294830dbb2c66bd014d270",
+    "mtime": 1787816154.5941064,
+    "seen": 1787842822.0813131,
+    "ast_hash": "5d3a18bc84c6569b80bda65eaee1a0bb",
     "semantic_hash": ""
   },
   "apps/admin/src/app/page.tsx": {
@@ -309,9 +309,9 @@
     "semantic_hash": ""
   },
   "apps/admin/src/app/service-areas/page.tsx": {
-    "mtime": 1787942553.0197012,
-    "seen": 1787942717.6871529,
-    "ast_hash": "f80dacfcdf99aa74364f5d373d844162",
+    "mtime": 1787816154.5961607,
+    "seen": 1787842822.081323,
+    "ast_hash": "e46b926a2cd8353c2511c6850d7ad945",
     "semantic_hash": ""
   },
   "apps/admin/src/app/settings/page.tsx": {
@@ -813,9 +813,9 @@
     "semantic_hash": ""
   },
   "apps/admin/src/app/live/page.tsx": {
-    "mtime": 1787942553.016696,
-    "seen": 1787942717.686883,
-    "ast_hash": "fe83042ea2ef9805aa3fb46521e47dd6",
+    "mtime": 1787816154.5930295,
+    "seen": 1787842822.0813062,
+    "ast_hash": "17698ee4db532d2be9442b49cf4fae04",
     "semantic_hash": ""
   },
   "apps/admin/src/components/AdminShell.tsx": {
@@ -1637,21 +1637,21 @@
     "semantic_hash": ""
   },
   "docs/CURRENT.md": {
-    "mtime": 1787843923.7931218,
-    "seen": 1787942717.7069151,
+    "mtime": 1787842802.1352751,
+    "seen": 1787842822.0822241,
     "ast_hash": "830a51f5c20ddfa226339c10da3cc097",
     "semantic_hash": ""
   },
   "docs/DATABASE.md": {
-    "mtime": 1787942592.709531,
-    "seen": 1787942717.706918,
-    "ast_hash": "0b66b8ad3a94211328e3b220be6b8efe",
+    "mtime": 1787816154.8052807,
+    "seen": 1787842822.082229,
+    "ast_hash": "e33103e7013bb9fb7b6a3ee7aac02172",
     "semantic_hash": ""
   },
   "docs/SECURITY.md": {
-    "mtime": 1787942601.632236,
-    "seen": 1787942717.707413,
-    "ast_hash": "843db045cb694629e5e3441e15500434",
+    "mtime": 1787816154.811337,
+    "seen": 1787842822.082264,
+    "ast_hash": "b25dedc479bc37dcef4307bce6fba1ed",
     "semantic_hash": ""
   },
   "docs/TROUBLESHOOTING.md": {
@@ -1889,9 +1889,9 @@
     "semantic_hash": ""
   },
   "apps/mobile-app/app/index.tsx": {
-    "mtime": 1787942561.8739526,
-    "seen": 1787942717.689172,
-    "ast_hash": "5ab7380661a5bb68247b444088e8ccdb",
+    "mtime": 1787816154.615615,
+    "seen": 1787842822.081412,
+    "ast_hash": "960eb7b4253470458ef85f1a30655fb6",
     "semantic_hash": ""
   },
   "apps/mobile-app/app/my-bookings.tsx": {
@@ -1955,9 +1955,9 @@
     "semantic_hash": ""
   },
   "apps/mobile-app/lib/AuthProvider.tsx": {
-    "mtime": 1787942561.8749943,
-    "seen": 1787942717.6899142,
-    "ast_hash": "7d4be7e1a5fc8440f0078f517d133317",
+    "mtime": 1787816154.628453,
+    "seen": 1787842822.0814478,
+    "ast_hash": "865a154db06448ecd0861f2d3df1faab",
     "semantic_hash": ""
   },
   "apps/mobile-app/lib/hospitals.ts": {
@@ -2255,9 +2255,9 @@
     "semantic_hash": ""
   },
   "docs/PARALLEL_WORK.md": {
-    "mtime": 1787942577.1560016,
-    "seen": 1787942717.7073479,
-    "ast_hash": "582f1b4d8216f3fc0fd7726e931dd873",
+    "mtime": 1787816154.8104508,
+    "seen": 1787842822.0822558,
+    "ast_hash": "d76b5686b394e596917e70d220df76e7",
     "semantic_hash": ""
   },
   "prompt.md": {
@@ -2318,36 +2318,6 @@
     "mtime": 1787816154.6243892,
     "seen": 1787842822.0823622,
     "ast_hash": "958532b95c3e7d4997327dc977b80600",
-    "semantic_hash": ""
-  },
-  ".muse/notify.sh": {
-    "mtime": 1787900354.7789907,
-    "seen": 1787942717.686379,
-    "ast_hash": "5b9fedf2793111d8077f0eda973cebf6",
-    "semantic_hash": ""
-  },
-  "apps/admin/src/app/ops/admin_save_booking_edit.check.ts": {
-    "mtime": 1787942553.0173175,
-    "seen": 1787942717.686975,
-    "ast_hash": "7213670ead9a604ec78b6fd7d7f8cd92",
-    "semantic_hash": ""
-  },
-  "supabase/migrations/41_ADMIN_COMBINED_SAVE.sql": {
-    "mtime": 1787942553.0259655,
-    "seen": 1787942717.70319,
-    "ast_hash": "de86c1007b1a15a55f8e1a9f5cc802fc",
-    "semantic_hash": ""
-  },
-  "supabase/migrations/42_ADMIN_SAVE_INTENT.sql": {
-    "mtime": 1787942553.0273285,
-    "seen": 1787942717.7031941,
-    "ast_hash": "06f24dc0dfd0fe63a10a3cc783237381",
-    "semantic_hash": ""
-  },
-  "supabase/migrations/43_FIX_IS_ADMIN_NULL.sql": {
-    "mtime": 1787942282.5773993,
-    "seen": 1787942717.7031958,
-    "ast_hash": "f9047391a1dd5453b80a86bcc15fe7a2",
     "semantic_hash": ""
   }
 }
