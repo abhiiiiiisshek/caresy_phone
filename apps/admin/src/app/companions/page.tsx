@@ -80,6 +80,7 @@ function CompanionsBody() {
   const [all, setAll] = useState<CompanionRow[] | null>(null);
   const [filter, setFilter] = useState<ApprovalStatus | 'ALL'>('PENDING_REVIEW');
   const [active, setActive] = useState<CompanionRow | null>(null);
+  const [pendingConfirm, setPendingConfirm] = useState<{ companion: CompanionRow; status: ApprovalStatus; rejection?: string; refs: string; count: number } | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -103,28 +104,8 @@ function CompanionsBody() {
     [all, filter],
   );
 
-  // Optimistic: update the row locally + close the sheet immediately, then write
-  // to the DB in the background. Revert on error.
-  const applyStatus = useCallback(
+  const doApplyStatus = useCallback(
     async (companion: CompanionRow, status: ApprovalStatus, rejection?: string) => {
-      if (status === 'SUSPENDED' || status === 'REJECTED') {
-        const { data: liveJobs } = await supabase
-          .from('bookings')
-          .select('id, reference_code, status')
-          .eq('companion_user_id', companion.id)
-          .in('status', ['ACCEPTED', 'IN_PROGRESS'])
-          .is('deleted_at', null)
-          .limit(10);
-        if (liveJobs && liveJobs.length > 0) {
-          const refs = liveJobs.map((j: { reference_code: string | null; id: string }) => j.reference_code || j.id.slice(0, 8)).join(', ');
-          const ok = typeof window !== 'undefined' ? window.confirm(
-            `${companion.full_name} has ${liveJobs.length} active job(s) (${refs}) in ACCEPTED/IN_PROGRESS. ` +
-            `Suspending/rejecting now will leave those visits without a companion. ` +
-            `Are you sure you want to ${status === 'SUSPENDED' ? 'suspend' : 'reject'} them?`
-          ) : true;
-          if (!ok) return;
-        }
-      }
 
       const snapshot = all;
       setAll((cur) => (cur ?? []).map((c) => c.id === companion.id
@@ -152,6 +133,30 @@ function CompanionsBody() {
       }
     },
     [all, supabase, user?.id, show],
+  );
+
+  // Two-step confirm for destructive suspend/reject when the companion has
+  // live jobs — replaces the native window.confirm with the app's own
+  // Confirm/Cancel buttons (same pattern as payments page).
+  const requestStatus = useCallback(
+    async (companion: CompanionRow, status: ApprovalStatus, rejection?: string) => {
+      if (status === 'SUSPENDED' || status === 'REJECTED') {
+        const { data: liveJobs } = await supabase
+          .from('bookings')
+          .select('id, reference_code, status')
+          .eq('companion_user_id', companion.id)
+          .in('status', ['ACCEPTED', 'IN_PROGRESS'])
+          .is('deleted_at', null)
+          .limit(10);
+        if (liveJobs && liveJobs.length > 0) {
+          const refs = liveJobs.map((j: { reference_code: string | null; id: string }) => j.reference_code || j.id.slice(0, 8)).join(', ');
+          setPendingConfirm({ companion, status, rejection, refs, count: liveJobs.length });
+          return;
+        }
+      }
+      await doApplyStatus(companion, status, rejection);
+    },
+    [supabase, doApplyStatus],
   );
 
   const pendingCount = counts['PENDING_REVIEW'] || 0;
@@ -205,9 +210,24 @@ function CompanionsBody() {
         </div>
       )}
 
+      {pendingConfirm && (
+        <div className="adm-sheet-overlay" onClick={() => setPendingConfirm(null)}>
+          <div className="adm-sheet" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+            <h3 style={{ margin: '0 0 8px', color: 'var(--ink-teal)' }}>Active jobs will be left without a companion</h3>
+            <p className="adm-hint" style={{ display: 'block', marginBottom: 16 }}>
+              {pendingConfirm.companion.full_name} has {pendingConfirm.count} active job(s) ({pendingConfirm.refs}) in ACCEPTED/IN_PROGRESS. Suspending/rejecting now will leave those visits without a companion.
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <Button variant="outline" onClick={() => setPendingConfirm(null)}>Cancel</Button>
+              <Button variant="urgent" onClick={async () => { const p = pendingConfirm; setPendingConfirm(null); if (p) await doApplyStatus(p.companion, p.status, p.rejection); }}>{pendingConfirm.status === 'SUSPENDED' ? 'Suspend anyway' : 'Reject anyway'}</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {active && (
         <ReviewSheet companion={active} supabase={supabase}
-          onClose={() => setActive(null)} onAction={applyStatus}
+          onClose={() => setActive(null)} onAction={requestStatus}
           onDrivingSaved={(patch) => {
             setAll((cur) => (cur ?? []).map((c) => c.id === active.id ? { ...c, ...patch } : c));
             setActive((cur) => (cur ? { ...cur, ...patch } : cur));

@@ -52,7 +52,7 @@ interface TripRow {
   updated_at: string;
   booking?: {
     reference_code: string | null;
-    service_metadata: any;
+    service_metadata: Record<string, unknown> | null;
     patient?: { full_name?: string } | null;
     pickup_location?: { title?: string } | null;
   } | null;
@@ -132,7 +132,7 @@ function LiveBoard() {
 }
 
 function TripCard({ trip: t }: { trip: TripRow }) {
-  const companion = t.booking?.service_metadata?.companion?.name || 'Unassigned companion';
+  const companion = ((t.booking?.service_metadata as { companion?: { name?: string } } | null)?.companion?.name) || 'Unassigned companion';
   const patient = t.booking?.patient?.full_name || '—';
   const hospital = t.booking?.pickup_location?.title || '—';
   const eta = fmtEta(t.eta_seconds);

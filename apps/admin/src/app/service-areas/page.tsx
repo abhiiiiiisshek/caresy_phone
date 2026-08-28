@@ -40,6 +40,7 @@ function AreasBody() {
   const [city, setCity] = useState('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -73,9 +74,9 @@ function AreasBody() {
   };
 
   const remove = async (row: AreaRow) => {
-    if (!confirm(`Remove pincode ${row.pincode}?`)) return;
     const snapshot = rows;
     setRows((cur) => (cur ?? []).filter((r) => r.id !== row.id));
+    setConfirmId(null);
     const { error: err } = await supabase.from('service_areas').delete().eq('id', row.id);
     if (err) { setRows(snapshot); show(err.message, 'err'); }
     else show(`Pincode ${row.pincode} removed.`);
@@ -122,9 +123,16 @@ function AreasBody() {
                 <div className="adm-meta">{[r.area_name, r.city].filter(Boolean).join(' · ')}</div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => toggleActive(r)}>{r.is_active ? 'Disable' : 'Enable'}</Button>
-              <button onClick={() => remove(r)} aria-label="Remove" className="adm-signout" style={{ color: 'var(--terracotta)' }}>
-                <Trash2 style={{ width: 16, height: 16 }} />
-              </button>
+              {confirmId === r.id ? (
+                <span style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <Button variant="primary" size="sm" onClick={() => remove(r)}>Confirm</Button>
+                  <Button variant="outline" size="sm" onClick={() => setConfirmId(null)}>Cancel</Button>
+                </span>
+              ) : (
+                <button onClick={() => setConfirmId(r.id)} aria-label="Remove" className="adm-signout" style={{ color: 'var(--terracotta)' }}>
+                  <Trash2 style={{ width: 16, height: 16 }} />
+                </button>
+              )}
             </div>
           ))}
         </div>

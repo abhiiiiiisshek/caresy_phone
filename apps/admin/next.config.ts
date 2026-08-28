@@ -16,6 +16,7 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname, "../../"),
+  turbopack: { root: path.join(__dirname, "../../") },
   async headers() {
     return [{ source: '/:path*', headers: SECURITY_HEADERS }];
   },
