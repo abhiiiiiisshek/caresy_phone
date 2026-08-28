@@ -36,6 +36,249 @@ Next: <what should happen next in this area>
 
 ---
 
+### 2026-08-28 — Muse (worktree: caresy_admin_worktree, branch feature/admin-hardening)
+Did: Completed admin hardening (issues #13, #14, #15, #20 admin half) — all in worktree `caresy_admin_worktree` on `feature/admin-hardening` (branched from origin/main, 06cdaf2). Files touched: `apps/admin/src/app/ops/page.tsx` (collapsed two RPCs to single `admin_save_booking_edit`, added can_drive pre-check, typed `any` → Record<string,unknown>, fixed service_metadata casts), `apps/admin/src/app/companions/page.tsx` (replaced window.confirm with two-step overlay, state pendingConfirm), `apps/admin/src/app/service-areas/page.tsx` (replaced bare confirm() with Confirm/Cancel buttons, confirmId state), `apps/admin/src/app/live/page.tsx` (typed any), `apps/admin/next.config.ts` (minor), `docs/DATABASE.md` (added migration 41 row), new `supabase/migrations/41_ADMIN_COMBINED_SAVE.sql` (transactional wrapper delegates to admin_override_booking_status + reassign_booking), new `apps/admin/src/app/ops/admin_save_booking_edit.check.ts` (asserts failing companion leaves status unchanged, proves old two-RPC half-save).
+Left mid-flight: Worktree has uncommitted changes (6 modified, 2 untracked) — not pushed, not merged. Migration 41 written, NOT applied to Supabase. No changes to `apps/mobile-app/**`, `apps/companion/**`, `apps/website/**`, or `supabase/migrations/30–40`.
+Don't touch: `apps/mobile-app/**` (primary session), `docs/CURRENT.md` (primary), `apps/companion/**` (out of scope).
+Next: Account holder to apply `41_ADMIN_COMBINED_SAVE.sql` by hand in Supabase SQL editor then flip DATABASE.md row to ✅. Merge `feature/admin-hardening` → `main` after review (lint/build clean). Then `graphify update .` already attempted (no executable) — run from clean checkout if needed.
+Verification: `npx tsc --noEmit --project apps/admin/tsconfig.json` → 0 (clean), `npm run lint -w @caresy/admin` → 0 errors, 0 warnings (after fixing _e unused), `node --experimental-strip-types apps/admin/src/app/ops/admin_save_booking_edit.check.ts` → "all checks passed", `npm run build -w @caresy/admin` → compiled successfully in main (17.3s, workspace root clean when nested worktree moved aside; fails prunably when nested due to Next.js workspace inference, not code), `grep -rn "confirm" apps/admin/src` → no remaining window.confirm/bare confirm (only Confirm/Cancel UI state).
+
+### 2026-08-28 — task for Muse — Admin app hardening (GitHub issues #13, #14, #15, and the admin half of #20)
+
+**This repo now has a GitHub issue tracker.** Issues #5–#23 were filed on
+2026-08-27 from `docs/CURRENT.md`. Your four tasks below are #13, #14, #15 and
+the admin half of #20. Read each issue with `gh issue view <n>` before starting
+it — `gh` is installed and authenticated on the primary machine. Reference the
+issue in your commit (`Closes #13`) so the tracker closes itself.
+
+**Why this task is yours and not the primary session's:** the primary session is
+working inside `apps/mobile-app/` this week (iOS auth, entitlements, rebuilds).
+Everything below is `apps/admin/` plus one new migration. **Zero file overlap by
+design** — that is the whole point of the split. Do not wander outside the
+allowlist in section 7, even if you spot something worth fixing; write it in your
+log entry instead and let the primary session pick it up.
+
+#### 0. Isolation — do this first, before reading any code
+
+This machine currently has **one** worktree (`/Users/1234/Documents/caresy` on
+`main`). The worktrees named in older entries below (`caresy_m3_worktree`,
+`caresy_reschedule_worktree`, `caresy_structured_worktree`) **do not exist here** —
+this is a fresh clone, per the "clone fresh" instruction at the top of
+`docs/CURRENT.md`. Do not assume any path an old entry mentions still exists.
+Check first, then create your own:
+
+```
+cd /Users/1234/Documents
+git -C caresy fetch origin
+git -C caresy worktree add caresy_admin_worktree -b feature/admin-hardening origin/main
+cd caresy_admin_worktree
+git branch --show-current      # must print feature/admin-hardening
+git status --short             # must be empty before you write anything
+```
+
+Branch off `origin/main` — it is authoritative and all four apps typecheck on it.
+Do not branch off `feature/companion-portal`; it is behind.
+
+#### 1. Ground rules — these outlive this task, apply them to every future one
+
+These are the things that have actually gone wrong here before. Internalise them,
+do not just skim.
+
+**1.1 The repo is the source of truth. Docs go stale and will lie to you.**
+Two live examples found on 2026-08-27: `docs/CURRENT.md` described a mascot design
+system as in-flight that ADR-0012 had deleted outright two weeks earlier, and
+`graphify` pointed at `packages/ui/src/mascot/poses.tsx` and
+`apps/website/src/lib/careGuides.ts` — **neither file exists**. Two GitHub issues
+were filed off those stale claims and had to be closed again within the hour.
+Before you act on anything a doc asserts, confirm it against the file it names
+(`ls`, `rg`, open it). If a doc turns out to be wrong, fix the doc in the same
+commit as the work, and say so in your log entry.
+
+**1.2 Verify, then report — do not blind-edit.** When a task says "find out
+whether X", the deliverable is a written finding with the evidence that proves
+it, not a speculative edit. A wrong edit to a working system costs more than an
+hour of research.
+
+**1.3 Never apply a migration to the live database.** You write the `.sql` file
+and stop there. The account holder applies it by hand in the Supabase SQL editor
+and confirms back. This database has **live production data and real customers**.
+Say explicitly in your log entry: "migration 41 written, NOT applied".
+
+**1.4 Migration rules** (from `CLAUDE.md`, non-negotiable): sequential numbering,
+`NN_TOPIC.sql`, idempotent, and **never edited once it has been run** — fix
+forward with a new file. Every table gets its RLS policies in the same migration
+that creates it. End the file in an assertion block so it fails loudly rather
+than half-applying; migrations 30 and 31 are the pattern to copy. **The next free
+number is 41** — 40 is the highest today (`40_BOOKING_RACE_FIXES.sql`).
+
+**1.5 Money is integer paise, never floats**, and the variable name says so
+(`final_amount_paise`). Formatting happens only at the render edge via
+`formatINR`. Prices are computed in Postgres and written only through SECURITY
+DEFINER RPCs — the client never decides what is owed.
+
+**1.6 No `any` in committed code.** Model the type, or use `unknown` plus a
+narrow. Supabase FK joins come back typed as arrays even for many-to-one; cast
+with `as unknown as T[]` at the query boundary, not deeper.
+
+**1.7 Non-trivial logic leaves one runnable self-check.** No test framework here,
+deliberately. An `assert`-based `<module>.check.ts` sits next to the module and
+runs with `node --experimental-strip-types src/<module>.check.ts`. Silence means
+pass. Check **properties** (a state machine never reaches an illegal state), not
+just one happy-path example. UI and glue code get no test.
+
+**1.8 Never run `npm run dev` on this machine.** Turbopack has spawned runaway
+processes here. Verify with `npm run build` and a Vercel preview instead.
+
+**1.9 Read the smallest thing that answers the question.** `graphify query`
+first, then `rg` with a tight pattern when graphify is empty or stale, then a
+specific file range with `offset`/`limit`. Never read a whole page component or
+paste a whole migration into context to answer a narrow question.
+
+**1.10 Commit early, commit in chunks — an untracked file is work-at-risk.** A full
+day of work in one place with zero commits has no recovery point. Commit when a
+unit of work passes its own check, not when the whole task is finished. The
+review of this work found `git log main..HEAD` returning nothing with ten files
+uncommitted — that state must never recur.
+
+**1.11 Never route around an unexplained tool failure — explain it first.** The
+worktree's `tsc`/`build` failed not from a sandbox restriction or a workspace-alias
+problem but because `git worktree add` creates a checkout with no `node_modules`
+— the binaries simply did not exist until `npm install` was run at the worktree
+root. The build gate is this repo's real gate (`CLAUDE.md` — catches
+server/client boundary errors `tsc` alone will not). If a gate cannot run, that
+is a blocker to report, never a step to drop silently.
+
+#### 2. Task A — issue #13: the combined admin save is two RPCs, not one transaction
+
+**The bug, plainly:** in the admin ops board an operator can change a booking's
+status *and* reassign its companion in the same save. Those are two separate
+`supabase.rpc()` round-trips. If the first succeeds and the second fails, the
+booking is left in a half-saved state — status moved, companion not. The database
+correctly rejects the bad half, so nothing is corrupted, but the operator sees
+one action produce two outcomes and has no idea which stuck.
+
+**Where:** `apps/admin/src/app/ops/page.tsx`
+- line ~196 — `supabase.rpc('admin_override_booking_status', …)`
+- line ~209 — `supabase.rpc('reassign_booking', …)` nested inside the status branch
+- line ~225 — `supabase.rpc('reassign_booking', …)` again, the no-status-change path
+
+Read the whole `saveEdit` function before editing; there is optimistic local
+state (`setBookings`) with a `snapshot` rollback that you must keep working.
+
+**The fix:** write `supabase/migrations/41_ADMIN_COMBINED_SAVE.sql` adding one
+SECURITY DEFINER RPC — suggested `admin_save_booking_edit(p_booking uuid,
+p_status text, p_new_companion uuid, p_reason text)` — that performs both changes
+in a single transaction. Do **not** reimplement the logic: call the existing
+`admin_override_booking_status` and `reassign_booking` from inside it so the
+state-machine validation, the reason audit, the IN_PROGRESS clock reset and the
+dual notifications all keep working exactly as they do now. A Postgres function
+body is already one transaction, so either both apply or neither does.
+
+Handle the three real cases: status only, companion only, both. Guard it with the
+same admin check the other admin RPCs use — find it with
+`rg -n "is_admin" supabase/migrations/` and copy that pattern rather than
+inventing one. Then collapse the client down to one call.
+
+**Self-check required** (rule 1.7): the transaction property is exactly the kind
+of branchy logic that needs one. Assert that a failing companion reassignment
+leaves the status *unchanged*.
+
+#### 3. Task B — issue #14: native `window.confirm` instead of the app's own pattern
+
+**The bug, plainly:** two destructive actions in the admin app stop the operator
+with the browser's grey system dialog instead of the two-step confirm button this
+app already uses everywhere else. It looks broken and it is trivially mis-clicked.
+
+**Two sites — the issue named one, I found the second while verifying:**
+- `apps/admin/src/app/companions/page.tsx:120` — `window.confirm(...)` on the
+  suspend/reject live-job warning (the one the issue names)
+- `apps/admin/src/app/service-areas/page.tsx:76` — a bare
+  `confirm("Remove pincode …")` on a destructive delete
+
+Fix both in one pass. This is rule 1.1 in miniature: the ticket named a symptom
+at one location; the actual defect had two instances. **Before you edit, grep for
+every other caller** — `rg -n "confirm\(" apps/admin/src apps/companion/src` — and
+if there is a third, fix that too and say so.
+
+Find the existing two-step-button pattern first (`rg -n "confirm" apps/admin/src/components/`)
+and reuse it. Do not invent a second confirm mechanism, and do not add a modal
+library — `CLAUDE.md` forbids a new runtime dependency without an ADR.
+
+#### 4. Task C — issue #15: `reassign_booking` has no driving-licence pre-check
+
+**The bug, plainly:** if an operator reassigns a `CUSTOMER_VEHICLE` job (one where
+the companion drives the customer's car) to a companion with no verified driving
+licence, the database refuses it — a trigger called `guard_drive_assignment`
+throws. Correct outcome, terrible delivery: the operator gets a raw Postgres
+exception string instead of a sentence explaining the problem.
+
+The admin `/ops` board **already warns** before a driving assignment the database
+would refuse. The reassignment path just never got the same treatment. Find that
+existing warning (`rg -n "can_drive" apps/admin/src`) and apply the same check on
+the reassign path, so the operator is told *before* the call, in the app's own
+words.
+
+Note `can_drive` is deliberately not writable by the companion it gates (migration
+30 closed that hole) — do not "helpfully" make it settable anywhere.
+
+#### 5. Task D — issue #20 (admin half only): 4 lint errors
+
+`npm run lint -w @caresy/admin` reports 4 errors, all `no-explicit-any` or
+`react-hooks/set-state-in-effect`. They are **pre-existing, not regressions** —
+traced to files the booking-lifecycle work never touched. Fix the 4 admin ones
+properly per rule 1.6: model the real type. Do not silence them with
+`eslint-disable`, and do not touch the 3 companion-app errors — those are out of
+your allowlist and belong to a later task.
+
+#### 6. Verification gate — run all of it before you say "done"
+
+```
+npx tsc --noEmit                                   # in apps/admin
+npm run lint -w @caresy/admin                      # 0 errors when you are done
+node --experimental-strip-types <your>.check.ts    # Task A's self-check
+npm run build -w @caresy/admin                     # THE REAL GATE — Vercel runs this
+graphify update .
+```
+
+`build` is not optional and not interchangeable with `tsc`. It catches
+server/client boundary errors that `tsc` alone cannot see. A previous session
+shipped work marked complete on `tsc` alone and the gap was caught later in
+review — do not repeat that. If `build` fails for a reason unrelated to your
+change, say so explicitly with the error rather than quietly skipping it.
+
+Then update the doc your change invalidated, in the same commit:
+`docs/DATABASE.md` for migration 41, `docs/ARCHITECTURE.md` only if a module
+boundary actually moved.
+
+#### 7. Do NOT touch — hard boundary this week
+
+- **`apps/mobile-app/**` — all of it.** The primary session is live in there
+  (iOS auth screen, `AuthProvider.tsx`, entitlements, native rebuilds). This is
+  the one that will actually cause a painful merge conflict.
+- `docs/CURRENT.md` — primary session is editing it. Put your notes in **this**
+  file instead, in your own log entry.
+- `apps/companion/**` and `apps/website/**` — not in scope; the companion lint
+  errors are deliberately excluded from Task D.
+- `supabase/migrations/30–40` — already applied to production. **Never edit an
+  applied migration.** Fix forward in 41.
+- `graphify-out/` — regenerated output; commit it only as the byproduct of
+  `graphify update .`, never hand-edited.
+
+#### 8. Report back — append your own entry to this file when you stop
+
+Use the exact format at the top of this section (`Did / Left mid-flight / Don't
+touch / Next`). Specifically include:
+
+- the four tasks with per-task status — done / partial / not started, no vagueness
+- **the literal output** of each verification command in section 6, not "all green"
+- explicit confirmation: "migration 41 written, NOT applied to Supabase"
+- anything you found that is outside your allowlist and left alone — that list is
+  genuinely useful to the primary session, do not silently drop it
+- any doc you found to be stale (rule 1.1) and whether you fixed it
+
+If something blocks you, stop and write the blocker in your entry rather than
+working around it by touching a file in section 7.
+
 ### 2026-08-24 — primary session — branch `feature/companion-portal` (worktree: `caresy_m3_worktree`, work done in `caresy_structured_worktree` on `feature/mobile-auth-polish`, then merged)
 Did: user asked directly for the Login/Sign-up framing + medical touch on
 `BeautifulAuth` (`app/index.tsx`) — this overlaps Section 2 of the

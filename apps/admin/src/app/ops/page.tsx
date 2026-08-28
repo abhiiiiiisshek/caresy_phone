@@ -56,11 +56,11 @@ interface BookingRecord {
   special_instructions: string | null;
   service_type: string;
   booking_type: string;
-  service_metadata: any;
+  service_metadata: Record<string, unknown> | null;
   companion_user_id: string | null;
   transport_mode: string | null;
-  patient?: any;
-  pickup_location?: any;
+  patient?: { full_name: string; age: number | null; emergency_contact_phone: string | null } | null;
+  pickup_location?: { title: string | null; address_line_1: string | null } | null;
 }
 
 const TRANSPORT_LABEL: Record<string, string> = {
@@ -77,6 +77,7 @@ interface ApprovedCompanion {
   photo_url: string | null;
   rating: number | null;
   total_jobs: number;
+  can_drive: boolean;
 }
 
 interface OpsMetrics { active_companions: number; avg_callback_minutes: number }
@@ -125,7 +126,7 @@ function OpsBoard() {
       const [bRes, cRes, mRes] = await Promise.all([
         supabase.from('bookings').select(BOOKING_SELECT).order('created_at', { ascending: false }),
         supabase.from('companions')
-          .select('id, full_name, specialties, languages, photo_url, rating, total_jobs')
+          .select('id, full_name, specialties, languages, photo_url, rating, total_jobs, can_drive')
           .eq('approval_status', 'APPROVED').is('deleted_at', null).order('full_name'),
         supabase.from('ops_metrics').select('active_companions, avg_callback_minutes').eq('id', 1).single(),
       ]);
@@ -152,10 +153,9 @@ function OpsBoard() {
 
   // Optimistic save: the card updates (and moves columns) immediately; the DB
   // write runs in the background; on failure we restore the snapshot and keep
-  // the operator's selections so they can retry. Status changes go through the
-  // audited admin_override_booking_status RPC (state-machine + reason required);
-  // companion changes will move to reassign_booking() in Phase 2 — for Phase 1
-  // they still use a plain update but never bundled with a status change.
+  // the operator's selections so they can retry. Status + companion changes go
+  // through the single transactional admin_save_booking_edit RPC — either both
+  // apply or neither does (migration 41).
   const save = useCallback(async (bookingId: string) => {
     const edit = edits[bookingId];
     const booking = (bookings ?? []).find((b) => b.id === bookingId);
@@ -167,6 +167,16 @@ function OpsBoard() {
     if (statusChanged && (!edit.overrideReason || edit.overrideReason.trim() === '')) {
       show('A reason is required for a manual status override', 'err');
       return;
+    }
+
+    // Driving-licence pre-check: surface a friendly message before the RPC
+    // would hit guard_drive_assignment's raw trigger exception.
+    if (companionChanged && edit.companionId) {
+      const target = companions.find((c) => c.id === edit.companionId);
+      if (booking.transport_mode === 'CUSTOMER_VEHICLE' && target && !target.can_drive) {
+        show(`${target.full_name} has no verified driving licence — verify under Companions → Driving licence first.`, 'err');
+        return;
+      }
     }
 
     const matched = companions.find((c) => c.id === edit.companionId) || null;
@@ -182,50 +192,25 @@ function OpsBoard() {
       color: '#08796f',
     } : null;
 
-    const updatedMetadata = { ...(booking.service_metadata || {}), companion: matchedCompanion };
+    const updatedMetadata = { ...(booking.service_metadata as Record<string, unknown> || {}), companion: matchedCompanion };
     const snapshot = bookings;
 
     setBookings((cur) => (cur ?? []).map((b) => b.id === bookingId
-      ? { ...b, status: edit.status, companion_user_id: edit.companionId || null, service_metadata: updatedMetadata }
+      ? { ...b, status: edit.status, companion_user_id: edit.companionId || null, service_metadata: updatedMetadata as Record<string, unknown> }
       : b));
     setSavingId(bookingId);
     show(`Updated ${booking.reference_code}`);
 
-    // Status change must go through audited RPC (state machine + reason)
-    if (statusChanged) {
-      const { error: rpcErr } = await supabase.rpc('admin_override_booking_status', {
+    const needsRpc = statusChanged || companionChanged;
+
+    if (needsRpc) {
+      const { error } = await supabase.rpc('admin_save_booking_edit', {
         p_booking: bookingId,
         p_status: edit.status,
-        p_reason: edit.overrideReason.trim(),
-      });
-      if (rpcErr) {
-        setBookings(snapshot);
-        show(rpcErr.message, 'err');
-        setSavingId(null);
-        return;
-      }
-      // If companion also changed, reassign via RPC (resets clock if IN_PROGRESS, notifies both)
-      if (companionChanged) {
-        const { error: reassignErr } = await supabase.rpc('reassign_booking', {
-          p_booking: bookingId,
-          p_new_companion: edit.companionId || null,
-          p_reason: edit.overrideReason?.trim() || null,
-        });
-        if (reassignErr) {
-          setBookings(snapshot);
-          show(reassignErr.message, 'err');
-        }
-      }
-      setSavingId(null);
-      return;
-    }
-
-    // No status change — companion reassignment goes through RPC (notifies both, resets clock if IN_PROGRESS)
-    if (companionChanged) {
-      const { error } = await supabase.rpc('reassign_booking', {
-        p_booking: bookingId,
         p_new_companion: edit.companionId || null,
-        p_reason: edit.overrideReason?.trim() || null,
+        p_reason: (edit.overrideReason?.trim() || null) as string | null,
+        p_change_status: statusChanged,
+        p_change_companion: companionChanged,
       });
       setSavingId(null);
       if (error) {
@@ -235,8 +220,9 @@ function OpsBoard() {
       return;
     }
 
+    // Metadata-only save (companion overlay for display) — no RPC needed.
     const { error } = await supabase.from('bookings').update({
-      service_metadata: updatedMetadata,
+      service_metadata: updatedMetadata as Record<string, unknown>,
     }).eq('id', bookingId);
     setSavingId(null);
     if (error) {
@@ -335,7 +321,7 @@ function JobCard({
   onEdit: (patch: Partial<{ companionId: string; status: string; overrideReason: string }>) => void;
   onSave: () => void;
 }) {
-  const meta = b.service_metadata || {};
+  const meta = (b.service_metadata || {}) as Record<string, string | undefined>;
   const isUrgent = b.booking_type === 'INSTANT';
   const when = b.scheduled_start_time
     ? new Date(b.scheduled_start_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
