@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 # expo
 .expo/
+
+# Sibling worktrees accidentally created inside the repo (see PARALLEL_WORK.md)
+/caresy_*_worktree/

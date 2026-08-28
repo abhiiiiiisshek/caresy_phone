@@ -8,6 +8,10 @@ import Constants from 'expo-constants';
 // worse, appeared to make the native module resolve to null at runtime,
 // which silently fell back to a flat opacity overlay instead of a gradient.
 import { LinearGradient } from 'expo-linear-gradient';
+// Apple's own button — App Store Review 4.8 / Sign in with Apple HIG require
+// ASAuthorizationAppleIDButton, not a hand-styled lookalike. Static import for
+// the same dev-client reason as LinearGradient above.
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 import { useAuth } from '../lib/AuthProvider';
 import { supabase } from '../lib/supabase';
@@ -489,14 +493,16 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
         </Pressable>
 
         {appleAvailable ? (
-          <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onApple(); }} disabled={signingIn} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.9 }]}>
-            <View style={a.btnRow}>
-              <View style={a.aBadge}>
-                {SymbolView ? <SymbolView name="apple.logo" size={14} tintColor="#fff" /> : <Text style={a.aTxt}>A</Text>}
-              </View>
-              <Text style={a.secondaryTxt}>Continue with Apple</Text>
-            </View>
-          </Pressable>
+          // Native button: no `disabled` prop exists, so gate presses on the wrapper.
+          <View pointerEvents={signingIn ? 'none' : 'auto'} style={signingIn ? { opacity: 0.6 } : undefined}>
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={26}
+              style={a.appleBtn}
+              onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onApple(); }}
+            />
+          </View>
         ) : null}
 
         <View style={a.dividerRow}>
@@ -551,8 +557,9 @@ const a = StyleSheet.create({
   btnRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   gBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   gTxt: { fontSize: 14, fontWeight: '800', color: '#1B4D3E' },
-  aBadge: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  aTxt: { fontSize: 13, fontWeight: '800', color: '#fff' },
+  // Apple's button renders natively and needs an explicit height; 52 matches
+  // secondaryBtn so the stack keeps its rhythm. cornerRadius is set as a prop.
+  appleBtn: { height: 52, width: '100%' },
   primaryTxt: { fontSize: 16, fontWeight: '700', color: '#fff' },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 2 },
   divLine: { flex: 1, height: 1, backgroundColor: '#E8ECE9' },

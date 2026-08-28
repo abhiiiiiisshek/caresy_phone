@@ -167,7 +167,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const Crypto = require('expo-crypto');
       // 32-char random + timestamp for uniqueness
-      rawNonce = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      // Must be cryptographically random — this nonce is the replay guard on the
+      // Apple identity token. Math.random() is a seeded PRNG and predictable.
+      rawNonce = Array.from(Crypto.getRandomBytes(32), (b: number) => b.toString(16).padStart(2, '0')).join('');
       if (Crypto?.digestStringAsync && Crypto?.CryptoDigestAlgorithm?.SHA256) {
         hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
       } else if (Crypto?.digestStringAsync) {
