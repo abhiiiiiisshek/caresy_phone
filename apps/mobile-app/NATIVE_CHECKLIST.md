@@ -84,10 +84,15 @@ Client-side validation is UX only — **server-side/RLS enforcement remains auth
       `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription` all present
       in `app.json`. Android: `ACCESS_FINE/COARSE_LOCATION`, `CAMERA` via
       READ/WRITE_EXTERNAL_STORAGE, `RECORD_AUDIO` present in
-      `AndroidManifest.xml`. **Gap found this pass:** `POST_NOTIFICATIONS`
-      (required Android 13+ for `expo-notifications` to actually prompt) and
-      an explicit `CAMERA` permission line are both **missing** from
-      `AndroidManifest.xml` — fold into the Android verify task below.
+      `AndroidManifest.xml`. **Corrected 2026-08-29 — this was a false
+      alarm.** `POST_NOTIFICATIONS` and `CAMERA` are not declared in app.json
+      because they do not need to be: `expo-notifications` and
+      `expo-image-picker` each declare them in their own library
+      `android/src/main/AndroidManifest.xml`, and Android's manifest merger
+      folds library permissions into the final app manifest at build time.
+      Verified by reading both library manifests. There is no `android/`
+      directory to inspect in this repo (CNG/prebuild), which is likely what
+      the original check misread.
 - [ ] Offline / network-failure states across all screens — not audited this
       pass
 - [ ] Accessibility pass (labels present via design system; needs audit)

@@ -70,8 +70,7 @@
         "backgroundColor": "#f8faf5",
         "foregroundImage": "./assets/icon.png"
       },
-      "predictiveBackGestureEnabled": false,
-      "usesCleartextTraffic": true
+      "predictiveBackGestureEnabled": false
     },
     "runtimeVersion": {
       "policy": "fingerprint"
