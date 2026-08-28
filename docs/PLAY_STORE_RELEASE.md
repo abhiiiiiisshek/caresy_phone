@@ -18,25 +18,18 @@ first, polish second.**
 | Production profile | `app-bundle` (AAB — correct for Play), `autoIncrement: true`, `appVersionSource: remote` |
 | Remote `versionCode` | 1 — next production build becomes 2 |
 | Prior Android build | one, `development` profile, 2026-08-14, **succeeded** |
-| Keystore | **almost certainly already exists on EAS** — that Android build could not have been signed without one. Confirm with the command below. |
+| Keystore | **Exists. Confirmed 2026-08-29** — build log: `Using Keystore from configuration: Build Credentials tX_VA-aRur (default)`. Nothing to generate. |
 | Play Console account | registered and verified |
 | Testers available | 14 people on hand (need 12; the extra 2 are the safety margin — see below) |
 | `google-services.json` | present (FCM push) |
 | Sign-in | Google + Apple OAuth via `supabase.auth.signInWithOAuth` and `signInWithIdToken`. **No phone OTP**, so a reviewer can sign in with their own Google account. |
 
-## Keystore — read this before generating anything
+## Keystore — already done, do not regenerate
 
-**Do not create a new keystore if one already exists.** Confirm first:
-
-```
-cd apps/mobile-app
-npx eas-cli credentials -p android
-```
-
-That is an interactive menu — pick the `production` build profile, then
-`Keystore: Manage everything needed to build your project`. If it shows an
-existing keystore with a SHA-1 fingerprint, you are done; write the fingerprint
-into this file's log at the bottom and move on.
+EAS holds the upload keystore as build credentials `tX_VA-aRur (default)`, and
+the 2026-08-29 production build used it. **There is nothing to create.** To see
+its SHA-1 fingerprint: `npx eas-cli credentials -p android` (interactive — pick
+the `production` profile, then the Keystore menu).
 
 **Understand what the keystore actually is here.** With Play App Signing (on by
 default for all new apps, and not optional for new apps since 2021) Google holds
@@ -51,7 +44,12 @@ generate one by hand with `keytool` and do not commit it.
 
 Steps 1–4 are the clock. Do them in one sitting.
 
-### 1. Build a production AAB
+### 1. Build a production AAB — done 2026-08-29
+
+First production build: `versionCode` 2,
+https://expo.dev/accounts/caresy/projects/caresy/builds/6c8195e1-ba9f-4695-ada6-ddb7f20db6b2
+
+For subsequent builds:
 
 ```
 cd apps/mobile-app
@@ -149,6 +147,9 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-08-29** — First production AAB queued (`versionCode` 2). Keystore
+  confirmed to already exist as EAS build credentials `tX_VA-aRur (default)` —
+  issue #19's "keystore not started" was stale.
 - **2026-08-29** — Runbook created. Confirmed keystore state indirectly (a
   successful signed Android build exists from 2026-08-14). Corrected two false
   "missing permission" entries in `NATIVE_CHECKLIST.md`: `POST_NOTIFICATIONS`
