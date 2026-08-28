@@ -64,3 +64,26 @@ Rotate in the Supabase dashboard → update Vercel env for every affected app �
 redeploy → check `audit_logs` and `notifications` for activity in the window.
 Anon-key leaks are low severity by design (RLS holds); a **service-role leak is
 total compromise** — rotate immediately.
+
+## `is_admin()` must never return NULL (2026-08-29)
+
+`is_admin()` originally wrapped its COALESCE *inside* the scalar subquery:
+
+```sql
+RETURN (SELECT COALESCE(..., FALSE) FROM auth.users u WHERE u.id = auth.uid());
+```
+
+For an anonymous caller `auth.uid()` is NULL, the WHERE matches no row, the
+COALESCE never runs, and the subquery returns **NULL**. `IF NOT NULL THEN` is not
+taken in plpgsql, so every `IF NOT is_admin() THEN RAISE` guard failed open —
+`admin_save_booking_edit`, `admin_override_booking_status` and `reassign_booking`
+were all callable over PostgREST with just the publishable anon key. RLS still hid
+booking IDs, so exploitation needed a leaked UUID, but the guard itself was dead.
+
+Fixed in `43_FIX_IS_ADMIN_NULL.sql` (COALESCE outside the subquery, plus `REVOKE
+EXECUTE ... FROM anon` on the three RPCs as a second layer).
+
+**Rule:** a boolean guard function must return a boolean, never NULL. RLS `USING`
+clauses treat NULL as deny, which is safe; plpgsql `IF NOT` treats it as pass,
+which is not. Any new SECURITY DEFINER guard gets an assertion proving it returns
+FALSE — not NULL — for a session with no `auth.uid()`.
