@@ -81,15 +81,6 @@ function adminSaveBookingEdit(
   }
 }
 
-// Back-compat shim for old tests that passed 5 args (status, companion, reason, isAdmin)
-function adminSaveBookingEditLegacy(p_booking: string, p_status: string | null, p_new_companion: string | null, p_reason: string | null, isAdmin: any = true) {
-  // Infer intent the old buggy way — kept only for the half-save contrast test
-  const cur = bookings.get(p_booking)!;
-  const statusChanged = p_status != null && p_status !== '' && p_status !== cur.status;
-  const companionChanged = p_new_companion !== cur.companion_user_id;
-  return adminSaveBookingEdit(p_booking, p_status, p_new_companion, p_reason, statusChanged, companionChanged, isAdmin === true ? true : isAdmin);
-}
-
 // Also simulate the old two-RPC non-transactional path for contrast
 function oldTwoRpc(p_booking: string, p_status: string | null, p_new_companion: string | null, p_reason: string | null) {
   const cur = bookings.get(p_booking)!;
