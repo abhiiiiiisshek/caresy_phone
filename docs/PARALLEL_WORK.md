@@ -134,6 +134,20 @@ first, then `rg` with a tight pattern when graphify is empty or stale, then a
 specific file range with `offset`/`limit`. Never read a whole page component or
 paste a whole migration into context to answer a narrow question.
 
+**1.10 Commit early, commit in chunks — an untracked file is work-at-risk.** A full
+day of work in one place with zero commits has no recovery point. Commit when a
+unit of work passes its own check, not when the whole task is finished. The
+review of this work found `git log main..HEAD` returning nothing with ten files
+uncommitted — that state must never recur.
+
+**1.11 Never route around an unexplained tool failure — explain it first.** The
+worktree's `tsc`/`build` failed not from a sandbox restriction or a workspace-alias
+problem but because `git worktree add` creates a checkout with no `node_modules`
+— the binaries simply did not exist until `npm install` was run at the worktree
+root. The build gate is this repo's real gate (`CLAUDE.md` — catches
+server/client boundary errors `tsc` alone will not). If a gate cannot run, that
+is a blocker to report, never a step to drop silently.
+
 #### 2. Task A — issue #13: the combined admin save is two RPCs, not one transaction
 
 **The bug, plainly:** in the admin ops board an operator can change a booking's
