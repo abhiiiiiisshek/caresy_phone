@@ -2,87 +2,143 @@
 
 **Read this first on restart — this is the ONE file for all progress. All other handoff/progress files are deprecated. Update this file before every `/clear`. Durable facts live in [PROJECT_MEMORY.md](./PROJECT_MEMORY.md). Claude + Muse both use this.**
 
-_Last updated: 2026-08-19 (session 2) — branch `feature/mobile-quick-help`, uncommitted working-tree changes, `tsc 0` mobile-app._
+_Last updated: 2026-08-29. Branch `main`, clean, pushed at `26dc82a`. All apps typecheck; admin builds._
 
-## In progress — mobile UI parity pass (this session)
+## Where things stand
 
-User: home screen looks good, every other screen "looks static" vs website. Ran an Explore audit comparing all 10 `apps/mobile-app/app/*.tsx` screens against `components/ui.tsx` primitives + website equivalents. Full ranked findings not persisted verbatim — re-run the audit prompt if detail needed beyond below.
+Everything from the 2026-08-28/29 sessions is **merged to `main` and pushed**.
+There is no in-flight branch and no uncommitted work. The two things blocking
+progress are both waiting on the account holder, not on code.
 
-**Root cause found:** `Stagger` (entrance animation, RN `Animated`, opacity 0→1 + translateY→0) was copy-pasted locally into `index.tsx`, `booking.tsx`, and `quick-help.tsx` — never exported from `ui.tsx`, so the other 7 screens had zero animation and no easy way to add it.
+### Blocked on you — do these first
 
-**Done this session:**
-- Hoisted `Stagger` into `components/ui.tsx` (exported, `index`-based 56ms cadence, 480ms cubic-out) — single source now.
-- `index.tsx`, `booking.tsx`, `quick-help.tsx` — removed local `Stagger` duplicates, import shared one, dropped now-unused `useRef`/`Animated`/`Easing` imports.
-- `support.tsx` (ranked **worst** of the 10 — manual chip markup, zero animation) — replaced hand-rolled chip `Pressable`s with shared `Chip`/`ChipRow`, wrapped intro/category-chips/FAQ-list/escalate-card in `Stagger`, deleted dead `s.chips`/`s.chip`/`s.chipOn` styles. `tsc 0`.
-- `family.tsx` (2nd worst) — fixed dead `s.topBar` bind (now applied to intro View), wrapped intro, add/edit form card, and each `FlatList` row in `Stagger`. `tsc 0`.
-- `profile.tsx` — `s.headerWrap` bind fixed via `cavecrew-builder` subagent, confirmed + `tsc 0`. Then wrapped header/Account/Activity/Help & support/Danger zone/Sign-out in `Stagger` (index 0-5). `tsc 0`.
-- `my-bookings.tsx` — `s.tabs` bind fixed via subagent. `Stagger` added: filter-chip row (index 0), each `BookingCard` in `FlatList` (index+1). `tsc 0`. Still open: no companion photo in `BookingCard` (lower priority, from original audit).
-- `tracking.tsx` — `s.step` bind fixed (timeline row) via subagent, stale `{/* stagger */}` comment deleted. Then wrapped headline/companion-card/location-card in `Stagger` (index 0-2), each timeline step (index `i+3`), share button (index `steps.length+3`). `tsc 0`.
-- `account-delete.tsx` — wrapped confirm-form body in `Stagger` (index 0) via `cavecrew-builder` subagent. "Sign in required" / "Account deleted" states left untouched (single-state screens, low value). `tsc 0`.
+1. **Paste the failing build log.** The Android production build fails at the
+   `Configure expo-updates` phase, ~58s in, reproducibly (two runs, versionCode 2
+   and 3). The CLI only reports "Unknown error". Open
+   https://expo.dev/accounts/caresy/projects/caresy/builds/614e92d4-247a-4d9f-ac07-a49b7699dff7,
+   expand that phase, paste the output.
+   Already ruled out: the `app.json` edit (one boolean removed, valid JSON),
+   fingerprint computation (`expo-updates fingerprint:generate` clean locally),
+   missing `google-services.json` (it is git-tracked), credentials (both runs
+   resolved the keystore fine). The raw log blob EAS serves is not gzip/zlib/
+   deflate — three decode attempts failed, so read it in the browser.
 
-**Not committed yet** — working tree has: `components/ui.tsx`, `app/index.tsx`, `app/booking.tsx`, `app/quick-help.tsx`, `app/support.tsx`, `app/family.tsx`, `app/profile.tsx`, `app/my-bookings.tsx`, `app/tracking.tsx`, `app/account-delete.tsx`.
+2. **EAS production env vars are missing — a green build would still be broken.**
+   `lib/supabase.ts:50-51` reads `EXPO_PUBLIC_SUPABASE_URL` /
+   `EXPO_PUBLIC_SUPABASE_ANON_KEY`. Those exist only in
+   `apps/mobile-app/.env.local`, which is gitignored, so EAS has never had them.
+   Any AAB built today ships with no Supabase credentials and dies at launch.
+   Fix before **any** tester build:
+   ```
+   npx eas-cli env:create --environment production --name EXPO_PUBLIC_SUPABASE_URL --value <url> --visibility plaintext
+   npx eas-cli env:create --environment production --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <key> --visibility plaintext
+   ```
+   Not yet run — it pushes a credential to a third party, so it needs an explicit
+   go-ahead.
 
-## Next task
+3. **Rotate the GitHub PAT.** Pasted in plaintext on 2026-08-27, stored at
+   `~/.caresy-gh-token` (mode 600) and in the gh keyring at the user's request.
+   Still not rotated.
 
-**`care/index.tsx`** — add `Stagger` (missing) + photo-bleed `ActionCard` treatment that `index.tsx` has (creative — website comparison needed, keep for direct work not subagent). Then **`care/[slug].tsx`** — add `Stagger` to hero/text blocks, lowest-risk gap, likely last screen needed for parity.
+## Shipped 2026-08-29 (all on `main`)
 
-## Leftovers — remaining screens, worst → best (from same audit)
+- **Admin hardening** — issues #13, #14, #15 closed. `admin_save_booking_edit`
+  takes explicit `p_change_status` / `p_change_companion` intent flags and takes
+  `FOR UPDATE` before deciding; both native `confirm()` sites replaced with the
+  app's two-step pattern; `can_drive` pre-check before reassignment. Muse's work,
+  independently verified — every claim checked against the files.
+- **`is_admin()` failed open for anonymous callers.** `COALESCE` sat inside the
+  scalar subquery, so a session with no `auth.uid()` returned NULL, and plpgsql
+  does not take `IF NOT NULL THEN`. Three admin RPCs were callable over PostgREST
+  with only the publishable anon key. Fixed in `43_FIX_IS_ADMIN_NULL.sql`
+  (applied); re-probed after — all three now 401. Rule recorded in
+  `docs/SECURITY.md`. **Found by probing production, not by reading code** —
+  worth repeating on other guards.
+- **Apple sign-in** uses Apple's own `ASAuthorizationAppleIDButton`; nonce moved
+  off `Math.random()` to `Crypto.getRandomBytes(32)`.
+- **Two release runbooks**: `docs/PLAY_STORE_RELEASE.md`,
+  `docs/APP_STORE_RELEASE.md`.
 
-Cross-cutting bug found in 4 screens: a StyleSheet key is defined but **never attached** to its View — literal cause of "looks static" on each. **All 4 binds now fixed** (family/profile this session directly, my-bookings/tracking via subagent):
+Migrations 41, 42, 43 are all **applied to production**. `docs/DATABASE.md` rows
+are current.
 
-1. ~~**`family.tsx`** — `s.topBar` unapplied. No `Stagger`.~~ **done.**
-2. ~~**`profile.tsx`** — `s.headerWrap` unapplied.~~ **bind + `Stagger` done.**
-3. ~~**`my-bookings.tsx`** — `s.tabs` unapplied.~~ **bind + `Stagger` done.** Still open: no companion photo in `BookingCard` (website has one) — lower priority.
-4. ~~**`tracking.tsx`** — `s.step` unapplied, misleading stale comment.~~ **bind + comment + `Stagger` done.**
-5. ~~**`account-delete.tsx`** — missing `Stagger`.~~ **done.**
-6. **`care/index.tsx`** — already uses real `Chip`/`ChipRow` correctly + accent bars + icon badges. Missing `Stagger` and photo-bleed treatment (`ActionCard` style) that `index.tsx` has. *(next task, above)*
-7. **`care/[slug].tsx`** — plain article page, `Card` hero + text. No `Stagger`. Lowest-risk gap, likely matches website's text-first article layout already.
+## Mobile release — real state
 
-`quick-help.tsx`/`booking.tsx` — already closest to bar (Card/Chip/ChipRow/BottomSheet + Stagger per-step). Remaining gap: no `index`-based per-field cadence (uniform fade only) and no `ActionCard` photo treatment — likely doesn't apply to form/wizard screens.
+| | Android | iOS |
+|---|---|---|
+| Keystore / signing | **exists**, EAS credentials `tX_VA-aRur` — issue #19's "not started" was stale | no store-distribution build ever produced |
+| Builds ever | 1 development (2026-08-14) + 2 failed production | 1 development simulator build (2026-08-14) |
+| Submissions ever | zero | zero |
+| Gate | 12 testers × 14 **continuous** days (personal Play account) | none — TestFlight internal is instant |
+| Play/ASC account | registered and verified | paid membership **unconfirmed** — the Team ID in `eas.json` does not prove it |
+| Testers | 14 people available (need 12; 2 spares absorb dropouts) | n/a |
 
-**After screens:** run `npx tsc --noEmit` + `npm run lint -w @caresy/mobile-app` + `npm run build -w @caresy/mobile-app` per `CLAUDE.md` post-change workflow, then commit. `graphify update .` if touched files shift module boundaries (they don't here — same components, same imports).
+**Start the Play clock as early as possible** — it is the only thing that cannot
+be accelerated. But not with a broken AAB: fix item 2 above first, or the 14 days
+run against an app that opens to an error.
 
-## Just shipped (committed + pushed, not yet deployed — prior session)
+iOS is missing `ascAppId` in `eas.json` and an App Store Connect API key. Already
+satisfied and verified in source: Sign in with Apple (4.8), in-app account
+deletion (5.1.1(v), `app/account-delete.tsx`), export compliance, privacy
+manifest, permission strings.
 
-- `8bc8d64` — **fix(mobile): restore stagger via RN Animated (Expo Go safe)** — reanimated stripped for RN 0.86 crash left UI flat; re-added `Stagger` (`opacity 0→1 + translateY 14→0`, 56ms, 420-480ms cubic) via `react-native Animated` (no native module). Home + Booking + QuickHelp now stagger, depth `raised/overlay` preserved. `tsc 0`.
-- `6caebe1` — **fix(mobile): Expo Go safe — hide native requires** — `expo-device`/`expo-notifications`/`expo-linear-gradient` now early-return if `isExpoGo` (`storeClient` or `appOwnership expo`) + `eval("require")` to hide from Metro. Fixes `ExpoDevice`/`ExpoPushTokenManager`/`LinearGradient` redbox loops via `AuthProvider`/`_layout`. `tsc 0`, web 1.8MB.
-- `b532bdd` / `7797028` — **fix(expo): one-go LAN** — hotspot `172.20.10.4` AP isolation made `exp.direct` the only working mode, then ngrok outage killed tunnel. Added `scripts/start-expo.sh` (detects IP `en0`/`en1`, clears `:8081`, `expo start --lan/--tunnel` with correct `--host lan` enum, fallback `exp://IP:8081` manual), `package.json` `start:lan`/`start:tunnel`/`start:web`/`start:direct`, `app.json` `android.usesCleartextTraffic`. Corrected `--host IP` misuse (Expo 57 host is `lan|tunnel|localhost`).
-- `ab4bbf5` — **fix(mobile): maps web-safe** — `react-native-maps` `codegenNativeCommands` broke web bundling (996 modules failed). Hidden via `eval("require")` behind `Platform.OS !== 'web'`. `expo export --platform web` now 996 modules 1.8MB.
-- `b3b3e57` / `a5e0346` — **gesture-handler + reanimated stripped for RN 0.86** — both referenced `Renderer/shims/ReactNative` moved in RN 0.86.2, broke Metro. Removed `gesture-handler`, fell back from `reanimated` to plain View (later restored via RN Animated). Kept `reanimated` removal.
-- `fcd4317` — **feat(mobile): Apple Design premium polish — depth, motion, platform fidelity** — 3-level shadow `card/raised/overlay` + `material.scrim`, `Card level` prop, pressed `scale 0.97`, `Stack slide_from_right 320ms` + `GestureHandlerRootView` (later removed), stagger 56ms Home/Booking/QuickHelp/MyBookings/Tracking/Profile/Family. `tsc 0` (later cleaned for Expo Go).
-- `7797028` earlier → `7797028` includes  `fcd4317` polish; `b532bdd` fixed host enum.
-- Prior: `ef2e26f` — SDK 57 align (`expo-constants` `57.0.11`, `expo-device`, `expo-notifications` `57.0.11`), `60470cc` — guard push + gradient for Expo Go, `4c6a719` — home website-identical ActionCards, `3700524` bottom sheet, `f2c367d` LinearGradient 36%→84%, `af3558a`/`6c3e052` audit fixes. Ledger `30/31/33/34` → ✅.
+Watch for: App Review works from the US, but the booking flow validates an Indian
+mobile (`isValidIndianMobile`) and the service area is Noida. Without demo
+credentials in the review notes a reviewer hits a dead end and files 2.1.
 
-## In progress (deferred per user, proceed to next phase)
+## Muse coordination
 
-**Deferred (leave for later — Claude should skip):**
-- `apps/website/src/app/login/page.tsx` — custom OTP + Ellie mascot — sign-in button.
-- `packages/auth/src/msg91.ts` + `apps/website/src/app/api/auth/phone/route.ts` + `33_PHONE_SIGNIN.sql` — MSG91 OTP (needs `MSG91_AUTH_KEY`/`TEMPLATE_ID` env).
+Muse worked in `/Users/1234/Documents/caresy_admin_worktree` on
+`feature/admin-hardening` (now merged). Ground rules live in
+`docs/PARALLEL_WORK.md` §1, including two added this session:
 
-**Proceeding → Phase 5/6 Ship** — Phase 4 ~90% done: MapView+Realtime+10s poll ✅, image-picker ✅, location ✅, push Expo Go guarded ✅, bottom-sheet ✅, gradient Expo Go safe ✅, depth polish ✅, motion restored via RN Animated ✅, web safe ✅.
+- **1.10** commit early — an untracked file is work-at-risk. Muse had a full day
+  of work with zero commits.
+- **1.11** never route around an unexplained tool failure. Muse reported "sandbox
+  errors" and skipped the build gate; the real cause was a fresh worktree having
+  no `node_modules` and no `.env.local`.
 
-**Outstanding still (not sign-in/MSG91):**
-- `apps/website/src/app/{privacy,terms}/page.tsx` — legal copy (placeholder).
-- `supabase/migrations/32_MERGE_DUPLICATE_PATIENTS.sql` — one-off patient dedup `⬜*`.
-- `docs/PROGRESS_EASY.md` / `TODAYS_WORK_DETAILED.md` / `NEXT_SESSION_HANDOFF_*.md` — deprecated, see this file only.
+If a new worktree is created: run `npm install` at its root and copy the app's
+`.env.local` in, or no gate can run.
 
-## Next tasks (do these) — user: "leave we can set them later proceed to the phase"
+## Verified stale — do not re-chase
 
-1. **EAS Ship (Phase 6):** `npx expo prebuild --clean` already done (ios/ generated). Next: `eas build --platform ios --profile production` → TestFlight + `eas build --platform android --profile production` → AAB → Play 12×14 closed testing (keystore + tester list not started). Verify on TestFlight: bottom-sheet pickers, `LinearGradient` solid fallback in Expo Go / real gradient in dev-client, push `push_tokens` upsert (`google-services.json` + `SUPABASE_SERVICE_ROLE_KEY` + `projectId f1c994af-5e87-43f4-8d64-f33366e6756d`), RN Animated stagger (no reanimated native).
-2. **Run (one-go):** `npm run start:lan -w @caresy/mobile-app` → `exp://172.20.10.4:8081` (LAN, no --host IP), `npm run start:web` → `http://localhost:8081`, `npm run start:tunnel` → fallback to LAN if ngrok down. If `Firewall is enabled (State = 1)`: `sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off`.
-3. **Deploy website:** Vercel deploy (verify `SELECT prosecdef FROM pg_proc WHERE proname='is_admin'` + `tgname='trg_guard_trip_status'`).
-4. **Before first customer (CURRENT.md):** set `NEXT_PUBLIC_UPI_VPA` + `OPS_WEBHOOK_URL` (ntfy.sh, no www/trailing slash) + `CRON_SECRET`, enable `pg_cron` 5min + `cron-job.org` 1min, create `patient-docs` bucket, approve 1 companion at `/admin/companions`, walk money loop on 2 phones.
-5. **Later (deferred):** sign-in + MSG91 when ready.
+- `NATIVE_CHECKLIST.md` claimed `POST_NOTIFICATIONS` and `CAMERA` were missing
+  from the manifest. They are not — `expo-notifications` and `expo-image-picker`
+  declare them in their own library manifests and Android's merger folds them in.
+  Corrected in the file.
+- Issues #16 and #17 were filed from stale docs and closed — ADR-0012 had already
+  deleted the mascot system.
+- Issue #19's "keystore not started" — the keystore has existed since August.
 
-Verification: `tsc 0` both apps, `expo export --platform web` 996 modules 1.8MB, `npm run start:lan` no longer throws `AssertionError: --host`.
+Pattern worth keeping: **verify docs against source before acting on them.**
+Three separate stale claims this week.
 
-## Open decisions / unknowns
+## Open issues, ranked by what actually gates a first customer
 
-- Whether to gate driving jobs on licence in UI too (DB already refuses via `can_drive`).
-- SwiftUI vs Expo — answered this session: Expo correct now (reuse, speed, Android). Native feel achieved via website-identical cards; SwiftUI would be ~3mo delay for same.
+1. **#5** walk the money loop on two phones — never done by a human, step 5 of
+   `docs/CURRENT.md`'s pre-launch list
+2. **#6** walk cancel and reschedule on two phones
+3. **#7 / #8 / #9** UPI VPA, service-role key, `patient-docs` bucket — all manual
+   dashboard work
+4. **#19** Play Store — the 14-day clock
+5. Cleanup: #10, #11, #12, #18, #20 (companion half), #21, #22, #23
 
-## On restart / low-context ritual
+## Environment cautions
 
-1. `git status` + `git log --oneline -5` — reconcile against "In progress" above. **Read `/NEXT_SESSION_HANDOFF_2026_08_16.md` first** — it has the full urgent-fix detail + preview command.
-2. Read `docs/CURRENT.md` for anything not captured here.
-3. When you finish or change state: edit this file, move done items into `PROJECT_MEMORY.md`'s milestones, then `graphify update .`.
+- `apps/mobile-app/.env.local` and `apps/website/.env.local` point at
+  **production** Supabase. Simulator bookings write real rows and page the ops
+  phone via ntfy.
+- Never run `npm run dev` here — Turbopack has spawned runaway processes.
+  Verify with `build` plus a Vercel preview.
+- Never edit an applied migration. Fix forward with a new numbered file.
+- Metro was stopped at the end of this session; port 8081 is free.
+
+## Unverified, worth knowing
+
+- **Apple sign-in has never completed end to end.** The button renders natively
+  in the simulator, but no Apple ID is signed into it, so the token → Supabase
+  session → home screen round-trip is unproven.
+- **The reschedule sheet has never been run on any device** —
+  `feature/mobile-reschedule` merged without verification.
+- **Android has never been booted at all**, simulator or device.
