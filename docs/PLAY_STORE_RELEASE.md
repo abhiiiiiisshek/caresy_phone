@@ -16,7 +16,7 @@ first, polish second.**
 | EAS project | `f1c994af-5e87-43f4-8d64-f33366e6756d`, logged in as `caresy` (Owner) |
 | Android package | `in.co.caresy.app` |
 | Production profile | `app-bundle` (AAB — correct for Play), `autoIncrement: true`, `appVersionSource: remote` |
-| Remote `versionCode` | 1 — next production build becomes 2 |
+| Remote `versionCode` | 3 (auto-incremented by two failed production builds) |
 | Prior Android build | one, `development` profile, 2026-08-14, **succeeded** |
 | Keystore | **Exists. Confirmed 2026-08-29** — build log: `Using Keystore from configuration: Build Credentials tX_VA-aRur (default)`. Nothing to generate. |
 | Play Console account | registered and verified |
@@ -44,21 +44,31 @@ generate one by hand with `keytool` and do not commit it.
 
 Steps 1–4 are the clock. Do them in one sitting.
 
-### 1. Build a production AAB — done 2026-08-29
+### 1. Build a production AAB — **BLOCKED, build fails**
 
-First production build: `versionCode` 2,
-https://expo.dev/accounts/caresy/projects/caresy/builds/6c8195e1-ba9f-4695-ada6-ddb7f20db6b2
+Two attempts (versionCode 2 and 3), both failed at the `Configure expo-updates`
+phase ~58s in. The CLI reports only "Unknown error"; the real message is in that
+phase's log at
+https://expo.dev/accounts/caresy/projects/caresy/builds/614e92d4-247a-4d9f-ac07-a49b7699dff7
+Ruled out already: the `app.json` edit, fingerprint computation, missing
+`google-services.json`, credentials. See `docs/NEXT_SESSION.md`.
 
-For subsequent builds:
+**Also blocking, and separate from the failure:** EAS has no
+`EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` for the `production`
+environment — they live only in the gitignored `.env.local`. A build that
+succeeds today still ships with no database credentials and dies at launch. Set
+them with `eas env:create` before uploading anything to a tester track, or the
+14-day clock runs against a broken app.
+
+Command:
 
 ```
 cd apps/mobile-app
 npx eas-cli build --platform android --profile production
 ```
 
-Roughly 25–30 minutes end to end based on the 2026-08-14 run (17 min queued,
-12 min building). If no keystore exists, this is the point where EAS offers to
-generate one — accept.
+Roughly 25–30 minutes end to end when it works. The keystore already exists, so
+there is no credential prompt.
 
 ### 2. Create the app in Play Console
 
@@ -147,7 +157,8 @@ gitignored before it lands on disk.
 
 ## Log
 
-- **2026-08-29** — First production AAB queued (`versionCode` 2). Keystore
+- **2026-08-29** — Both production builds FAILED at `Configure expo-updates`
+  (versionCode 2 and 3). Blocked pending the phase log. Keystore
   confirmed to already exist as EAS build credentials `tX_VA-aRur (default)` —
   issue #19's "keystore not started" was stale.
 - **2026-08-29** — Runbook created. Confirmed keystore state indirectly (a
