@@ -16,7 +16,7 @@ first, polish second.**
 | EAS project | `f1c994af-5e87-43f4-8d64-f33366e6756d`, logged in as `caresy` (Owner) |
 | Android package | `in.co.caresy.app` |
 | Production profile | `app-bundle` (AAB — correct for Play), `autoIncrement: true`, `appVersionSource: remote` |
-| Remote `versionCode` | 3 (auto-incremented by two failed production builds) |
+| Remote `versionCode` | 3 (auto-incremented by two failed production builds; next build is 4) |
 | Prior Android build | one, `development` profile, 2026-08-14, **succeeded** |
 | Keystore | **Exists. Confirmed 2026-08-29** — build log: `Using Keystore from configuration: Build Credentials tX_VA-aRur (default)`. Nothing to generate. |
 | Play Console account | registered and verified |
@@ -44,21 +44,69 @@ generate one by hand with `keytool` and do not commit it.
 
 Steps 1–4 are the clock. Do them in one sitting.
 
-### 1. Build a production AAB — **BLOCKED, build fails**
+### 1. Build a production AAB — **fixed 2026-08-29, not yet re-run**
 
-Two attempts (versionCode 2 and 3), both failed at the `Configure expo-updates`
-phase ~58s in. The CLI reports only "Unknown error"; the real message is in that
-phase's log at
-https://expo.dev/accounts/caresy/projects/caresy/builds/614e92d4-247a-4d9f-ac07-a49b7699dff7
-Ruled out already: the `app.json` edit, fingerprint computation, missing
-`google-services.json`, credentials. See `docs/NEXT_SESSION.md`.
+Two attempts (versionCode 2 and 3) failed at the `Configure expo-updates` phase
+~58s in. Cause found and fixed; the build has not been re-run since.
 
-**Also blocking, and separate from the failure:** EAS has no
+**Root cause: fingerprint runtime-version mismatch.**
+
+```
+Runtime version calculated on local machine: 139d9597536f4cabe1be1a4e897f3ac233ed470e
+Runtime version calculated on EAS:           f54cd506e602721fdaecc48ff3a69d12f991e6d2
+```
+
+`app.json` sets `runtimeVersion: { policy: "fingerprint" }`. EAS hashes the
+project locally, uploads that hash, then re-hashes on the builder and refuses to
+build if the two disagree. The only real difference was the directory
+`node_modules/react-native-maps` — a local Gradle run had left `.gradle/` and
+`android/build/` inside it, and those do not exist in the builder's fresh
+`npm install`. (The diff also lists an added `android` dir, but its hash is
+`null`, so it contributes nothing.)
+
+Fixed two ways, both committed:
+
+1. Reinstalled the polluted package (`rm -rf node_modules/react-native-maps && npm install`).
+   Local now computes `f54cd506…`, matching the builder exactly.
+2. Added `apps/mobile-app/fingerprint.config.js` with `ignorePaths` for
+   `.gradle/`, `android/build/` and `.cxx/` under `node_modules`, so the same
+   pollution cannot break it again. Verified: recreating those directories
+   leaves the hash unchanged. This matters because `expo run:android` recreates
+   them every time.
+
+**Check before every production build** — takes ~30s and catches this class of
+failure before you burn a `versionCode`:
+
+```
+cd apps/mobile-app
+npx eas-cli fingerprint:compare --build-id <last-successful-build-id>
+```
+
+**Reading a failed EAS build log.** The CLI reports only "Unknown error". Get the
+real message from the log blob — note it is **brotli**, not gzip, which is why
+earlier `gzip`/`zlib`/`deflate` decode attempts all failed:
+
+```
+npx eas-cli build:view <build-id> --json | python3 -c "import sys,json;print(json.load(sys.stdin)['logFiles'][0])" > /tmp/logurl
+curl -sS -o /tmp/eas.br "$(cat /tmp/logurl)"        # no --compressed; curl cannot do br
+node -e "console.log(require('zlib').brotliDecompressSync(require('fs').readFileSync('/tmp/eas.br')).toString())"
+```
+
+The signed URL expires in 15 minutes — re-run `build:view` to mint a new one.
+
+**Still blocking, and separate from the failure:** EAS has no
 `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` for the `production`
 environment — they live only in the gitignored `.env.local`. A build that
 succeeds today still ships with no database credentials and dies at launch. Set
 them with `eas env:create` before uploading anything to a tester track, or the
 14-day clock runs against a broken app.
+
+**Non-blocking, but noted:** `expo-doctor` fails 5 of 21 checks on the builder
+(logged, does not stop the build): `newArchEnabled` is not a valid `app.json`
+field on SDK 57; `eas-cli` is in `devDependencies` and should not be; duplicate
+`react`/`react-dom` (19.2.3 in the app, 19.2.4 at the monorepo root); 16 packages
+behind their SDK-57 versions; a `metro.config.js` override. The duplicate React
+is the one worth fixing before shipping.
 
 Command:
 

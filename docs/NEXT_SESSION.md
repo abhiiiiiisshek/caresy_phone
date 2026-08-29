@@ -2,26 +2,36 @@
 
 **Read this first on restart — this is the ONE file for all progress. All other handoff/progress files are deprecated. Update this file before every `/clear`. Durable facts live in [PROJECT_MEMORY.md](./PROJECT_MEMORY.md). Claude + Muse both use this.**
 
-_Last updated: 2026-08-29. Branch `main`, clean, pushed at `26dc82a`. All apps typecheck; admin builds._
+_Last updated: 2026-08-29 (evening). Branch `main`, clean. All apps typecheck; admin builds._
 
 ## Where things stand
 
 Everything from the 2026-08-28/29 sessions is **merged to `main` and pushed**.
-There is no in-flight branch and no uncommitted work. The two things blocking
-progress are both waiting on the account holder, not on code.
+There is no in-flight branch and no uncommitted work. The Android build failure
+is **solved**; what remains is one credential step that needs your go-ahead, plus
+the PAT rotation.
 
 ### Blocked on you — do these first
 
-1. **Paste the failing build log.** The Android production build fails at the
-   `Configure expo-updates` phase, ~58s in, reproducibly (two runs, versionCode 2
-   and 3). The CLI only reports "Unknown error". Open
-   https://expo.dev/accounts/caresy/projects/caresy/builds/614e92d4-247a-4d9f-ac07-a49b7699dff7,
-   expand that phase, paste the output.
-   Already ruled out: the `app.json` edit (one boolean removed, valid JSON),
-   fingerprint computation (`expo-updates fingerprint:generate` clean locally),
-   missing `google-services.json` (it is git-tracked), credentials (both runs
-   resolved the keystore fine). The raw log blob EAS serves is not gzip/zlib/
-   deflate — three decode attempts failed, so read it in the browser.
+1. ~~**Paste the failing build log.**~~ **Done 2026-08-29 — cause found and fixed.**
+   The log blob is **brotli** (`content-encoding: br`), not gzip — that is why
+   the three earlier decode attempts failed. Decoded with
+   `zlib.brotliDecompressSync`; the buried error was:
+
+   ```
+   Runtime version calculated on local machine: 139d9597536f4cabe1be1a4e897f3ac233ed470e
+   Runtime version calculated on EAS:           f54cd506e602721fdaecc48ff3a69d12f991e6d2
+   ```
+
+   `runtimeVersion` uses the `fingerprint` policy. The only real difference was
+   `node_modules/react-native-maps`: a local Gradle run had left `.gradle/` and
+   `android/build/` inside it, which a fresh install on the builder does not have.
+   Reinstalled the package — local now computes `f54cd506…`, matching EAS — and
+   added `apps/mobile-app/fingerprint.config.js` to ignore that class of build
+   pollution permanently (verified: recreating the dirs no longer moves the hash).
+   Full write-up in `docs/PLAY_STORE_RELEASE.md` step 1, including how to read a
+   failed EAS log. **The build has not been re-run** — do item 2 first, or the
+   green AAB still ships without Supabase credentials.
 
 2. **EAS production env vars are missing — a green build would still be broken.**
    `lib/supabase.ts:50-51` reads `EXPO_PUBLIC_SUPABASE_URL` /
