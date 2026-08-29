@@ -11,9 +11,5 @@
     "build": "npm run build -w @caresy/website",
     "smoke": "node scripts/smoke.mjs",
     "postinstall": "node scripts/fix-next-global-error.js"
-  },
-  "devDependencies": {
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
   }
 }
