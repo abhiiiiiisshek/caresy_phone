@@ -33,18 +33,12 @@ the PAT rotation.
    failed EAS log. **The build has not been re-run** — do item 2 first, or the
    green AAB still ships without Supabase credentials.
 
-2. **EAS production env vars are missing — a green build would still be broken.**
-   `lib/supabase.ts:50-51` reads `EXPO_PUBLIC_SUPABASE_URL` /
-   `EXPO_PUBLIC_SUPABASE_ANON_KEY`. Those exist only in
-   `apps/mobile-app/.env.local`, which is gitignored, so EAS has never had them.
-   Any AAB built today ships with no Supabase credentials and dies at launch.
-   Fix before **any** tester build:
-   ```
-   npx eas-cli env:create --environment production --name EXPO_PUBLIC_SUPABASE_URL --value <url> --visibility plaintext
-   npx eas-cli env:create --environment production --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <key> --visibility plaintext
-   ```
-   Not yet run — it pushes a credential to a third party, so it needs an explicit
-   go-ahead.
+2. ~~**EAS production env vars are missing.**~~ **Done 2026-08-29 — seeded.**
+   `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are now set on
+   the EAS `production` environment (project scope, plaintext — both are
+   client-side-public values that ship inside the app binary anyway). Verify any
+   time with `npx eas-cli env:list --environment production`. Keep them in step
+   with `apps/mobile-app/.env.local`; nothing syncs them automatically.
 
 3. **Rotate the GitHub PAT.** Pasted in plaintext on 2026-08-27, stored at
    `~/.caresy-gh-token` (mode 600) and in the gh keyring at the user's request.

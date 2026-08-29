@@ -94,12 +94,17 @@ node -e "console.log(require('zlib').brotliDecompressSync(require('fs').readFile
 
 The signed URL expires in 15 minutes — re-run `build:view` to mint a new one.
 
-**Still blocking, and separate from the failure:** EAS has no
-`EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` for the `production`
-environment — they live only in the gitignored `.env.local`. A build that
-succeeds today still ships with no database credentials and dies at launch. Set
-them with `eas env:create` before uploading anything to a tester track, or the
-14-day clock runs against a broken app.
+**Supabase credentials — resolved 2026-08-29.** `EXPO_PUBLIC_SUPABASE_URL` and
+`EXPO_PUBLIC_SUPABASE_ANON_KEY` are now set on the EAS `production` environment
+(project scope, plaintext; both are client-side-public values that ship inside
+the binary regardless). Without them a green AAB would have launched with no
+database connection. Confirm before any tester upload:
+
+```
+npx eas-cli env:list --environment production
+```
+
+They do not sync from `.env.local` — change one, change both.
 
 **Non-blocking, but noted:** `expo-doctor` fails 5 of 21 checks on the builder
 (logged, does not stop the build): `newArchEnabled` is not a valid `app.json`
