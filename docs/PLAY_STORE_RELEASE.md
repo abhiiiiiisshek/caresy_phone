@@ -16,8 +16,8 @@ first, polish second.**
 | EAS project | `f1c994af-5e87-43f4-8d64-f33366e6756d`, logged in as `caresy` (Owner) |
 | Android package | `in.co.caresy.app` |
 | Production profile | `app-bundle` (AAB — correct for Play), `autoIncrement: true`, `appVersionSource: remote` |
-| Remote `versionCode` | 3 (auto-incremented by two failed production builds; next build is 4) |
-| Prior Android build | one, `development` profile, 2026-08-14, **succeeded** |
+| Remote `versionCode` | 5 (2 and 3 failed on fingerprint; **4 is the good AAB**; 5 failed on a since-reverted dependency change) |
+| Prior Android build | development 2026-08-14; production versionCode 4, 2026-08-29, **succeeded** |
 | Keystore | **Exists. Confirmed 2026-08-29** — build log: `Using Keystore from configuration: Build Credentials tX_VA-aRur (default)`. Nothing to generate. |
 | Play Console account | registered and verified |
 | Testers available | 14 people on hand (need 12; the extra 2 are the safety margin — see below) |
@@ -44,10 +44,18 @@ generate one by hand with `keytool` and do not commit it.
 
 Steps 1–4 are the clock. Do them in one sitting.
 
-### 1. Build a production AAB — **fixed 2026-08-29, not yet re-run**
+### 1. Build a production AAB — **DONE 2026-08-29**
 
-Two attempts (versionCode 2 and 3) failed at the `Configure expo-updates` phase
-~58s in. Cause found and fixed; the build has not been re-run since.
+First successful production AAB: build `6aee612a-2897-4b66-9a5d-ac94e9f3aefa`,
+**versionCode 4**, 14m22s, runtime version `f54cd506…`, from commit `7122c60`.
+
+```
+https://expo.dev/artifacts/eas/K4A0JA8Nd1j-OMAUEWWrVKtnjxGf99wvcPg95SvsOKU.aab
+```
+
+It is signed with the existing keystore and carries the Supabase credentials, so
+it is uploadable to a Play track as-is. Kept below is why the two earlier
+attempts (versionCode 2 and 3) failed, because the failure mode recurs silently.
 
 **Root cause: fingerprint runtime-version mismatch.**
 
@@ -74,13 +82,20 @@ Fixed two ways, both committed:
    leaves the hash unchanged. This matters because `expo run:android` recreates
    them every time.
 
-**Check before every production build** — takes ~30s and catches this class of
-failure before you burn a `versionCode`:
+**Check before every production build.** Two cheap local gates, together ~2
+minutes, that catch the two ways this project's builds have actually failed —
+run both before spending a `versionCode`:
 
 ```
 cd apps/mobile-app
-npx eas-cli fingerprint:compare --build-id <last-successful-build-id>
+npx eas-cli fingerprint:compare --build-id 6aee612a-2897-4b66-9a5d-ac94e9f3aefa
+npx expo export:embed --eager --platform android --dev false
 ```
+
+The first catches the fingerprint mismatch above. The second is the exact command
+EAS runs in its EAGER_BUNDLE phase — it caught a broken dependency tree on
+versionCode 5, after a lockfile refresh left `@expo/metro-runtime` unresolvable.
+Exit 0 on both means the build will get past the phases that have bitten us.
 
 **Reading a failed EAS build log.** The CLI reports only "Unknown error". Get the
 real message from the log blob — note it is **brotli**, not gzip, which is why

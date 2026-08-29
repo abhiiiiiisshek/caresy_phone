@@ -11,6 +11,51 @@ There is no in-flight branch and no uncommitted work. The Android build failure
 is **solved**; what remains is one credential step that needs your go-ahead, plus
 the PAT rotation.
 
+### Do not retry without reading this — the React dedupe
+
+`expo-doctor` flags duplicate native modules: react 19.2.3 in `apps/mobile-app`
+alongside 19.2.4 at the root (same for react-dom). The three Next apps pin
+19.2.4; Expo SDK 57 pins react **exactly** 19.2.3; `packages/ui` and
+`packages/auth` declare react as a peer (`^19`), and npm auto-installs the newest
+match for a peer at the root — that is the second copy.
+
+What was tried, and what it cost:
+
+- `overrides` in the root `package.json` **does not work**. npm 10.9.2 does not
+  apply overrides to auto-installed peer deps. Confirmed against a from-scratch
+  lockfile regeneration.
+- Pinning every app to 19.2.3 plus root `devDependencies` **does** produce a
+  single copy — but any edit to a `package.json` forces npm to refresh the
+  lockfile, and **the committed lockfile is stale**. The refresh re-resolved ~55
+  transitive packages in the expo/metro/react-native subtrees and produced a tree
+  where the Android bundle no longer builds: `@expo/metro-runtime` and then
+  `expo-glass-effect` ended up unresolvable, because `metro.config.js` sets
+  `disableHierarchicalLookup: true` and Metro therefore only looks in
+  `apps/mobile-app/node_modules` and the root. Adding the missing packages
+  explicitly is whack-a-mole — the second one appeared right after the first was
+  fixed.
+
+So the duplicate React is **still present**, deliberately. It is a doctor warning
+with no demonstrated runtime fault: `metro.config.js` pins the mobile bundle to
+`apps/mobile-app/node_modules/react`, and `packages/types` and `packages/utils`
+import no React at all, so two Reacts never meet in one bundle.
+
+Doing this properly means a full SDK 57 dependency alignment
+(`npx expo install --check`, 16 packages behind) with a fresh Android build to
+verify — its own piece of work, not a quick fix. Do it **after** the Play clock
+is running, not before.
+
+**Gate it locally.** This class of breakage is catchable in ~1 minute without
+burning an EAS build or a versionCode:
+
+```
+cd apps/mobile-app
+npx expo export:embed --eager --platform android --dev false
+```
+
+That is the exact command EAS runs in its EAGER_BUNDLE phase. Exit 0 means the
+dependency tree actually resolves.
+
 ### Blocked on you — do these first
 
 1. ~~**Paste the failing build log.**~~ **Done 2026-08-29 — cause found and fixed.**
@@ -30,8 +75,9 @@ the PAT rotation.
    added `apps/mobile-app/fingerprint.config.js` to ignore that class of build
    pollution permanently (verified: recreating the dirs no longer moves the hash).
    Full write-up in `docs/PLAY_STORE_RELEASE.md` step 1, including how to read a
-   failed EAS log. **The build has not been re-run** — do item 2 first, or the
-   green AAB still ships without Supabase credentials.
+   failed EAS log. **Confirmed by a real build**: `6aee612a`, versionCode 4,
+   FINISHED in 14m22s with runtime version `f54cd506…` — the exact hash predicted.
+   That is the first production AAB this project has ever produced.
 
 2. ~~**EAS production env vars are missing.**~~ **Done 2026-08-29 — seeded.**
    `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are now set on
@@ -62,6 +108,12 @@ the PAT rotation.
   off `Math.random()` to `Crypto.getRandomBytes(32)`.
 - **Two release runbooks**: `docs/PLAY_STORE_RELEASE.md`,
   `docs/APP_STORE_RELEASE.md`.
+- **First production Android AAB ever built** — `6aee612a`, versionCode 4. The
+  two prior failures were a fingerprint runtime-version mismatch caused by local
+  Gradle output inside `node_modules/react-native-maps`; see item 1 above.
+  `apps/mobile-app/fingerprint.config.js` stops it recurring.
+- **React dedupe attempted and reverted** (`d4a1d18`, reverted in `3a7bba8`).
+  Read this before trying again — it looks like a one-liner and is not.
 
 Migrations 41, 42, 43 are all **applied to production**. `docs/DATABASE.md` rows
 are current.
