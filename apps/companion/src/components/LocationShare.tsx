@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createClient } from '@caresy/auth/supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { Button } from '@caresy/ui';
 import { MapPin, MapPinOff, Loader2 } from 'lucide-react';
 
@@ -29,7 +30,7 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
   const watchId = useRef<number | null>(null);
   const tripId = useRef<string | null>(null);
   const shareToken = useRef<string | null>(null);
-  const channel = useRef<any>(null);
+  const channel = useRef<RealtimeChannel | null>(null);
   const lastWrite = useRef(0);
   const lastPos = useRef<{ lat: number; lng: number } | null>(null);
 
@@ -51,7 +52,7 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
     const supabase = createClient();
     // Need trip id and share_token for broadcast channel parity
     const { data: booking } = await supabase.from('bookings').select('share_token').eq('id', bookingId).maybeSingle();
-    shareToken.current = (booking as any)?.share_token ?? null;
+    shareToken.current = (booking as { share_token?: string | null } | null)?.share_token ?? null;
 
     const { data, error: e } = await supabase.from('trips').select('id')
       .eq('booking_id', bookingId).not('status', 'in', '(completed,cancelled)')
@@ -59,7 +60,7 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
     setBusy(false);
     if (e) { setError(e.message); return; }
     if (!data) { setError('No active trip for this booking yet — start the job first'); return; }
-    tripId.current = (data as any).id;
+    tripId.current = (data as { id: string }).id;
 
     // Subscribe to broadcast channel before sending — required by Realtime
     try {
@@ -117,7 +118,7 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
               companion_user_id: user.id,
               location: `POINT(${longitude} ${latitude})`,
               recorded_at: at,
-            } as any);
+            } as unknown as { trip_id: string; companion_user_id: string; location: string; recorded_at: string });
           }
         } catch {}
 

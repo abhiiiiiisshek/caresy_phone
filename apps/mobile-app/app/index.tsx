@@ -399,8 +399,16 @@ function Onboarding({ name, setName, error, saving, onSubmit }: {
 function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
   signingIn: boolean; appleAvailable: boolean; onGoogle: () => void; onApple: () => void;
 }) {
+  const { signInWithEmail, signUpWithEmail } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const isSignup = mode === 'signup';
+  // Email/password form state — integrated into the existing card, not a separate screen
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [confirmationMsg, setConfirmationMsg] = useState<string | null>(null);
   const cardIn = useRef(new Animated.Value(40)).current;
   const cardOp = useRef(new Animated.Value(0)).current;
   const deco = useRef(new Animated.Value(0)).current;
@@ -414,6 +422,30 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
       Animated.timing(deco, { toValue: 0, duration: 2400, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
     ])).start();
   }, [cardIn, cardOp, deco]);
+
+  async function handleEmailAuth() {
+    setEmailError(null);
+    setConfirmationMsg(null);
+    const e = email.trim().toLowerCase();
+    if (!e || !/\S+@\S+\.\S+/.test(e)) { setEmailError('Enter a valid email'); return; }
+    if (!password || password.length < 6) { setEmailError('Password must be at least 6 characters'); return; }
+    if (isSignup && !fullName.trim()) { setEmailError('Full name is required'); return; }
+    setEmailLoading(true);
+    try {
+      if (isSignup) {
+        const { needsConfirmation } = await signUpWithEmail(e, password, fullName);
+        if (needsConfirmation) {
+          setConfirmationMsg('Check your email to confirm your account, then log in.');
+        }
+      } else {
+        await signInWithEmail(e, password);
+      }
+    } catch (err: any) {
+      setEmailError(err?.message || 'Something went wrong');
+    } finally {
+      setEmailLoading(false);
+    }
+  }
 
   return (
     <View style={a.screen}>
@@ -457,6 +489,7 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
 
       {/* bottom sheet card — like Q-learn Sign Up */}
       <Animated.View style={[a.card, { opacity: cardOp, transform: [{ translateY: cardIn }] }]}>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={a.cardScroll}>
         <View style={a.modeToggle}>
           <Pressable
             onPress={() => { Haptics.selectionAsync(); setMode('login'); }}
@@ -483,11 +516,31 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
             : 'Book a trained hospital companion in minutes. Queues, paperwork, pharmacy — we handle it, you stay with family.'}
         </Text>
 
-        <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onGoogle(); }} disabled={signingIn} style={({ pressed }) => [a.primaryBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }]}>
-          {signingIn ? <Text style={a.primaryTxt}>Signing in…</Text> : (
+        {/* Email / password — lives inside the same card, toggled by Log in / Sign up */}
+        <View style={a.emailForm}>
+          {isSignup ? (
+            <Field label="Full name" value={fullName} onChangeText={(v) => { setFullName(v); setEmailError(null); }} placeholder="e.g. Ananya Rao" autoCapitalize="words" />
+          ) : null}
+          <Field label="Email" value={email} onChangeText={(v) => { setEmail(v); setEmailError(null); setConfirmationMsg(null); }} placeholder="you@example.com" keyboardType="email-address" autoCapitalize="none" error={null} />
+          <Field label="Password" value={password} onChangeText={(v) => { setPassword(v); setEmailError(null); }} placeholder="At least 6 characters" secureTextEntry />
+          {emailError ? <Text style={a.formError}>{emailError}</Text> : null}
+          {confirmationMsg ? <Text style={a.formSuccess}>{confirmationMsg}</Text> : null}
+          <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleEmailAuth(); }} disabled={emailLoading} style={({ pressed }) => [a.primaryBtn, a.emailBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }, emailLoading && { opacity: 0.7 }]}>
+            <Text style={a.primaryTxt}>{emailLoading ? (isSignup ? 'Creating…' : 'Signing in…') : (isSignup ? 'Create account' : 'Log in')}</Text>
+          </Pressable>
+        </View>
+
+        <View style={a.dividerRow}>
+          <View style={a.divLine} />
+          <Text style={a.divTxt}>or continue with</Text>
+          <View style={a.divLine} />
+        </View>
+
+        <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onGoogle(); }} disabled={signingIn} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }]}>
+          {signingIn ? <Text style={a.secondaryTxt}>Signing in…</Text> : (
             <View style={a.btnRow}>
               <View style={a.gBadge}><Text style={a.gTxt}>G</Text></View>
-              <Text style={a.primaryTxt}>Continue with Google</Text>
+              <Text style={a.secondaryTxt}>Continue with Google</Text>
             </View>
           )}
         </Pressable>
@@ -521,6 +574,7 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
           <View style={a.trustPill}><Text style={a.trustTxt}>✓ Trusted in Noida</Text></View>
           <View style={a.trustPill}><Text style={a.trustTxt}>✓ 2k+ visits</Text></View>
         </View>
+        </ScrollView>
       </Animated.View>
     </View>
   );
@@ -568,6 +622,11 @@ const a = StyleSheet.create({
   secondaryTxt: { fontSize: 15, fontWeight: '700', color: '#1B4D3E' },
   legal: { textAlign: 'center', fontSize: 11, lineHeight: 16, color: '#9AA5A0', marginTop: 2 },
   link: { color: '#1B4D3E', fontWeight: '700' },
+  cardScroll: { gap: 14, paddingBottom: 8 },
+  emailForm: { gap: 12, marginTop: 4 },
+  emailBtn: { marginTop: 2 },
+  formError: { fontSize: 12, color: '#B3261E', fontWeight: '600', marginTop: -4 },
+  formSuccess: { fontSize: 12, color: '#1B7A54', fontWeight: '600', marginTop: -4 },
   trustRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 2 },
   trustPill: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: '#E7F2ED' },
   trustTxt: { fontSize: 11, fontWeight: '700', color: '#1B4D3E' },

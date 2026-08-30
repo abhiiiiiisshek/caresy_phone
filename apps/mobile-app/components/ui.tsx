@@ -275,7 +275,7 @@ export const PickerSheet = BottomSheet;
 /* ---------- Field ---------- */
 
 export function Field({
-  label, value, onChangeText, placeholder, keyboardType, error, autoCapitalize, multiline, onFocus, onBlur,
+  label, value, onChangeText, placeholder, keyboardType, error, autoCapitalize, multiline, onFocus, onBlur, secureTextEntry,
 }: {
   label: string;
   value: string;
@@ -287,6 +287,7 @@ export function Field({
   multiline?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
+  secureTextEntry?: boolean;
 }) {
   return (
     <View style={s.field}>
@@ -302,6 +303,8 @@ export function Field({
         keyboardType={keyboardType ?? 'default'}
         autoCapitalize={autoCapitalize ?? (keyboardType === 'email-address' ? 'none' : 'sentences')}
         multiline={multiline}
+        secureTextEntry={secureTextEntry}
+        autoCorrect={false}
         accessibilityLabel={label}
       />
       {error ? <Text style={[type.caption, { color: color.terracottaDeep }]}>{error}</Text> : null}

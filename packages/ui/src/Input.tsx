@@ -15,7 +15,7 @@ export interface InputProps {
   multiline?: boolean;
   rows?: number;
   icon?: React.ReactNode;
-  hint?: string;
+  hint?: React.ReactNode;
   required?: boolean;
   disabled?: boolean;
   min?: number | string;
@@ -92,7 +92,7 @@ export function Input({
           />
         )}
       </span>
-      {hint && <span style={{ display: 'block', marginTop: 5, fontSize: '0.78rem', color: 'var(--text-muted, var(--muted))' }}>{hint}</span>}
+      {hint != null && hint !== '' && <span style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 5, fontSize: '0.78rem', color: 'var(--text-muted, var(--muted))' }}>{hint}</span>}
     </label>
   );
 }
