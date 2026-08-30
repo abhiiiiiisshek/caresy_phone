@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
-import { MessageSquare, Check, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Check, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
 import { useLiveMetrics } from '@/hooks/useLiveMetrics';
 import { Input, Button, Reveal } from '@caresy/ui';
 import { checkPincodeServed, isValidPincode } from '@caresy/utils';
@@ -333,8 +333,8 @@ export default function QuickHelp() {
                   value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
                   hint={
                     areaStatus === 'checking' ? 'Checking availability…'
-                    : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
-                    : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — Noida & Greater Noida only.'
+                    : areaStatus === 'served' ? <><CheckCircle2 style={{ width: 14, height: 14, color: '#1B7A54' }} /> We serve {areaLabel || 'this area'}</>
+                    : areaStatus === 'not_served' ? <><XCircle style={{ width: 14, height: 14, color: '#B3261E' }} /> Sorry, we don’t serve this pincode yet — Noida & Greater Noida only.</>
                     : 'We currently serve Noida & Greater Noida only.'
                   }
                 />

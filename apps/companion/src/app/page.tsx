@@ -67,7 +67,33 @@ export default function CompanionPortal() {
   const [pendingDocs, setPendingDocs] = useState<string[]>([]);
   const [loadingRow, setLoadingRow] = useState(true);
 
-  const fetchCompanion = useCallback(async () => {
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!user) { if (alive) { setCompanion(null); setLoadingRow(false); } return; }
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('companions')
+        .select('id, full_name, approval_status, rejection_reason, is_online')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!alive) return;
+      setCompanion((data as CompanionRow) ?? null);
+      if (data) {
+        const { data: docs } = await supabase
+          .from('companion_documents')
+          .select('doc_type')
+          .eq('companion_id', user.id);
+        if (!alive) return;
+        const uploaded = new Set((docs ?? []).map((d) => d.doc_type as string));
+        setPendingDocs(DOC_TYPES.filter((d) => 'optional' in d && !uploaded.has(d.key)).map((d) => d.label));
+      }
+      if (alive) setLoadingRow(false);
+    })();
+    return () => { alive = false; };
+  }, [user]);
+
+  const fetchCompanion = async () => {
     if (!user) { setCompanion(null); setLoadingRow(false); return; }
     const supabase = createClient();
     const { data } = await supabase
@@ -77,7 +103,6 @@ export default function CompanionPortal() {
       .maybeSingle();
     setCompanion((data as CompanionRow) ?? null);
     if (data) {
-      // Which optional docs (police verification, driving licence) are not yet on file.
       const { data: docs } = await supabase
         .from('companion_documents')
         .select('doc_type')
@@ -86,9 +111,7 @@ export default function CompanionPortal() {
       setPendingDocs(DOC_TYPES.filter((d) => 'optional' in d && !uploaded.has(d.key)).map((d) => d.label));
     }
     setLoadingRow(false);
-  }, [user]);
-
-  useEffect(() => { fetchCompanion(); }, [fetchCompanion]);
+  };
 
   if (isLoading || loadingRow) {
     return (
@@ -664,7 +687,22 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
     setLoadingJobs(false);
   }, [user]);
 
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!user) return;
+      const supabase = createClient();
+      const [openRes, mineRes] = await Promise.all([
+        supabase.from('bookings').select(JOB_SELECT).eq('status', 'PENDING').is('companion_user_id', null).order('created_at', { ascending: false }),
+        supabase.from('bookings').select(JOB_SELECT).eq('companion_user_id', user.id).order('created_at', { ascending: false }),
+      ]);
+      if (!alive) return;
+      setOpenJobs((openRes.data as unknown as JobRow[]) ?? []);
+      setMyJobs((mineRes.data as unknown as JobRow[]) ?? []);
+      setLoadingJobs(false);
+    })();
+    return () => { alive = false; };
+  }, [user]);
   // In-app notification panel for COMPANION role (cancel/reschedule/reassign) — must be
   // declared before the poll effect below, which references fetchNotifications.
   type CompanionNotification = { id: string; event: string; title: string; body: string; created_at: string; booking_id: string };
@@ -681,7 +719,23 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
       .limit(20);
     setNotifications((data as CompanionNotification[]) ?? []);
   }, [user]);
-  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!user) return;
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('notifications')
+        .select('id, event, title, body, created_at, booking_id')
+        .eq('recipient_role', 'COMPANION')
+        .eq('recipient_user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (!alive) return;
+      setNotifications((data as CompanionNotification[]) ?? []);
+    })();
+    return () => { alive = false; };
+  }, [user]);
   // Freshness poll — mirrors mobile-app/my-bookings.tsx:83-88 pattern, gated to live jobs
   useEffect(() => {
     const hasLive = myJobs.some((j) => j.status === 'ACCEPTED' || j.status === 'IN_PROGRESS');

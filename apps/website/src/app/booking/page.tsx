@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@caresy/auth';
 import { createClient } from '@caresy/auth/supabase/client';
 import {
-  ArrowRight, ArrowLeft, Loader2, Check, CheckCircle2, Stethoscope,
+  ArrowRight, ArrowLeft, Loader2, Check, CheckCircle2, XCircle, Stethoscope,
   Building2, MapPin, CalendarDays, Clock, Star, BadgeCheck,
   Pill, Sun, HeartPulse, UserPlus,
   ChevronLeft, ChevronRight, CalendarPlus, Home as HomeIcon, Send,
@@ -749,8 +749,8 @@ export default function Booking() {
                 value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, ''))}
                 hint={
                   areaStatus === 'checking' ? 'Checking availability…'
-                  : areaStatus === 'served' ? `✓ We serve ${areaLabel || 'this area'}`
-                  : areaStatus === 'not_served' ? '✗ Sorry, we don’t serve this pincode yet — we currently cover Noida & Greater Noida.'
+                  : areaStatus === 'served' ? <><CheckCircle2 style={{ width: 14, height: 14, color: '#1B7A54' }} /> We serve {areaLabel || 'this area'}</>
+                  : areaStatus === 'not_served' ? <><XCircle style={{ width: 14, height: 14, color: '#B3261E' }} /> Sorry, we don’t serve this pincode yet — we currently cover Noida & Greater Noida.</>
                   : 'The hospital’s pincode. We use it to confirm the visit is inside our service area.'
                 }
               />

@@ -48,18 +48,29 @@ export default function TripStatusControl({ bookingId }: { bookingId: string }) 
     const supabase = createClient();
     const { data, error } = await supabase.from('trips').select('id, status').eq('booking_id', bookingId).maybeSingle();
     if (error) setError(error.message);
-    else setTrip(data as any ?? null);
+    else setTrip((data as { id: string; status: TripStatus } | null) ?? null);
     setLoading(false);
   }, [bookingId]);
 
-  useEffect(() => { fetchTrip(); }, [fetchTrip]);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const supabase = createClient();
+      const { data, error } = await supabase.from('trips').select('id, status').eq('booking_id', bookingId).maybeSingle();
+      if (!alive) return;
+      if (error) setError(error.message);
+      else setTrip((data as { id: string; status: TripStatus } | null) ?? null);
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, [bookingId]);
 
   // Auto-create trip if missing but booking is already accepted/in_progress — use RPC
   const ensureTrip = async () => {
     setError(null);
     setAdvancing(true);
     const supabase = createClient();
-    const { data, error } = await supabase.rpc('start_trip_for_booking', { p_booking: bookingId });
+    const { error } = await supabase.rpc('start_trip_for_booking', { p_booking: bookingId });
     setAdvancing(false);
     if (error) { setError(error.message); return; }
     await fetchTrip();

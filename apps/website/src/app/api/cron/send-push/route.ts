@@ -44,10 +44,24 @@ interface QueuedRow {
   recipient_user_id: string | null;
   recipient_role: string | null;
   created_at?: string | null;
+  attempts?: number | null;
+  next_retry_at?: string | null;
+  claimed_at?: string | null;
 }
 
 // Header values are latin-1 only, and a booking title is otherwise free text.
 const asciiOnly = (s: string) => s.replace(/[^\x20-\x7E]/g, '').slice(0, 200);
+
+// Retry: bounded exponential backoff for FAILED rows (migration 44).
+// MAX_ATTEMPTS=5 (initial + 4 retries); backoff 5,10,20,40,60 minutes.
+const MAX_ATTEMPTS = 5;
+function backoffMinutes(attempts: number): number {
+  return Math.min(60, 5 * Math.pow(2, Math.max(0, attempts - 1)));
+}
+function nextRetryAt(attempts: number): string {
+  const mins = backoffMinutes(attempts);
+  return new Date(Date.now() + mins * 60_000).toISOString();
+}
 
 // Where ops is paged. Any endpoint that accepts a JSON POST — a Slack or Discord
 // incoming webhook, a Zapier/n8n hook, a WhatsApp gateway — because the one
@@ -190,12 +204,30 @@ export async function GET(request: Request) {
   // them, and the next tick's stale reclaim (5m) will make them eligible again.
   // Claim-before-send: only transition SENDING → SENT/FAILED. Concurrent ticks
   // claimed disjoint sets via SKIP LOCKED, so no row is ever sent twice.
+  // Track attempts per row for backoff (FAILED rows carry attempts from claim)
+  const attemptsById = new Map(all.map((r) => [r.id, (r.attempts ?? 0) as number]));
   for (const o of opsOutcomes) {
-    await supabase
-      .from('notifications')
-      .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? new Date().toISOString() : null })
-      .eq('id', o.id)
-      .eq('status', 'SENDING');
+    if (o.status === 'FAILED') {
+      const prev = attemptsById.get(o.id) ?? 0;
+      const nextAttempts = prev + 1;
+      const isFinal = nextAttempts >= MAX_ATTEMPTS;
+      await supabase
+        .from('notifications')
+        .update({
+          status: 'FAILED',
+          error: o.error,
+          attempts: nextAttempts,
+          next_retry_at: isFinal ? null : nextRetryAt(nextAttempts),
+        })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    } else {
+      await supabase
+        .from('notifications')
+        .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? new Date().toISOString() : null })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    }
   }
 
   const queued = all.filter((r) => !opsRows.includes(r));
@@ -302,11 +334,27 @@ export async function GET(request: Request) {
     else if (o.status === 'FAILED') failed++;
     else noDevice++;
 
-    await supabase
-      .from('notifications')
-      .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? now : null })
-      .eq('id', o.id)
-      .eq('status', 'SENDING');
+    if (o.status === 'FAILED') {
+      const prev = attemptsById.get(o.id) ?? 0;
+      const nextAttempts = prev + 1;
+      const isFinal = nextAttempts >= MAX_ATTEMPTS;
+      await supabase
+        .from('notifications')
+        .update({
+          status: 'FAILED',
+          error: o.error,
+          attempts: nextAttempts,
+          next_retry_at: isFinal ? null : nextRetryAt(nextAttempts),
+        })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    } else {
+      await supabase
+        .from('notifications')
+        .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? now : null })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    }
   }
 
   // Dead tokens, dropped so they stop consuming a send attempt every tick.

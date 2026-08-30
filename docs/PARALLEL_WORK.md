@@ -93,6 +93,42 @@ it is how versionCode 5 was caught failing without spending another build.
 
 Append your session entry here when you stop, newest on top, in the format above.
 
+### 2026-08-30 — Muse — branch feature/app-review-demo-path
+
+Did:
+  - Task1 App Review demo path — chose option (a) demo account. Wider validator (b) would still block at `enforce_service_area()` pincode trigger; reviewer-specific bypass (c) is a 2.1 rejection risk. No code change to `isValidIndianMobile` (stays India-only per phone.ts header). Created `scripts/seed-app-review-demo.ts` (idempotent, --check-only phone/pincode self-check, suppresses ADMIN notification to avoid ntfy page) and `docs/APP_REVIEW_NOTES.md` with verbatim notes for App Store Connect. Demo account: `app-review@caresy.co.in` / `DemoAppReview2026!`, phone `+919999999999` (passes isValidIndianMobile), pincode `201301` (served), one HOSPITAL_COMPANION SCHEDULED PENDING booking. Verified via `node --experimental-strip-types scripts/seed-app-review-demo.ts --check-only` → phone/pincode ok.
+  - Task2 issue #11 — `apps/website/src/app/api/cron/send-push/route.ts` FAILED rows were stranded. Added migration `44_NOTIFICATION_RETRY.sql` (attempts INT, next_retry_at TIMESTAMPTZ, index, claim_notifications() now re-queues FAILED where attempts<5 and next_retry_at<=now). Updated cron to set attempts/next_retry_at on FAILED with bounded exponential backoff 5,10,20,40,60m (MAX_ATTEMPTS=5, cap 60m). Added `apps/website/src/app/api/cron/send-push/retry.check.ts` (node --experimental-strip-types → "send-push retry: ok", checks backoff monotonic, cap, eligibility).
+  - Task3 issue #18 — emoji prefixes in service-area copy. Extended `packages/ui/src/Input.tsx` hint from `string` to `React.ReactNode` (single display property fix), replaced `✓`/`✗` in `apps/website/src/app/booking/page.tsx` and `quick-help/page.tsx` with `CheckCircle2`/`XCircle` from lucide-react (green #1B7A54, red #B3261E) inline flex gap 6.
+  - Task3 issue #20 companion half — lint 9 errors + 1 warning in @caresy/companion. Fixed `apps/companion/src/app/page.tsx` 3× set-state-in-effect (inlined alive-guarded async IIFE like admin's pattern, kept fetchCompanion for callbacks), `LocationShare.tsx` 4× any → typed RealtimeChannel / proper casts, `TripStatusControl.tsx` 1× any + 1× set-state-in-effect (alive-guarded IIFE) + 1× unused `data` var. All via proper types, no eslint-disable.
+
+Left mid-flight: Worktree has 10 modified/untracked files, not pushed, not merged — clean to keep working. Migration 44 written, NOT applied to Supabase (account holder to apply by hand in SQL editor then flip DATABASE.md row from ⬜ to ✅). Demo seed NOT run against production (check-only verified; run once before App Store submission). No changes to `apps/mobile-app/app.json|eas.json|fingerprint.config.js|package*.json` per instruction.
+
+Don't touch: `supabase/migrations/44_NOTIFICATION_RETRY.sql` (pending apply), `apps/website/src/app/api/cron/send-push/route.ts` (retry logic), `packages/ui/src/Input.tsx` (hint ReactNode), `scripts/seed-app-review-demo.ts`/`docs/APP_REVIEW_NOTES.md` (demo path). Also `apps/companion/**` now lint-clean — avoid regressions.
+
+Next:
+  - Account holder: apply `44_NOTIFICATION_RETRY.sql` in Supabase SQL editor, verify with `select * from notifications where status='FAILED'`, then update `docs/DATABASE.md` ledger to ✅.
+  - Before iOS submission: run `node --experimental-strip-types scripts/seed-app-review-demo.ts` once (service-role key from .env.local), verify demo user appears in auth + profile + booking, then paste `docs/APP_REVIEW_NOTES.md` into App Store Connect App Review notes.
+  - Merge `feature/app-review-demo-path` → `main` after review (gates below clean). Then `graphify update .` if available.
+
+Verification:
+  - `npx tsc --noEmit --project apps/companion/tsconfig.json` → 0 (clean)
+  - `npx tsc --noEmit --project apps/admin/tsconfig.json` → 0
+  - `npx tsc --noEmit --project apps/website/tsconfig.json` → 0
+  - `npm run lint -w @caresy/companion` → 0 errors, 0 warnings (was 9 errors + 1 warning)
+  - `npm run lint -w @caresy/admin` → 0 errors, 0 warnings
+  - `npm run build -w @caresy/companion` → Compiled successfully (3.9s, 6.4s TS, static pages 3/3)
+  - `npm run build -w @caresy/website` → Compiled successfully (routes include /api/cron/send-push)
+  - `npm run build -w @caresy/admin` → Compiled successfully (14/14 pages)
+  - `npx expo export:embed --eager --platform ios --dev false` → iOS Bundled 1102ms, Done (exit 0)
+  - `npx expo export:embed --eager --platform android --dev false` → Android Bundled 1381ms, Done (exit 0)
+  - `node --experimental-strip-types apps/website/src/app/api/cron/send-push/retry.check.ts` → "send-push retry: ok"
+  - `node --experimental-strip-types packages/utils/src/phone.check.ts` → "phone: ok"
+  - `node --experimental-strip-types scripts/seed-app-review-demo.ts --check-only` → phone/pincode valid=true, check-only ok
+  - `git diff --stat` shows 6 modified + migration + seed + notes + check (10 files total). No staged commits yet — work at risk until committed.
+
+
+
+
 ### 2026-08-28 — Muse (worktree: caresy_admin_worktree, branch feature/admin-hardening)
 Did: Completed admin hardening (issues #13, #14, #15, #20 admin half) — all in worktree `caresy_admin_worktree` on `feature/admin-hardening` (branched from origin/main, 06cdaf2). Files touched: `apps/admin/src/app/ops/page.tsx` (collapsed two RPCs to single `admin_save_booking_edit`, added can_drive pre-check, typed `any` → Record<string,unknown>, fixed service_metadata casts), `apps/admin/src/app/companions/page.tsx` (replaced window.confirm with two-step overlay, state pendingConfirm), `apps/admin/src/app/service-areas/page.tsx` (replaced bare confirm() with Confirm/Cancel buttons, confirmId state), `apps/admin/src/app/live/page.tsx` (typed any), `apps/admin/next.config.ts` (minor), `docs/DATABASE.md` (added migration 41 row), new `supabase/migrations/41_ADMIN_COMBINED_SAVE.sql` (transactional wrapper delegates to admin_override_booking_status + reassign_booking), new `apps/admin/src/app/ops/admin_save_booking_edit.check.ts` (asserts failing companion leaves status unchanged, proves old two-RPC half-save).
 Left mid-flight: Worktree has uncommitted changes (6 modified, 2 untracked) — not pushed, not merged. Migration 41 written, NOT applied to Supabase. No changes to `apps/mobile-app/**`, `apps/companion/**`, `apps/website/**`, or `supabase/migrations/30–40`.

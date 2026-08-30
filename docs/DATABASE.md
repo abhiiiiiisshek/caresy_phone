@@ -61,6 +61,7 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 41 | `41_ADMIN_COMBINED_SAVE.sql` | transactional `admin_save_booking_edit` — wraps `admin_override_booking_status` + `reassign_booking` so status+companion edits are atomic (either both apply or neither). **Superseded by 42**: inferred intent from client-supplied current values, so NULL meant both "unchanged" and "unassign" | ✅ |
 | 42 | `42_ADMIN_SAVE_INTENT.sql` | drops 41's 4-arg overload; `admin_save_booking_edit` takes explicit `p_change_status` / `p_change_companion` and takes `FOR UPDATE` before deciding | ✅ |
 | 43 | `43_FIX_IS_ADMIN_NULL.sql` | **security**: `is_admin()` returned NULL (not FALSE) for anonymous callers, so every `IF NOT is_admin() THEN RAISE` guard failed open. COALESCE moved outside the subquery; `anon` EXECUTE revoked on the three admin RPCs | ✅ |
+| 44 | `44_NOTIFICATION_RETRY.sql` | **reliability** (issue #11): `FAILED` notifications retried with bounded exponential backoff (5 attempts: 5,10,20,40,60m). `attempts` + `next_retry_at` + `claim_notifications()` now re-queues eligible FAILED rows | ✅ |
 
 \* 32 is a one-off data fix — re-run `select * from patients where customer_user_id = auth.uid() and deleted_at is null group by full_name having count(*) >1` after; flip to ✅ once merged (see `32_MERGE_DUPLICATE_PATIENTS.sql` foot query).
 
