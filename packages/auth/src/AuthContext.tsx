@@ -24,6 +24,8 @@ interface AuthContextType {
   closeLogin: () => void;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<{ needsConfirmation: boolean }>;
   /** Whether this portal offers OTP sign-in (website only — see msg91Configured). */
   phoneSignInEnabled: boolean;
   /** Opens the MSG91 widget and, on a verified OTP, establishes a session. Throws on failure. */
@@ -160,6 +162,22 @@ export function AuthProvider({
     });
   };
 
+  const signInWithEmail = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+    if (error) throw error;
+  };
+
+  const signUpWithEmail = async (email: string, password: string, fullName?: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+      options: { data: fullName ? { full_name: fullName.trim() } : undefined },
+    });
+    if (error) throw error;
+    const needsConfirmation = !data.session && !!data.user && !data.user.email_confirmed_at;
+    return { needsConfirmation };
+  };
+
   // Trades a verified MSG91 access-token for a Supabase session. The server
   // (which holds the secret authkey) confirms the number and returns a one-shot
   // magic-link hash; verifyOtp turns it into a session on this same page, and
@@ -227,6 +245,8 @@ export function AuthProvider({
         closeLogin,
         signInWithGoogle,
         signInWithApple,
+        signInWithEmail,
+        signUpWithEmail,
         phoneSignInEnabled: msg91Configured(),
         signInWithPhone,
         startPhoneOtp,
