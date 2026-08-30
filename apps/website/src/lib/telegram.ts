@@ -126,3 +126,32 @@ export function formatTelegramForRow(row: {
 export function chatIdsForRow(row: { recipient_role?: string | null }): string[] {
   return envChatIds(row.recipient_role);
 }
+
+/**
+ * Batch summary for ADMIN flood control: if many ADMIN rows claimed in one
+ * tick (e.g. 5 bookings in 1m), send ONE summary instead of 5 pings.
+ */
+export function formatTelegramBatchForRows(rows: Array<{
+  id: string;
+  event: string;
+  title: string;
+  booking_id?: string | null;
+  recipient_role?: string | null;
+  created_at?: string | null;
+}>): string {
+  const n = rows.length;
+  const byEvent = rows.reduce<Record<string, number>>((m, r) => {
+    m[r.event] = (m[r.event] || 0) + 1;
+    return m;
+  }, {});
+  const events = Object.entries(byEvent).map(([e,c]) => `${escapeHtml(e)}×${c}`).join(', ');
+  const samples = rows.slice(0, 3).map(r => r.booking_id ? `<code>${escapeHtml(r.booking_id.slice(0,8))}</code>` : `<code>${escapeHtml(r.id.slice(0,8))}</code>`).join(', ');
+  const when = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+  let msg = `<b>ADMIN digest • ${n} updates</b> • ${events}\n`;
+  msg += samples + (n > 3 ? ` +${n-3} more` : '') + ` • ${escapeHtml(when)}\n`;
+  // include titles of first 3 for context
+  for (const r of rows.slice(0, 3)) {
+    msg += `• ${escapeHtml(r.title.slice(0, 100))}\n`;
+  }
+  return msg;
+}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { accessToken, projectId, sendPush } from '@/lib/fcm';
 import { mapLimit } from '@/lib/mapLimit';
-import { chatIdsForRow, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
+import { chatIdsForRow, formatTelegramBatchForRows, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
 
 // Drains the `notifications` queue to FCM + Telegram + ops.
 // Exactly-once via claim-before-send (36_NOTIFICATIONS_CLAIM.sql):
@@ -44,10 +44,24 @@ interface QueuedRow {
   recipient_user_id: string | null;
   recipient_role: string | null;
   created_at?: string | null;
+  attempts?: number | null;
+  next_retry_at?: string | null;
+  claimed_at?: string | null;
 }
 
 // Header values are latin-1 only, and a booking title is otherwise free text.
 const asciiOnly = (s: string) => s.replace(/[^\x20-\x7E]/g, '').slice(0, 200);
+
+// Retry: bounded exponential backoff for FAILED rows (migration 44).
+// MAX_ATTEMPTS=5 (initial + 4 retries); backoff 5,10,20,40,60 minutes.
+const MAX_ATTEMPTS = 5;
+function backoffMinutes(attempts: number): number {
+  return Math.min(60, 5 * Math.pow(2, Math.max(0, attempts - 1)));
+}
+function nextRetryAt(attempts: number): string {
+  const mins = backoffMinutes(attempts);
+  return new Date(Date.now() + mins * 60_000).toISOString();
+}
 
 // Where ops is paged. Any endpoint that accepts a JSON POST — a Slack or Discord
 // incoming webhook, a Zapier/n8n hook, a WhatsApp gateway — because the one
@@ -79,6 +93,45 @@ async function fanoutTelegram(rows: QueuedRow[]): Promise<{ sent: number; skippe
     return chatIdsForRow(r).length > 0;
   });
   if (!toSend.length) return { sent: 0, skipped: rows.length - toSend.length, failed: 0 };
+
+  // Smart batch: if >=4 ADMIN rows in one tick, send ONE digest to ADMIN chat instead of 4+ pings
+  const adminRows = toSend.filter((r) => r.recipient_role === 'ADMIN');
+  if (adminRows.length >= 4) {
+    const adminChats = chatIdsForRow({ recipient_role: 'ADMIN' });
+    if (adminChats.length) {
+      const batchText = formatTelegramBatchForRows(adminRows as any);
+      const outs = await Promise.all(adminChats.map((chatId) => sendTelegram(batchText, { chatId })));
+      const failed = outs.find((o) => !o.ok);
+      if (failed) {
+        // batch failed counts as failed for all admin rows
+        const nonAdmin = toSend.filter((r) => r.recipient_role !== 'ADMIN');
+        // send non-admin individually
+        const restResults = await mapLimit(nonAdmin, TELEGRAM_CONCURRENCY, async (row) => {
+          const chats = chatIdsForRow(row);
+          const text = formatTelegramForRow(row as any);
+          const routs = await Promise.all(chats.map((chatId) => sendTelegram(text, { chatId })));
+          const f = routs.find((o) => !o.ok) as { ok: false; error: string } | undefined;
+          return f ? { ok: false as const, error: f.error } : { ok: true as const };
+        });
+        let restSent = 0, restFailed = 0;
+        restResults.forEach((r) => (r.ok ? restSent++ : restFailed++));
+        return { sent: restSent, skipped: rows.length - toSend.length, failed: adminRows.length + restFailed };
+      }
+      // batch sent - send non-admin individually
+      const nonAdmin = toSend.filter((r) => r.recipient_role !== 'ADMIN');
+      if (!nonAdmin.length) return { sent: adminRows.length, skipped: rows.length - toSend.length, failed: 0 };
+      const restResults = await mapLimit(nonAdmin, TELEGRAM_CONCURRENCY, async (row) => {
+        const chats = chatIdsForRow(row);
+        const text = formatTelegramForRow(row as any);
+        const routs = await Promise.all(chats.map((chatId) => sendTelegram(text, { chatId })));
+        const f = routs.find((o) => !o.ok) as { ok: false; error: string } | undefined;
+        return f ? { ok: false as const, error: f.error } : { ok: true as const };
+      });
+      let restSent = 0, restFailed = 0;
+      restResults.forEach((r) => (r.ok ? restSent++ : restFailed++));
+      return { sent: adminRows.length + restSent, skipped: rows.length - toSend.length, failed: restFailed };
+    }
+  }
 
   const results = await mapLimit(toSend, TELEGRAM_CONCURRENCY, async (row) => {
     const chats = chatIdsForRow(row);
@@ -185,17 +238,68 @@ export async function GET(request: Request) {
   // only party who can act on it — never told at all.
   const opsRows = all.filter((r) => r.recipient_role === 'ADMIN' && !r.recipient_user_id);
   const opsWebhook = process.env.OPS_WEBHOOK_URL;
-  const opsOutcomes = opsWebhook && opsRows.length ? await pageOps(opsRows, opsWebhook) : [];
-  // With no webhook configured they stay SENDING on purpose: /admin/ops counts
-  // them, and the next tick's stale reclaim (5m) will make them eligible again.
+  // FIX: don't leave ADMIN rows SENDING forever when webhook missing — rely on Telegram
+  // (was the cause of 5m flood). If Telegram already sent for that ADMIN row, mark SENT.
+  let opsOutcomes: Array<{ id: string; status: string; error: string | null }> = [];
+  if (opsWebhook && opsRows.length) {
+    opsOutcomes = await pageOps(opsRows, opsWebhook);
+  } else if (opsRows.length) {
+    // No webhook: if Telegram sent, close the row as SENT (admin saw it on Telegram);
+    // if no Telegram chat or Telegram failed, mark SKIPPED/FAILED to avoid SENDING loop.
+    const nowIso = new Date().toISOString();
+    if (telegram.failed > 0) {
+      // telegram had failures - mark those ADMIN rows FAILED with backoff, rest SENT
+      // conservative: mark all as FAILED to retry with backoff (44 logic)
+      for (const r of opsRows) {
+        const hasChat = chatIdsForRow(r).length > 0;
+        if (!hasChat) {
+          await supabase.from('notifications').update({ status: 'SKIPPED', error: 'no OPS_WEBHOOK_URL and no TELEGRAM_CHAT_ID_ADMIN', sent_at: null }).eq('id', r.id).eq('status','SENDING');
+        } else {
+          const prev = (r.attempts ?? 0) as number;
+          const nextAttempts = prev + 1;
+          const isFinal = nextAttempts >= MAX_ATTEMPTS;
+          await supabase.from('notifications').update({ status: 'FAILED', error: 'telegram failed', attempts: nextAttempts, next_retry_at: isFinal ? null : nextRetryAt(nextAttempts) }).eq('id', r.id).eq('status','SENDING');
+        }
+      }
+    } else {
+      // telegram succeeded or was skipped per-role
+      for (const r of opsRows) {
+        const hasChat = chatIdsForRow(r).length > 0;
+        if (!hasChat) {
+          await supabase.from('notifications').update({ status: 'SKIPPED', error: 'no OPS_WEBHOOK_URL and no TELEGRAM_CHAT_ID_ADMIN', sent_at: null }).eq('id', r.id).eq('status','SENDING');
+        } else {
+          await supabase.from('notifications').update({ status: 'SENT', error: null, sent_at: nowIso }).eq('id', r.id).eq('status','SENDING');
+        }
+      }
+    }
+    // opsOutcomes stays empty — already finalized above, so downstream early-return sees zero pending ops
+  }
   // Claim-before-send: only transition SENDING → SENT/FAILED. Concurrent ticks
   // claimed disjoint sets via SKIP LOCKED, so no row is ever sent twice.
+  // Track attempts per row for backoff (FAILED rows carry attempts from claim)
+  const attemptsById = new Map(all.map((r) => [r.id, (r.attempts ?? 0) as number]));
   for (const o of opsOutcomes) {
-    await supabase
-      .from('notifications')
-      .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? new Date().toISOString() : null })
-      .eq('id', o.id)
-      .eq('status', 'SENDING');
+    if (o.status === 'FAILED') {
+      const prev = attemptsById.get(o.id) ?? 0;
+      const nextAttempts = prev + 1;
+      const isFinal = nextAttempts >= MAX_ATTEMPTS;
+      await supabase
+        .from('notifications')
+        .update({
+          status: 'FAILED',
+          error: o.error,
+          attempts: nextAttempts,
+          next_retry_at: isFinal ? null : nextRetryAt(nextAttempts),
+        })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    } else {
+      await supabase
+        .from('notifications')
+        .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? new Date().toISOString() : null })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    }
   }
 
   const queued = all.filter((r) => !opsRows.includes(r));
@@ -302,11 +406,27 @@ export async function GET(request: Request) {
     else if (o.status === 'FAILED') failed++;
     else noDevice++;
 
-    await supabase
-      .from('notifications')
-      .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? now : null })
-      .eq('id', o.id)
-      .eq('status', 'SENDING');
+    if (o.status === 'FAILED') {
+      const prev = attemptsById.get(o.id) ?? 0;
+      const nextAttempts = prev + 1;
+      const isFinal = nextAttempts >= MAX_ATTEMPTS;
+      await supabase
+        .from('notifications')
+        .update({
+          status: 'FAILED',
+          error: o.error,
+          attempts: nextAttempts,
+          next_retry_at: isFinal ? null : nextRetryAt(nextAttempts),
+        })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    } else {
+      await supabase
+        .from('notifications')
+        .update({ status: o.status, error: o.error, sent_at: o.status === 'SENT' ? now : null })
+        .eq('id', o.id)
+        .eq('status', 'SENDING');
+    }
   }
 
   // Dead tokens, dropped so they stop consuming a send attempt every tick.
