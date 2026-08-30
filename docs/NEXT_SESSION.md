@@ -118,6 +118,63 @@ dependency tree actually resolves.
 Migrations 41, 42, 43 are all **applied to production**. `docs/DATABASE.md` rows
 are current.
 
+## iOS — the critical path, in order (priority as of 2026-08-30)
+
+iOS has **never produced a store build**. Android now has one (versionCode 4).
+Every step below except the last two is account-holder work — they need Apple
+credentials, which an agent must not enter.
+
+1. **Confirm the Apple Developer Program membership is paid and active.** The
+   Team ID `46CLB4HU9B` in `eas.json` does not prove it. Everything else is
+   blocked on this. Check at developer.apple.com/account.
+2. **`SUPABASE_SERVICE_ROLE_KEY` on the website's production env (issue #8).**
+   This is on the iOS critical path, not general cleanup:
+   `apps/website/src/app/api/account/delete/route.ts:19-21` returns **503
+   "Account deletion is not configured."** without it. Apple tests in-app account
+   deletion under guideline 5.1.1(v). Unset key means the reviewer hits a 503 and
+   the app is rejected. Set it before submitting anything.
+3. **Create the app record in App Store Connect**, then put its numeric
+   `ascAppId` into `eas.json` under `submit.production.ios` — currently missing,
+   and `eas submit` cannot run without it.
+4. **Create an App Store Connect API key** for `eas submit`.
+5. **Build**: `npx eas-cli build --platform ios --profile production`. First run
+   prompts for Apple sign-in to generate the distribution certificate and
+   provisioning profile — the account holder must do that part interactively.
+6. **App Review demo path** — assigned to Muse, see `docs/PARALLEL_WORK.md`.
+   A reviewer in the US cannot complete a booking: `isValidIndianMobile` gates
+   the phone field (`apps/mobile-app/app/profile.tsx:144`) and the service area is
+   Noida. Without a demo account and review notes this is a 2.1 rejection.
+7. **App Privacy questionnaire** in App Store Connect (account holder).
+
+Already satisfied and verified in source — do not re-chase: Sign in with Apple
+(4.8, native button + `Crypto.getRandomBytes` nonce), in-app account deletion
+(5.1.1(v), `app/account-delete.tsx`), export compliance
+(`ITSAppUsesNonExemptEncryption: false`), privacy manifest, permission strings.
+The iOS JS bundle also builds clean — `expo export:embed --eager --platform ios`
+exits 0, so nothing in the dependency tree blocks an iOS build.
+
+## On "the GitHub issues are just testing" — mostly true, with one exception that matters
+
+Checked against source on 2026-08-30, not taken on faith:
+
+- **#5, #6** — genuinely manual QA on two phones. Claim holds.
+- **#7** `NEXT_PUBLIC_UPI_VPA` — **not a defect.** Unset degrades to cash-only by
+  design and the UI says so (`apps/companion/src/app/page.tsx:611,638`). Safe to
+  leave. Claim holds.
+- **#9** `patient-docs` bucket — migration 25 is marked applied in
+  `docs/DATABASE.md`, so this is likely already done; confirm the bucket exists in
+  the dashboard and close it.
+- **#12** — closable. Both builds pass as of 2026-08-29.
+- **#8 `SUPABASE_SERVICE_ROLE_KEY` — this one is real and it blocks the iOS
+  submission.** Three server routes hard-fail without it, including account
+  deletion (503) which Apple explicitly tests. "Can be done manually" is true;
+  "not a real issue" is not. See step 2 above.
+- **#11** — a real code defect (failed notifications are never retried), not
+  testing. Not launch-blocking. Assigned to Muse.
+
+So: the claim is right that most of these are manual or cosmetic, and wrong that
+none of them matter. #8 is the one to do before submitting to Apple.
+
 ## Mobile release — real state
 
 | | Android | iOS |

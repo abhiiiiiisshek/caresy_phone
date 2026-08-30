@@ -9,7 +9,7 @@
 | 2 — Read-only screens | Home, booking history/detail, profile, settings, support, native bottom tabs | ✅ mostly done — Home + My Bookings built, Profile/Settings/Support still ⬜ (see `NATIVE_CHECKLIST.md`) |
 | 3 — Booking write path | Service → hospital → patient → pincode → slot → confirm, real `INSERT` under RLS | ✅ built (parity deferred — see `NATIVE_CHECKLIST.md` deferred 1–4,8) — Booking screen built, writes patients→locations→bookings |
 | 4 — Native-only capability | Live tracking (maps + Realtime), push notifications, image picker for docs | 🔶 partial — Tracking screen built; push notifications + doc picker not yet |
-| 5 — Store compliance | Account deletion, Sign in with Apple, privacy manifest, Data Safety/App Privacy forms | ⬜ not built — **blocks both store submissions** |
+| 5 — Store compliance | Account deletion, Sign in with Apple, privacy manifest, Data Safety/App Privacy forms | ✅ built in source 2026-08-29 — `app/account-delete.tsx`, `AuthProvider.tsx` (native Apple button + Crypto nonce), privacy manifest + permission strings in `app.json`. The store-side **forms** are still ⬜ (account-holder work in ASC/Play Console). Row previously read "not built" — that was stale. |
 | 6 — Ship, retire shell | EAS Build → Play + App Store, then delete old `apps/mobile` Capacitor tree | ⬜ blocked on Phase 5 |
 
 Remaining mobile-app screens per `NATIVE_CHECKLIST.md` (2026-08-13): Quick Help, Profile, Care/Guides, Account deletion — all ⬜.
@@ -35,6 +35,63 @@ Next: <what should happen next in this area>
 ```
 
 ---
+
+### 2026-08-30 — task for Muse — App Review demo path (iOS critical path) + issues #11, #18, #20
+
+**Context: iOS is now the priority and it is the only track with no artifact yet.**
+Android has its first production AAB (build `6aee612a`, versionCode 4). iOS has
+never produced a store build. Everything on the iOS critical path except one item
+needs the account holder's Apple credentials — that one item is yours, below, and
+it is a genuine rejection risk, not polish.
+
+Do **not** touch `apps/mobile-app/app.json`, `eas.json`, `fingerprint.config.js`,
+`package.json` or `package-lock.json` in any workspace. A dependency change was
+reverted on 2026-08-29 (`3a7bba8`) because refreshing the stale lockfile broke the
+Android bundle; read the "Do not retry without reading this" section in
+`docs/NEXT_SESSION.md` before touching dependencies at all.
+
+**Task 1 — App Review cannot complete a booking. This will earn a 2.1 rejection.**
+App Review works from the United States. `packages/utils/src/phone.ts`
+`isValidIndianMobile` gates the phone field, and `apps/mobile-app/app/profile.tsx:144`
+rejects anything that is not a 10-digit Indian mobile. A reviewer signs in with
+their own Google or Apple ID, reaches profile, and cannot proceed. The service
+area is Noida, so the booking flow dead-ends for them regardless.
+
+Work out and implement the smallest honest path that lets a reviewer see the app
+work, then write the exact App Review notes text to go with it. Options worth
+weighing — pick one and justify it in your session entry:
+  a. a demo account, pre-seeded with a valid Indian number and a booking, whose
+     credentials go in the review notes (no code change; needs a seed script);
+  b. accepting E.164 international numbers in the validator (`toE164` already
+     exists) — wider blast radius, touches the website and companion too;
+  c. a review-only bypass — **do not do this**, Apple treats reviewer-specific
+     behaviour as grounds for rejection.
+Option (a) is most likely correct. Whatever you choose, leave a runnable
+`assert`-based check next to any logic you change, per `CLAUDE.md`.
+
+**Task 2 — issue #11, a `FAILED` notification is never retried.**
+`apps/website/src/app/api/cron/send-push/route.ts` marks rows `FAILED` (lines
+~130, ~292) and nothing ever picks them up again. Real defect, not launch-blocking.
+Decide retry policy (bounded attempts + backoff) and say why in the issue.
+
+**Task 3 — issues #18 and #20 (companion half).** Emoji check/cross prefixes in
+service-area copy; the remaining pre-existing lint errors in `@caresy/companion`.
+The admin half of #20 is already done.
+
+**Already verified, do not redo:** issue #12 — `npm run build -w @caresy/admin`
+and `-w @caresy/companion` both pass as of 2026-08-29. #12 is closable.
+
+**Gates before you say done** (`CLAUDE.md` order), plus one addition — if you
+touch anything the mobile app imports, including `packages/utils`, run:
+```
+cd apps/mobile-app
+npx expo export:embed --eager --platform ios --dev false
+npx expo export:embed --eager --platform android --dev false
+```
+Exit 0 on both. This is the exact command EAS runs in its EAGER_BUNDLE phase, and
+it is how versionCode 5 was caught failing without spending another build.
+
+Append your session entry here when you stop, newest on top, in the format above.
 
 ### 2026-08-28 — Muse (worktree: caresy_admin_worktree, branch feature/admin-hardening)
 Did: Completed admin hardening (issues #13, #14, #15, #20 admin half) — all in worktree `caresy_admin_worktree` on `feature/admin-hardening` (branched from origin/main, 06cdaf2). Files touched: `apps/admin/src/app/ops/page.tsx` (collapsed two RPCs to single `admin_save_booking_edit`, added can_drive pre-check, typed `any` → Record<string,unknown>, fixed service_metadata casts), `apps/admin/src/app/companions/page.tsx` (replaced window.confirm with two-step overlay, state pendingConfirm), `apps/admin/src/app/service-areas/page.tsx` (replaced bare confirm() with Confirm/Cancel buttons, confirmId state), `apps/admin/src/app/live/page.tsx` (typed any), `apps/admin/next.config.ts` (minor), `docs/DATABASE.md` (added migration 41 row), new `supabase/migrations/41_ADMIN_COMBINED_SAVE.sql` (transactional wrapper delegates to admin_override_booking_status + reassign_booking), new `apps/admin/src/app/ops/admin_save_booking_edit.check.ts` (asserts failing companion leaves status unchanged, proves old two-RPC half-save).
