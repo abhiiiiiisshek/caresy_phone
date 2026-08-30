@@ -18,6 +18,8 @@ type AuthContextValue = {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
 };
 
@@ -196,12 +198,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }
 
+  async function signInWithEmail(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+    if (error) throw error;
+  }
+
+  async function signUpWithEmail(email: string, password: string, fullName?: string) {
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim().toLowerCase(),
+      password,
+      options: {
+        data: fullName ? { full_name: fullName.trim() } : undefined,
+      },
+    });
+    if (error) throw error;
+    // Supabase returns session == null when email confirmation required
+    const needsConfirmation = !data.session && !!data.user && !data.user.email_confirmed_at;
+    return { needsConfirmation };
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
   }
 
   return (
-    <AuthContext.Provider value={{ session, loading, signInWithGoogle, signInWithApple, signOut }}>
+    <AuthContext.Provider value={{ session, loading, signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, signOut }}>
       {children}
     </AuthContext.Provider>
   );
