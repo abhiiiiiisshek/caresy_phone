@@ -374,24 +374,30 @@ function Onboarding({ name, setName, error, saving, onSubmit }: {
   name: string; setName: (v: string) => void; error: string; saving: boolean; onSubmit: () => void;
 }) {
   return (
-    <FormScreen footer={
-      <View style={s.obFooter}>
-        <Button title={saving ? 'Saving…' : 'Continue'} onPress={onSubmit} loading={saving} />
-      </View>
-    }>
-      <View style={s.obHeader}>
-        <Txt variant="display" color={color.ink}>Welcome to Caresy</Txt>
-        <Txt variant="body" color={color.muted}>What should we call you?</Txt>
-      </View>
-      <Field
-        label="Full name"
-        value={name}
-        onChangeText={setName}
-        placeholder="e.g. Ananya Rao"
-        autoCapitalize="words"
-        error={error || null}
-      />
-    </FormScreen>
+    <Screen>
+      <ScrollView contentContainerStyle={s.obBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <Stagger index={0} style={s.obIconWrap}>
+          <View style={s.obIcon}><CapyMascot compact /></View>
+        </Stagger>
+        <Stagger index={1} style={s.obHeader}>
+          <Txt variant="display" color={color.ink} style={s.centerText}>Welcome to Caresy</Txt>
+          <Txt variant="body" color={color.muted} style={s.centerText}>What should we call you?</Txt>
+          <Txt variant="caption" color={color.faint} style={s.centerText}>This is how your companion will greet you.</Txt>
+        </Stagger>
+        <Stagger index={2} style={s.obCard}>
+          <Field
+            label="Full name"
+            value={name}
+            onChangeText={setName}
+            placeholder="e.g. Ananya Rao"
+            autoCapitalize="words"
+            error={error || null}
+          />
+          <Button title={saving ? 'Saving…' : 'Continue'} onPress={onSubmit} loading={saving} style={s.obBtn} />
+          <Txt variant="caption" color={color.faint} style={s.centerText}>You can change this later in Profile.</Txt>
+        </Stagger>
+      </ScrollView>
+    </Screen>
   );
 }
 
@@ -679,6 +685,10 @@ const s = StyleSheet.create({
   emptyCta: { marginTop: space.sm, backgroundColor: color.green, paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill },
   signOut: { marginTop: space.sm },
 
-  obHeader: { gap: space.xs, marginBottom: space.lg },
-  obFooter: { padding: space.xl },
+  obBody: { flexGrow: 1, padding: space.xl, gap: space.xl, justifyContent: 'center', paddingBottom: space.xxl, paddingTop: space.xxl },
+  obIconWrap: { alignItems: 'center', marginBottom: space.sm },
+  obIcon: { width: 96, height: 96, borderRadius: 48, backgroundColor: color.greenTint, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(27,77,62,0.08)' },
+  obHeader: { alignItems: 'center', gap: space.xs, paddingHorizontal: space.lg },
+  obCard: { backgroundColor: color.surface, borderRadius: radius.lg, padding: space.xl, gap: space.lg, borderWidth: 1, borderColor: color.line, ...shadow.card },
+  obBtn: { alignSelf: 'stretch' },
 });
