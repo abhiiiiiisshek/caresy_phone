@@ -38,6 +38,22 @@ Next: <what should happen next in this area>
 
 ### 2026-08-30 — task for Muse — App Review demo path (iOS critical path) + issues #11, #18, #20
 
+**Your workspace is already set up — do not create a new one.**
+
+```
+/Users/1234/Documents/caresy_admin_worktree    branch feature/app-review-demo-path (off origin/main @ 36fb921)
+```
+
+`npm install` has been run there and `.env.local` is in place for all four apps,
+so every gate works out of the box. Verified 2026-08-30: `tsc --noEmit` clean in
+admin, companion, website and mobile-app, and
+`expo export:embed --eager --platform ios` exits 0. This is the setup step that
+was missed last time — rule 1.11 exists because of it. If a gate fails for an
+environment reason, say so and stop; do not route around it.
+
+Note `.env.local` points at **production** Supabase. Do not run booking writes
+against it casually — real rows, and the ops phone gets paged via ntfy.
+
 **Context: iOS is now the priority and it is the only track with no artifact yet.**
 Android has its first production AAB (build `6aee612a`, versionCode 4). iOS has
 never produced a store build. Everything on the iOS critical path except one item
