@@ -35,7 +35,7 @@ type Step = 'choose' | 'phone' | 'otp';
 export default function Login() {
   const {
     user, profile, isLoading,
-    signInWithGoogle, signInWithApple,
+    signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail,
     phoneSignInEnabled, startPhoneOtp, resendPhoneOtp, confirmPhoneOtp,
   } = useAuth();
   const router = useRouter();
@@ -48,6 +48,14 @@ export default function Login() {
   const [error, setError] = useState('');
   const [resendIn, setResendIn] = useState(0);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+  // Email/password — same interface as mobile BeautifulAuth, integrated into choose step
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [confirmationMsg, setConfirmationMsg] = useState('');
 
   useEffect(() => {
     if (!isLoading && user) router.replace('/');
@@ -62,6 +70,26 @@ export default function Login() {
 
   const firstName = profile?.full_name?.split(' ')[0] || (user?.user_metadata?.name as string)?.split(' ')[0];
   const otpValue = otp.join('');
+
+  const handleEmailAuth = async () => {
+    setEmailError(''); setConfirmationMsg('');
+    const e = email.trim().toLowerCase();
+    if (!e || !/\S+@\S+\.\S+/.test(e)) { setEmailError('Enter a valid email'); return; }
+    if (!password || password.length < 6) { setEmailError('Password must be at least 6 characters'); return; }
+    if (authMode === 'signup' && !fullName.trim()) { setEmailError('Full name is required'); return; }
+    setEmailBusy(true);
+    try {
+      if (authMode === 'signup') {
+        const { needsConfirmation } = await signUpWithEmail(e, password, fullName);
+        if (needsConfirmation) setConfirmationMsg('Check your email to confirm, then log in.');
+      } else {
+        await signInWithEmail(e, password);
+      }
+    } catch (err) {
+      setEmailError(err instanceof Error ? err.message : 'Something went wrong');
+    }
+    setEmailBusy(false);
+  };
 
   const sendOtp = async () => {
     if (mobile.length !== 10) { setError('Enter a valid 10-digit mobile number.'); return; }
@@ -210,20 +238,61 @@ export default function Login() {
 
           {/* Step content — re-keyed per step so it fades on each transition. */}
           <div key={step} className="lp-step" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {/* STEP: choose */}
+          {/* STEP: choose — now with Email/Password + Google/Apple + Phone */}
           {step === 'choose' && (
             <>
+              {/* Log in / Sign up toggle — same as mobile */}
+              <div style={{ display: 'flex', background: '#f1f5f3', borderRadius: 999, padding: 4, gap: 0 }}>
+                <button
+                  onClick={() => { setAuthMode('login'); setEmailError(''); setConfirmationMsg(''); }}
+                  style={{ flex: 1, padding: '10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: authMode === 'login' ? '#fff' : 'transparent', color: authMode === 'login' ? 'var(--m3-green-deep)' : '#8a968f', fontWeight: 700, fontSize: 14, boxShadow: authMode === 'login' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', fontFamily: 'inherit' }}
+                >Log in</button>
+                <button
+                  onClick={() => { setAuthMode('signup'); setEmailError(''); setConfirmationMsg(''); }}
+                  style={{ flex: 1, padding: '10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: authMode === 'signup' ? '#fff' : 'transparent', color: authMode === 'signup' ? 'var(--m3-green-deep)' : '#8a968f', fontWeight: 700, fontSize: 14, boxShadow: authMode === 'signup' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', fontFamily: 'inherit' }}
+                >Sign up</button>
+              </div>
+
+              {/* Email / Password form — primary */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {authMode === 'signup' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--m3-muted)' }}>Full name</label>
+                    <input value={fullName} onChange={(e) => { setFullName(e.target.value); setEmailError(''); }} placeholder="e.g. Ananya Rao" style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #c0c9c3', background: '#fff', fontSize: 14, outline: 'none', fontFamily: 'inherit' }} />
+                  </div>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--m3-muted)' }}>Email</label>
+                  <input value={email} onChange={(e) => { setEmail(e.target.value); setEmailError(''); setConfirmationMsg(''); }} placeholder="you@example.com" inputMode="email" autoCapitalize="off" autoCorrect="off" style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #c0c9c3', background: '#fff', fontSize: 14, outline: 'none', fontFamily: 'inherit' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--m3-muted)' }}>Password</label>
+                  <input value={password} onChange={(e) => { setPassword(e.target.value); setEmailError(''); }} placeholder="At least 6 characters" type="password" style={{ width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #c0c9c3', background: '#fff', fontSize: 14, outline: 'none', fontFamily: 'inherit' }} />
+                </div>
+                {emailError && <p style={{ margin: 0, fontSize: 12, color: '#b3261e', fontWeight: 600 }}>{emailError}</p>}
+                {confirmationMsg && <p style={{ margin: 0, fontSize: 12, color: '#1b7a54', fontWeight: 600 }}>{confirmationMsg}</p>}
+                <button className="lp-btn" onClick={handleEmailAuth} disabled={emailBusy} style={{ ...btn('var(--m3-green-deep)', '#fff'), opacity: emailBusy ? 0.7 : 1 }}>
+                  {emailBusy ? <Loader2 className="animate-spin" style={ic} /> : null} {authMode === 'signup' ? 'Create account' : 'Log in'}
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 0' }}>
+                <div style={{ flex: 1, height: 1, background: '#e1e3de' }} />
+                <span style={{ fontSize: 12, color: '#9aa5a0', fontWeight: 600 }}>or continue with</span>
+                <div style={{ flex: 1, height: 1, background: '#e1e3de' }} />
+              </div>
+
               <button className="lp-btn" onClick={() => signInWithGoogle()} disabled={isLoading}
-                style={btn('var(--m3-green-deep)', '#fff')}>
+                style={{ ...btn('#fff', 'var(--m3-ink)'), border: '1px solid #c0c9c3' }}>
                 {isLoading ? <Loader2 className="animate-spin" style={ic} /> : <GoogleMark />} Continue with Google
               </button>
               <button className="lp-btn" onClick={() => signInWithApple()} disabled={isLoading}
-                style={{ ...btn('#000', '#fff'), marginTop: -6 }}>
+                style={btn('#000', '#fff')}>
                 {isLoading ? <Loader2 className="animate-spin" style={ic} /> : <AppleMark />} Continue with Apple
               </button>
               {phoneSignInEnabled && (
                 <button className="lp-btn" onClick={() => { setStep('phone'); setError(''); }} disabled={isLoading}
-                  style={{ ...btn('#fff', 'var(--m3-ink)'), border: '1px solid #c0c9c3', marginTop: -6 }}>
+                  style={{ ...btn('#fff', 'var(--m3-ink)'), border: '1px solid #c0c9c3' }}>
                   <Smartphone style={{ ...ic, color: 'var(--m3-green)' }} /> Continue with phone number
                 </button>
               )}
