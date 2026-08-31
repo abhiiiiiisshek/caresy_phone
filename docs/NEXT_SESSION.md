@@ -2,14 +2,92 @@
 
 **Read this first on restart — this is the ONE file for all progress. All other handoff/progress files are deprecated. Update this file before every `/clear`. Durable facts live in [PROJECT_MEMORY.md](./PROJECT_MEMORY.md). Claude + Muse both use this.**
 
-_Last updated: 2026-08-29 (evening). Branch `main`, clean. All apps typecheck; admin builds._
+_Last updated: 2026-08-31. Branch `fix/android-release-readiness` (pushed, 5 commits, **not merged**). Tree clean; mobile-app typechecks, all three platforms export._
 
 ## Where things stand
 
-Everything from the 2026-08-28/29 sessions is **merged to `main` and pushed**.
-There is no in-flight branch and no uncommitted work. The Android build failure
-is **solved**; what remains is one credential step that needs your go-ahead, plus
-the PAT rotation.
+**A production-readiness audit of the Android app found four defects that would
+have shipped.** All are fixed on `fix/android-release-readiness` and proved by a
+real build: **AAB versionCode 6**, `e8832079-871f-4b96-8a1f-d925e1d94ef1`,
+FINISHED in 9m43s from commit `fbd9270`.
+
+```
+https://expo.dev/artifacts/eas/917P5She80TRTejpGo1lm2_Qm-oCB3OEKFf4d-mBoqM.aab
+```
+
+**Upload versionCode 6, not 4.** Uploading 4 spends 14 days of closed-test clock
+on a build with a placeholder icon and dead push notifications.
+
+Open a PR and merge the branch: `https://github.com/abhiiiiiisshek/caresy_phone/pull/new/fix/android-release-readiness`
+
+### What was broken, and how it was caught
+
+| Defect | Effect on a store build |
+|---|---|
+| `eval("require")` around `expo-device`, `expo-notifications`, `react-native-maps` | Metro bundles only what it can see statically, so all three were **absent from the production bundle**. Their `try/catch` wrappers swallowed it: push registration silently no-opped (`push_tokens` never got an Android row, so `api/cron/send-push` had nobody to deliver to) and the live-tracking map never rendered. |
+| App icon, splash, notification icon | Expo's placeholder — a blue X on a design grid — on **both** platforms. |
+| `expo-image-picker` defaults | `RECORD_AUDIO` + `WRITE_EXTERNAL_STORAGE` in the manifest. The listing would have advertised microphone access for an app with no audio feature. |
+| `LargeSecureStore.getItem` | Threw when Android auto-backup restored session ciphertext without its SecureStore key — **a crash on every launch** after a device-to-device restore, unrecoverable short of reinstalling. |
+
+The bundling one is the lesson. It is invisible in every log — the app started
+fine and just did less. **A green build proves compilation, not content.** Two
+checks now catch this class, both cheap:
+
+```
+# 1. Is the module actually in the app?
+cd apps/mobile-app
+npx expo export:embed --eager --platform android --dev false \
+  --bundle-output /tmp/b.js --sourcemap-output /tmp/b.js.map --assets-dest /tmp/a
+node -e "const s=JSON.parse(require('fs').readFileSync('/tmp/b.js.map')).sources;
+  for (const p of ['expo-notifications','expo-device','react-native-maps'])
+    console.log(p, s.filter(x=>x&&x.includes('/'+p+'/')).length)"
+```
+
+Any zero means the module is not in the app. Before: 0/0/0. After: 57/3/35.
+
+```
+# 2. What permissions does the MERGED manifest actually declare?
+npx expo prebuild --platform android --no-install
+grep -oE 'android:name="android.permission.[A-Z_]+"|tools:node="remove"' \
+  android/app/src/main/AndroidManifest.xml
+rm -rf android    # then re-check the fingerprint still matches — see below
+```
+
+`blockedPermissions` only takes effect at manifest-merge time, so `expo config
+--type introspect` is not sufficient on its own. Verified: `RECORD_AUDIO`,
+`CAMERA`, `WRITE_EXTERNAL_STORAGE`, `READ_MEDIA_VIDEO`,
+`ACCESS_BACKGROUND_LOCATION` and `SYSTEM_ALERT_WINDOW` all carry
+`tools:node="remove"`; kept are `INTERNET`, `ACCESS_COARSE/FINE_LOCATION`,
+`READ_EXTERNAL_STORAGE`, `POST_NOTIFICATIONS`, `VIBRATE`.
+
+**Always `rm -rf android` after a local prebuild and re-verify the fingerprint**
+(`npx @expo/fingerprint fingerprint:generate --platform android` → currently
+`cb55a65148f32d660543fe344dbd8a9773df17bd`). Leftover prebuild output is exactly
+what broke builds 2 and 3. Confirmed clean after this session's prebuild.
+
+Icons are now generated, not hand-placed: `apps/mobile-app/scripts/make-icons.py`
+derives all six assets from `apps/website/public/icon-512.png`. Re-running it is
+the whole update after a brand change. Verified the adaptive icon clears circle,
+squircle and rounded-square launcher masks with 18% margin.
+
+### Also landed this session
+
+- Tracking screen polled every 10s with no `AppState` gate. Android keeps the JS
+  thread alive when backgrounded, so it ran for the whole visit. Now pauses and
+  ticks immediately on resume.
+- `ErrorBoundary`'s "Restart" only cleared state, so a deterministic error
+  re-threw at once and the button looked dead. Now `Updates.reloadAsync()`.
+- Account deletion had no fetch timeout; notification channel raised to `HIGH`
+  and created before the permission prompt; unguarded `console.debug` and a
+  "Rebuild the dev client" alert removed.
+- `lib/sessionCrypto.ts` extracted with `sessionCrypto.check.ts` — covers the
+  wrong-key path, which is the actual failure mode, across 200 wrong keys plus
+  truncated and corrupt input.
+- Accessibility: raw `Pressable`s outside `@caresy/ui` had no
+  `accessibilityRole`, so TalkBack read their text without announcing they were
+  actionable. Added role/label/state to the location prompts, family rows and
+  Remove, and the email/Google/WhatsApp buttons. Labels drop the decorative 📍
+  and "G", which TalkBack otherwise reads aloud as words.
 
 ### Do not retry without reading this — the React dedupe
 
@@ -90,6 +168,32 @@ dependency tree actually resolves.
    `~/.caresy-gh-token` (mode 600) and in the gh keyring at the user's request.
    Still not rotated.
 
+4. **Seed the App Review account — it is not optional.** A dedicated Gmail
+   account was created 2026-08-31 (address is in your password manager, not
+   here). A bare sign-up has no
+   phone, no saved location and no booking, so a reviewer lands on an empty
+   "My Bookings" and hits the Indian-mobile / served-pincode validation with
+   nothing pre-filled — the exact wall the demo path exists to avoid, and an
+   Apple 2.1 rejection. Fix:
+
+   ```
+   # apps/website/.env.local (gitignored) — also needs SUPABASE_SERVICE_ROLE_KEY,
+   # which is set on Vercel production but MISSING from the local file
+   DEMO_APP_REVIEW_EMAIL=...
+   DEMO_APP_REVIEW_PASSWORD=...
+   ```
+   ```
+   node --experimental-strip-types scripts/seed-app-review-demo.ts
+   ```
+
+   **This repo is public.** Neither value goes in a tracked file — the script and
+   `docs/APP_REVIEW_NOTES.md` both read them from the environment and leave the
+   credential lines blank. They belong in App Store Connect → App Review → Notes,
+   in **Play Console → App content → App access** (Play asks too), and in a
+   password manager. The old pair (`DemoAppReview2026!` on
+   `app-review@caresy.co.in`) was committed in plaintext 2026-08-30 → 08-31;
+   it is burned and that Supabase user is better deleted than left sitting.
+
 ## Shipped 2026-08-29 (all on `main`)
 
 - **Admin hardening** — issues #13, #14, #15 closed. `admin_save_booking_edit`
@@ -120,19 +224,25 @@ are current.
 
 ## iOS — the critical path, in order (priority as of 2026-08-30)
 
-iOS has **never produced a store build**. Android now has one (versionCode 4).
+**The TestFlight build is not submittable — rebuild it.** iOS v1.0.0 build 3 was
+uploaded via Transporter and processed, but it predates the 2026-08-31 audit, so
+it carries the placeholder icon, the missing-from-bundle push and maps modules,
+and the backup-restore crash. Same commit fixes it:
+`npx eas-cli build --platform ios --profile production`.
+
 Every step below except the last two is account-holder work — they need Apple
 credentials, which an agent must not enter.
 
 1. **Confirm the Apple Developer Program membership is paid and active.** The
    Team ID `46CLB4HU9B` in `eas.json` does not prove it. Everything else is
    blocked on this. Check at developer.apple.com/account.
-2. **`SUPABASE_SERVICE_ROLE_KEY` on the website's production env (issue #8).**
-   This is on the iOS critical path, not general cleanup:
-   `apps/website/src/app/api/account/delete/route.ts:19-21` returns **503
-   "Account deletion is not configured."** without it. Apple tests in-app account
-   deletion under guideline 5.1.1(v). Unset key means the reviewer hits a 503 and
-   the app is rejected. Set it before submitting anything.
+2. ~~**`SUPABASE_SERVICE_ROLE_KEY` on the website's production env (issue #8).**~~
+   **Done — verified 2026-08-31 by probing production.** An unauthenticated
+   `POST https://caresy.co.in/api/account/delete` returns **401 "Not signed in."**,
+   not the 503 an unset key produces. In-app account deletion works, so Apple
+   5.1.1(v) and the equivalent Play requirement are both satisfied. **Issue #8
+   can be closed.** Note the key is set on Vercel but is *not* in the local
+   `apps/website/.env.local` — the seed script needs it there too.
 3. **Create the app record in App Store Connect**, then put its numeric
    `ascAppId` into `eas.json` under `submit.production.ios` — currently missing,
    and `eas submit` cannot run without it.
@@ -140,10 +250,13 @@ credentials, which an agent must not enter.
 5. **Build**: `npx eas-cli build --platform ios --profile production`. First run
    prompts for Apple sign-in to generate the distribution certificate and
    provisioning profile — the account holder must do that part interactively.
-6. **App Review demo path** — assigned to Muse, see `docs/PARALLEL_WORK.md`.
-   A reviewer in the US cannot complete a booking: `isValidIndianMobile` gates
-   the phone field (`apps/mobile-app/app/profile.tsx:144`) and the service area is
-   Noida. Without a demo account and review notes this is a 2.1 rejection.
+6. ~~**App Review demo path**~~ — **built and merged** (Muse, `cc7839e`).
+   `scripts/seed-app-review-demo.ts` + `docs/APP_REVIEW_NOTES.md`. The validator
+   was correctly left alone: `isValidIndianMobile` stays India-only and
+   `enforce_service_area()` still rejects out-of-area pincodes, so widening it
+   would not have helped. **But the account must actually be seeded** — see
+   "Blocked on you" item 4. The code existing is not the same as the reviewer
+   having a working login.
 7. **App Privacy questionnaire** in App Store Connect (account holder).
 
 Already satisfied and verified in source — do not re-chase: Sign in with Apple
@@ -165,45 +278,73 @@ Checked against source on 2026-08-30, not taken on faith:
   `docs/DATABASE.md`, so this is likely already done; confirm the bucket exists in
   the dashboard and close it.
 - **#12** — closable. Both builds pass as of 2026-08-29.
-- **#8 `SUPABASE_SERVICE_ROLE_KEY` — this one is real and it blocks the iOS
-  submission.** Three server routes hard-fail without it, including account
-  deletion (503) which Apple explicitly tests. "Can be done manually" is true;
-  "not a real issue" is not. See step 2 above.
-- **#11** — a real code defect (failed notifications are never retried), not
-  testing. Not launch-blocking. Assigned to Muse.
+- **#8 `SUPABASE_SERVICE_ROLE_KEY` — was real, now resolved.** It blocked the iOS
+  submission: account deletion returned 503 and Apple explicitly tests that. The
+  key is now set on production (probed 2026-08-31 → 401). "Can be done manually"
+  was true; "not a real issue" was not. **Closable.**
+- **#11** — a real code defect (failed notifications never retried), not testing.
+  **Fixed and merged**: migration 44 plus bounded exponential backoff
+  (5 attempts; 5/10/20/40/60 min) in `api/cron/send-push/route.ts`, with
+  `retry.check.ts` alongside it.
 
-So: the claim is right that most of these are manual or cosmetic, and wrong that
-none of them matter. #8 is the one to do before submitting to Apple.
+So: the claim was right that most of these are manual or cosmetic, and wrong that
+none of them matter. Both exceptions are now closed.
+
+**And a third exception the issue tracker never had.** The four defects at the
+top of this file were in shipped code, not in any issue. Push notifications had
+never worked on a store build; nobody had filed that, because the app looked
+fine. Absence from the tracker is not evidence of absence.
 
 ## Mobile release — real state
 
 | | Android | iOS |
 |---|---|---|
-| Keystore / signing | **exists**, EAS credentials `tX_VA-aRur` — issue #19's "not started" was stale | no store-distribution build ever produced |
-| Builds ever | 1 development (2026-08-14) + 2 failed production | 1 development simulator build (2026-08-14) |
-| Submissions ever | zero | zero |
+| Keystore / signing | **exists**, EAS credentials `tX_VA-aRur` — issue #19's "not started" was stale | distribution cert generated during the build that produced TestFlight build 3 |
+| Builds ever | 1 development + 4 production (versionCode 2, 3 failed; **4 and 6 FINISHED**) | 1 dev simulator + 1 production (v1.0.0 build 3, on TestFlight) |
+| Latest good build | **versionCode 6** — the only one with the audit fixes | build 3 — **predates the fixes, do not submit** |
+| Submissions ever | zero | uploaded to TestFlight, not submitted for review |
 | Gate | 12 testers × 14 **continuous** days (personal Play account) | none — TestFlight internal is instant |
 | Play/ASC account | registered and verified | paid membership **unconfirmed** — the Team ID in `eas.json` does not prove it |
 | Testers | 14 people available (need 12; 2 spares absorb dropouts) | n/a |
 
 **Start the Play clock as early as possible** — it is the only thing that cannot
-be accelerated. But not with a broken AAB: fix item 2 above first, or the 14 days
-run against an app that opens to an error.
+be accelerated. Upload versionCode 6; it is ready. Seeding the review account
+(item 4) is required for Play's App access section too.
 
-iOS is missing `ascAppId` in `eas.json` and an App Store Connect API key. Already
-satisfied and verified in source: Sign in with Apple (4.8), in-app account
-deletion (5.1.1(v), `app/account-delete.tsx`), export compliance, privacy
-manifest, permission strings.
+iOS still needs `ascAppId` in `eas.json` and an App Store Connect API key.
+Already satisfied and verified in source: Sign in with Apple (4.8), in-app
+account deletion (5.1.1(v), `app/account-delete.tsx`, and the production endpoint
+now returns 401 not 503), export compliance, privacy manifest, permission
+strings.
 
 Watch for: App Review works from the US, but the booking flow validates an Indian
-mobile (`isValidIndianMobile`) and the service area is Noida. Without demo
-credentials in the review notes a reviewer hits a dead end and files 2.1.
+mobile (`isValidIndianMobile`) and the service area is Noida. The demo path
+exists — but only works once the account is seeded.
+
+### Deliberately not done — do not treat as oversights
+
+- **R8/ProGuard stays off.** Turning on minification days before a release risks
+  a crashing build from a missing keep-rule, and the JS bundle (5.6 MB) dominates
+  size anyway. Do it after the clock starts, verified with a preview build.
+- **No crash reporting.** A JS error caught by `ErrorBoundary` is invisible to
+  you — Play's Android vitals only sees native crashes and ANRs. Adding
+  Crashlytics or Sentry needs an ADR and a new runtime dependency.
+- **The duplicate React is still there**, for the reasons at the top of this file.
+- **No offline detection.** Offline surfaces error alerts, which is acceptable
+  degradation; `NetInfo` would be a new dependency.
 
 ## Muse coordination
 
-Muse worked in `/Users/1234/Documents/caresy_admin_worktree` on
-`feature/admin-hardening` (now merged). Ground rules live in
-`docs/PARALLEL_WORK.md` §1, including two added this session:
+Muse's `feature/app-review-demo-path` (`cc7839e`) is **merged to `main`**. It was
+checked for the one thing that could have gone wrong silently: Muse branched
+before `#45` landed and both touched `api/cron/send-push/route.ts`, so a careless
+merge would have quietly deleted `#45`'s Telegram batch digest and SENDING-leak
+fix. It did not — `formatTelegramBatchForRows`, the `adminRows >= 4` digest and
+the retry backoff are all still present, and migrations 44 and 45 are both there.
+
+The earlier `feature/admin-hardening` worktree at
+`/Users/1234/Documents/caresy_admin_worktree` is also merged. Ground rules live
+in `docs/PARALLEL_WORK.md` §1, including two added on 2026-08-29:
 
 - **1.10** commit early — an untracked file is work-at-risk. Muse had a full day
   of work with zero commits.
@@ -229,13 +370,18 @@ Three separate stale claims this week.
 
 ## Open issues, ranked by what actually gates a first customer
 
-1. **#5** walk the money loop on two phones — never done by a human, step 5 of
+1. **#19** Play Store — the 14-day clock. **Unblocked**: versionCode 6 is built
+   and verified. Merge the branch, upload, seed the review account, start it.
+2. **#5** walk the money loop on two phones — never done by a human, step 5 of
    `docs/CURRENT.md`'s pre-launch list
-2. **#6** walk cancel and reschedule on two phones
-3. **#7 / #8 / #9** UPI VPA, service-role key, `patient-docs` bucket — all manual
-   dashboard work
-4. **#19** Play Store — the 14-day clock
-5. Cleanup: #10, #11, #12, #18, #20 (companion half), #21, #22, #23
+3. **#6** walk cancel and reschedule on two phones
+4. **#7 / #9** UPI VPA (works cash-only by design) and the `patient-docs` bucket
+   — manual dashboard work. **#8 is closable** (verified set on production).
+5. Cleanup: #10, #12, #21, #22, #23. **Closed this week: #8, #11, #18, #20.**
+   #20's companion half landed in `cc7839e` but silences lint by duplicating each
+   `fetch` body into a new `useEffect` while leaving the original function in
+   place — three files now hold the same query twice. Worth reverting to the
+   `useCallback` form.
 
 ## Environment cautions
 
@@ -254,4 +400,14 @@ Three separate stale claims this week.
   session → home screen round-trip is unproven.
 - **The reschedule sheet has never been run on any device** —
   `feature/mobile-reschedule` merged without verification.
-- **Android has never been booted at all**, simulator or device.
+- **Android has never been booted at all**, simulator or device. Everything
+  verified on 2026-08-31 was verified statically — bundle sourcemaps, the merged
+  manifest, generated resources, fingerprint hashes. That is strong evidence the
+  code is now *present and correct*, and no evidence at all that push
+  notifications actually arrive on a handset. **Install versionCode 6 on a real
+  phone and confirm a push lands** before assuming that pipeline works end to end.
+
+- The working tree was **reset mid-session on 2026-08-30**, silently discarding a
+  full set of uncommitted edits that then had to be redone from scratch. Commit
+  early (§1.10) — and on restart, verify the tree state before trusting any
+  handoff note, including this one.
