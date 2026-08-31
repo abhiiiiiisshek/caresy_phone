@@ -132,14 +132,15 @@ export default function FamilyScreen() {
         renderItem={({ item, index }) => (
           <Stagger index={index + 2}>
             <Card style={s.row}>
-              <Pressable onPress={() => openEdit(item)} style={s.rowMain}>
+              <Pressable onPress={() => openEdit(item)} style={s.rowMain} accessibilityRole="button" accessibilityLabel={`Edit ${item.full_name}`}>
                 <View style={s.avatar}><Txt variant="title" color={color.onGreen}>{item.full_name.charAt(0).toUpperCase()}</Txt></View>
                 <View style={s.flex1}>
                   <Txt variant="title" color={color.ink}>{item.full_name}</Txt>
                   <Txt variant="caption" color={color.faint}>{[item.age ? `${item.age}y` : null, item.blood_group, item.allergies ? `Allergy: ${item.allergies}` : null].filter(Boolean).join(' · ') || 'Tap to edit'}</Txt>
                 </View>
               </Pressable>
-              <Pressable onPress={() => remove(item)} hitSlop={12} style={s.removeHit}><Txt variant="caption" color={color.terracotta}>Remove</Txt></Pressable>
+              {/* "Remove" alone does not say who, and every row reads the same. */}
+              <Pressable onPress={() => remove(item)} hitSlop={12} style={s.removeHit} accessibilityRole="button" accessibilityLabel={`Remove ${item.full_name}`}><Txt variant="caption" color={color.terracotta}>Remove</Txt></Pressable>
             </Card>
           </Stagger>
         )}

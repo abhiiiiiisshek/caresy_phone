@@ -390,15 +390,16 @@ export default function Booking() {
               ) : coords ? (
                 <Txt variant="caption" color={color.greenDeep}>✓ Location captured · {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}</Txt>
               ) : locBlocked ? (
-                <Pressable onPress={openLocationSettings}>
+                <Pressable onPress={openLocationSettings} accessibilityRole="button" accessibilityLabel="Location is off for Caresy. Open Settings">
                   <Txt variant="caption" color={color.terracotta}>Location is off for Caresy — tap to open Settings</Txt>
                 </Pressable>
               ) : locError ? (
-                <Pressable onPress={requestLocation}>
+                <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel={`${locError}. Try again`}>
                   <Txt variant="caption" color={color.terracotta}>{locError} — tap to try again</Txt>
                 </Pressable>
               ) : (
-                <Pressable onPress={requestLocation}>
+                // Label omits the pin emoji, which TalkBack would read as "round pushpin".
+                <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel="Share current location">
                   <Txt variant="caption" color={color.greenDeep}>📍 Share current location</Txt>
                 </Pressable>
               )}

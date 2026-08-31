@@ -234,7 +234,7 @@ export default function Home() {
               <View style={s.emptyIcon}><Txt variant="h1" color={color.green}>✦</Txt></View>
               <Txt variant="title" color={color.ink} style={{ textAlign: 'center' }}>No upcoming visits</Txt>
               <Txt variant="caption" color={color.faint} style={{ textAlign: 'center' }}>Your next booking will appear here with live tracking.</Txt>
-              <Pressable onPress={() => router.push('/booking')} style={({ pressed }) => [s.emptyCta, pressed && s.pressedCard]}>
+              <Pressable onPress={() => router.push('/booking')} accessibilityRole="button" accessibilityLabel="Book a visit" style={({ pressed }) => [s.emptyCta, pressed && s.pressedCard]}>
                 <Txt variant="label" color={color.onGreen}>Book a visit</Txt>
               </Pressable>
             </Card>
@@ -525,7 +525,7 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
           <Field label="Password" value={password} onChangeText={(v) => { setPassword(v); setEmailError(null); }} placeholder="At least 6 characters" secureTextEntry />
           {emailError ? <Text style={a.formError}>{emailError}</Text> : null}
           {confirmationMsg ? <Text style={a.formSuccess}>{confirmationMsg}</Text> : null}
-          <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleEmailAuth(); }} disabled={emailLoading} style={({ pressed }) => [a.primaryBtn, a.emailBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }, emailLoading && { opacity: 0.7 }]}>
+          <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); handleEmailAuth(); }} disabled={emailLoading} accessibilityRole="button" accessibilityLabel={isSignup ? 'Create account' : 'Log in'} accessibilityState={{ disabled: emailLoading, busy: emailLoading }} style={({ pressed }) => [a.primaryBtn, a.emailBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }, emailLoading && { opacity: 0.7 }]}>
             <Text style={a.primaryTxt}>{emailLoading ? (isSignup ? 'Creating…' : 'Signing in…') : (isSignup ? 'Create account' : 'Log in')}</Text>
           </Pressable>
         </View>
@@ -536,7 +536,9 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
           <View style={a.divLine} />
         </View>
 
-        <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onGoogle(); }} disabled={signingIn} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }]}>
+        {/* Explicit label: the inner "G" badge is decorative and would otherwise
+            be announced as its own word before the button text. */}
+        <Pressable onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); onGoogle(); }} disabled={signingIn} accessibilityRole="button" accessibilityLabel="Continue with Google" accessibilityState={{ disabled: signingIn, busy: signingIn }} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] }]}>
           {signingIn ? <Text style={a.secondaryTxt}>Signing in…</Text> : (
             <View style={a.btnRow}>
               <View style={a.gBadge}><Text style={a.gTxt}>G</Text></View>
@@ -564,7 +566,7 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
           <View style={a.divLine} />
         </View>
 
-        <Pressable onPress={() => Linking.openURL(`https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent('Hi Caresy, I need help booking a companion')}`)} style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.9 }]}>
+        <Pressable onPress={() => Linking.openURL(`https://wa.me/${SUPPORT_WA}?text=${encodeURIComponent('Hi Caresy, I need help booking a companion')}`)} accessibilityRole="link" accessibilityLabel="Chat on WhatsApp" accessibilityHint="Opens WhatsApp" style={({ pressed }) => [a.secondaryBtn, pressed && { opacity: 0.9 }]}>
           <Text style={a.secondaryTxt}>Chat on WhatsApp</Text>
         </Pressable>
 
