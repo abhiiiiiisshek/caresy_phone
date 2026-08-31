@@ -8,6 +8,8 @@ import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
+import { decryptSession, encryptSession } from './sessionCrypto';
+
 // SecureStore caps a single item at ~2048 bytes; a full Supabase session
 // (access + refresh token + user metadata) can exceed that. So the session
 // itself lives in AsyncStorage, encrypted with an AES key that lives in
@@ -26,19 +28,19 @@ class LargeSecureStore {
     const encrypted = await AsyncStorage.getItem(key);
     if (!encrypted) return null;
 
-    const keyName = `${key}_key`;
-    const encryptionKey = await this.getEncryptionKey(keyName);
-    const cipher = new aesjs.ModeOfOperation.ctr(encryptionKey, new aesjs.Counter(1));
-    const decryptedBytes = cipher.decrypt(aesjs.utils.hex.toBytes(encrypted));
-    return aesjs.utils.utf8.fromBytes(decryptedBytes);
+    // A session that will not decrypt is treated as no session: clear it and
+    // let the user sign in again. Android's auto-backup restores this
+    // ciphertext to a new device without the SecureStore key that opens it, and
+    // the old code let that surface as a throw inside Supabase's auth init —
+    // a crash on every launch, unrecoverable short of reinstalling.
+    const plain = decryptSession(encrypted, await this.getEncryptionKey(`${key}_key`));
+    if (plain === null) await this.removeItem(key);
+    return plain;
   }
 
   async setItem(key: string, value: string): Promise<void> {
-    const keyName = `${key}_key`;
-    const encryptionKey = await this.getEncryptionKey(keyName);
-    const cipher = new aesjs.ModeOfOperation.ctr(encryptionKey, new aesjs.Counter(1));
-    const encryptedBytes = cipher.encrypt(aesjs.utils.utf8.toBytes(value));
-    await AsyncStorage.setItem(key, aesjs.utils.hex.fromBytes(encryptedBytes));
+    const encryptionKey = await this.getEncryptionKey(`${key}_key`);
+    await AsyncStorage.setItem(key, encryptSession(value, encryptionKey));
   }
 
   async removeItem(key: string): Promise<void> {

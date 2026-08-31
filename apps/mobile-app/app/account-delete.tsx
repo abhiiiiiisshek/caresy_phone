@@ -54,10 +54,23 @@ export default function AccountDelete() {
       const token = current?.access_token;
       if (!token) throw new Error('Not signed in');
 
-      const res = await fetch('https://caresy.co.in/api/account/delete', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // fetch has no default timeout, so on a stalled mobile connection the
+      // button would spin until the user force-quits — on the one screen where
+      // "did that actually work?" is the worst question to leave open.
+      const abort = new AbortController();
+      const timer = setTimeout(() => abort.abort(), 20_000);
+      let res: Response;
+      try {
+        res = await fetch('https://caresy.co.in/api/account/delete', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          signal: abort.signal,
+        });
+      } catch {
+        throw new Error('Could not reach Caresy. Check your connection and try again.');
+      } finally {
+        clearTimeout(timer);
+      }
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         throw new Error(body?.error || 'Could not delete your account. Please contact support.');
@@ -65,8 +78,8 @@ export default function AccountDelete() {
 
       setDone(true);
       setTimeout(async () => { await signOut(); router.replace('/'); }, 2000);
-    } catch (e: any) {
-      Alert.alert('Could not delete', e.message || 'Please contact support@caresy.co.in');
+    } catch (e: unknown) {
+      Alert.alert('Could not delete', (e as Error)?.message || 'Please contact support@caresy.co.in');
       setBusy(false);
     }
   };

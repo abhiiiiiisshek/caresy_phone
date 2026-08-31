@@ -7,6 +7,14 @@ import Constants from 'expo-constants';
 // expo-linking's parser does not read fragments, so use expo-auth-session's
 // parser instead — this is Supabase's own documented Expo pattern.
 import * as QueryParams from 'expo-auth-session/build/QueryParams';
+// Static imports, not require(): Metro bundles only what it can see statically.
+// These were once hidden behind eval("require") to keep Expo Go quiet, which
+// left both modules out of the production bundle entirely — so push
+// registration failed silently on every store build and `push_tokens` was
+// never populated from Android. The Expo Go check below is what keeps Expo Go
+// quiet now.
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import type { Session } from '@supabase/supabase-js';
 
 import { supabase } from './supabase';
@@ -51,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Push: registers Expo push token → `push_tokens` (migration 21) for `api/cron/send-push`.
   // Expo Go has no native push module — silently no-op there, but upsert on
   // real builds (Constants.appOwnership !== 'expo' && Device.isDevice).
-  // Guard BEFORE any require() so Expo Go never evaluates native code.
   useEffect(() => {
     if (!session?.user) return;
     if (Platform.OS === 'web') return;
@@ -64,18 +71,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       // Device.isDevice is the reliable physical-device check (Constants.isDevice is stale).
-      let Device: any = null;
-      try { Device = eval("require")('expo-device'); } catch {}
-      if (Device?.isDevice === false) return; // simulator — silent no-op
+      if (Device.isDevice === false) return; // simulator — silent no-op
 
-      let Notifications: any = null;
       try {
-        Notifications = eval("require")('expo-notifications');
-      } catch {
-        return; // not built yet — silently skip (will work after prebuild dev-client)
-      }
-      if (!Notifications?.getPermissionsAsync) return;
-      try {
+        // The channel must exist before the first push lands, so create it
+        // before asking for permission rather than after. HIGH, not DEFAULT: a
+        // companion being dispatched is time-critical and has to surface as a
+        // heads-up notification, not a silent tray entry.
+        if (Platform.OS === 'android') {
+          await Notifications.setNotificationChannelAsync('default', {
+            name: 'Booking updates',
+            importance: Notifications.AndroidImportance.HIGH,
+          });
+        }
 
         const { status: existing } = await Notifications.getPermissionsAsync();
         let finalStatus = existing;
@@ -85,31 +93,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         if (finalStatus !== 'granted' || cancelled) return;
 
-        // Android channel — required for foreground notifications
-        if (Platform.OS === 'android') {
-          await Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
-            importance: Notifications.AndroidImportance.DEFAULT,
-          });
-        }
-
         const projectId =
           (Constants.expoConfig?.extra as any)?.eas?.projectId ??
           (Constants as any).easConfig?.projectId ??
           'f1c994af-5e87-43f4-8d64-f33366e6756d';
 
-        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId } as any);
-        const token = (tokenData as any).data as string | undefined;
+        const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
         if (!token || cancelled) return;
 
         const { error } = await supabase.from('push_tokens').upsert(
           { token, user_id: session.user.id, platform: Platform.OS },
           { onConflict: 'token' },
         );
-        if (error) console.warn('[push] upsert failed', error.message);
+        if (error && __DEV__) console.warn('[push] upsert failed', error.message);
       } catch (e) {
-        // Silently skip in Expo Go / web — push needs dev-client + google-services.json
-        console.warn('[push] registration skipped', (e as Error).message?.slice(0, 120));
+        // No push is a degraded experience, not a broken app — booking status
+        // still updates by poll. Stay quiet in production.
+        if (__DEV__) console.warn('[push] registration skipped', (e as Error).message);
       }
     })();
     return () => { cancelled = true; };

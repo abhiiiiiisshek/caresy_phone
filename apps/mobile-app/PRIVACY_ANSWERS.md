@@ -28,7 +28,21 @@ Use this verbatim for App Store Connect **App Privacy** and Play Console **Data 
 - **Encryption in transit:** Yes (Supabase TLS).
 - **Encryption at rest:** Yes (Supabase).
 
+## Android permissions (Play Console will list these)
+`INTERNET`, `ACCESS_COARSE_LOCATION`, `ACCESS_FINE_LOCATION`, `READ_EXTERNAL_STORAGE`
+(pre-Android 13 photo picking only), `POST_NOTIFICATIONS`, `VIBRATE`.
+
+Pinned explicitly in `app.json` `android.permissions`. Without that list Expo
+inherited `RECORD_AUDIO` and `WRITE_EXTERNAL_STORAGE` from `expo-image-picker`'s
+defaults — a microphone permission on the store listing for an app that has no
+audio feature. `android.blockedPermissions` now strips those plus
+`READ_MEDIA_VIDEO`, `ACCESS_BACKGROUND_LOCATION` and `SYSTEM_ALERT_WINDOW`, so
+none of them can creep back in via a library manifest merge. Re-check the
+resolved list after adding any native module:
+
+    npx expo config --type introspect
+
 ## Notes for reviewer
-- Location is **not** tracked in background continuously — only set at booking (`At home`) and live-shared during an active visit (`trip:<id>` Realtime) to the booking's circle.
-- Photos are user-initiated only; no camera use without explicit `Pick photo` tap.
+- Location is **not** tracked in background continuously — only set at booking (`At home`) and live-shared during an active visit (`trip:<id>` Realtime) to the booking's circle. No background-location permission is requested.
+- Photos are user-initiated only, picked from the library. The app never opens the camera and requests no `CAMERA` permission on Android.
 - Sign in with Apple is offered alongside Google (Apple 4.8) — see `lib/AuthProvider.tsx:signInWithApple`.

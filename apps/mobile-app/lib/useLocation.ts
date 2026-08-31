@@ -1,10 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Linking } from 'react-native';
 
-// expo dep — dynamic require keeps tsc green until plugin native rebuild (same
-// pattern as booking.tsx's other native modules).
-let Location: any = null;
-try { Location = require('expo-location'); } catch {}
+import * as Location from 'expo-location';
 
 export type Coords = { latitude: number; longitude: number };
 
@@ -21,7 +18,6 @@ export function useCurrentLocation() {
   const [blocked, setBlocked] = useState(false);
 
   const request = useCallback(async (): Promise<Coords | null> => {
-    if (!Location) { setError('Location isn’t available on this build.'); return null; }
     setLoading(true);
     setError(null);
     try {
@@ -32,12 +28,12 @@ export function useCurrentLocation() {
         return null;
       }
       setBlocked(false);
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy ? Location.Accuracy.Balanced : 3 });
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const c = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
       setCoords(c);
       return c;
-    } catch (e: any) {
-      setError(e?.message || 'Could not get your location.');
+    } catch (e: unknown) {
+      setError((e as Error)?.message || 'Could not get your location.');
       return null;
     } finally {
       setLoading(false);
