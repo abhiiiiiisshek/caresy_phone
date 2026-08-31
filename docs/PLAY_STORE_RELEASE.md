@@ -40,11 +40,43 @@ real key. The practical consequence: **losing the upload key is recoverable**
 your keystore meant losing the app forever. Let EAS keep managing it. Do not
 generate one by hand with `keytool` and do not commit it.
 
+## The versionCode 4 AAB must not be shipped — rebuild first (2026-08-31)
+
+A production-readiness audit found four defects in the code that AAB was built
+from. Fixed on `fix/android-release-readiness`; **the next AAB is the first one
+that should reach testers.** Uploading versionCode 4 would burn 14 days of the
+closed-test clock on a build with a placeholder icon and no working push.
+
+| Was broken | Effect on a store build |
+|---|---|
+| `eval("require")` around `expo-device`, `expo-notifications`, `react-native-maps` | Metro never bundled them. Push registration silently no-opped, so `push_tokens` stayed empty for Android and `api/cron/send-push` had nothing to deliver to. The live-tracking map never rendered. |
+| App icon, splash, notification icon | Expo's placeholder — a blue X on a design grid — not the Caresy mark. |
+| `expo-image-picker` default permissions | `RECORD_AUDIO` + `WRITE_EXTERNAL_STORAGE` in the manifest, so the listing advertised microphone access for an app with no audio feature. |
+| `LargeSecureStore.getItem` | Threw when Android auto-backup restored the session ciphertext without its SecureStore key — a crash on every launch after a device-to-device restore. |
+
+The bundling one is invisible in every log: the modules were wrapped in
+`try/catch`, so the app started fine and just did less. It was caught by reading
+the sourcemap of a production bundle, which is the check worth repeating after
+any dependency change:
+
+```
+npx expo export:embed --eager --platform android --dev false \
+  --bundle-output /tmp/b.js --sourcemap-output /tmp/b.js.map --assets-dest /tmp/a
+node -e "const s=JSON.parse(require('fs').readFileSync('/tmp/b.js.map')).sources;
+  for (const p of ['expo-notifications','expo-device','react-native-maps'])
+    console.log(p, s.filter(x=>x&&x.includes('/'+p+'/')).length)"
+```
+
+Any zero there means the module is not in the app, however clean the build log.
+
+Note the fingerprint changed with `app.json`, so the new build gets a new runtime
+version — expected, and the reason this ships as a store build rather than OTA.
+
 ## Order of operations
 
 Steps 1–4 are the clock. Do them in one sitting.
 
-### 1. Build a production AAB — **DONE 2026-08-29**
+### 1. Build a production AAB — **DONE 2026-08-29, superseded — rebuild**
 
 First successful production AAB: build `6aee612a-2897-4b66-9a5d-ac94e9f3aefa`,
 **versionCode 4**, 14m22s, runtime version `f54cd506…`, from commit `7122c60`.

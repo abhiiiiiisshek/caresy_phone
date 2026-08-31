@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Image, Linking, Share, StyleSheet, View } from 'react-native';
+import { AppState, Image, Linking, Share, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { MapView, Marker } from '../lib/maps';
@@ -42,7 +42,19 @@ export default function Tracking() {
       });
     };
     tick();
-    const poll = setInterval(tick, 10_000);
+    // Pause the poll while backgrounded. Android keeps the JS thread running, so
+    // an unguarded 10s poll would keep hitting the network for the whole visit —
+    // hours, on a phone the customer is not even looking at. Resume with an
+    // immediate tick so the screen is current the moment it comes back.
+    let poll: ReturnType<typeof setInterval> | null = setInterval(tick, 10_000);
+    const appState = AppState.addEventListener('change', (next) => {
+      if (next === 'active') {
+        if (!poll) { tick(); poll = setInterval(tick, 10_000); }
+      } else if (poll) {
+        clearInterval(poll);
+        poll = null;
+      }
+    });
     // Realtime broadcast on trip:<token> if backend emits (Phase 4), else poll keeps it live
     let channel: any = null;
     try {
@@ -56,7 +68,12 @@ export default function Tracking() {
         })
         .subscribe();
     } catch {}
-    return () => { alive = false; clearInterval(poll); try { channel && supabase.removeChannel(channel); } catch {} };
+    return () => {
+      alive = false;
+      if (poll) clearInterval(poll);
+      appState.remove();
+      try { channel && supabase.removeChannel(channel); } catch {}
+    };
   }, [token]);
 
   const header = <Stack.Screen options={{ headerShown: true, title: 'Live tracking' }} />;
