@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
+import * as Updates from 'expo-updates';
 
 import { Button, Screen, Txt } from './ui';
 import { color, space } from '../lib/theme';
@@ -27,6 +28,20 @@ export class ErrorBoundary extends Component<Props, State> {
     if (__DEV__) console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
+  // Clearing the error state alone only re-renders the subtree that just threw.
+  // When the cause is deterministic — bad cached data, a malformed row — it
+  // throws again immediately and the user is stuck in a loop with a button that
+  // appears to do nothing. reloadAsync restarts the JS runtime, dropping the
+  // in-memory state that is usually the culprit. Clearing state stays as the
+  // fallback for environments where reload is unavailable (Expo Go).
+  restart = async () => {
+    try {
+      await Updates.reloadAsync();
+    } catch {
+      this.setState({ error: null });
+    }
+  };
+
   render() {
     if (!this.state.error) return this.props.children;
     return (
@@ -36,7 +51,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <Txt variant="body" color={color.muted}>
             The app hit an unexpected error. Your booking data is safe — restarting should fix it.
           </Txt>
-          <Button title="Restart" onPress={() => this.setState({ error: null })} />
+          <Button title="Restart" onPress={this.restart} />
         </View>
       </Screen>
     );

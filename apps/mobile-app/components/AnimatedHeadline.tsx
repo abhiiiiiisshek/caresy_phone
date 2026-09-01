@@ -160,7 +160,7 @@ function pickNext(pool: Header[], current: string | null): Header {
 }
 
 function logPhraseView(phrase: string) {
-  console.debug('[caresy] welcome phrase:', phrase);
+  if (__DEV__) console.debug('[caresy] welcome phrase:', phrase);
 }
 
 type Props = {

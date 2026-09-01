@@ -11,15 +11,17 @@
 // documented in `packages/utils/src/phone.ts`.
 //
 // What this does (idempotent):
-//   1. Creates or reuses auth user app-review@caresy.co.in (password: DemoAppReview2026!)
+//   1. Creates or reuses the auth user named by DEMO_APP_REVIEW_EMAIL, with
+//      DEMO_APP_REVIEW_PASSWORD — never hardcoded, this repo is public
 //   2. Upserts profile with phone +919999999999 (passes isValidIndianMobile) and onboarding_completed
 //   3. Ensures patient + pickup/destination locations with served pincode 201301 (Noida)
 //   4. Creates one SCHEDULED PENDING booking (HOSPITAL_COMPANION) for tomorrow 10am IST
 //   5. Suppresses the auto-enqueued ADMIN notification (marks SKIPPED) so ops phone not paged
 //
 // Run:  node --experimental-strip-types scripts/seed-app-review-demo.ts
-// Needs: SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL in
-//        apps/website/.env.local or environment (same as other cron routes).
+// Needs: SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_SUPABASE_URL,
+//        DEMO_APP_REVIEW_EMAIL and DEMO_APP_REVIEW_PASSWORD in
+//        apps/website/.env.local or the environment.
 // Do NOT run casually against production — it writes real rows and the ADMIN
 // notification would page ops via ntfy if not suppressed. Run once before
 // submitting to App Store, then verify via `scripts/smoke.mjs` or admin panel.
@@ -34,8 +36,6 @@ import { createClient } from '@supabase/supabase-js';
 import { isValidIndianMobile, toE164 } from '../packages/utils/src/phone.ts';
 import { isValidPincode } from '../packages/utils/src/serviceArea.ts';
 
-const DEMO_EMAIL = 'app-review@caresy.co.in';
-const DEMO_PASSWORD = 'DemoAppReview2026!';
 const DEMO_PHONE_RAW = '9999999999';
 const DEMO_PHONE_E164 = '+919999999999';
 const DEMO_PINCODE = '201301';
@@ -50,7 +50,7 @@ console.log(`phone: ${DEMO_PHONE_RAW} -> ${DEMO_PHONE_E164} valid=${isValidIndia
 console.log(`pincode: ${DEMO_PINCODE} valid=${isValidPincode(DEMO_PINCODE)}`);
 
 // ── env ─────────────────────────────────────────────────────────────────
-function loadEnv(): { url: string; serviceKey: string } {
+function loadEnv(): { url: string; serviceKey: string; email: string; password: string } {
   const root = join(dirname(fileURLToPath(import.meta.url)), '..');
   const env: Record<string, string> = { ...process.env as Record<string,string> };
   for (const p of [join(root, 'apps/website/.env.local'), join(root, '.env.local')]) {
@@ -64,9 +64,27 @@ function loadEnv(): { url: string; serviceKey: string } {
   }
   const url = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  // Neither identity value is a constant in this file. The repo is public, and
+  // these open a real account on production Supabase carrying a profile, a
+  // patient record and a booking. The password lived here in plaintext until
+  // 2026-08-31 — that one (`DemoAppReview2026!` on app-review@caresy.co.in) is
+  // burned. Which account App Review uses is a Console-side decision that
+  // changes without the code changing, so it is configuration, not source.
+  // Re-running this script points the seed data at whatever the env names.
+  const email = env.DEMO_APP_REVIEW_EMAIL;
+  const password = env.DEMO_APP_REVIEW_PASSWORD;
   assert.ok(url, 'Missing NEXT_PUBLIC_SUPABASE_URL');
   assert.ok(serviceKey, 'Missing SUPABASE_SERVICE_ROLE_KEY (service-role, not anon)');
-  return { url: url.replace(/\/$/, ''), serviceKey };
+  assert.ok(
+    email,
+    'Missing DEMO_APP_REVIEW_EMAIL — set it in apps/website/.env.local or the environment.',
+  );
+  assert.ok(
+    password,
+    'Missing DEMO_APP_REVIEW_PASSWORD — set it in apps/website/.env.local or the environment. ' +
+      'Never hardcode it here; this repo is public.',
+  );
+  return { url: url.replace(/\/$/, ''), serviceKey, email, password };
 }
 
 // Only connect if keys present and not in --check-only mode
@@ -76,7 +94,7 @@ if (checkOnly) {
   process.exit(0);
 }
 
-const { url, serviceKey } = loadEnv();
+const { url, serviceKey, email: DEMO_EMAIL, password: DEMO_PASSWORD } = loadEnv();
 const supabase = createClient(url, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
 async function main() {

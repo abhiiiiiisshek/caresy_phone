@@ -21,7 +21,7 @@
       <section class="page-hero reveal">
         <p class="eyebrow">Legal</p>
         <h1>Privacy Policy</h1>
-        <p>Effective Date: June 21, 2026</p>
+        <p>Effective Date: September 01, 2026 — Last updated to add account deletion URL, children's privacy, and device-permission disclosures for Play &amp; App Store compliance.</p>
       </section>
 
       <section class="section">
@@ -39,10 +39,13 @@
                 <li><a href="#info-use" class="legal-toc-link">2. How We Use Information</a></li>
                 <li><a href="#data-sharing" class="legal-toc-link">3. Data Sharing & Third Parties</a></li>
                 <li><a href="#data-security" class="legal-toc-link">4. Security & Storage</a></li>
-                <li><a href="#user-rights" class="legal-toc-link">5. Your Data Rights</a></li>
-                <li><a href="#cookies" class="legal-toc-link">6. Cookies & Tracking</a></li>
-                <li><a href="#governing-law" class="legal-toc-link">7. Governing Law</a></li>
-                <li><a href="#contact" class="legal-toc-link">8. Grievance & Contact</a></li>
+                <li><a href="#account-deletion" class="legal-toc-link">5. Account &amp; Data Deletion</a></li>
+                <li><a href="#childrens-privacy" class="legal-toc-link">6. Children’s Privacy</a></li>
+                <li><a href="#device-permissions" class="legal-toc-link">7. Device Permissions</a></li>
+                <li><a href="#user-rights" class="legal-toc-link">8. Your Data Rights</a></li>
+                <li><a href="#cookies" class="legal-toc-link">9. Cookies &amp; Tracking</a></li>
+                <li><a href="#governing-law" class="legal-toc-link">10. Governing Law</a></li>
+                <li><a href="#contact" class="legal-toc-link">11. Grievance &amp; Contact</a></li>
               </ul>
             </nav>
             <div class="plain-toggle-wrapper">
@@ -163,15 +166,76 @@
               </div>
             </article>
 
-            <!-- 5. Your Data Rights -->
+            <!-- 5. Account & Data Deletion -->
+            <article class="legal-section" id="account-deletion">
+              <div class="legal-text-content">
+                <h2>5. Account &amp; Data Deletion — How to Delete Your Data</h2>
+                <p>You can delete your Caresy account and all associated personal data at any time, without needing to contact support. We provide a dedicated, always-available web mechanism and an in-app flow, plus an email alternative — satisfying Google Play Data Deletion and Apple App Store Guideline 5.1.1(v).</p>
+                <ul>
+                  <li><strong>Web (recommended, works for Play/App Store reviewers):</strong> Visit <a href="https://caresy.co.in/account/delete" style="color: var(--primary); text-decoration: underline;">https://caresy.co.in/account/delete</a> while signed in (Google or Apple sign-in), type <strong>DELETE</strong> to confirm, and tap "Permanently delete my account". You will receive on-screen confirmation and be signed out automatically. Direct API: <code>POST https://caresy.co.in/api/account/delete</code> (authenticated — you can only delete your own account).</li>
+                  <li><strong>In the mobile app:</strong> Open Profile → Danger zone → Delete account → Continue → type DELETE → confirm. The app securely calls the same deletion endpoint using your session token.</li>
+                  <li><strong>By email (if you cannot sign in):</strong> Email <a href="mailto:privacy@caresy.co.in" style="color: var(--primary); text-decoration: underline;">privacy@caresy.co.in</a> or support@caresy.co.in from your registered email with subject "Delete my data" and your registered phone number. We verify ownership via your account email and complete the request within 7 days.</li>
+                </ul>
+                <p><strong>What is deleted:</strong> Deleting your auth.users row permanently cascades to your profile, patient records, saved locations, bookings, trips/live-tracking data, care logs, push tokens and notifications. Companion assignments on past bookings are retained only as anonymised service records (companion_user_id set to null) — companions' own accounts are untouched.</p>
+                <p><strong>What we retain:</strong> Only what the law requires — anonymised billing/tax invoices retained for up to 8 years under Indian statutory requirements, then purged. No other personal data is retained.</p>
+                <p><strong>Timeline:</strong> Requests via web/app are processed immediately (typically within minutes) and confirmed on-screen and by email; email requests are fulfilled within 7 days. After confirmation you are signed out and data is no longer recoverable. For questions, see §11 Grievance &amp; Contact.</p>
+              </div>
+              <div class="plain-english-card">
+                <h4>
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                  Plain English Summary
+                </h4>
+                <p>Delete anytime at caresy.co.in/account/delete or in the app: Profile → Delete account (type DELETE). Can't sign in? Email privacy@caresy.co.in — we verify and erase everything within 7 days, except anonymised invoices kept for law. Instant confirmation in-app/web.</p>
+              </div>
+            </article>
+
+            <!-- 6. Children's Privacy -->
+            <article class="legal-section" id="childrens-privacy">
+              <div class="legal-text-content">
+                <h2>6. Children’s Privacy</h2>
+                <p>Caresy is not directed to children under 18, and we do not knowingly collect personal data directly from a child. Our service is used by adults (family members) to book companions for patients, who may occasionally be minors (for example, a young family member requiring hospital accompaniment).</p>
+                <p>When you add a patient who is under 18, you confirm that you are the parent or legal guardian and that you consent to us processing that minor's information solely to provide the booked companion service (name, age and hospital logistics as listed in §1). We collect the minimum necessary, use it only for dispatch, companion matching and live updates as described in §2–3, and never use a minor's data for marketing, profiling or advertising.</p>
+                <p>If we learn that a child's data was provided without proper guardian consent, we will delete it promptly upon notice to <a href="mailto:privacy@caresy.co.in" style="color: var(--primary); text-decoration: underline;">privacy@caresy.co.in</a>. If you are under 18, please use Caresy only with a parent or guardian. We do not allow children to create accounts independently — account creation requires Google or Apple sign-in via an adult account holder.</p>
+              </div>
+              <div class="plain-english-card">
+                <h4>
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                  Plain English Summary
+                </h4>
+                <p>We don't target kids and never collect from a child directly. If a patient is under 18, their parent or guardian must book and consent. Tell us at privacy@caresy.co.in and we delete any child's data sent without permission.</p>
+              </div>
+            </article>
+
+            <!-- 7. Device Permissions — Why We Ask -->
+            <article class="legal-section" id="device-permissions">
+              <div class="legal-text-content">
+                <h2>7. Device Permissions — Why We Ask</h2>
+                <p>Our website and mobile app may request access to sensitive device features only when you choose a feature that needs them. Every permission is optional — you can deny and continue to use Caresy (e.g., type an address instead of sharing location), and you can revoke any permission anytime in your device Settings. Each permission shows an in-app disclosure explaining the purpose before the system dialog appears.</p>
+                <ul>
+                  <li><strong>Location (Approximate &amp; Precise — ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION):</strong> Requested only if you select "At home" as the meeting point (to set pickup coordinates) and, during an active visit, to share live trip location on channel <code>trip:&lt;id&gt;</code> with your booking's circle (family + assigned companion + dispatch) so family can follow progress. We explicitly do NOT use ACCESS_BACKGROUND_LOCATION — location is never tracked continuously in the background, only at booking creation and during a live visit you started. Blocked permissions guarantee this cannot be added via a library.</li>
+                  <li><strong>Photos &amp; Media (READ_EXTERNAL_STORAGE) and Camera (iOS only):</strong> Requested only if you choose to attach a prescription, discharge summary or report to a booking. You may pick an existing photo from your library or — on iOS — capture a new photo. On Android the app never opens the camera directly (cameraPermission: false). Attachments are user-initiated and optional.</li>
+                  <li><strong>Notifications (POST_NOTIFICATIONS):</strong> Requested to send booking confirmations, companion assignment, milestone updates (arrival, registration, consultation, pharmacy), and trip-sharing alerts.</li>
+                </ul>
+                <p>Denying a permission only disables the related feature; core booking and tracking via manual address entry remain available.</p>
+              </div>
+              <div class="plain-english-card">
+                <h4>
+                  <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                  Plain English Summary
+                </h4>
+                <p>Location only for home pickup + live trip during a visit (no background tracking). Photos/camera only if you attach a report. Notifications for visit updates. All optional — deny and keep using the app, change anytime in Settings.</p>
+              </div>
+            </article>
+
+            <!-- 8. Your Data Rights -->
             <article class="legal-section" id="user-rights">
               <div class="legal-text-content">
-                <h2>5. Your Data Rights</h2>
+                <h2>8. Your Data Rights</h2>
                 <p>In accordance with Indian privacy laws (including the DPDP Act 2023), you hold the following rights over your personal data:</p>
                 <ul>
                   <li><strong>Access & Correction:</strong> You can review or update patient details, mobile numbers, and doctor appointments stored in our records.</li>
                   <li><strong>Consent Withdrawal:</strong> You can withdraw consent for processing details or receiving automated updates. However, this may render us unable to fulfill active bookings.</li>
-                  <li><strong>Deletion:</strong> You can request that we purge patient and family profiles from our databases, subject to standard auditing exclusions.</li>
+                  <li><strong>Deletion:</strong> You can request that we purge patient and family profiles from our databases — see §5 Account &amp; Data Deletion (<a href="https://caresy.co.in/account/delete" style="color: var(--primary); text-decoration: underline;">https://caresy.co.in/account/delete</a>) for the instant web/app mechanism and 7-day email fulfilment, subject only to statutory invoice retention.</li>
                 </ul>
               </div>
               <div class="plain-english-card">
@@ -179,14 +243,14 @@
                   <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
                   Plain English Summary
                 </h4>
-                <p>You can ask us to show you, correct, or permanently delete your stored patient details at any time. Stopping data access might make it impossible for us to coordinate active bookings.</p>
+                <p>You can ask us to show, correct, or permanently delete your data at any time — use caresy.co.in/account/delete for instant deletion (§5). Stopping data access may make active bookings impossible.</p>
               </div>
             </article>
 
-            <!-- 6. Cookies & Tracking -->
+            <!-- 9. Cookies & Tracking -->
             <article class="legal-section" id="cookies">
               <div class="legal-text-content">
-                <h2>6. Cookies & Tracking</h2>
+                <h2>9. Cookies & Tracking</h2>
                 <p>Our website utilizes cookies and similar tracking identifiers to analyze web traffic, remember booking preferences, and improve the loading speed of page layouts. These cookies do not extract files from your hard drive or access sensitive payment credentials.</p>
                 <p>You can configure your browser to reject cookies, though doing so might affect navigation or auto-fill functions on our booking forms.</p>
               </div>
@@ -199,10 +263,10 @@
               </div>
             </article>
 
-            <!-- 7. Governing Law -->
+            <!-- 10. Governing Law -->
             <article class="legal-section" id="governing-law">
               <div class="legal-text-content">
-                <h2>7. Governing Law</h2>
+                <h2>10. Governing Law</h2>
                 <p>This Privacy Policy is governed by and construed in accordance with the laws of India. Any disputes arising from data processing or this policy are subject to the exclusive jurisdiction of the courts located in Bengaluru, Karnataka, India.</p>
               </div>
               <div class="plain-english-card">
@@ -214,17 +278,18 @@
               </div>
             </article>
 
-            <!-- 8. Grievance & Contact -->
+            <!-- 11. Grievance & Contact -->
             <article class="legal-section" id="contact">
               <div class="legal-text-content">
-                <h2>8. Grievance & Contact</h2>
+                <h2>11. Grievance & Contact</h2>
                 <p>If you have any questions about this Privacy Policy, wish to exercise your data rights, or want to register a concern regarding how we handle customer data, please write to our designated Grievance Officer:</p>
                 <p>
                   <strong>Caresy Grievance Officer</strong><br />
                   Caresy Care Services Private Limited<br />
                   4th Floor, Sector 7, HSR Layout,<br />
                   Bengaluru, Karnataka 560102<br />
-                  Email: <a href="mailto:privacy@caresy.co" style="color: var(--primary); text-decoration: underline;">privacy@caresy.co</a> or <a href="mailto:support@caresy.co" style="color: var(--primary); text-decoration: underline;">support@caresy.co</a>
+                  Email: <a href="mailto:privacy@caresy.co" style="color: var(--primary); text-decoration: underline;">privacy@caresy.co</a> or <a href="mailto:support@caresy.co" style="color: var(--primary); text-decoration: underline;">support@caresy.co</a><br />
+                  Data deletion: <a href="https://caresy.co.in/account/delete" style="color: var(--primary); text-decoration: underline;">https://caresy.co.in/account/delete</a> (instant) or email privacy@caresy.co with subject "Delete my data" (within 7 days).
                 </p>
               </div>
               <div class="plain-english-card">
@@ -232,7 +297,7 @@
                   <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
                   Plain English Summary
                 </h4>
-                <p>For any questions or concerns about data privacy, email our Grievance Officer at privacy@caresy.co or write to our office in HSR Layout, Bengaluru.</p>
+                <p>For any questions or email privacy@caresy.co. To delete data instantly: caresy.co.in/account/delete.</p>
               </div>
             </article>
           </div>

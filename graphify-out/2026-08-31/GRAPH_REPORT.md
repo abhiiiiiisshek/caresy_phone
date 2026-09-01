@@ -1,21 +1,21 @@
-# Graph Report - caresy  (2026-08-31)
+# Graph Report - caresy  (2026-08-29)
 
 ## Corpus Check
-- 325 files · ~551,500 words
+- 313 files · ~511,439 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2430 nodes · 3437 edges · 264 communities (173 shown, 91 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 15 edges (avg confidence: 0.85)
+- 2323 nodes · 3311 edges · 257 communities (160 shown, 97 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 13 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3ce35d67`
+- Built from commit: `d1de6496`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- payments/page.tsx
+- AdminShell.tsx
 - devDependencies
 - script.js
 - dependencies
@@ -40,7 +40,7 @@
 - auth/package.json
 - expo
 - my-bookings/page.tsx
-- login/page.tsx
+- StateLayout.tsx
 - graphify knowledge-graph workflow rules
 - Accessibility & WCAG AA Checklist
 - Sticky App Bar (Header) component spec
@@ -80,7 +80,7 @@
 - Trust & Safety Badges (Police Verified, Partner Hospitals, 24/7 Ops)
 - booking_status_enum (DRAFT, PENDING, ASSIGNED, IN_PROGRESS, COMPLETED, CANCELLED)
 - service_type_enum (HOSPITAL_COMPANION, MEDICINE_PICKUP, DIAGNOSTIC_TEST, ...)
-- trust/page.tsx
+- Reveal
 - types/package.json
 - app/index.tsx
 - ops/page.tsx
@@ -89,7 +89,7 @@
 - website/src/app/page.tsx
 - companion/next.config.ts
 - companion/postcss.config.mjs
-- src/pricing.ts
+- website/src/app/layout.tsx
 - website/next.config.ts
 - website/postcss.config.mjs
 - expire-bookings/route.ts
@@ -104,7 +104,7 @@
 - scripts
 - ui.tsx
 - send-push/route.ts
-- website/src/app/layout.tsx
+- InstallPrompt.tsx
 - care/page.tsx
 - Caresy — coding standards
 - Supabase Edge Functions
@@ -112,7 +112,7 @@
 - Caresy — engineer onboarding
 - NEXT_SESSION.md — SINGLE SOURCE OF TRUTH FOR PROGRESS
 - .application
-- bookingStatus.ts
+- tracking.tsx
 - Trips & Real-Time Companion Location Tracking
 - Auth & Domain Configuration
 - ExampleInstrumentedTest.java
@@ -144,56 +144,56 @@
 - SUPABASE_SCHEMA.sql
 - my-bookings.tsx
 - Booking lifecycle fixes — implementation brief
-- mobile-app/tsconfig.json
+- include
 - public.trips
 - Caresy Monorepo Deployment
-- isValidIndianMobile
+- useAuth
 - quick-help/page.tsx
 - ADR-NNNN: <short decision, present tense>
 - ENGINEER_ONBOARDING.md
 - 26_BILLING.sql
 - Current state
 - Security
-- ADR-0006: Transport is facilitated and recorded, never billed
+- DATABASE.md
 - smoke.mjs
 - ADR-0004: The Android app is a Capacitor shell pointing at the live site
-- Order of operations
-- ADR-0008: `assert`-based self-checks instead of a test framework
-- Google Play release — closed testing runbook
+- 0005-gatewayless-payments.md
+- 0007-share-token-for-guest-tracking.md
+- Badge
 - Caresy
 - Today's Changes (for Claude to verify)
-- useAuth
-- ADR-0010 — Lottie for the login mascot animation
+- live/page.tsx
+- ADR/README.md
 - ui/src/index.ts
 - quick-help.tsx
-- 45_ADMIN_SMART_NOTIFY.sql
+- notifications/page.tsx
 - Caresy Native App — completion checklist
 - website/package.json
-- formatINR
-- ios
+- trust/page.tsx
+- payments/page.tsx
 - lib/msg91.ts
 - ADR-0009 — Native mobile with Expo, not a WebView shell
-- expo-router
+- dependencies
 - patients
 - PUSH PIPELINE REPORT — CARESY-1 (Phase-4 blocker)
 - @lottiefiles/dotlottie-react
 - react-dom
 - find_user_by_phone
-- devDependencies
+- companion/src/app/layout.tsx
 - 13_LIFECYCLE.sql
-- ErrorBoundary
+- theme.ts
 - Companion Portal — Full Lifecycle Audit (CARESY-7)
 - Caresy — Easy Words Recap (what's done, what's next)
 - 28_CONTACT_AND_METRICS.sql
-- android
+- Header.tsx
 - ADR-0012: Drop the mascot; Phosphor duotone icons + Motion One spots
 - ADR-0013: OTA updates via expo-updates, gated by fingerprint
 - 38_BOOKING_STATE_MACHINE.sql
 - Handoff — 2026-08-16 (updated 13:40 -> approved)
-- infoPlist
-- supabase.ts
+- admin/src/app/layout.tsx
+- LargeSecureStore
 - metro.config.js
-- ADR/README.md
+- ADR-0011 — Mascot as a design-system primitive, requested by pose
 - fix-next-global-error.js
 - public.claim_notifications
 - public.enqueue_trip_status_notification
@@ -204,30 +204,30 @@
 - BOOKING_REFERENCE_CODE.sql
 - tsconfig.json
 - global-error.tsx
-- LocationBadge.tsx
+- login/page.tsx
 - public.get_trip_destination
 - public.push_tokens
 - public.reassign_booking
-- dependencies
+- aes-js
 - mobile-app/AGENTS.md
 - @caresy/types
-- permissions
+- @caresy/utils
 - expo-apple-authentication
-- make-icons.py
+- expo-auth-session
 - expo-constants
-- Reveal
+- expo-crypto
 - expo-dev-client
-- slots.ts
+- expo-device
 - expo-haptics
-- seed-app-review-demo.ts
+- expo-image-picker
 - expo-linear-gradient
 - expo-linking
 - expo-location
 - expo-notifications
-- blockedPermissions
+- expo-secure-store
 - expo-splash-screen
 - expo-status-bar
-- mobile-app/package.json
+- expo-symbols
 - expo-updates
 - expo-web-browser
 - react
@@ -238,37 +238,31 @@
 - react-native-screens
 - react-native-url-polyfill
 - react-native-web
-- retry.check.ts
+- @supabase/supabase-js
 - start-expo.sh
-- ADR-0001: Supabase (Postgres + RLS) is the backend; no custom API tier
+- @caresy/auth
 - @phosphor-icons/react
 - react
 - @supabase/ssr
 - @supabase/supabase-js
-- ADR-0007: Guest tracking uses a separate `share_token`, not `reference_code`
-- extra
-- public.claim_notifications
-- maps.web.ts
+- public.notifications
+- Reveal.tsx
+- privacy/page.tsx
+- terms/page.tsx
 - public.admin_save_booking_edit
-- App Review notes — paste into App Store Connect
-- @react-native-async-storage/async-storage
-- @react-native-community/datetimepicker
-- react-native-maps
-- @caresy/utils
-- public.notifications
-- public.notifications
+- notify.sh
 
 ## God Nodes (most connected - your core abstractions)
 1. `createClient()` - 60 edges
 2. `useAuth()` - 38 edges
 3. `Button()` - 22 edges
-4. `Session log — read this first, newest entry on top` - 22 edges
-5. `isValidIndianMobile()` - 21 edges
-6. `Reveal()` - 20 edges
-7. `toE164()` - 18 edges
-8. `formatINR()` - 18 edges
-9. `expo` - 17 edges
-10. `color` - 17 edges
+4. `Reveal()` - 20 edges
+5. `isValidIndianMobile()` - 20 edges
+6. `Session log — read this first, newest entry on top` - 20 edges
+7. `formatINR()` - 18 edges
+8. `expo` - 17 edges
+9. `color` - 17 edges
+10. `Booking()` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `OverviewBody()` --calls--> `createClient()`  [EXTRACTED]
@@ -277,10 +271,10 @@
   apps/admin/src/app/users/page.tsx → packages/auth/src/supabase/client.ts
 - `AdminTopbar()` --calls--> `useAuth()`  [EXTRACTED]
   apps/admin/src/components/AdminShell.tsx → packages/auth/src/AuthContext.tsx
-- `CareGuideDetail()` --calls--> `guideBySlug()`  [EXTRACTED]
-  apps/mobile-app/app/care/[slug].tsx → packages/utils/src/careGuides.ts
-- `DURATIONS` --calls--> `priceForMinutes()`  [EXTRACTED]
-  apps/website/src/app/booking/page.tsx → packages/utils/src/pricing.ts
+- `DeleteAccount()` --calls--> `useAuth()`  [EXTRACTED]
+  apps/website/src/app/account/delete/page.tsx → packages/auth/src/AuthContext.tsx
+- `Passport()` --calls--> `createClient()`  [EXTRACTED]
+  apps/website/src/app/care/page.tsx → packages/auth/src/supabase/client.ts
 
 ## Import Cycles
 - None detected.
@@ -289,11 +283,11 @@
 - **Pages sharing identical footer nav template (about/services/trust/faq/quick-help/booking/my-bookings/privacy/terms links)** — vanilla_backup_booking_page, vanilla_backup_faq_page, vanilla_backup_my_bookings_page, vanilla_backup_privacy_page, vanilla_backup_quick_help_page, vanilla_backup_terms_page, vanilla_backup_trust_page [EXTRACTED 1.00]
 - **Pages sharing identical floating WhatsApp widget (+919717500225, same inline SVG)** — vanilla_backup_booking_page, vanilla_backup_faq_page, vanilla_backup_quick_help_page, vanilla_backup_trust_page [EXTRACTED 1.00]
 
-## Communities (264 total, 91 thin omitted)
+## Communities (257 total, 97 thin omitted)
 
-### Community 0 - "payments/page.tsx"
-Cohesion: 0.06
-Nodes (39): ACTIVE_STATUSES, fmtEta(), LiveBoard(), osmEmbed(), STATUS_LABEL, TripCard(), TripRow, copyFor() (+31 more)
+### Community 0 - "AdminShell.tsx"
+Cohesion: 0.13
+Nodes (16): ACTIVE_TRIP, CARDS, Counts, OverviewBody(), AreaRow, AreasBody(), SettingRow, SettingsBody() (+8 more)
 
 ### Community 1 - "devDependencies"
 Cohesion: 0.12
@@ -324,8 +318,8 @@ Cohesion: 0.12
 Nodes (13): activeOtps, adminSessions, app, cors, DB_DIR, DB_FILE, express, fs (+5 more)
 
 ### Community 8 - "booking/page.tsx"
-Cohesion: 0.10
-Nodes (15): CARE_NEEDS, DURATIONS, fmtSlot(), label, LANGUAGES, SavedPatient, SERVICES, TRANSPORT_MODES (+7 more)
+Cohesion: 0.12
+Nodes (15): Booking(), CARE_NEEDS, fmtSlot(), label, LANGUAGES, SavedPatient, SERVICES, TRANSPORT_MODES (+7 more)
 
 ### Community 9 - "compilerOptions"
 Cohesion: 0.07
@@ -376,16 +370,16 @@ Cohesion: 0.08
 Nodes (25): dependencies, @caresy/ui, @caresy/utils, lucide-react, @supabase/ssr, @supabase/supabase-js, exports, ./modal (+17 more)
 
 ### Community 23 - "expo"
-Cohesion: 0.13
-Nodes (14): typedRoutes, expo, backgroundColor, experiments, icon, name, newArchEnabled, orientation (+6 more)
+Cohesion: 0.04
+Nodes (45): backgroundColor, foregroundImage, adaptiveIcon, googleServicesFile, package, predictiveBackGestureEnabled, usesCleartextTraffic, usesNonExemptEncryption (+37 more)
 
 ### Community 24 - "my-bookings/page.tsx"
-Cohesion: 0.14
-Nodes (20): BookingRecord, BookingRow(), CHANGEABLE, CompanionDetails, companionName(), DetailSheet(), formatDate(), getStatusInfo() (+12 more)
+Cohesion: 0.05
+Nodes (55): CollectPanel(), RunningTotal(), LiveMeter(), DURATIONS, BillPanel(), BookingRecord, BookingRow(), CHANGEABLE (+47 more)
 
-### Community 25 - "login/page.tsx"
-Cohesion: 0.11
-Nodes (20): btn(), ic, Login(), Step, Loop, LOOPS, MotionSpot(), SPOT (+12 more)
+### Community 25 - "StateLayout.tsx"
+Cohesion: 0.15
+Nodes (16): Loop, LOOPS, MotionSpot(), SPOT, SpotVariant, EmptyState(), EmptyStateProps, ErrorState() (+8 more)
 
 ### Community 43 - "Caresy — Developer Handoff"
 Cohesion: 0.06
@@ -405,11 +399,11 @@ Nodes (15): GET, config, proxy(), GET, config, proxy(), dynamic, GET (+7 more)
 
 ### Community 47 - "10_ADMIN_AND_COMPANIONS.sql"
 Cohesion: 0.05
-Nodes (31): guard_companion_privileged_fields, guard_drive_assignment, guard_trip_status_columns, admin_users, companion_documents, companions, is_admin(), lc_admin_email() (+23 more)
+Nodes (31): enqueue_new_booking_notification, guard_companion_privileged_fields, guard_drive_assignment, guard_trip_status_columns, admin_users, companion_documents, companions, is_admin() (+23 more)
 
 ### Community 48 - "companions/page.tsx"
-Cohesion: 0.19
-Nodes (9): CompanionRow, DocRow, DrivingPanel(), FILTERS, ReviewSheet(), STATUS_TONE, statusLabel(), CompanionRow (+1 more)
+Cohesion: 0.21
+Nodes (9): CompanionRow, CompanionsBody(), DocRow, FILTERS, ReviewSheet(), STATUS_TONE, statusLabel(), CompanionRow (+1 more)
 
 ### Community 49 - "Database"
 Cohesion: 0.29
@@ -432,8 +426,8 @@ Cohesion: 0.15
 Nodes (12): dependencies, @supabase/supabase-js, exports, ./bookingStatus, ./careGuides, ./phone, ./pricing, ./slots (+4 more)
 
 ### Community 55 - "createClient"
-Cohesion: 0.08
-Nodes (32): CompanionsBody(), ApprovedDashboard(), CompanionPortal(), directionsUrl(), DOC_TYPES, fmtWhen(), JobCard(), LANGUAGE_OPTIONS (+24 more)
+Cohesion: 0.10
+Nodes (23): ApprovedDashboard(), CompanionPortal(), directionsUrl(), DOC_TYPES, fmtWhen(), JobCard(), LANGUAGE_OPTIONS, ReapplyButton() (+15 more)
 
 ### Community 56 - "AGENTS.md"
 Cohesion: 0.40
@@ -441,39 +435,39 @@ Nodes (4): After changing code, Finding code, This is NOT the Next.js you know, 
 
 ### Community 57 - "Caresy Mobile — Device QA Flow (tunnel)"
 Cohesion: 0.06
-Nodes (30): Android permissions (Play Console will list these), Caresy — Privacy Answers (App Store + Play), Data collected (iOS App Privacy), iOS privacy manifest, Notes for reviewer, Play Data Safety (answers), Tracking, 0. Pre-flight (+22 more)
+Nodes (29): Caresy — Privacy Answers (App Store + Play), Data collected (iOS App Privacy), iOS privacy manifest, Notes for reviewer, Play Data Safety (answers), Tracking, 0. Pre-flight, 10. Sign-off (+21 more)
 
-### Community 65 - "trust/page.tsx"
-Cohesion: 0.11
-Nodes (17): CHECKLIST, FOUNDERS, BENEFITS, STEPS, PRICE_POINTS, Services, Testimonials, Trust() (+9 more)
+### Community 65 - "Reveal"
+Cohesion: 0.15
+Nodes (12): CHECKLIST, FOUNDERS, DeleteAccount(), BENEFITS, STEPS, PRICE_POINTS, Services, Testimonials (+4 more)
 
 ### Community 66 - "types/package.json"
 Cohesion: 0.40
 Nodes (4): exports, name, private, version
 
 ### Community 68 - "app/index.tsx"
-Cohesion: 0.13
-Nodes (14): a, FallbackGlyph, Home(), isTrackable(), NextBooking, Profile, s, serviceLabel() (+6 more)
+Cohesion: 0.10
+Nodes (20): a, FallbackGlyph, Home(), isTrackable(), NextBooking, Profile, s, serviceLabel() (+12 more)
 
 ### Community 69 - "ops/page.tsx"
-Cohesion: 0.15
-Nodes (11): Stats, ApprovedCompanion, BookingRecord, COLUMNS, initials(), OpsBoard(), OpsMetrics, STATUS_OPTIONS (+3 more)
+Cohesion: 0.20
+Nodes (8): ApprovedCompanion, BookingRecord, COLUMNS, initials(), OpsBoard(), OpsMetrics, STATUS_OPTIONS, TRANSPORT_LABEL
 
 ### Community 72 - "website/src/app/page.tsx"
 Cohesion: 0.07
-Nodes (34): GuidesPage(), metadata, ACTIVE_STATUS_LABEL, ActiveBookingInfo, BOOKING_HEADERS, fmtWhen(), greeting(), Header (+26 more)
+Nodes (35): CareGuideDetail(), GuidesPage(), metadata, ACTIVE_STATUS_LABEL, ActiveBookingInfo, BOOKING_HEADERS, fmtWhen(), greeting() (+27 more)
 
-### Community 75 - "src/pricing.ts"
-Cohesion: 0.14
-Nodes (20): applicableSlab(), CANCELLATION_PAISE, cancellationPaise(), cancel(), p, url, EVENING_FROM_HOUR, EVENING_SURCHARGE_PAISE (+12 more)
+### Community 75 - "website/src/app/layout.tsx"
+Cohesion: 0.12
+Nodes (14): epilogue, JSON_LD, metadata, poppins, viewport, CookieBanner(), MobileBottomNav(), CapacitorGlobal (+6 more)
 
 ### Community 79 - "analytics/page.tsx"
-Cohesion: 0.27
-Nodes (9): AnalyticsBody(), FareRow, hourLabel(), MUTED_STATUSES, rupees(), STATUS_ORDER, bookingRevenueRupees(), isBilled() (+1 more)
+Cohesion: 0.21
+Nodes (12): AnalyticsBody(), FareRow, hourLabel(), MUTED_STATUSES, rupees(), Stats, STATUS_ORDER, bookingRevenueRupees() (+4 more)
 
 ### Community 80 - "ADR-0003: Scheduling and push dispatch run in Postgres (pg_cron + pg_net)"
-Cohesion: 0.12
-Nodes (13): ADR-0003: Scheduling and push dispatch run in Postgres (pg_cron + pg_net), Alternatives rejected, Consequences, Context, Decision, ADR-0005: Cash/UPI collected at completion; no payment gateway, Alternatives rejected, Consequences (+5 more)
+Cohesion: 0.20
+Nodes (8): ADR-0003: Scheduling and push dispatch run in Postgres (pg_cron + pg_net), Alternatives rejected, Consequences, Context, Decision, Deploy, Symptom index, Troubleshooting & deployment playbook
 
 ### Community 81 - "Caresy Live Tracking — Handoff, Next Steps & Vision"
 Cohesion: 0.22
@@ -485,7 +479,7 @@ Nodes (17): 1. `@caresy/auth` cannot be shared with React Native, 2. `@caresy/ut
 
 ### Community 83 - "dependencies"
 Cohesion: 0.13
-Nodes (15): dependencies, @caresy/auth, @caresy/types, @caresy/ui, lucide-react, motion, next, @vercel/speed-insights (+7 more)
+Nodes (15): dependencies, @caresy/types, @caresy/ui, @caresy/utils, lucide-react, motion, next, @vercel/speed-insights (+7 more)
 
 ### Community 84 - "dependencies"
 Cohesion: 0.06
@@ -493,31 +487,31 @@ Nodes (30): dependencies, @capacitor/android, @capacitor/app, @capacitor/core, @
 
 ### Community 85 - "Session log — read this first, newest entry on top"
 Cohesion: 0.05
-Nodes (38): 0. Isolation — do this first, before reading any code, 1. Ground rules — these outlive this task, apply them to every future one, 2026-08-13 — Agent 2 (Muse) — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`), 2026-08-13 — primary session — branch `feature/structured-data`, 2026-08-14 (evening) — primary session — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`), 2026-08-14 — Muse review — branch `feature/mobile-quick-help` (worktree: `caresy_m3_worktree`) — Phase 3 read, 2026-08-14 — primary + Muse — branch `feature/mobile-quick-help` — forward from Phase 3, 2026-08-14 — primary session — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`) (+30 more)
+Nodes (36): 0. Isolation — do this first, before reading any code, 1. Ground rules — these outlive this task, apply them to every future one, 2026-08-13 — Agent 2 (Muse) — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`), 2026-08-13 — primary session — branch `feature/structured-data`, 2026-08-14 (evening) — primary session — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`), 2026-08-14 — Muse review — branch `feature/mobile-quick-help` (worktree: `caresy_m3_worktree`) — Phase 3 read, 2026-08-14 — primary + Muse — branch `feature/mobile-quick-help` — forward from Phase 3, 2026-08-14 — primary session — branch `feature/mobile-quick-help` (worktree: `Desktop/Caresy phone/caresy_m3_worktree`) (+28 more)
 
 ### Community 86 - "AppDelegate"
 Cohesion: 0.13
 Nodes (13): AppDelegate, Any, Bool, NSUserActivity, UIApplication, UIUserActivityRestoring, UIWindow, URL (+5 more)
 
 ### Community 87 - "scripts"
-Cohesion: 0.18
-Nodes (11): scripts, android, build, ios, start, start:direct, start:lan, start:tunnel (+3 more)
+Cohesion: 0.08
+Nodes (24): devDependencies, eas-cli, @types/aes-js, @types/react, typescript, @types/react, typescript, main (+16 more)
 
 ### Community 88 - "ui.tsx"
-Cohesion: 0.09
-Nodes (29): AUD, CATS, GUIDE_META, s, CareGuideDetail(), s, CATS, FAQS (+21 more)
+Cohesion: 0.10
+Nodes (22): AUD, CATS, GUIDE_META, s, s, CATS, FAQS, s (+14 more)
 
 ### Community 89 - "send-push/route.ts"
 Cohesion: 0.12
-Nodes (28): asciiOnly(), backoffMinutes(), dynamic, fanoutTelegram(), GET(), nextRetryAt(), pageOps(), QueuedRow (+20 more)
+Nodes (25): asciiOnly(), dynamic, fanoutTelegram(), GET(), pageOps(), QueuedRow, accessToken(), b64url() (+17 more)
 
-### Community 90 - "website/src/app/layout.tsx"
-Cohesion: 0.07
-Nodes (26): epilogue, JSON_LD, metadata, poppins, viewport, CookieBanner(), APP_TABS, Header() (+18 more)
+### Community 90 - "InstallPrompt.tsx"
+Cohesion: 0.16
+Nodes (11): BIPEvent, ic, InstallPrompt(), isStandalone(), BrowserBarArt(), ConfirmCardArt(), Item, LeafSprig() (+3 more)
 
 ### Community 91 - "care/page.tsx"
-Cohesion: 0.14
-Nodes (11): CareEvent, DOC_TYPES, Documents(), fmt(), KIND_STYLE, Member, Passport(), PASSPORT_FIELDS (+3 more)
+Cohesion: 0.13
+Nodes (12): CareEvent, CareInner(), DOC_TYPES, Documents(), fmt(), KIND_STYLE, Member, Passport() (+4 more)
 
 ### Community 92 - "Caresy — coding standards"
 Cohesion: 0.22
@@ -536,16 +530,16 @@ Cohesion: 0.13
 Nodes (15): 10. Conventions, 11. Traps that catch newcomers, 12. Known gaps, 13. Reading order, 1. The product, 2. Stack, 3. Layout, 4. The one idea you must absorb (+7 more)
 
 ### Community 96 - "NEXT_SESSION.md — SINGLE SOURCE OF TRUTH FOR PROGRESS"
-Cohesion: 0.09
-Nodes (20): Blocked on you — do these first, Do not retry without reading this — the React dedupe, Environment cautions, iOS — the critical path, in order (priority as of 2026-08-30), Mobile release — real state, Muse coordination, NEXT_SESSION.md — SINGLE SOURCE OF TRUTH FOR PROGRESS, On "the GitHub issues are just testing" — mostly true, with one exception that matters (+12 more)
+Cohesion: 0.11
+Nodes (16): In progress (deferred per user, proceed to next phase), In progress — mobile UI parity pass (this session), Just shipped (committed + pushed, not yet deployed — prior session), Leftovers — remaining screens, worst → best (from same audit), NEXT_SESSION.md — SINGLE SOURCE OF TRUTH FOR PROGRESS, Next task, Next tasks (do these) — user: "leave we can set them later proceed to the phase", On restart / low-context ritual (+8 more)
 
 ### Community 97 - ".application"
 Cohesion: 0.12
 Nodes (18): expo, Expo, ExpoAppDelegate, ExpoReactNativeFactoryDelegate, AppDelegate, ReactNativeDelegate, Any, Bool (+10 more)
 
-### Community 98 - "bookingStatus.ts"
-Cohesion: 0.16
-Nodes (16): Tracking(), PALETTE, s, StatusPill(), radius, osmEmbed(), TrackedBooking, TrackingInner() (+8 more)
+### Community 98 - "tracking.tsx"
+Cohesion: 0.14
+Nodes (18): s, TrackedBooking, Tracking(), PALETTE, s, StatusPill(), radius, type (+10 more)
 
 ### Community 99 - "Trips & Real-Time Companion Location Tracking"
 Cohesion: 0.29
@@ -588,16 +582,16 @@ Cohesion: 0.11
 Nodes (17): A) EAS BUILD CONFIG — what was done, `apps/mobile-app/app.json` — audit & fix, `apps/mobile-app/eas.json` (after), B) SIWA FLOW — audit & completion, C) Human prerequisites — numbered checklist, D) Exact commands to run (human), E) What was completed in code vs blocked on creds, EAS + SIWA READINESS — CARESY-6 (+9 more)
 
 ### Community 109 - "booking.tsx"
-Cohesion: 0.12
-Nodes (17): CARE_NEEDS, durationLabel(), DURATIONS, fmtSlot(), LANGUAGES, nextDays(), s, SavedPatient (+9 more)
+Cohesion: 0.11
+Nodes (18): CARE_NEEDS, durationLabel(), DURATIONS, fmtSlot(), LANGUAGES, nextDays(), s, SavedPatient (+10 more)
 
 ### Community 110 - "AuthContext.tsx"
-Cohesion: 0.12
-Nodes (22): metadata, poppins, viewport, dynamic, metadata, poppins, viewport, PortalHeader() (+14 more)
+Cohesion: 0.28
+Nodes (14): AuthContext, AuthContextType, AuthProvider(), Profile, getMsg91AccessToken(), initExposed(), loadWidget(), msg91Configured() (+6 more)
 
 ### Community 111 - "profile.tsx"
-Cohesion: 0.10
-Nodes (24): s, plugins, FamilyMember, FamilyScreen(), s, Profile, s, Props (+16 more)
+Cohesion: 0.12
+Nodes (21): AccountDelete(), s, plugins, FamilyMember, FamilyScreen(), s, Profile, s (+13 more)
 
 ### Community 112 - "Next Steps for the Next Agent"
 Cohesion: 0.13
@@ -624,16 +618,16 @@ Cohesion: 0.21
 Nodes (8): audit_bookings_changes, audit_bookings_changes, audit_logs, set_timestamp_bookings, set_timestamp_locations, set_timestamp_patients, trigger_set_timestamp, trigger_audit_bookings()
 
 ### Community 136 - "my-bookings.tsx"
-Cohesion: 0.33
-Nodes (10): BookingCard(), BookingRecord, isReschedulable(), isTrackable(), MyBookings(), patientName(), s, serviceLabel() (+2 more)
+Cohesion: 0.30
+Nodes (11): BookingCard(), BookingRecord, isReschedulable(), isTrackable(), MyBookings(), patientName(), s, serviceLabel() (+3 more)
 
 ### Community 137 - "Booking lifecycle fixes — implementation brief"
 Cohesion: 0.18
 Nodes (10): Booking lifecycle fixes — implementation brief, Deferred — needs a product decision, do not implement without checking in first, Order of work, Phase 0 (URGENT — fix before anything else) — `accept()` is currently broken for every companion, Phase 1 (Critical) — DB-level state machine, Phase 2 (Critical) — Reassignment as a first-class RPC, Phase 3 (High) — Close the two concurrency races, Phase 4 (High) — Payment and suspension guards (app-code only, no migration needed for the first two) (+2 more)
 
-### Community 138 - "mobile-app/tsconfig.json"
-Cohesion: 0.15
-Nodes (12): compilerOptions, strict, exclude, extends, include, **/*.check.ts, expo/tsconfig.base, node_modules (+4 more)
+### Community 138 - "include"
+Cohesion: 0.20
+Nodes (9): compilerOptions, strict, extends, include, expo/tsconfig.base, **/*.ts, **/*.tsx, expo-env.d.ts (+1 more)
 
 ### Community 139 - "public.trips"
 Cohesion: 0.29
@@ -643,13 +637,13 @@ Nodes (6): auth, public.bookings, public.trip_locations, public.trips, auth.user
 Cohesion: 0.25
 Nodes (7): 1. Update the existing Vercel project (website), 2. Create the two new Vercel projects, 3. Supabase Auth redirect URLs, 4. DNS (at your registrar for caresy.co.in), 5. Order of operations (zero downtime), Caresy Monorepo Deployment, Notes
 
-### Community 142 - "isValidIndianMobile"
-Cohesion: 0.24
-Nodes (13): CHIPS, FaqCategory, FAQS, Support(), supWa(), AuthModal(), digits(), formatIndianMobile() (+5 more)
+### Community 142 - "useAuth"
+Cohesion: 0.17
+Nodes (17): Profile(), supWa(), QuickHelp(), CHIPS, FaqCategory, FAQS, Support(), supWa() (+9 more)
 
 ### Community 143 - "quick-help/page.tsx"
-Cohesion: 0.19
-Nodes (10): HospitalAutocomplete(), Coords, MeetingPoint(), AREA_PINCODE, areas, pct, served, sql (+2 more)
+Cohesion: 0.18
+Nodes (12): HospitalAutocomplete(), Coords, MeetingPoint(), AREA_PINCODE, areas, pct, served, sql (+4 more)
 
 ### Community 144 - "ADR-NNNN: <short decision, present tense>"
 Cohesion: 0.33
@@ -668,12 +662,12 @@ Cohesion: 0.22
 Nodes (8): Before the first customer — in order, Current state, In flight, Known broken / blocked, Live in production (2026-08-02), Next up (rough order), Stale docs, Where the code lives (read before cloning — 2026-08-27)
 
 ### Community 148 - "Security"
-Cohesion: 0.20
+Cohesion: 0.29
 Nodes (7): If a key leaks, `is_admin()` must never return NULL (2026-08-29), Known enforcement points, Open gaps (do not assume these are handled), Rules, Security, Storage buckets
 
-### Community 149 - "ADR-0006: Transport is facilitated and recorded, never billed"
-Cohesion: 0.33
-Nodes (5): ADR-0006: Transport is facilitated and recorded, never billed, Alternatives rejected, Consequences, Context, Decision
+### Community 149 - "DATABASE.md"
+Cohesion: 0.15
+Nodes (10): ADR-0001: Supabase (Postgres + RLS) is the backend; no custom API tier, Alternatives rejected, Consequences, Context, Decision, ADR-0006: Transport is facilitated and recorded, never billed, Alternatives rejected, Consequences (+2 more)
 
 ### Community 150 - "smoke.mjs"
 Cohesion: 0.20
@@ -683,17 +677,17 @@ Nodes (5): failed, headers, results, root, { url, key }
 Cohesion: 0.33
 Nodes (5): ADR-0004: The Android app is a Capacitor shell pointing at the live site, Alternatives rejected, Consequences, Context, Decision
 
-### Community 152 - "Order of operations"
-Cohesion: 0.14
-Nodes (13): 1. Confirm a paid Apple Developer Program membership, 2. Create the app record in App Store Connect, 3. Create an App Store Connect API key, 4. Build for the store, 5. Push to TestFlight, 6. Submit for App Store review, Apple App Store release — runbook, Guideline risks, and where this app stands (+5 more)
-
-### Community 153 - "ADR-0008: `assert`-based self-checks instead of a test framework"
+### Community 152 - "0005-gatewayless-payments.md"
 Cohesion: 0.33
-Nodes (5): ADR-0008: `assert`-based self-checks instead of a test framework, Alternatives rejected, Consequences, Context, Decision
+Nodes (5): ADR-0005: Cash/UPI collected at completion; no payment gateway, Alternatives rejected, Consequences, Context, Decision
 
-### Community 154 - "Google Play release — closed testing runbook"
-Cohesion: 0.14
-Nodes (13): 1. Build a production AAB — **DONE 2026-08-29, superseded — rebuild**, 2. Create the app in Play Console, 3. Upload to a **Closed testing** track, 4. Add the testers and get them opted in, Google Play release — closed testing runbook, Keystore — already done, do not regenerate, Later: automated submission, Log (+5 more)
+### Community 153 - "0007-share-token-for-guest-tracking.md"
+Cohesion: 0.15
+Nodes (10): ADR-0007: Guest tracking uses a separate `share_token`, not `reference_code`, Alternatives rejected, Consequences, Context, Decision, ADR-0008: `assert`-based self-checks instead of a test framework, Alternatives rejected, Consequences (+2 more)
+
+### Community 154 - "Badge"
+Cohesion: 0.22
+Nodes (8): Badge(), BadgeProps, BadgeSize, BadgeTone, SIZES, TONES, CompanionCard(), CompanionCardProps
 
 ### Community 155 - "Caresy"
 Cohesion: 0.40
@@ -703,25 +697,25 @@ Nodes (5): Caresy, Deploy, Develop, Docs, Live tracking
 Cohesion: 0.22
 Nodes (8): Commands for Claude, Decisions made, Files added, Files modified, For Claude — Analyze Today's Work (2026-08-15), How to judge, Today's Changes (for Claude to verify), What to improve next (Claude should prioritize)
 
-### Community 157 - "useAuth"
-Cohesion: 0.24
-Nodes (12): AccountDelete(), BeautifulAuth(), handleEmailAuth(), ProfileScreen(), supWa(), AuthProvider(), signInWithApple(), signInWithEmail() (+4 more)
+### Community 157 - "live/page.tsx"
+Cohesion: 0.23
+Nodes (10): DrivingPanel(), ACTIVE_STATUSES, fmtEta(), LiveBoard(), osmEmbed(), STATUS_LABEL, TripCard(), TripRow (+2 more)
 
-### Community 158 - "ADR-0010 — Lottie for the login mascot animation"
-Cohesion: 0.40
-Nodes (5): ADR-0010 — Lottie for the login mascot animation, Alternatives rejected, Consequences, Context, Decision
+### Community 158 - "ADR/README.md"
+Cohesion: 0.25
+Nodes (6): ADR-0010 — Lottie for the login mascot animation, Alternatives rejected, Consequences, Context, Decision, Architecture Decision Records
 
 ### Community 159 - "ui/src/index.ts"
-Cohesion: 0.07
-Nodes (34): PRIVACY_SECTIONS, TERMS_SECTIONS, APP_TABS, Footer(), Badge(), BadgeProps, BadgeSize, BadgeTone (+26 more)
+Cohesion: 0.13
+Nodes (20): APP_TABS, Footer(), Button(), ButtonProps, ButtonShape, ButtonSize, ButtonVariant, SIZES (+12 more)
 
 ### Community 160 - "quick-help.tsx"
-Cohesion: 0.23
-Nodes (15): Booking(), QuickHelp(), s, SERVICES, STEP_TITLES, URGENCIES, Coords, useCurrentLocation() (+7 more)
+Cohesion: 0.16
+Nodes (19): Booking(), QuickHelp(), s, SERVICES, STEP_TITLES, URGENCIES, useAuth(), Coords (+11 more)
 
-### Community 161 - "45_ADMIN_SMART_NOTIFY.sql"
-Cohesion: 0.22
-Nodes (10): public.enqueue_booking_notification, public.enqueue_companion_pending_notification, public.enqueue_booking_notification(), public.enqueue_companion_pending_notification(), public.enqueue_new_booking_notification(), enqueue_new_booking_notification, public.notifications, trg_enqueue_booking_notification (+2 more)
+### Community 161 - "notifications/page.tsx"
+Cohesion: 0.25
+Nodes (7): copyFor(), FILTERS, NotifBody(), NotifRow, NotifStatus, STATUS_COPY, STATUS_TONE
 
 ### Community 162 - "Caresy Native App — completion checklist"
 Cohesion: 0.22
@@ -731,13 +725,13 @@ Nodes (8): Caresy Native App — completion checklist, Deferred functionality (m
 Cohesion: 0.22
 Nodes (8): name, private, scripts, build, dev, lint, start, version
 
-### Community 164 - "formatINR"
-Cohesion: 0.31
-Nodes (9): CollectPanel(), RunningTotal(), LiveMeter(), BillPanel(), LiveMeter(), billableMinutes(), formatINR(), runningTotalPaise() (+1 more)
-
-### Community 165 - "ios"
+### Community 164 - "trust/page.tsx"
 Cohesion: 0.22
-Nodes (9): usesNonExemptEncryption, ios, bundleIdentifier, config, privacyManifests, supportsTablet, usesAppleSignIn, NSPrivacyCollectedDataTypes (+1 more)
+Nodes (7): Trust(), VERIFICATION_STEPS, useLiveMetrics(), StatCard(), StatCardProps, StepItem(), StepItemProps
+
+### Community 165 - "payments/page.tsx"
+Cohesion: 0.25
+Nodes (7): FilterKey, FILTERS, PaymentRow, PaymentsLedger(), PaymentStatus, startOfToday(), STATUS_TONE
 
 ### Community 166 - "lib/msg91.ts"
 Cohesion: 0.53
@@ -746,6 +740,10 @@ Nodes (3): dynamic, POST(), phoneFromVerifyResult()
 ### Community 167 - "ADR-0009 — Native mobile with Expo, not a WebView shell"
 Cohesion: 0.40
 Nodes (5): ADR-0009 — Native mobile with Expo, not a WebView shell, Alternatives rejected, Consequences, Context, Decision
+
+### Community 168 - "dependencies"
+Cohesion: 0.22
+Nodes (9): dependencies, expo-router, @react-native-async-storage/async-storage, @react-native-community/datetimepicker, react-native-maps, expo-router, @react-native-async-storage/async-storage, @react-native-community/datetimepicker (+1 more)
 
 ### Community 169 - "patients"
 Cohesion: 0.33
@@ -759,17 +757,17 @@ Nodes (8): 1) Re-enable push_tokens upsert (Expo Go guard), 2) Cron delivery log
 Cohesion: 0.22
 Nodes (6): find_user_by_phone(), auth.users, profiles, set_timestamp_profiles, auth.users, trigger_set_timestamp
 
-### Community 174 - "devDependencies"
-Cohesion: 0.22
-Nodes (9): devDependencies, eas-cli, @types/aes-js, @types/react, typescript, @types/react, typescript, eas-cli (+1 more)
+### Community 174 - "companion/src/app/layout.tsx"
+Cohesion: 0.29
+Nodes (5): dynamic, metadata, poppins, viewport, PortalHeader()
 
 ### Community 175 - "13_LIFECYCLE.sql"
 Cohesion: 0.32
 Nodes (5): app_settings, enqueue_booking_notification(), get_setting_int(), notifications, trg_enqueue_booking_notification
 
-### Community 176 - "ErrorBoundary"
-Cohesion: 0.29
-Nodes (3): updates, url, ErrorBoundary
+### Community 176 - "theme.ts"
+Cohesion: 0.20
+Nodes (7): ErrorBoundary, Props, s, State, color, motion, space
 
 ### Community 177 - "Companion Portal — Full Lifecycle Audit (CARESY-7)"
 Cohesion: 0.29
@@ -783,9 +781,9 @@ Nodes (6): Caresy — Easy Words Recap (what's done, what's next), Checks we did
 Cohesion: 0.29
 Nodes (5): contact_messages, ops_metrics, set_timestamp_ops_metrics, auth.users, trigger_set_timestamp
 
-### Community 180 - "android"
-Cohesion: 0.25
-Nodes (8): backgroundImage, foregroundImage, monochromeImage, adaptiveIcon, googleServicesFile, package, predictiveBackGestureEnabled, android
+### Community 180 - "Header.tsx"
+Cohesion: 0.47
+Nodes (5): APP_TABS, Header(), STANDALONE, titleFor(), TITLES
 
 ### Community 181 - "ADR-0012: Drop the mascot; Phosphor duotone icons + Motion One spots"
 Cohesion: 0.33
@@ -799,21 +797,17 @@ Nodes (5): ADR-0013: OTA updates via expo-updates, gated by fingerprint, Alterna
 Cohesion: 0.33
 Nodes (5): Handoff — 2026-08-16 (updated 13:40 -> approved), Next agent — do this, Phase evaluation, Verification, What was done this session (in order)
 
-### Community 185 - "infoPlist"
-Cohesion: 0.25
-Nodes (8): ITSAppUsesNonExemptEncryption, NSCameraUsageDescription, NSLocationAlwaysAndWhenInUseUsageDescription, NSLocationWhenInUseUsageDescription, NSPhotoLibraryUsageDescription, NSPrivacyAccessedAPICategoryFileTimestamp, NSUserNotificationUsageDescription, infoPlist
-
-### Community 186 - "supabase.ts"
-Cohesion: 0.24
-Nodes (7): blob, keyA, keyB, session, decryptSession(), encryptSession(), LargeSecureStore
+### Community 185 - "admin/src/app/layout.tsx"
+Cohesion: 0.40
+Nodes (3): metadata, poppins, viewport
 
 ### Community 187 - "metro.config.js"
 Cohesion: 0.40
 Nodes (4): config, { getDefaultConfig }, path, workspaceRoot
 
-### Community 188 - "ADR/README.md"
-Cohesion: 0.25
-Nodes (6): ADR-0011 — Mascot as a design-system primitive, requested by pose, Alternatives rejected, Consequences, Context, Decision, Architecture Decision Records
+### Community 188 - "ADR-0011 — Mascot as a design-system primitive, requested by pose"
+Cohesion: 0.40
+Nodes (5): ADR-0011 — Mascot as a design-system primitive, requested by pose, Alternatives rejected, Consequences, Context, Decision
 
 ### Community 189 - "fix-next-global-error.js"
 Cohesion: 0.40
@@ -821,7 +815,7 @@ Nodes (4): fs, path, t, target
 
 ### Community 190 - "public.claim_notifications"
 Cohesion: 0.50
-Nodes (3): public.claim_notifications(), information_schema.columns, pg_proc
+Nodes (3): information_schema.columns, public.claim_notifications(), pg_proc
 
 ### Community 191 - "public.enqueue_trip_status_notification"
 Cohesion: 0.50
@@ -839,80 +833,32 @@ Nodes (3): public.stamp_companion_on_booking(), pg_proc, PUBLIC
 Cohesion: 0.50
 Nodes (3): compilerOptions, extends, expo/tsconfig.base
 
-### Community 199 - "LocationBadge.tsx"
-Cohesion: 0.36
-Nodes (7): BadgeState, LocationBadge(), QUICK_PICKS, readStored(), reverseGeocode(), StoredLocation, writeStored()
-
-### Community 203 - "dependencies"
-Cohesion: 0.11
-Nodes (19): aes-js, dependencies, aes-js, @caresy/utils, expo-auth-session, expo-crypto, expo-device, expo-image-picker (+11 more)
-
-### Community 206 - "permissions"
-Cohesion: 0.29
-Nodes (7): permissions, android.permission.ACCESS_COARSE_LOCATION, android.permission.ACCESS_FINE_LOCATION, android.permission.INTERNET, android.permission.POST_NOTIFICATIONS, android.permission.READ_EXTERNAL_STORAGE, android.permission.VIBRATE
-
-### Community 208 - "make-icons.py"
-Cohesion: 0.43
-Nodes (6): logo_mask(), main(), placed(), Alpha-only cut-out of the logo, trimmed to its bounding box. The source is…, Scale the mask to `fraction` of the canvas and centre it., tinted()
-
-### Community 210 - "Reveal"
+### Community 199 - "login/page.tsx"
 Cohesion: 0.33
-Nodes (3): Profile(), supWa(), Reveal()
+Nodes (4): btn(), ic, Login(), Step
 
-### Community 212 - "slots.ts"
-Cohesion: 0.38
-Nodes (4): ordered, previous, MIN_LEAD_MINUTES, TIME_SLOTS
-
-### Community 214 - "seed-app-review-demo.ts"
-Cohesion: 0.29
-Nodes (4): checkOnly, main(), supabase, { url, serviceKey, password: DEMO_PASSWORD }
-
-### Community 219 - "blockedPermissions"
-Cohesion: 0.40
-Nodes (5): blockedPermissions, android.permission.ACCESS_BACKGROUND_LOCATION, android.permission.READ_MEDIA_VIDEO, android.permission.SYSTEM_ALERT_WINDOW, android.permission.WRITE_EXTERNAL_STORAGE
-
-### Community 222 - "mobile-app/package.json"
-Cohesion: 0.40
-Nodes (4): main, name, private, version
-
-### Community 233 - "retry.check.ts"
-Cohesion: 0.50
-Nodes (3): backoffMinutes(), fixedNow, nextRetryAt()
-
-### Community 235 - "ADR-0001: Supabase (Postgres + RLS) is the backend; no custom API tier"
-Cohesion: 0.40
-Nodes (5): ADR-0001: Supabase (Postgres + RLS) is the backend; no custom API tier, Alternatives rejected, Consequences, Context, Decision
-
-### Community 243 - "ADR-0007: Guest tracking uses a separate `share_token`, not `reference_code`"
-Cohesion: 0.40
-Nodes (5): ADR-0007: Guest tracking uses a separate `share_token`, not `reference_code`, Alternatives rejected, Consequences, Context, Decision
-
-### Community 251 - "extra"
-Cohesion: 0.50
-Nodes (4): projectId, extra, eas, router
-
-### Community 252 - "public.claim_notifications"
-Cohesion: 0.50
-Nodes (3): public.claim_notifications(), information_schema.columns, pg_proc
+### Community 251 - "Reveal.tsx"
+Cohesion: 0.60
+Nodes (4): BaseProps, EASE, RevealProps, StaggerProps
 
 ## Knowledge Gaps
-- **1150 isolated node(s):** `SECURITY_HEADERS`, `nextConfig`, `name`, `version`, `private` (+1145 more)
+- **1102 isolated node(s):** `notify.sh script`, `SECURITY_HEADERS`, `nextConfig`, `name`, `version` (+1097 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **91 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **97 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `AuthProvider()` connect `useAuth` to `13_LIFECYCLE.sql`, `profile.tsx`?**
-  _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `notifications` connect `13_LIFECYCLE.sql` to `bookings`, `useAuth`?**
-  _High betweenness centrality (0.030) - this node is a cross-community bridge._
 - **Why does `bookings` connect `bookings` to `public.stamp_companion_on_booking`, `SUPABASE_SCHEMA.sql`, `patients`, `10_ADMIN_AND_COMPANIONS.sql`, `13_LIFECYCLE.sql`, `26_BILLING.sql`?**
-  _High betweenness centrality (0.030) - this node is a cross-community bridge._
-- **What connects `SECURITY_HEADERS`, `nextConfig`, `name` to the rest of the system?**
-  _1150 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `payments/page.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.0649895178197065 - nodes in this community are weakly interconnected._
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+- **Why does `AuthProvider()` connect `app/index.tsx` to `theme.ts`, `13_LIFECYCLE.sql`, `profile.tsx`?**
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+- **Why does `notifications` connect `13_LIFECYCLE.sql` to `bookings`, `app/index.tsx`?**
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **What connects `notify.sh script`, `SECURITY_HEADERS`, `nextConfig` to the rest of the system?**
+  _1102 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `AdminShell.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `devDependencies` be split into smaller, more focused modules?**
   _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._
 - **Should `script.js` be split into smaller, more focused modules?**

@@ -14,9 +14,7 @@ import { color, radius, space } from '../lib/theme';
 import { HOSPITALS, pincodeForArea } from '../lib/hospitals';
 import { useCurrentLocation } from '../lib/useLocation';
 
-// expo dep — dynamic require keeps tsc green until plugin native rebuild
-let ImagePicker: any = null;
-try { ImagePicker = require('expo-image-picker'); } catch {}
+import * as ImagePicker from 'expo-image-picker';
 
 // Business rules mirror apps/website/src/app/booking (data contract, not layout).
 const SERVICES = [
@@ -392,15 +390,16 @@ export default function Booking() {
               ) : coords ? (
                 <Txt variant="caption" color={color.greenDeep}>✓ Location captured · {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}</Txt>
               ) : locBlocked ? (
-                <Pressable onPress={openLocationSettings}>
+                <Pressable onPress={openLocationSettings} accessibilityRole="button" accessibilityLabel="Location is off for Caresy. Open Settings">
                   <Txt variant="caption" color={color.terracotta}>Location is off for Caresy — tap to open Settings</Txt>
                 </Pressable>
               ) : locError ? (
-                <Pressable onPress={requestLocation}>
+                <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel={`${locError}. Try again`}>
                   <Txt variant="caption" color={color.terracotta}>{locError} — tap to try again</Txt>
                 </Pressable>
               ) : (
-                <Pressable onPress={requestLocation}>
+                // Label omits the pin emoji, which TalkBack would read as "round pushpin".
+                <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel="Share current location">
                   <Txt variant="caption" color={color.greenDeep}>📍 Share current location</Txt>
                 </Pressable>
               )}
@@ -476,10 +475,9 @@ export default function Booking() {
                 title={docUri ? 'Change photo' : 'Pick photo'}
                 variant="secondary"
                 onPress={async () => {
-                  if (!ImagePicker) { Alert.alert('Not ready', 'Rebuild the dev client to enable photo picker'); return; }
                   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
                   if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access to attach a document'); return; }
-                  const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+                  const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
                   if (!res.canceled && res.assets?.[0]?.uri) setDocUri(res.assets[0].uri);
                 }}
                 style={s.docBtn}

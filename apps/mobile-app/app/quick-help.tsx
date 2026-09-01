@@ -266,15 +266,16 @@ export default function QuickHelp() {
             ) : coords ? (
               <Txt variant="caption" color={color.greenDeep}>✓ Shared — helps your companion find you faster</Txt>
             ) : locBlocked ? (
-              <Pressable onPress={openLocationSettings}>
+              <Pressable onPress={openLocationSettings} accessibilityRole="button" accessibilityLabel="Location is off for Caresy. Open Settings">
                 <Txt variant="caption" color={color.terracotta}>Location is off for Caresy — tap to open Settings</Txt>
               </Pressable>
             ) : locError ? (
-              <Pressable onPress={requestLocation}>
+              <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel={`${locError}. Try again`}>
                 <Txt variant="caption" color={color.terracotta}>{locError} — tap to try again</Txt>
               </Pressable>
             ) : (
-              <Pressable onPress={requestLocation}>
+              // Label omits the pin emoji, which TalkBack would read as "round pushpin".
+              <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel="Share my current location. Urgent requests move faster">
                 <Txt variant="caption" color={color.greenDeep}>📍 Share my current location (urgent requests move faster)</Txt>
               </Pressable>
             )}

@@ -1,6 +1,6 @@
 # Current state
 
-_Updated: 2026-08-01. First real customers expected 2026-08-02._
+_Updated: 2026-08-31. First real customers expected 2026-08-02._
 
 Short-lived working memory: what is in flight, what is known-broken, what is
 next. Not architecture — a thing that settles here for good belongs in
@@ -8,6 +8,35 @@ next. Not architecture — a thing that settles here for good belongs in
 here is worse than nothing.
 
 Read this first after a `/clear`.
+
+## Android release readiness — audit done, rebuild pending (2026-08-31)
+
+Branch `fix/android-release-readiness`, three commits, **not pushed**. Full
+detail in `docs/PLAY_STORE_RELEASE.md`; the short version:
+
+- The versionCode 4 AAB **must not ship**. Uploading it burns 14 days of
+  closed-test clock on a build with a placeholder icon and dead push.
+- `eval("require")` had hidden `expo-device`, `expo-notifications` and
+  `react-native-maps` from Metro, so they were absent from the production
+  bundle. Push registration and the tracking map were silently dead on every
+  store build. Now static imports, verified against a bundle sourcemap.
+- App icon, splash and notification icon were Expo's placeholder on **both**
+  platforms — so the TestFlight build carries it too. `apps/mobile-app/scripts/make-icons.py`
+  regenerates all six from the website's brand mark.
+- `expo-image-picker` was pulling `RECORD_AUDIO` into the manifest.
+  `app.json` now pins `android.permissions` / `blockedPermissions`.
+- `LargeSecureStore.getItem` crashed on launch after an Android backup-restore.
+  Pure half extracted to `lib/sessionCrypto.ts` with a self-check.
+
+**Open, and only you can do them:** rotate the App Review demo password
+(`DEMO_APP_REVIEW_PASSWORD`, see `docs/APP_REVIEW_NOTES.md` — the old one was
+public on GitHub), rotate the GitHub PAT pasted in plaintext 2026-08-27, and
+finish App Store Connect (`ascAppId`, API key, privacy questionnaire).
+
+Deliberately **not** done: R8/ProGuard is still off. Turning on minification days
+before a release risks a crashing build from a missing keep-rule, and the JS
+bundle dominates size anyway. Do it after the clock starts, verified with a
+preview build. No crash reporting either — that needs an ADR and a new dependency.
 
 ## Where the code lives (read before cloning — 2026-08-27)
 
@@ -59,8 +88,12 @@ anon keys are rejected by this project.
 - **Illustration is Phosphor duotone + Motion One, not a mascot.** ADR-0012
   (2026-08-11) supersedes ADR-0010/0011 and deleted `packages/ui/src/mascot/`;
   illustrated slots are `MotionSpot`, the 12 care-guide categories are
-  `apps/website/src/lib/guideIcons.tsx`. Left over: the ✓/✗ text prefixes in
-  `booking`/`quick-help` service-area copy are still emoji (issue #18).
+  `apps/website/src/lib/guideIcons.tsx`. Issue #18 (the ✓/✗ text prefixes in the
+  website's `booking`/`quick-help` service-area copy) is **closed** — replaced
+  with `CheckCircle2`/`XCircle` in `cc7839e`, which also widened
+  `@caresy/ui` `Input`'s `hint` to `ReactNode`. The mobile app still uses a 📍
+  glyph in the same copy; it is now hidden from TalkBack behind an explicit
+  `accessibilityLabel` rather than read aloud as "round pushpin".
 
 - **Migration 31 gives the customer their own two verbs.** Reschedule and Cancel
   in `my-bookings` were buttons that closed the sheet; every plan change arrived
