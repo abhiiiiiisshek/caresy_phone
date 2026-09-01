@@ -30,7 +30,7 @@ function AppleIcon() {
 }
 
 export default function AuthModal() {
-  const { isOpen, closeLogin, user, profile, isLoading, signInWithGoogle, signInWithApple, signInWithPhone, phoneSignInEnabled, saveProfile, onboardingEnabled } = useAuth();
+  const { isOpen, closeLogin, user, profile, isLoading, signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, signInWithPhone, phoneSignInEnabled, saveProfile, onboardingEnabled } = useAuth();
 
   const [step, setStep] = useState<'name' | 'age' | 'phone'>('name');
   const [name, setName] = useState('');
@@ -38,6 +38,13 @@ export default function AuthModal() {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Email/password — same interface as /login and mobile
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [confirmationMsg, setConfirmationMsg] = useState('');
 
   // Onboarding only applies on portals that enabled it (the customer site).
   // On admin/companion portals a signed-in user is never asked for name/age.
@@ -89,6 +96,27 @@ export default function AuthModal() {
       // still asks for a name and age — the number is already on the profile.
     } catch (err: any) {
       setError(err?.message || 'Phone sign-in failed.');
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleEmailAuth = async () => {
+    setEmailError(''); setConfirmationMsg('');
+    const e = email.trim().toLowerCase();
+    if (!e || !/\S+@\S+\.\S+/.test(e)) { setEmailError('Enter a valid email'); return; }
+    if (!password || password.length < 6) { setEmailError('Password must be at least 6 characters'); return; }
+    if (authMode === 'signup' && !fullName.trim()) { setEmailError('Full name is required'); return; }
+    setIsSubmitting(true);
+    try {
+      if (authMode === 'signup') {
+        const { needsConfirmation } = await signUpWithEmail(e, password, fullName);
+        if (needsConfirmation) setConfirmationMsg('Check your email to confirm, then log in.');
+        else setEmailError('');
+      } else {
+        await signInWithEmail(e, password);
+      }
+    } catch (err: any) {
+      setEmailError(err?.message || 'Something went wrong');
     }
     setIsSubmitting(false);
   };
@@ -145,6 +173,38 @@ export default function AuthModal() {
             <p>Sign in to book a companion and track your requests.</p>
 
             {error && <p style={{ color: 'var(--terracotta)', fontWeight: 600, marginTop: '-12px' }}>{error}</p>}
+
+            {/* Log in / Sign up toggle — mirrors /login */}
+            <div style={{ display: 'flex', background: '#f1f5f3', borderRadius: 999, padding: 4, gap: 0, marginBottom: 16 }}>
+              <button
+                onClick={() => { setAuthMode('login'); setEmailError(''); setConfirmationMsg(''); }}
+                style={{ flex: 1, padding: '10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: authMode === 'login' ? '#fff' : 'transparent', color: authMode === 'login' ? 'var(--teal, #0f5b4c)' : '#8a968f', fontWeight: 700, fontSize: 14, boxShadow: authMode === 'login' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', fontFamily: 'inherit' }}
+              >Log in</button>
+              <button
+                onClick={() => { setAuthMode('signup'); setEmailError(''); setConfirmationMsg(''); }}
+                style={{ flex: 1, padding: '10px', borderRadius: 999, border: 'none', cursor: 'pointer', background: authMode === 'signup' ? '#fff' : 'transparent', color: authMode === 'signup' ? 'var(--teal, #0f5b4c)' : '#8a968f', fontWeight: 700, fontSize: 14, boxShadow: authMode === 'signup' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none', fontFamily: 'inherit' }}
+              >Sign up</button>
+            </div>
+
+            {/* Email / Password — primary credentials */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+              {authMode === 'signup' && (
+                <Input label="Full name" type="text" placeholder="e.g. Ananya Rao" value={fullName} onChange={(e) => { setFullName(e.target.value); setEmailError(''); }} />
+              )}
+              <Input label="Email" type="email" placeholder="you@example.com" inputMode="email" value={email} onChange={(e) => { setEmail(e.target.value); setEmailError(''); setConfirmationMsg(''); }} />
+              <Input label="Password" type="password" placeholder="At least 6 characters" value={password} onChange={(e) => { setPassword(e.target.value); setEmailError(''); }} />
+              {emailError && <p style={{ margin: 0, fontSize: 13, color: '#b3261e', fontWeight: 600 }}>{emailError}</p>}
+              {confirmationMsg && <p style={{ margin: 0, fontSize: 13, color: '#1b7a54', fontWeight: 600 }}>{confirmationMsg}</p>}
+              <Button variant="primary" full shape="pill" size="lg" disabled={isSubmitting} onClick={handleEmailAuth}>
+                {isSubmitting ? <Loader2 className="animate-spin" style={{ width: '20px', height: '20px' }} /> : (authMode === 'signup' ? 'Create account' : 'Log in')}
+              </Button>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+              <span style={{ fontSize: 12, color: '#9aa5a0', fontWeight: 600 }}>or continue with</span>
+              <div style={{ flex: 1, height: 1, background: 'var(--line)' }} />
+            </div>
 
             <Button
               variant="secondary"
