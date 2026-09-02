@@ -2,7 +2,77 @@
 
 **Read this first on restart — this is the ONE file for all progress. All other handoff/progress files are deprecated. Update this file before every `/clear`. Durable facts live in [PROJECT_MEMORY.md](./PROJECT_MEMORY.md). Claude + Muse both use this.**
 
-_Last updated: 2026-08-31. Branch `fix/android-release-readiness` (pushed, 5 commits, **not merged**). Tree clean; mobile-app typechecks, all three platforms export._
+_Last updated: 2026-09-02. Branch `main` — `fix/android-release-readiness` was merged
+(`c1bb340`) and is stale, do not keep working on it. **One commit unpushed**:
+`310d7d3` "fix(mobile): swap app icon to new Caresy brand mark" — `git push`
+before doing anything else, or it can be lost the way §"Environment cautions"
+warns about. Tree otherwise clean._
+
+## 2026-09-02 — new app icon, build 5 FINISHED both platforms, not yet submitted
+
+**What happened:** swapped the app icon/adaptive-icon/splash to the new Caresy
+brand mark (green "C" only, wordmark dropped — illegible at icon size). Source
+was a logo file the user pasted this session (`~/Downloads/Caresy Care Made
+Easy Logo(1).png` and siblings), cropped + chroma-keyed by an ad-hoc one-off
+script, not committed. In-app UI has zero references to any icon asset —
+confirmed by grep, not assumed.
+
+**`apps/mobile-app/scripts/make-icons.py` already exists and does this job
+properly** — read it before touching icons again, do not repeat today's ad-hoc
+approach. It derives all six assets from `apps/website/public/icon-512.png`
+(hardcoded `BRAND = (2, 140, 99)`, same green sampled from that file). **That
+file is still the OLD logo** — confirmed by pixel-sampling, matches the old
+`BRAND` constant exactly. **Running `python3 scripts/make-icons.py` right now
+would silently revert today's swap back to the old mark.** Before anyone runs
+it again: replace `apps/website/public/icon-512.png` with the new logo first
+(website favicon/PWA icon is presumably still on the old mark too — not
+checked this session, worth a look), then re-run the script instead of hand-
+cropping, and it'll also regenerate `notification-icon.png` correctly (left
+untouched this session since the script wasn't consulted).
+
+**Build 4 failed on both platforms**, same root cause, nothing to do with the
+icon:
+```
+Error: Runtime version calculated on local machine not equal to runtime
+version calculated during build.
+```
+`node_modules/react-native-maps/android` had been touched 2026-08-31 08:39 —
+after that day's `npm install` — almost certainly a local `expo prebuild` /
+`expo run:android` autolinking step writing directly into `android/` (not
+`android/build/`). **`fingerprint.config.js`'s ignore list did not catch this
+class of pollution** — it only ignores `.gradle/**`, `android/build/**`, and
+`.cxx/**` inside `node_modules`, not arbitrary files written straight into a
+module's `android/` folder. This is the same bug family as builds 2/3
+(2026-08-29), recurring through a gap in the fix. **The ignore list needs a
+fourth pattern** (something like `**/node_modules/react-native-maps/android/**`
+scoped narrowly, not a blanket ignore) — not done this session, next session
+should close it properly instead of relying on manual clean reinstalls.
+
+**Fix applied**: `rm -rf node_modules apps/mobile-app/node_modules && npm
+install` at the repo root, full clean reinstall, no config change. **Build 5
+FINISHED both platforms**:
+
+| Platform | Build ID | Duration | Build # | Artifact |
+|---|---|---|---|---|
+| Android | `1887f6c7-8da1-4fac-95bf-95285b3217af` | 9m3s | versionCode 8 | `https://expo.dev/artifacts/eas/J19podmvkO50TvB-eFC2_OT3heRXLF1Rkp-3q__8ZMM.aab` |
+| iOS | `3fc9bbe2-9751-473c-8e9c-ef2a94ca4644` | 4m56s | build 5 | `https://expo.dev/artifacts/eas/UtapjdODiYk9auJVsljdq19ytmb94reI3Zvzo411IQs.ipa` |
+
+**Neither has been submitted.** `eas submit` was not run this session.
+`eas.json`'s `submit.production.ios` still has no `ascAppId` — the App Store
+Connect app record now exists though (checked via browser: Apple ID
+`6806756066`, bundle `in.co.caresy.app`), so add
+`"ascAppId": "6806756066"` before running `eas submit --platform ios`.
+Android submit needs `android/service-account.json`, unverified present.
+
+**App Store Connect state, checked directly in the browser 2026-09-01/02** (not
+from stale doc claims): version 1.0 sits at **Prepare for Submission**, build 3
+already attached (needs re-attaching to build 5/8 after submit). Still blank:
+Description, Keywords, Support URL, Copyright, App Review sign-in
+username/password, App Review contact info and notes, Category, Age Ratings
+(never started), App Privacy questionnaire (needs a live privacy policy URL
+first), Pricing (not even set to Free). TestFlight itself is healthy — build 3
+is "Testing", not stuck, 9 invites / 4 installs / 29 sessions; the "stuck
+Waiting for Review" note elsewhere in this file is stale.
 
 ## Where things stand
 
@@ -18,7 +88,8 @@ https://expo.dev/artifacts/eas/917P5She80TRTejpGo1lm2_Qm-oCB3OEKFf4d-mBoqM.aab
 **Upload versionCode 6, not 4.** Uploading 4 spends 14 days of closed-test clock
 on a build with a placeholder icon and dead push notifications.
 
-Open a PR and merge the branch: `https://github.com/abhiiiiiisshek/caresy_phone/pull/new/fix/android-release-readiness`
+~~Open a PR and merge the branch~~ — **done, merged into `main` via `c1bb340`.**
+Work continues on `main` now; the branch itself is stale, do not push more to it.
 
 ### What was broken, and how it was caught
 
@@ -224,7 +295,12 @@ are current.
 
 ## iOS — the critical path, in order (priority as of 2026-08-30)
 
-**The TestFlight build is not submittable — rebuild it.** iOS v1.0.0 build 3 was
+**Superseded 2026-09-02 — build 5 exists with the new icon, rebuild is done, submit is not.**
+See the section at the top of this file. The paragraph below (build 3, "rebuild
+it") is what that build-5 rebuild was answering; kept for the history but do
+not act on it — act on the 2026-09-02 section instead.
+
+~~**The TestFlight build is not submittable — rebuild it.**~~ iOS v1.0.0 build 3 was
 uploaded via Transporter and processed, but it predates the 2026-08-31 audit, so
 it carries the placeholder icon, the missing-from-bundle push and maps modules,
 and the backup-restore crash. Same commit fixes it:
