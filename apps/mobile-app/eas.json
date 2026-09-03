@@ -45,7 +45,10 @@
     "production": {
       "ios": {
         "appleTeamId": "46CLB4HU9B",
-        "ascAppId": "6806756066"
+        "ascAppId": "6806756066",
+        "ascApiKeyPath": "./credentials/AuthKey_MG3LB4PP9Y.p8",
+        "ascApiKeyId": "MG3LB4PP9Y",
+        "ascApiKeyIssuerId": "31dd6aba-7793-4a95-ada3-dd6e708946cb"
       },
       "android": {
         "serviceAccountKeyPath": "./android/service-account.json",
