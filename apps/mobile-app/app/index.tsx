@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, AppState, Easing, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, Alert, Animated, AppState, Easing, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
@@ -153,11 +153,15 @@ export default function Home() {
         appleAvailable={appleAvailable}
         onGoogle={async () => {
           setSigningIn(true);
-          try { await signInWithGoogle(); } finally { setSigningIn(false); }
+          try { await signInWithGoogle(); }
+          catch (err: any) { Alert.alert('Sign in failed', err?.message || 'Something went wrong. Please try again.'); }
+          finally { setSigningIn(false); }
         }}
         onApple={async () => {
           setSigningIn(true);
-          try { await signInWithApple(); } finally { setSigningIn(false); }
+          try { await signInWithApple(); }
+          catch (err: any) { Alert.alert('Sign in failed', err?.message || 'Something went wrong. Please try again.'); }
+          finally { setSigningIn(false); }
         }}
       />
     );
