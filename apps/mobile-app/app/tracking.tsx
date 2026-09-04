@@ -35,14 +35,6 @@ interface TrackedBooking {
 const POLL_MS = 10_000;
 const POLL_MS_LIVE = 30_000;
 
-// ETA refresh. OpenRouteService is a free tier and the answer is a free-flow
-// duration, so asking more often buys rate limits and noise, not accuracy.
-const ETA_MS = 45_000;
-// Only before the patient is collected. After that the companion is with them
-// and "how far away" has stopped being the question. get_trip_eta_target says
-// the same thing server-side; this just saves the round trip.
-const ETA_STATUSES = ['assigned', 'en_route_pickup'];
-
 export default function Tracking() {
   const { token } = useLocalSearchParams<{ token?: string }>();
   const router = useRouter();
@@ -54,7 +46,6 @@ export default function Tracking() {
   // renders from `booking`, so a channel that drops just gets slower, not blank.
   const [live, setLive] = useState(false);
   const pollMs = live ? POLL_MS_LIVE : POLL_MS;
-  const [eta, setEta] = useState<string | null>(null);
 
   // Share token is the credential for the poll. Live pings ride a private
   // Broadcast channel keyed on the TRIP id, which the token alone cannot name —
@@ -92,46 +83,6 @@ export default function Tracking() {
       appState.remove();
     };
   }, [token, pollMs]);
-
-  // ETA to the customer, refreshed off the companion's latest position.
-  //
-  // Best-effort in the strongest sense: the Edge Function needs a deployment and
-  // an OpenRouteService key, the route can fail, and the trip may have no pickup
-  // pin to aim at. Every one of those paths clears the ETA rather than showing a
-  // stale one — a number that stopped updating is worse than no number.
-  const etaTarget = booking?.trip_status?.toLowerCase() ?? null;
-  const etaLat = booking?.last_lat ?? null;
-  const etaLng = booking?.last_lng ?? null;
-  const etaEligible = !!tripId && etaLat != null && etaLng != null
-    && !!etaTarget && ETA_STATUSES.includes(etaTarget);
-
-  // The origin lives in a ref, not in the effect's deps. It changes on every
-  // ping; depending on it would tear down and refire the interval at the ping
-  // rate, which is exactly the request volume ETA_MS exists to avoid. The ref
-  // lets the interval read the newest position without re-subscribing.
-  const originRef = useRef<{ lat: number; lng: number } | null>(null);
-  originRef.current = etaLat != null && etaLng != null ? { lat: etaLat, lng: etaLng } : null;
-
-  useEffect(() => {
-    if (!etaEligible) { setEta(null); return; }
-    let alive = true;
-    const fetchEta = async () => {
-      const origin = originRef.current;
-      if (!origin) return;
-      try {
-        const { data, error } = await supabase.functions.invoke('trip-eta', {
-          body: { trip_id: tripId, origin },
-        });
-        if (!alive) return;
-        setEta(error ? null : etaSentence(data?.eta_seconds, data?.target));
-      } catch {
-        if (alive) setEta(null);
-      }
-    };
-    fetchEta();
-    const timer = setInterval(fetchEta, ETA_MS);
-    return () => { alive = false; clearInterval(timer); };
-  }, [tripId, etaEligible]);
 
   // Live location, on the private channel migration 16 authorises.
   //

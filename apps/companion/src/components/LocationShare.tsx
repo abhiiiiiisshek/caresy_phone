@@ -23,17 +23,6 @@ import { MapPin, MapPinOff, Loader2 } from 'lucide-react';
 // RLS: "Only assigned companion updates trip" (16) + "Only companion can
 // broadcast location" + "Companion inserts own breadcrumb". All best-effort.
 // Throttle: 12s + no duplicate if < 10m movement (cheap, good enough).
-//
-// Starting is automatic once the job is live (`autoStart`), because a companion
-// walking into a hospital is not thinking about a button, and a family watching
-// a map that never moves assumes the worst. Stopping stays manual.
-//
-// The honest limit: this is a browser tab. A Screen Wake Lock keeps the page
-// awake while it is visible, which covers a phone sitting in a pocket with the
-// screen on, but nothing here survives the companion switching apps or locking
-// the device — the OS suspends the tab and pings stop. The customer's poll then
-// shows a position with an ageing timestamp rather than a lie. Background
-// location needs a native app; see docs/LIVE_TRACKING_HANDOFF.md next-step 6.
 
 const MIN_WRITE_MS = 12_000;
 
@@ -214,12 +203,6 @@ export default function LocationShare({ bookingId, autoStart }: { bookingId: str
       ) : sharing ? (
         <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
           {sentAt ? 'Location live — sharing with the family' : 'Getting your location…'}
-        </span>
-      ) : autoStart && !busy ? (
-        // A live job that is not sharing is the state worth shouting about: the
-        // family is watching a map that will never move and has no way to know.
-        <span style={{ fontSize: '0.72rem', color: 'var(--terracotta-deep, #9a4a33)', fontWeight: 700 }}>
-          Not sharing — the family can’t see where you are
         </span>
       ) : null}
     </div>
