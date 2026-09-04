@@ -64,6 +64,7 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 44 | `44_NOTIFICATION_RETRY.sql` | **reliability** (issue #11): `FAILED` notifications retried with bounded exponential backoff (5 attempts: 5,10,20,40,60m). `attempts` + `next_retry_at` + `claim_notifications()` now re-queues eligible FAILED rows | ✅ |
 | 46 | `46_PICKUP_PRECISION.sql` | scopes `"Companions read job locations"` to the assigned companion; open feed reads `open_job_pickups()` (hospital/pincode/city) instead of joining the row | ⬜ |
 | 47 | `47_TRACKING_TRIP_STATE.sql` | `get_shared_tracking` also returns `trip_id` and `trip_status`, so the tracking page can join the private `trip:<id>` Broadcast channel and draw the real trip stage | ⬜ |
+| 48 | `48_TRIP_ETA_TARGET.sql` | `get_trip_eta_target()` — the point a trip is currently heading for (the pickup pin before the patient is collected, the hospital after). Supersedes `get_trip_destination` as what `trip-eta` calls | ⬜ |
 
 \* 32 is a one-off data fix — re-run `select * from patients where customer_user_id = auth.uid() and deleted_at is null group by full_name having count(*) >1` after; flip to ✅ once merged (see `32_MERGE_DUPLICATE_PATIENTS.sql` foot query).
 

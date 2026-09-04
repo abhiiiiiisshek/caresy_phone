@@ -2,9 +2,15 @@
 //
 // The customer client sends { trip_id, origin: { lat, lng } } where origin is
 // the companion's latest position (from the last Realtime Broadcast ping). This
-// function looks up the trip's DESTINATION on the server (RLS-gated to trip
-// participants), asks OpenRouteService (free, OSM-based) for a driving route,
-// and returns the ETA. Refresh from the client every ~45s, not per ping.
+// function asks the server which point the trip is currently heading for
+// (RLS-gated to trip participants), asks OpenRouteService (free, OSM-based) for
+// a driving route, and returns the ETA. Refresh every ~45s, not per ping.
+//
+// The target moves with the trip. Before pickup the companion is travelling to
+// the customer, so it is the pickup pin — which is the ETA a family is actually
+// waiting on. After pickup it is the hospital. get_trip_eta_target (migration
+// 48) decides, and reports which one it chose so the client can word it; the
+// hospital branch returns nothing until something writes a destination.
 //
 // NOTE: OpenRouteService gives free-flow durations (no live traffic), which is
 // fine for a companion-approaching ETA refreshed off their moving position.
@@ -31,6 +37,8 @@ interface EtaRequest {
 interface EtaResponse {
   eta_seconds: number | null;
   distance_meters: number | null;
+  /** Which point the ETA is to: 'pickup' before the patient is collected. */
+  target: string | null;
 }
 
 const ROUTES_URL =
@@ -100,7 +108,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     auth: { persistSession: false },
   });
 
-  const { data, error } = await supabase.rpc("get_trip_destination", {
+  const { data, error } = await supabase.rpc("get_trip_eta_target", {
     p_trip: trip_id,
   });
   if (error) {
@@ -110,9 +118,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   const dest = Array.isArray(data) ? data[0] : data;
   if (!dest || dest.dest_lat == null || dest.dest_lng == null) {
-    // No known destination — ETA simply isn't available yet.
+    // Nothing to route to: no pin on the booking, or a post-pickup trip whose
+    // hospital was never recorded. Not an error — the client hides the ETA.
     return json<EtaResponse>(
-      { eta_seconds: null, distance_meters: null },
+      { eta_seconds: null, distance_meters: null, target: dest?.target ?? null },
       200,
       cors,
     );
@@ -159,7 +168,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
       : null;
 
   return json<EtaResponse>(
-    { eta_seconds: etaSeconds, distance_meters: distanceMeters },
+    {
+      eta_seconds: etaSeconds,
+      distance_meters: distanceMeters,
+      target: dest.target ?? null,
+    },
     200,
     cors,
   );

@@ -935,7 +935,7 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
               <div style={{ display: 'grid', gap: 10 }}>
                 {activeMine.map((job) => (
                   <JobCard key={job.id} job={job} showPatient>
-                    <LocationShare bookingId={job.id} />
+                    <LocationShare bookingId={job.id} autoStart={job.status === 'IN_PROGRESS'} />
                     <TripStatusControl bookingId={job.id} />
                     {job.status === 'ACCEPTED' && (
                       <Button variant="primary" size="sm" disabled={actioning === job.id} onClick={async () => { await setJobStatus(job, 'IN_PROGRESS', { actual_start_time: new Date().toISOString() }); try { await createClient().rpc('start_trip_for_booking', { p_booking: job.id }); await fetchJobs(); } catch {} }}

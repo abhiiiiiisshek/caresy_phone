@@ -110,7 +110,39 @@ The poll stays as the floor under Broadcast and is the only path a guest
 link-holder has (the channel policies are `TO authenticated`). It backs off from
 10s to 30s once pings are arriving.
 
+## Live tracking, remaining gap (2026-09-04)
+
+Sharing now starts by itself when a companion taps **Start job**, holds a Screen
+Wake Lock while the tab is visible, and shows the companion a red *"Not sharing
+— the family can't see where you are"* line whenever a live job is not
+transmitting.
+
+**That is an interim, and the limit is structural.** The companion portal is a
+browser tab. Nothing in it survives the phone locking or the companion switching
+apps — the OS suspends the tab and pings stop. The customer's screen then shows
+the last position with an ageing timestamp, which is honest but not live. Real
+background location needs a companion role inside `apps/mobile-app`, plus Apple
+5.1.5 justification and Google's background-location declaration and demo video.
+See `docs/LIVE_TRACKING_HANDOFF.md` next-step 6.
+
+**ETA now works, for the question families actually ask.**
+`48_TRIP_ETA_TARGET.sql` adds `get_trip_eta_target()`, which returns the pickup
+pin while the trip is `assigned` / `en_route_pickup` and the hospital after
+that. The hospital branch still returns nothing, because nothing writes
+`bookings.destination_location_id` — that is unchanged and documented. The
+pre-pickup ETA is the one worth having, and the pickup pin exists on every
+booking now.
+
+Needs the Edge Function deployed and keyed, or the tracking screen just shows no
+ETA (never a stale one):
+
+```
+supabase functions deploy trip-eta
+supabase secrets set OPENROUTESERVICE_API_KEY=...   # free key from openrouteservice.org
+```
+
 ## Before the first customer — in order
+
 
 
 1. **Run `supabase/migrations/30_LAUNCH_FIXES.sql`, then `31_CUSTOMER_ACTIONS.sql`**
