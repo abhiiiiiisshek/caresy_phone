@@ -66,7 +66,23 @@ wall — needs Supabase URL + anon key in env or `apps/website/.env.local`).
 Note the anon key is now Supabase's newer `sb_publishable_…` format; legacy JWT
 anon keys are rejected by this project.
 
+## Needs a manual run (2026-09-04)
+
+**`supabase/migrations/46_PICKUP_PRECISION.sql`** — run this **before** the
+mobile build that stores a pickup pin on every booking.
+
+46 scopes `"Companions read job locations"` to the companion who holds the job
+and hands the open feed `open_job_pickups()` (hospital, pincode, city) instead
+of the whole `locations` row. The feed only ever drew those three fields; the
+meeting point and its coordinates belong to whoever accepted the work.
+
+Deploy order: run 46, deploy the companion portal (its open feed calls the new
+RPC), then ship the app build. Neither half breaks on its own — out of order,
+open jobs render without their hospital label until both are in place, because
+the old portal's join is denied and the new portal's RPC does not exist yet.
+
 ## Before the first customer — in order
+
 
 1. **Run `supabase/migrations/30_LAUNCH_FIXES.sql`, then `31_CUSTOMER_ACTIONS.sql`**
    in the SQL editor, in that order. Nothing below them works without them. Both

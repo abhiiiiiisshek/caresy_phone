@@ -417,8 +417,55 @@ interface JobRow {
   patient?: { full_name: string | null; emergency_contact_phone: string | null } | null;
 }
 
-const JOB_SELECT =
-  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, transport_mode, final_amount_paise, billed_minutes, payment_status, payment_method, patient_id, share_token, pickup:locations!pickup_location_id (title, address_line_1, pincode, city, latitude, longitude), patient:patients!patient_id (full_name, emergency_contact_phone)';
+const JOB_COLUMNS =
+  'id, reference_code, service_type, booking_type, status, scheduled_start_time, actual_start_time, created_at, special_instructions, service_metadata, companion_user_id, transport_mode, final_amount_paise, billed_minutes, payment_status, payment_method, patient_id, share_token';
+const PICKUP_JOIN = 'pickup:locations!pickup_location_id (title, address_line_1, pincode, city, latitude, longitude)';
+const PATIENT_JOIN = 'patient:patients!patient_id (full_name, emergency_contact_phone)';
+
+const JOB_SELECT = `${JOB_COLUMNS}, ${PICKUP_JOIN}, ${PATIENT_JOIN}`;
+
+// The open feed takes the same booking columns *without* the pickup join. The
+// meeting point and its coordinates belong to the companion who accepted the
+// job; a card in the feed only ever drew hospital, pincode and city, and those
+// now come from open_job_pickups(). Migration 46 scopes the underlying read the
+// same way, so the join would return null here regardless.
+//
+// Composed rather than string-surgeried off JOB_SELECT: a replace() that stops
+// matching because someone reworded the join fails open, and failing open here
+// means putting the pickup row back on the feed without anyone noticing.
+const JOB_SELECT_OPEN = `${JOB_COLUMNS}, ${PATIENT_JOIN}`;
+
+type SupabaseClient = ReturnType<typeof createClient>;
+
+/**
+ * Both job lists, with the open one's coarse pickup stitched back on.
+ *
+ * Shared because the dashboard loads jobs twice — once on mount, once on every
+ * refresh — and the two copies drifting is how the feed ends up showing one
+ * shape of pickup in one place and another elsewhere.
+ */
+async function loadJobs(supabase: SupabaseClient, userId: string): Promise<{ open: JobRow[]; mine: JobRow[] }> {
+  const [openRes, mineRes, pickupRes] = await Promise.all([
+    supabase.from('bookings').select(JOB_SELECT_OPEN).eq('status', 'PENDING').is('companion_user_id', null).order('created_at', { ascending: false }),
+    supabase.from('bookings').select(JOB_SELECT).eq('companion_user_id', userId).order('created_at', { ascending: false }),
+    supabase.rpc('open_job_pickups'),
+  ]);
+
+  type CoarsePickup = { booking_id: string; title: string | null; pincode: string | null; city: string | null };
+  const coarse = new Map<string, CoarsePickup>(
+    ((pickupRes.data as CoarsePickup[] | null) ?? []).map((r) => [r.booking_id, r]),
+  );
+
+  const open = ((openRes.data as unknown as JobRow[]) ?? []).map((job) => {
+    const c = coarse.get(job.id);
+    return {
+      ...job,
+      pickup: c ? { title: c.title, address_line_1: null, pincode: c.pincode, city: c.city, latitude: null, longitude: null } : null,
+    };
+  });
+
+  return { open, mine: (mineRes.data as unknown as JobRow[]) ?? [] };
+}
 
 function fmtWhen(iso: string | null): string {
   if (!iso) return 'Flexible';
@@ -677,13 +724,9 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
 
   const fetchJobs = useCallback(async () => {
     if (!user) return;
-    const supabase = createClient();
-    const [openRes, mineRes] = await Promise.all([
-      supabase.from('bookings').select(JOB_SELECT).eq('status', 'PENDING').is('companion_user_id', null).order('created_at', { ascending: false }),
-      supabase.from('bookings').select(JOB_SELECT).eq('companion_user_id', user.id).order('created_at', { ascending: false }),
-    ]);
-    setOpenJobs((openRes.data as unknown as JobRow[]) ?? []);
-    setMyJobs((mineRes.data as unknown as JobRow[]) ?? []);
+    const { open, mine } = await loadJobs(createClient(), user.id);
+    setOpenJobs(open);
+    setMyJobs(mine);
     setLoadingJobs(false);
   }, [user]);
 
@@ -691,14 +734,10 @@ function ApprovedDashboard({ companion, onChange, pendingDocs = [] }: { companio
     let alive = true;
     (async () => {
       if (!user) return;
-      const supabase = createClient();
-      const [openRes, mineRes] = await Promise.all([
-        supabase.from('bookings').select(JOB_SELECT).eq('status', 'PENDING').is('companion_user_id', null).order('created_at', { ascending: false }),
-        supabase.from('bookings').select(JOB_SELECT).eq('companion_user_id', user.id).order('created_at', { ascending: false }),
-      ]);
+      const { open, mine } = await loadJobs(createClient(), user.id);
       if (!alive) return;
-      setOpenJobs((openRes.data as unknown as JobRow[]) ?? []);
-      setMyJobs((mineRes.data as unknown as JobRow[]) ?? []);
+      setOpenJobs(open);
+      setMyJobs(mine);
       setLoadingJobs(false);
     })();
     return () => { alive = false; };

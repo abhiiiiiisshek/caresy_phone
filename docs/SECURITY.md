@@ -33,6 +33,7 @@ component is not a check — a valid session plus `curl` bypasses it.
 | Reading another user's KYC | `companion-docs` bucket policies: own folder only; admins read all |
 | Reading patient documents | `patient-docs` bucket policies (migration 25) |
 | Guest tracking link leaking PII | narrow SECURITY DEFINER reader keyed on `share_token` |
+| Companion reading a pickup for a job they have not accepted | `locations` SELECT is assigned-companion only (migration 46); the open feed reads `open_job_pickups()`, which returns hospital/pincode/city and nothing else |
 | Admin escalation | `admin_users` allowlist via `is_admin()`; RPC-callable, table not client-writable |
 
 ## Storage buckets
