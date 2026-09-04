@@ -1,13 +1,17 @@
 # Caresy Live Tracking — Handoff, Next Steps & Vision
 
 A single place to understand the real-time companion location-tracking feature:
-what's built, how to turn it on, what's left, and where it's going. Spans **two
-repos** that share **one Supabase project**.
+what's built, how to turn it on, what's left, and where it's going.
 
-| Repo | Role |
+Everything below lives in this monorepo. Earlier drafts of this document split
+it across a second `caresy-app` repo; the Expo app is `apps/mobile-app` now, and
+the paths in the tables have been moved with it.
+
+| Path | Role |
 | --- | --- |
-| `caresy_phone` | Monorepo: 3 Next.js web portals (website / companion / admin) + the shared Supabase backend (`supabase/migrations`, `supabase/functions`). |
-| `caresy-app` | Expo (SDK 57 / RN 0.86) mobile app — companion + customer live-tracking screens. |
+| `apps/website`, `apps/companion`, `apps/admin` | Next.js portals. The companion portal is where a companion shares location today. |
+| `apps/mobile-app` | Expo (SDK 57 / RN 0.86) customer app — booking, my-bookings, the live-tracking screen. |
+| `supabase/migrations`, `supabase/functions` | The shared backend. |
 
 ---
 
@@ -15,9 +19,9 @@ repos** that share **one Supabase project**.
 
 A customer books a hospital companion. Once a companion is assigned, a **trip**
 begins. The companion's phone streams its GPS location to the customer in real
-time; the customer watches a marker glide along a map with a live ETA and a
-progress stepper (Assigned → En route to pickup → Picked up → En route to
-hospital → Arrived). Everything is enforced by Postgres RLS — a customer only
+time; the customer watches a marker move on a map beside a progress stepper
+(Assigned → En route to pickup → Picked up → En route to hospital → Arrived).
+An ETA belongs in that picture and does not work yet — see "Known dead ends". Everything is enforced by Postgres RLS — a customer only
 ever sees their own trip, a companion only their assigned trip.
 
 ## Architecture at a glance
@@ -34,7 +38,8 @@ Customer app ── trip-eta Edge Function ──▶ get_trip_destination() + Op
 - **Location pings → Realtime Broadcast** on a private per-trip channel. Fire-and-forget, sub-50ms, **zero DB writes per ping**. Only the assigned companion may send; only participants may receive (RLS on `realtime.messages`).
 - **Trip status → `public.trips` + Postgres Changes.** Durable, auditable, tamper-proof — drives the stepper. Advanced only through a server-authoritative RPC.
 - **ETA → `trip-eta` Edge Function** calling **OpenRouteService** (free, OSM-based; key server-side). Free-flow duration (no live traffic), refreshed ~45s.
-- **Maps → MapLibre** with OpenStreetMap tiles — no Google dependency, no API key on either platform.
+- **Maps** — `react-native-maps` in the app, an OpenStreetMap embed on the web page. No API key on either.
+- **Poll floor.** Broadcast is `TO authenticated` and participant-checked, so a guest holding a WhatsApp link cannot join it. `get_shared_tracking` polling backs every surface and is the only path that guest has.
 
 ## What's built (status)
 
@@ -44,16 +49,40 @@ Customer app ── trip-eta Edge Function ──▶ get_trip_destination() + Op
 | ETA destination lookup RPC | ✅ | `supabase/migrations/17_TRIP_ETA.sql` |
 | Auto-create/close trip from booking lifecycle + active-trip helper | ✅ | `supabase/migrations/18_BOOKING_TRIP_LINK.sql` |
 | `trip-eta` Edge Function (OpenRouteService) + CORS | ✅ | `supabase/functions/trip-eta`, `_shared/cors.ts` |
-| Companion screen: foreground location → Broadcast + status controls | ✅ | `caresy-app` `src/app/(companion)/trip/[id].tsx` |
-| Customer screen: MapLibre map + animated marker + path + live ETA + stepper | ✅ | `caresy-app` `src/app/(customer)/trip/[id].tsx` |
-| Supabase client, trip types/RPC wrappers, session/status hooks | ✅ | `caresy-app` `src/lib/*` |
-| Dev harness (email-OTP sign-in → open a trip by id) | ✅ | `caresy-app` `src/app/index.tsx` |
+| Guest tracking link (`share_token`) + its narrow reader | ✅ | `22_PUBLIC_TRACKING.sql`, `47_TRACKING_TRIP_STATE.sql` |
+| Companion: foreground location → `trips` write + Broadcast + breadcrumb | ✅ | `apps/companion/src/components/LocationShare.tsx` |
+| Companion: trip status controls | ✅ | `apps/companion/src/components/TripStatusControl.tsx` |
+| Customer screen: map + marker + stepper, Broadcast with a poll floor | ✅ | `apps/mobile-app/app/tracking.tsx` |
+| Guest/web tracking page (poll only, by design) | ✅ | `apps/website/src/app/tracking/page.tsx` |
+| Admin live board | ✅ | `apps/admin/src/app/live/page.tsx` |
+| Shared timeline contract + self-check | ✅ | `packages/utils/src/bookingStatus.ts` |
+| Live ETA on the customer screen | ❌ | see "Known dead ends" |
 
 **Verified** to the limits of a CI environment: SQL follows repo idempotency
-conventions; `deno check` passes on the function; the app is `tsc`-clean, its
-Expo config resolves, and a Metro iOS bundle builds. **Not** verified (needs a
-device/live project): on-device map rendering, real GPS + Broadcast round-trip,
-and the live OpenRouteService call.
+conventions; `deno check` passes on the function; the apps are `tsc`-clean and
+build. **Not** verified (needs a device + a live project): on-device map
+rendering, a real GPS + Broadcast round-trip, and the OpenRouteService call.
+
+## Known dead ends (2026-09-04)
+
+Two pieces of this document described things that were wired but not working.
+
+- **The Broadcast channel was addressed by the wrong id.** Both ends used
+  `trip:<share_token>` while the RLS on `realtime.messages` resolves a topic by
+  casting its second segment to a `trips.id`. Every send and every subscribe was
+  denied, silently, and the poll carried the feature. Fixed by migration 47
+  returning `trip_id` and both clients using `trip:<trip_id>`.
+- **ETA cannot work yet, and it is a data gap, not a bug.** `trip-eta` and
+  `get_trip_destination` (migration 17) read `bookings.destination_location_id`,
+  and **no app has ever written that column** — not the two web booking flows,
+  not the mobile one, not the admin board. `trips.destination` is therefore
+  always NULL and the function correctly returns `eta_seconds: null` every time.
+  Before touching the Edge Function, decide what the destination *is*: a hospital
+  companion booking stores the hospital in `pickup_location_id.title` and the
+  meeting point in the same row's `address_line_1`, so pickup and destination are
+  currently one record. Note also that the ETA a customer wants before pickup is
+  the ETA *to them*, not to the hospital — which is the pickup coordinates, and
+  those now exist.
 
 ## Turn-it-on checklist (manual, one-time)
 
@@ -68,29 +97,28 @@ Backend (Supabase SQL editor / CLI):
    supabase secrets set OPENROUTESERVICE_API_KEY=...   # free key from openrouteservice.org
    ```
 
-Mobile app (`caresy-app`):
+Mobile app (`apps/mobile-app`):
 
-4. `npm install`, then `cp .env.example .env` and fill `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
-5. (Recommended) set `EXPO_PUBLIC_MAP_STYLE_URL` to a real street-level tile style (MapTiler/Protomaps free tier or self-hosted). The default is MapLibre's low-detail no-key demo style — fine to prove the wiring, not for production.
-6. Build a **dev build** (`npx expo run:ios` / `run:android`) — MapLibre + expo-location need native modules, so Expo Go won't work.
+4. `npm install` at the repo root (workspaces), then fill `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` per `.env.example`.
+5. Build a **dev build** (`npx expo run:ios` / `run:android`) — `react-native-maps` and `expo-location` need native modules, so Expo Go won't work.
 
 Auth (for the app to sign in across web + mobile):
 
-7. Supabase → Auth → URL config: add redirect URLs incl. `com.caresy.app://**` and the three portal origins; keep one canonical Site URL.
+6. Supabase → Auth → URL config: add redirect URLs incl. `com.caresy.app://**` and the three portal origins; keep one canonical Site URL.
 
 ### Test the loop end to end
 1. As an assigned companion (or admin), call `start_trip_for_booking(booking_id)` → returns a trip id.
 2. Sign in on two devices; open that trip id — one as companion, one as customer.
-3. Companion taps **Start sharing location**; the customer sees the marker move, the ETA populate, and the stepper advance as the companion progresses the status.
+3. Companion taps **Share live location**; the customer sees the marker move and the stepper advance as the companion progresses the trip status.
 
 ## Next steps (prioritized)
 
-1. **Booking → trip.** ✅ Done. Backend (migration 18) auto-creates/closes trips from the booking lifecycle; the app's home screen (`caresy-app` `src/app/index.tsx` + `src/lib/bookings.ts`) lists the caller's active bookings and routes each to the right trip — companion → "Share your location" (ensures the trip via `start_trip_for_booking`), customer → "Track live". The dev "open by trip id" path remains for testing. **Follow-ups:** richer job cards (patient/hospital/time), and a real booking-creation flow in the app (bookings currently originate from the web portals).
+1. **Booking → trip.** ✅ Done. Backend (migration 18) auto-creates/closes trips from the booking lifecycle. The customer app reaches a trip through its booking's `share_token` (`apps/mobile-app/app/my-bookings.tsx` → `app/tracking.tsx`); the companion starts one from the job card (`apps/companion/src/app/page.tsx` calls `start_trip_for_booking` on Start).
 2. **Auth & domain config** (blueprint part a): finish redirect URLs, Site URL, and portal-specific email templates; verify web↔mobile session parity.
 3. **Persisted breadcrumb (optional):** throttled inserts into `trip_locations` (every ~15–30s / 100m) if post-trip audit is needed; the purge job already exists. Otherwise leave it off.
 4. **Admin live view:** an admin map of active trips (policies already allow `is_admin()` reads on trips + `realtime.messages`).
 5. **Push notifications** on status changes (there's already a `notifications` enqueue table in migration 13 to drain).
-6. **Background location — decide deliberately.** Foreground-only is the low-risk launch path (blueprint part d). Only add background if companions must share with the screen off; if so, complete Apple 5.1.5 + Google's declaration/demo-video flow.
+6. **Background location — decide deliberately, and it is now the biggest gap.** Sharing is foreground-only *and* lives in a browser tab in the companion portal, so it stops the moment the phone locks or the companion switches app. Nothing about the rest of this design is Uber-like until that is solved. The honest options are a companion role inside `apps/mobile-app` (native, can hold background location) or accepting that the pin goes stale between glances. Either way, background needs Apple 5.1.5 justification + Google's declaration/demo-video flow.
 7. **Store submission:** icons/splash, privacy policy URL, Data-safety form, purpose strings (already set for foreground).
 8. **Harden ETA:** cache per trip, back off on ORS rate limits, optionally self-host OSRM to remove request caps.
 
@@ -98,7 +126,7 @@ Auth (for the app to sign in across web + mobile):
 
 - **Trust through transparency.** A family watching a companion escort their patient to the hospital, in real time, is the product's emotional core. Live location + a tamper-proof status stepper turn an anxious wait into a calm one.
 - **One backend, every surface.** Customer, companion, admin — web and mobile — all on one Supabase project, one RLS model. No data silos, no per-portal backends. New surfaces (a dispatcher wall-board, a partner hospital view) are just new UIs over the same policies.
-- **Cheap by construction.** Broadcast keeps the map buttery-smooth with zero per-ping database writes; free/open building blocks (MapLibre + OpenStreetMap, OpenRouteService) keep unit costs near zero and avoid vendor lock-in.
+- **Cheap by construction.** Broadcast keeps the map buttery-smooth with zero per-ping database writes; free/open building blocks (OpenStreetMap tiles, OpenRouteService) keep unit costs near zero and avoid vendor lock-in.
 - **Safety-grade data hygiene.** Health-adjacent PII: minimal retention (ephemeral pings, 7-day breadcrumb purge), server-authoritative state, and access decided by identity — never by which app or domain asked.
 - **Where it grows:** ETA-driven proactive nudges ("companion is 5 min away"), nearest-companion dispatch (PostGIS is already enabled), post-trip safety summaries, and multi-city scale-out — all without changing the core transport model.
 
@@ -106,4 +134,6 @@ Auth (for the app to sign in across web + mobile):
 
 - Backend: `supabase/migrations/16_TRIPS_AND_LIVE_TRACKING.sql`, `17_TRIP_ETA.sql`, `supabase/functions/trip-eta/index.ts`
 - Deep dive: [`docs/08_Database/TRIPS_AND_LIVE_TRACKING.md`](08_Database/TRIPS_AND_LIVE_TRACKING.md)
-- App: `caresy-app/src/app/(companion|customer)/trip/[id].tsx`, `caresy-app/src/lib/*`, `caresy-app/README.md`
+- Customer: `apps/mobile-app/app/tracking.tsx`, `apps/website/src/app/tracking/page.tsx`
+- Companion: `apps/companion/src/components/LocationShare.tsx`, `TripStatusControl.tsx`
+- Shared: `packages/utils/src/bookingStatus.ts` (+ its `.check.ts`)

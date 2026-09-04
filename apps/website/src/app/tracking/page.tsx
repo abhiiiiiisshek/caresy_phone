@@ -20,6 +20,8 @@ interface TrackedBooking {
   created_at: string;
   pickup_title: string | null;
   companion: { name?: string; photo?: string; rating?: number; verification?: string; specialty?: string } | null;
+  trip_id: string | null;
+  trip_status: string | null;
   last_lat: number | null;
   last_lng: number | null;
   last_location_at: string | null;
@@ -40,8 +42,13 @@ function TrackingInner() {
   const [loading, setLoading] = useState(!!token);
 
   // No session needed: the link itself is the credential. Family members open
-  // this from WhatsApp. The RPC returns status plus last-known position, so one
-  // poll covers both — trips aren't on a realtime publication and 10s is plenty.
+  // this from WhatsApp. The RPC returns trip status plus last-known position, so
+  // one poll covers both.
+  //
+  // Poll only, deliberately. The live Broadcast channel is TO authenticated and
+  // checks that the caller is a participant of the trip (migration 16), so the
+  // guest this page exists for could never join it. The native app, where the
+  // viewer is signed in, subscribes instead and keeps this as its floor.
   useEffect(() => {
     if (!token) return;
     const supabase = createClient();
@@ -92,8 +99,10 @@ function TrackingInner() {
   }
 
   const hasLocation = booking.last_lat != null && booking.last_lng != null;
-  const tripStarted = hasLocation; // live lat/lng is the credential that trip has started
-  const trackOpts = { scheduled_start_time: booking.scheduled_start_time, hasLocation, tripStarted };
+  // Fallback only. Coordinates meant "the trip has started" back when the trip
+  // row was invisible here; trip_status says it outright, and says which part.
+  const tripStarted = hasLocation;
+  const trackOpts = { scheduled_start_time: booking.scheduled_start_time, hasLocation, tripStarted, tripStatus: booking.trip_status };
   const { steps, activeIdx } = trackingSteps(booking.status, companionName, trackOpts);
   const confirmedAt = booking.scheduled_start_time || booking.created_at;
   const confirmedTime = new Date(confirmedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });

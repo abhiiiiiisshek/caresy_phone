@@ -81,6 +81,35 @@ RPC), then ship the app build. Neither half breaks on its own — out of order,
 open jobs render without their hospital label until both are in place, because
 the old portal's join is denied and the new portal's RPC does not exist yet.
 
+---
+
+**`supabase/migrations/47_TRACKING_TRIP_STATE.sql`** — run before deploying the
+tracking clients.
+
+`get_shared_tracking` now also returns `trip_id` and `trip_status`. Both were
+missing and both mattered:
+
+- **The live channel was never live.** `LocationShare.tsx` broadcast on
+  `trip:<share_token>` and the tracking screens listened on the same topic, but
+  the RLS on `realtime.messages` (migration 16) resolves a topic by casting its
+  second segment to a `trips.id`. A share token is a different uuid, so it
+  matched no trip and both the send and the subscribe were denied in silence.
+  The 10s poll was doing all the work. Both ends now use `trip:<trip_id>`.
+- **The stepper was guessing.** It read the booking row, whose one `IN_PROGRESS`
+  covers pickup, the drive and arrival, and inferred "they must have left" from
+  the presence of coordinates. `trips.status` says which stage it actually is,
+  and `advance_trip_status()` is its only writer.
+
+⚠️ **Dashboard → Realtime → Settings → disable "Allow public access."** The
+channel policies in migration 16 are only enforced with it off. Left on, the
+private channel is not private. If the setting is wrong the subscribe fails and
+the screen falls back to the poll, so this shows up as "not live", not as an
+error.
+
+The poll stays as the floor under Broadcast and is the only path a guest
+link-holder has (the channel policies are `TO authenticated`). It backs off from
+10s to 30s once pings are arriving.
+
 ## Before the first customer — in order
 
 
