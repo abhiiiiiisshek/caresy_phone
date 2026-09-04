@@ -71,7 +71,7 @@ export default function Booking() {
   const [meetMode, setMeetMode] = useState<'home' | 'hospital' | 'custom'>('custom');
   const [hospitalFocused, setHospitalFocused] = useState(false);
   const [pincodeCheck, setPincodeCheck] = useState<{ served: boolean; area?: string; city?: string } | null>(null);
-  const { coords, loading: locLoading, error: locError, blocked: locBlocked, request: requestLocation, openSettings: openLocationSettings } = useCurrentLocation();
+  const { coords, loading: locLoading, error: locError, blocked: locBlocked, request: requestLocation, reset: resetLocation, openSettings: openLocationSettings } = useCurrentLocation();
   const [docUri, setDocUri] = useState<string | null>(null);
   const [docUploading, setDocUploading] = useState(false);
 
@@ -103,6 +103,16 @@ export default function Booking() {
   const eveningPaise = time ? eveningSurchargePaise(parseInt(time, 10)) : 0;
   const totalPaise = basePaise + eveningPaise;
   const serviceLabel = `${chosenService.name} · ${durationLabel(durationHours)}`;
+  // "At home" means "where I am"; the other two modes mean "the spot I'm
+  // describing", so the same button is asking for two different things.
+  const locCta = meetMode === 'home' ? 'Share current location' : 'Pin the exact meeting spot';
+  // The "At home" sync effect below stamps the coordinates into the address
+  // field, so dropping the pin has to take that with it — otherwise the address
+  // keeps quoting a point the booking no longer carries.
+  const clearPin = () => {
+    if (coords && meetAddress === `Current location · ${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}`) setMeetAddress('');
+    resetLocation();
+  };
 
   useEffect(() => { setDurationHours(chosenService.hours); }, [serviceKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -199,8 +209,13 @@ export default function Booking() {
       const { data: loc, error: locErr } = await supabase.from('locations').insert({
         customer_user_id: uid, title: hospital, address_line_1: meetAddress.trim() || hospital,
         city: 'Noida', state: 'Uttar Pradesh', pincode: pincode.trim(),
-        latitude: meetMode === 'home' && coords ? coords.latitude : null,
-        longitude: meetMode === 'home' && coords ? coords.longitude : null,
+        // Store the pin whenever the customer captured one, whatever the meeting
+        // mode. Gating this on 'home' meant a companion meeting a family at a
+        // hospital gate got a name search over "Max Hospital" and nothing else —
+        // the pin is the only thing that distinguishes gate 3 from the lobby.
+        // quick-help.tsx and both website flows already store it unconditionally.
+        latitude: coords?.latitude ?? null,
+        longitude: coords?.longitude ?? null,
       }).select().single();
       if (locErr) throw locErr;
 
@@ -383,28 +398,41 @@ export default function Booking() {
               );
             })}
           </View>
-          {meetMode === 'home' && (
-            <View style={s.locRow}>
-              {locLoading ? (
-                <Txt variant="caption" color={color.muted}>Getting your location…</Txt>
-              ) : coords ? (
-                <Txt variant="caption" color={color.greenDeep}>✓ Location captured · {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}</Txt>
-              ) : locBlocked ? (
-                <Pressable onPress={openLocationSettings} accessibilityRole="button" accessibilityLabel="Location is off for Caresy. Open Settings">
-                  <Txt variant="caption" color={color.terracotta}>Location is off for Caresy — tap to open Settings</Txt>
+          {/* Offered in every meeting mode, not just "At home". The pin is what the
+              companion actually navigates to, and a hospital gate needs one more
+              than a house does. Never fires on its own — requestLocation() shows
+              the OS dialog, so it stays behind an explicit tap (or picking "At
+              home", which is that tap by another name). */}
+          <View style={s.locRow}>
+            {locLoading ? (
+              <Txt variant="caption" color={color.muted}>Getting your location…</Txt>
+            ) : coords ? (
+              <View style={s.locPinned}>
+                <Txt variant="caption" color={color.greenDeep}>✓ Exact spot pinned · {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}</Txt>
+                <Pressable onPress={clearPin} accessibilityRole="button" accessibilityLabel="Remove the pinned location">
+                  <Txt variant="caption" color={color.muted}>Remove</Txt>
                 </Pressable>
-              ) : locError ? (
-                <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel={`${locError}. Try again`}>
-                  <Txt variant="caption" color={color.terracotta}>{locError} — tap to try again</Txt>
+              </View>
+            ) : locBlocked ? (
+              <Pressable onPress={openLocationSettings} accessibilityRole="button" accessibilityLabel="Location is off for Caresy. Open Settings">
+                <Txt variant="caption" color={color.terracotta}>Location is off for Caresy — tap to open Settings</Txt>
+              </Pressable>
+            ) : locError ? (
+              <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel={`${locError}. Try again`}>
+                <Txt variant="caption" color={color.terracotta}>{locError} — tap to try again</Txt>
+              </Pressable>
+            ) : (
+              <>
+                {/* Label omits the pin emoji, which TalkBack would read as "round pushpin". */}
+                <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel={locCta}>
+                  <Txt variant="caption" color={color.greenDeep}>📍 {locCta}</Txt>
                 </Pressable>
-              ) : (
-                // Label omits the pin emoji, which TalkBack would read as "round pushpin".
-                <Pressable onPress={requestLocation} accessibilityRole="button" accessibilityLabel="Share current location">
-                  <Txt variant="caption" color={color.greenDeep}>📍 Share current location</Txt>
-                </Pressable>
-              )}
-            </View>
-          )}
+                {meetMode !== 'home' && (
+                  <Txt variant="caption" color={color.faint}>Only if you’re at the meeting point now — it drops a pin your companion can navigate to.</Txt>
+                )}
+              </>
+            )}
+          </View>
           <Field label="Meeting address" value={meetAddress} onChangeText={setMeetAddress} placeholder={meetMode === 'home' ? 'House no., street, landmark' : meetMode === 'hospital' ? (hospital || 'Hospital address') : 'Main gate / reception'} />
           <Txt variant="h2" color={color.ink}>Getting there</Txt>
           <FieldButton
@@ -559,6 +587,7 @@ const s = StyleSheet.create({
   cta: { flex: 2 },
   suggestBox: { backgroundColor: color.surface, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, overflow: 'hidden', marginTop: -space.sm },
   suggestRow: { paddingVertical: space.sm, paddingHorizontal: space.md, borderBottomWidth: 1, borderBottomColor: color.line, gap: 2 },
+  locPinned: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
   pincodeBadge: { marginTop: -space.sm, paddingVertical: 6, paddingHorizontal: space.md, borderRadius: radius.sm },
   pincodeOk: { backgroundColor: color.greenTint },
   pincodeNo: { backgroundColor: color.urgentBg },
