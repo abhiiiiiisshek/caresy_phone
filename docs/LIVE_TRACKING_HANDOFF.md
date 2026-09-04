@@ -56,7 +56,10 @@ Customer app ── trip-eta Edge Function ──▶ get_trip_destination() + Op
 | Guest/web tracking page (poll only, by design) | ✅ | `apps/website/src/app/tracking/page.tsx` |
 | Admin live board | ✅ | `apps/admin/src/app/live/page.tsx` |
 | Shared timeline contract + self-check | ✅ | `packages/utils/src/bookingStatus.ts` |
-| Live ETA on the customer screen | ❌ | see "Known dead ends" |
+| Live ETA to the customer (pre-pickup) | ✅ | `48_TRIP_ETA_TARGET.sql`, `supabase/functions/trip-eta`, `packages/utils/src/eta.ts` |
+| Live ETA to the hospital (post-pickup) | ❌ | see "Known dead ends" |
+| Auto-start sharing + Screen Wake Lock + not-sharing warning | ✅ | `apps/companion/src/components/LocationShare.tsx` |
+| Background location (survives a locked phone) | ❌ | next step 6 — needs a native companion app |
 
 **Verified** to the limits of a CI environment: SQL follows repo idempotency
 conventions; `deno check` passes on the function; the apps are `tsc`-clean and
@@ -72,17 +75,22 @@ Two pieces of this document described things that were wired but not working.
   casting its second segment to a `trips.id`. Every send and every subscribe was
   denied, silently, and the poll carried the feature. Fixed by migration 47
   returning `trip_id` and both clients using `trip:<trip_id>`.
-- **ETA cannot work yet, and it is a data gap, not a bug.** `trip-eta` and
-  `get_trip_destination` (migration 17) read `bookings.destination_location_id`,
+- **The hospital ETA is a data gap, not a bug — and it is still open.**
+  `get_trip_destination` (migration 17) reads `bookings.destination_location_id`,
   and **no app has ever written that column** — not the two web booking flows,
-  not the mobile one, not the admin board. `trips.destination` is therefore
-  always NULL and the function correctly returns `eta_seconds: null` every time.
-  Before touching the Edge Function, decide what the destination *is*: a hospital
-  companion booking stores the hospital in `pickup_location_id.title` and the
-  meeting point in the same row's `address_line_1`, so pickup and destination are
-  currently one record. Note also that the ETA a customer wants before pickup is
-  the ETA *to them*, not to the hospital — which is the pickup coordinates, and
-  those now exist.
+  not the mobile one, not the admin board. A hospital companion booking keeps the
+  hospital name and the meeting point in ONE `locations` row (`title` vs
+  `address_line_1`), so there is no second row to point at, and
+  `lib/hospitals.ts` is a hand-kept name+area list with no coordinates to build
+  one from. Closing it means geocoding or hand-entering ~50 hospitals; decide
+  that before touching the Edge Function again.
+
+  What shipped instead: the ETA a family actually waits on is *"how far away is
+  my companion from me"*, and that target has always existed. Migration 48's
+  `get_trip_eta_target()` returns the pickup pin while the trip is `assigned` /
+  `en_route_pickup` and the hospital after, so the pre-pickup ETA works today and
+  the post-pickup one starts working for free on the day a destination is
+  written.
 
 ## Turn-it-on checklist (manual, one-time)
 
@@ -118,7 +126,7 @@ Auth (for the app to sign in across web + mobile):
 3. **Persisted breadcrumb (optional):** throttled inserts into `trip_locations` (every ~15–30s / 100m) if post-trip audit is needed; the purge job already exists. Otherwise leave it off.
 4. **Admin live view:** an admin map of active trips (policies already allow `is_admin()` reads on trips + `realtime.messages`).
 5. **Push notifications** on status changes (there's already a `notifications` enqueue table in migration 13 to drain).
-6. **Background location — decide deliberately, and it is now the biggest gap.** Sharing is foreground-only *and* lives in a browser tab in the companion portal, so it stops the moment the phone locks or the companion switches app. Nothing about the rest of this design is Uber-like until that is solved. The honest options are a companion role inside `apps/mobile-app` (native, can hold background location) or accepting that the pin goes stale between glances. Either way, background needs Apple 5.1.5 justification + Google's declaration/demo-video flow.
+6. **Background location — the biggest remaining gap.** Sharing now starts on its own when the companion taps Start job and holds a Screen Wake Lock while the tab is visible, which covers a phone in a pocket with the screen on. It does not survive a locked phone or an app switch: the companion portal is a browser tab and the OS suspends it. The customer then sees the last position with an ageing timestamp — honest, not live. The real fix is a companion role inside `apps/mobile-app`, which can hold background location, and that needs Apple 5.1.5 justification + Google's declaration/demo-video flow.
 7. **Store submission:** icons/splash, privacy policy URL, Data-safety form, purpose strings (already set for foreground).
 8. **Harden ETA:** cache per trip, back off on ORS rate limits, optionally self-host OSRM to remove request caps.
 
