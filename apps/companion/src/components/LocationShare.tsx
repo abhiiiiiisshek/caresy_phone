@@ -7,18 +7,22 @@ import { Button } from '@caresy/ui';
 import { MapPin, MapPinOff, Loader2 } from 'lucide-react';
 
 // Live location sharing for the assigned companion. Watches the device GPS and
-// (a) writes trips.last_lat/last_lng for this booking's trip (poll fallback for
-//     tracking.tsx 10s poll via get_shared_tracking),
-// (b) broadcasts to Realtime channel `trip:<trip_id>` (tracking.tsx also listens
-//     on `trip:<share_token>` — but trip:<id> is the canonical per migration 16,
-//     and tracking.tsx will pick it up via the poll; we broadcast to both shapes
-//     to cover either subscriber), and
+// (a) writes trips.last_lat/last_lng for this booking's trip — the durable copy
+//     behind get_shared_tracking's poll, and what the admin live board reads,
+// (b) broadcasts on the private Realtime channel `trip:<trip_id>`, which is the
+//     path a signed-in customer actually watches, and
 // (c) inserts a throttled breadcrumb into trip_locations for audit (optional,
 //     purged after 7d by purge_trip_locations).
 //
-// RLS: "Only assigned companion updates trip" (16) + "Trip participants can
-// receive broadcast" + "Companion inserts own breadcrumb". All best-effort.
-// Throttle: 12s + no duplicate if < 30m movement (cheap, good enough).
+// The topic is the TRIP id and nothing else. This used to send a second copy on
+// `trip:<share_token>` to match what tracking.tsx was listening on, but the RLS
+// in migration 16 resolves the topic by casting that segment to a trips.id — a
+// share token is a different uuid, so both ends of that pair were denied in
+// silence and only the poll ever worked. Both sides now agree on trip:<trip_id>.
+//
+// RLS: "Only assigned companion updates trip" (16) + "Only companion can
+// broadcast location" + "Companion inserts own breadcrumb". All best-effort.
+// Throttle: 12s + no duplicate if < 10m movement (cheap, good enough).
 
 const MIN_WRITE_MS = 12_000;
 
@@ -29,7 +33,6 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
   const [sentAt, setSentAt] = useState<number | null>(null);
   const watchId = useRef<number | null>(null);
   const tripId = useRef<string | null>(null);
-  const shareToken = useRef<string | null>(null);
   const channel = useRef<RealtimeChannel | null>(null);
   const lastWrite = useRef(0);
   const lastPos = useRef<{ lat: number; lng: number } | null>(null);
@@ -50,10 +53,6 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
     }
     setBusy(true);
     const supabase = createClient();
-    // Need trip id and share_token for broadcast channel parity
-    const { data: booking } = await supabase.from('bookings').select('share_token').eq('id', bookingId).maybeSingle();
-    shareToken.current = (booking as { share_token?: string | null } | null)?.share_token ?? null;
-
     const { data, error: e } = await supabase.from('trips').select('id')
       .eq('booking_id', bookingId).not('status', 'in', '(completed,cancelled)')
       .limit(1).maybeSingle();
@@ -62,17 +61,12 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
     if (!data) { setError('No active trip for this booking yet — start the job first'); return; }
     tripId.current = (data as { id: string }).id;
 
-    // Subscribe to broadcast channel before sending — required by Realtime
+    // Subscribe before sending — required by Realtime, and it is the subscribe
+    // that the WITH CHECK policy is evaluated against.
     try {
-      const ch = supabase.channel(`trip:${tripId.current}`);
+      const ch = supabase.channel(`trip:${tripId.current}`, { config: { private: true } });
       ch.subscribe();
       channel.current = ch;
-      // Also subscribe to share_token channel for tracking.tsx parity (it listens on trip:<share_token>)
-      if (shareToken.current) {
-        const ch2 = supabase.channel(`trip:${shareToken.current}`);
-        ch2.subscribe();
-        // keep primary in channel.current, but we will send to both on each ping
-      }
     } catch {}
 
     watchId.current = navigator.geolocation.watchPosition(
@@ -97,14 +91,15 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
           .eq('id', tripId.current!);
         if (ue) { setError(ue.message); return; }
 
-        // (b) Realtime broadcast — tracking.tsx listens on trip:<token> plus poll
+        // (b) Realtime broadcast on the trip's own channel. The customer's poll
+        // is the floor under this, so a failed send costs latency, not the pin.
         try {
-          const payload = { last_lat: latitude, last_lng: longitude, at };
-          if (channel.current) await channel.current.send({ type: 'broadcast', event: 'location', payload });
-          // Parity: also broadcast on share_token channel if known
-          if (shareToken.current) {
-            const ch2 = supabase.channel(`trip:${shareToken.current}`);
-            await ch2.send({ type: 'broadcast', event: 'location', payload });
+          if (channel.current) {
+            await channel.current.send({
+              type: 'broadcast',
+              event: 'location',
+              payload: { last_lat: latitude, last_lng: longitude, at },
+            });
           }
         } catch {}
 
@@ -146,7 +141,7 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
         <span style={{ fontSize: '0.72rem', color: 'var(--danger, #b3261e)' }}>{error}</span>
       ) : sharing ? (
         <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
-          {sentAt ? 'Location live — sharing with family (broadcast + poll)' : 'Getting your location…'}
+          {sentAt ? 'Location live — sharing with the family' : 'Getting your location…'}
         </span>
       ) : null}
     </div>

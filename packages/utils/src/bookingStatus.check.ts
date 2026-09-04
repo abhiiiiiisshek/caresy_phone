@@ -63,4 +63,83 @@ assert.ok(
 assert.equal(trackingSteps('ASSIGNED', 'Asha', { hasLocation: false, tripStarted: false }).activeIdx, 0);
 assert.equal(trackingSteps('ASSIGNED', 'Asha', { hasLocation: true, tripStarted: false }).activeIdx, 1);
 
+// ---- trips.status drives the timeline when there is a live trip -------------
+// The booking row's IN_PROGRESS covers pickup, the drive and arrival; the trip
+// row separates them, and advance_trip_status() is the only writer, so it wins.
+const TRIP_STEP: Array<[string, number]> = [
+  ['assigned', 0],
+  ['en_route_pickup', 1],
+  ['picked_up', 2],
+  ['en_route_hospital', 2],
+  ['arrived', 2],
+  ['completed', 3],
+];
+for (const [tripStatus, idx] of TRIP_STEP) {
+  assert.equal(
+    trackingSteps('ACCEPTED', 'Asha', { tripStatus }).activeIdx, idx,
+    `${tripStatus} should sit on step ${idx}`,
+  );
+}
+
+// Monotonic: the timeline only ever moves forward along the trip enum, and the
+// visible steps grow with it. A step that goes backwards means a customer
+// watches their visit un-happen.
+let prevIdx = -1;
+let prevLen = 0;
+for (const [tripStatus] of TRIP_STEP) {
+  const { steps, activeIdx } = trackingSteps('ACCEPTED', 'Asha', { tripStatus });
+  assert.ok(activeIdx >= prevIdx, `${tripStatus} went backwards`);
+  assert.ok(steps.length >= prevLen, `${tripStatus} dropped a step`);
+  assert.equal(steps.length, Math.max(activeIdx + 1, 2));
+  prevIdx = activeIdx;
+  prevLen = steps.length;
+}
+
+// The trip overrides the booking row in both directions: a coarse IN_PROGRESS
+// does not drag the timeline forward past a trip that is still en route, and a
+// trip that has moved on is not held back by an ACCEPTED booking.
+assert.equal(trackingSteps('IN_PROGRESS', 'Asha', { tripStatus: 'en_route_pickup' }).activeIdx, 1);
+assert.equal(trackingSteps('ACCEPTED', 'Asha', { tripStatus: 'arrived' }).activeIdx, 2);
+
+// An unrecognised trip status falls back to the booking row rather than
+// inventing a step — 'cancelled' has no place on a forward-only timeline.
+assert.equal(
+  trackingSteps('IN_PROGRESS', 'Asha', { tripStatus: 'cancelled' }).activeIdx,
+  trackingSteps('IN_PROGRESS', 'Asha').activeIdx,
+);
+
+// Each in-visit stage says something different; identical copy across three
+// stages is the same as having no stages.
+const midDescs = ['picked_up', 'en_route_hospital', 'arrived'].map(
+  (tripStatus) => trackingSteps('ACCEPTED', 'Asha', { tripStatus }).steps[2].desc,
+);
+assert.equal(new Set(midDescs).size, 3);
+assert.ok(midDescs.every((d) => d.includes('Asha')));
+
+// Headlines track the same enum.
+assert.equal(trackingHeadline('ACCEPTED', { tripStatus: 'en_route_pickup' }), 'Your companion is on the way');
+assert.equal(trackingHeadline('ACCEPTED', { tripStatus: 'en_route_hospital' }), 'On the way to the hospital');
+assert.equal(trackingHeadline('ACCEPTED', { tripStatus: 'arrived' }), 'Arrived at the hospital');
+
+// A trip still at 'assigned' has not left, whatever the companion's phone has
+// already pinged. The location guess must not override it.
+assert.equal(
+  trackingHeadline('ACCEPTED', { tripStatus: 'assigned', hasLocation: true, tripStarted: true }),
+  'Companion assigned — location will be shared when trip starts',
+);
+assert.equal(
+  trackingSteps('ACCEPTED', 'Asha', { tripStatus: 'assigned', hasLocation: true }).activeIdx, 0,
+);
+// ...but a future-dated visit still says so rather than claiming a live state.
+assert.ok(
+  trackingHeadline('ACCEPTED', { tripStatus: 'assigned', scheduled_start_time: tomorrow, hasLocation: true })
+    .startsWith('Companion assigned for'),
+);
+
+// No trip yet (guest link before the companion starts) behaves exactly as before.
+assert.equal(
+  trackingSteps('ASSIGNED', 'Asha', { tripStatus: null, hasLocation: true }).activeIdx,
+  trackingSteps('ASSIGNED', 'Asha', { hasLocation: true }).activeIdx,
+);
+
 console.log('bookingStatus.check: ok');

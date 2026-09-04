@@ -11,6 +11,8 @@ import { color, radius, shadow, space } from '../lib/theme';
 const SUPPORT_WA = '919717500225';
 const WEB_BASE = 'https://caresy.co.in';
 
+interface LocationPing { last_lat?: number | null; last_lng?: number | null; at?: string }
+
 interface TrackedBooking {
   reference_code: string;
   status: string;
@@ -18,10 +20,19 @@ interface TrackedBooking {
   created_at: string;
   pickup_title: string | null;
   companion: { name?: string; photo?: string; rating?: number; verification?: string; specialty?: string } | null;
+  trip_id: string | null;
+  trip_status: string | null;
   last_lat: number | null;
   last_lng: number | null;
   last_location_at: string | null;
 }
+
+// Poll cadence. Broadcast is the live path; the poll is the floor under it and
+// the only path a guest link-holder has, since the channel policies are TO
+// authenticated. Slow it right down once pings are actually arriving — every
+// tick is an RPC, per viewer, for the length of a hospital visit.
+const POLL_MS = 10_000;
+const POLL_MS_LIVE = 30_000;
 
 export default function Tracking() {
   const { token } = useLocalSearchParams<{ token?: string }>();
@@ -29,52 +40,81 @@ export default function Tracking() {
   const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const [booking, setBooking] = useState<TrackedBooking | null>(null);
   const [loading, setLoading] = useState(!!token);
+  const [tripId, setTripId] = useState<string | null>(null);
+  // Broadcast is delivering. Only used to back the poll off — the map still
+  // renders from `booking`, so a channel that drops just gets slower, not blank.
+  const [live, setLive] = useState(false);
+  const pollMs = live ? POLL_MS_LIVE : POLL_MS;
 
-  // Share token is credential — Realtime if available, poll as fallback.
+  // Share token is the credential for the poll. Live pings ride a private
+  // Broadcast channel keyed on the TRIP id, which the token alone cannot name —
+  // hence the two-stage effect below: poll first, subscribe once the RPC has
+  // handed back a trip_id.
   useEffect(() => {
     if (!token) { setLoading(false); return; }
     let alive = true;
     const tick = () => {
       supabase.rpc('get_shared_tracking', { p_token: token }).then(({ data }) => {
         if (!alive) return;
-        setBooking((data?.[0] as TrackedBooking) ?? null);
+        const row = (data?.[0] as TrackedBooking) ?? null;
+        setBooking(row);
+        setTripId(row?.trip_id ?? null);
         setLoading(false);
       });
     };
     tick();
     // Pause the poll while backgrounded. Android keeps the JS thread running, so
-    // an unguarded 10s poll would keep hitting the network for the whole visit —
+    // an unguarded poll would keep hitting the network for the whole visit —
     // hours, on a phone the customer is not even looking at. Resume with an
     // immediate tick so the screen is current the moment it comes back.
-    let poll: ReturnType<typeof setInterval> | null = setInterval(tick, 10_000);
+    let poll: ReturnType<typeof setInterval> | null = setInterval(tick, pollMs);
     const appState = AppState.addEventListener('change', (next) => {
       if (next === 'active') {
-        if (!poll) { tick(); poll = setInterval(tick, 10_000); }
+        if (!poll) { tick(); poll = setInterval(tick, pollMs); }
       } else if (poll) {
         clearInterval(poll);
         poll = null;
       }
     });
-    // Realtime broadcast on trip:<token> if backend emits (Phase 4), else poll keeps it live
-    let channel: any = null;
-    try {
-      channel = supabase.channel(`trip:${token}`)
-        .on('broadcast', { event: 'location' }, (payload: any) => {
-          if (!alive) return;
-          const p = payload?.payload || payload;
-          if (p?.last_lat != null && p?.last_lng != null) {
-            setBooking((prev) => prev ? { ...prev, last_lat: p.last_lat, last_lng: p.last_lng, last_location_at: p.at || new Date().toISOString() } : prev);
-          }
-        })
-        .subscribe();
-    } catch {}
     return () => {
       alive = false;
       if (poll) clearInterval(poll);
       appState.remove();
-      try { channel && supabase.removeChannel(channel); } catch {}
     };
-  }, [token]);
+  }, [token, pollMs]);
+
+  // Live location, on the private channel migration 16 authorises.
+  //
+  // The topic must be `trip:<trip_id>`: the RLS on realtime.messages resolves
+  // it by casting that segment to a trips.id, so the share token — a different
+  // uuid entirely — matched no trip and every subscribe was denied in silence.
+  // Only a signed-in participant gets in; a guest opening the WhatsApp link
+  // stays on the poll, which is the intended shape.
+  useEffect(() => {
+    if (!tripId) return;
+    let alive = true;
+    const channel = supabase.channel(`trip:${tripId}`, { config: { private: true } })
+      .on('broadcast', { event: 'location' }, (payload: { payload?: LocationPing }) => {
+        if (!alive) return;
+        const lat = payload?.payload?.last_lat;
+        const lng = payload?.payload?.last_lng;
+        if (lat == null || lng == null) return;
+        const at = payload?.payload?.at || new Date().toISOString();
+        setLive(true);
+        setBooking((prev) => prev ? { ...prev, last_lat: lat, last_lng: lng, last_location_at: at } : prev);
+      })
+      .subscribe((status) => {
+        // Anything but SUBSCRIBED — a denied join, a dropped socket — leaves the
+        // poll at its normal cadence rather than stranding the screen.
+        if (!alive) return;
+        if (status !== 'SUBSCRIBED') setLive(false);
+      });
+    return () => {
+      alive = false;
+      setLive(false);
+      try { supabase.removeChannel(channel); } catch {}
+    };
+  }, [tripId]);
 
   const header = <Stack.Screen options={{ headerShown: true, title: 'Live tracking' }} />;
 
@@ -96,17 +136,17 @@ export default function Tracking() {
   const companion = booking.companion;
   const companionName = companion?.name || 'Your companion';
   const hasLocation = booking.last_lat != null && booking.last_lng != null;
-  const tripStarted = hasLocation; // live lat/lng is the credential that trip has started
-  const { steps, activeIdx } = trackingSteps(booking.status, companionName, {
+  // Fallback only. Coordinates meant "the trip has started" back when the trip
+  // row was invisible here; trip_status says it outright, and says which part.
+  const tripStarted = hasLocation;
+  const trackOpts = {
     scheduled_start_time: booking.scheduled_start_time,
     hasLocation,
     tripStarted,
-  });
-  const headline = trackingHeadline(booking.status, {
-    scheduled_start_time: booking.scheduled_start_time,
-    hasLocation,
-    tripStarted,
-  });
+    tripStatus: booking.trip_status,
+  };
+  const { steps, activeIdx } = trackingSteps(booking.status, companionName, trackOpts);
+  const headline = trackingHeadline(booking.status, trackOpts);
 
   const share = () => {
     const url = `${WEB_BASE}/tracking?t=${token}`;
@@ -156,7 +196,7 @@ export default function Tracking() {
               <>
                 <View style={s.liveRow}>
                   <View style={s.liveDot} />
-                  <Txt variant="label" color={color.green}>Live location shared</Txt>
+                  <Txt variant="label" color={color.green}>{live ? 'Live location' : 'Location shared'}</Txt>
                 </View>
                 {MapView && Marker ? (
                   <View style={s.mapWrap}>

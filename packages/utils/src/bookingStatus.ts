@@ -56,10 +56,39 @@ export interface TrackStep {
 // The trip stepper + which step is active for a given status. Returns only the
 // steps reached so far (+ the active one), so the UI never shows future stages
 // as if they were done. companionName is interpolated into the descriptions.
+export interface TrackOpts {
+  scheduled_start_time?: string | null;
+  hasLocation?: boolean;
+  tripStarted?: boolean;
+  /** `trips.status` (16_TRIPS_AND_LIVE_TRACKING) when the booking has a live trip. */
+  tripStatus?: string | null;
+}
+
+/**
+ * Where `trips.status` lands on the four-step timeline, and what that step says.
+ *
+ * The booking row has one IN_PROGRESS covering pickup, the drive and arrival;
+ * the trip row distinguishes them, and advance_trip_status() is the only thing
+ * that writes it, so it is the honest source. Returns null for a status this
+ * does not recognise, which sends the caller back to the booking-row path
+ * rather than inventing a step.
+ */
+function stepFromTripStatus(trip: string, companionName: string): { idx: number; desc?: string } | null {
+  switch (trip.toLowerCase()) {
+    case 'assigned':          return { idx: 0 };
+    case 'en_route_pickup':   return { idx: 1 };
+    case 'picked_up':         return { idx: 2, desc: `${companionName} has met the patient and the visit has begun.` };
+    case 'en_route_hospital': return { idx: 2, desc: `${companionName} is travelling to the hospital with the patient.` };
+    case 'arrived':           return { idx: 2, desc: `${companionName} has arrived at the hospital with the patient.` };
+    case 'completed':         return { idx: 3 };
+    default:                  return null;   // 'cancelled', or an enum added later
+  }
+}
+
 export function trackingSteps(
   status: string,
   companionName: string,
-  opts?: { scheduled_start_time?: string | null; hasLocation?: boolean; tripStarted?: boolean },
+  opts?: TrackOpts,
 ): { steps: TrackStep[]; activeIdx: number } {
   const s = status.toLowerCase();
   const all: TrackStep[] = [
@@ -68,6 +97,15 @@ export function trackingSteps(
     { title: 'Visit In Progress', desc: `${companionName} is with the patient at the hospital.` },
     { title: 'Visit Completed', desc: 'Medicines collected and patient safely returned.' },
   ];
+
+  // A live trip outranks the booking row: it is finer-grained and it is what
+  // the companion is actually tapping through.
+  const fromTrip = opts?.tripStatus ? stepFromTripStatus(opts.tripStatus, companionName) : null;
+  if (fromTrip) {
+    if (fromTrip.desc) all[fromTrip.idx] = { ...all[fromTrip.idx], desc: fromTrip.desc };
+    return { steps: all.slice(0, Math.max(fromTrip.idx + 1, 2)), activeIdx: fromTrip.idx };
+  }
+
   let activeIdx = 1;
   if (s.includes('assigned') || s.includes('accepted')) {
     // When caller supplies location context, stay at "Confirmed" until trip
@@ -86,10 +124,28 @@ export function trackingSteps(
 
 export function trackingHeadline(
   status: string,
-  opts?: { scheduled_start_time?: string | null; hasLocation?: boolean; tripStarted?: boolean },
+  opts?: TrackOpts,
 ): string {
   const s = status.toLowerCase();
+
+  // Same precedence as trackingSteps: the trip knows where the companion is.
+  const trip = opts?.tripStatus?.toLowerCase();
+  switch (trip) {
+    case 'en_route_pickup':   return 'Your companion is on the way';
+    case 'picked_up':         return 'Your companion is with the patient';
+    case 'en_route_hospital': return 'On the way to the hospital';
+    case 'arrived':           return 'Arrived at the hospital';
+    case 'completed':         return 'Visit completed';
+  }
+
   if (s.includes('assigned') || s.includes('accepted')) {
+    // A trip sitting at 'assigned' has not left yet, whatever coordinates the
+    // companion's phone has already sent. Drop the location guess and let the
+    // scheduled-time wording below answer instead — it is the difference
+    // between "on the way" and "assigned for Saturday".
+    if (trip === 'assigned') {
+      opts = { ...opts, hasLocation: false, tripStarted: false };
+    }
     // Legacy call site (no opts) keeps the pre-honesty-fix string so old
     // callers and the bare self-check stay green.
     if (!opts) return 'Your companion is on the way';
