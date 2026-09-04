@@ -8,7 +8,8 @@
     "./pricing": "./src/pricing.ts",
     "./phone": "./src/phone.ts",
     "./slots": "./src/slots.ts",
-    "./careGuides": "./src/careGuides.ts"
+    "./careGuides": "./src/careGuides.ts",
+    "./eta": "./src/eta.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0"

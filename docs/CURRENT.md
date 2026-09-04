@@ -113,6 +113,7 @@ link-holder has (the channel policies are `TO authenticated`). It backs off from
 ## Before the first customer — in order
 
 
+
 1. **Run `supabase/migrations/30_LAUNCH_FIXES.sql`, then `31_CUSTOMER_ACTIONS.sql`**
    in the SQL editor, in that order. Nothing below them works without them. Both
    end in assertions, so they fail loudly rather than half-applying.

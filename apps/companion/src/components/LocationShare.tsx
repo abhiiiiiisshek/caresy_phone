@@ -26,7 +26,19 @@ import { MapPin, MapPinOff, Loader2 } from 'lucide-react';
 
 const MIN_WRITE_MS = 12_000;
 
-export default function LocationShare({ bookingId }: { bookingId: string }) {
+// Module-level so both the component and its effects share one reference.
+async function requestWakeLock(): Promise<WakeLockSentinel | null> {
+  try {
+    if (typeof navigator === 'undefined' || !('wakeLock' in navigator)) return null;
+    return await navigator.wakeLock.request('screen');
+  } catch {
+    // Denied, unsupported, or the page was already hidden. Not worth surfacing:
+    // sharing still works, it is just more fragile.
+    return null;
+  }
+}
+
+export default function LocationShare({ bookingId, autoStart }: { bookingId: string; autoStart?: boolean }) {
   const [sharing, setSharing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,20 +48,43 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
   const channel = useRef<RealtimeChannel | null>(null);
   const lastWrite = useRef(0);
   const lastPos = useRef<{ lat: number; lng: number } | null>(null);
+  const wakeLock = useRef<WakeLockSentinel | null>(null);
+  // Auto-start fires once per mount. Without this a companion who deliberately
+  // stopped sharing would have it switched back on by the next re-render.
+  const autoStarted = useRef(false);
+
+  const acquireWakeLock = useCallback(async () => {
+    // A sentinel the browser already revoked (which it does on every hide) is
+    // still an object. Checking `released` is what makes re-acquiring work.
+    if (wakeLock.current && !wakeLock.current.released) return;
+    wakeLock.current = await requestWakeLock();
+  }, []);
 
   const stop = useCallback(() => {
     if (watchId.current != null) { navigator.geolocation.clearWatch(watchId.current); watchId.current = null; }
     try { if (channel.current) { const supabase = createClient(); supabase.removeChannel(channel.current); } } catch {}
     channel.current = null;
+    // Let the screen sleep again. Holding it past the end of a job is a battery
+    // bug on a phone the companion needs for the rest of their shift.
+    try { void wakeLock.current?.release(); } catch {}
+    wakeLock.current = null;
     setSharing(false);
   }, []);
 
-  useEffect(() => () => { if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current); try { if (channel.current) createClient().removeChannel(channel.current); } catch {} }, []);
+  useEffect(() => () => {
+    if (watchId.current != null) navigator.geolocation.clearWatch(watchId.current);
+    try { if (channel.current) createClient().removeChannel(channel.current); } catch {}
+    try { void wakeLock.current?.release(); } catch {}
+  }, []);
 
-  const start = async () => {
+  // `auto` suppresses the error text. A companion who tapped the button wants to
+  // know why it did nothing; a companion who tapped nothing should not be shown
+  // a failure they did not cause — the button is still right there.
+  const start = useCallback(async (auto = false) => {
     setError(null);
+    const fail = (msg: string) => { if (!auto) setError(msg); };
     if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
-      setError('Location isn’t available on this device'); return;
+      fail('Location isn’t available on this device'); return;
     }
     setBusy(true);
     const supabase = createClient();
@@ -57,8 +92,8 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
       .eq('booking_id', bookingId).not('status', 'in', '(completed,cancelled)')
       .limit(1).maybeSingle();
     setBusy(false);
-    if (e) { setError(e.message); return; }
-    if (!data) { setError('No active trip for this booking yet — start the job first'); return; }
+    if (e) { fail(e.message); return; }
+    if (!data) { fail('No active trip for this booking yet — start the job first'); return; }
     tripId.current = (data as { id: string }).id;
 
     // Subscribe before sending — required by Realtime, and it is the subscribe
@@ -68,6 +103,12 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
       ch.subscribe();
       channel.current = ch;
     } catch {}
+
+    // Screen Wake Lock: keeps the tab from being frozen while it is on screen.
+    // Not supported everywhere and revoked by the browser whenever the page is
+    // hidden, so it is a best-effort improvement, never a guarantee — see the
+    // header. Re-acquired by the visibilitychange effect below.
+    void acquireWakeLock();
 
     watchId.current = navigator.geolocation.watchPosition(
       async (pos) => {
@@ -119,11 +160,31 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
 
         setError(null); setSentAt(now);
       },
+      // A permission prompt denied mid-share is worth saying out loud even when
+      // sharing started on its own — it is the one failure the companion can fix.
       (err) => { setError(err.message); stop(); },
       { enableHighAccuracy: true, maximumAge: 10_000, timeout: 20_000 },
     );
     setSharing(true);
-  };
+  }, [bookingId, stop, acquireWakeLock]);
+
+  // Start on our own once the job is live. A companion arriving at a hospital
+  // has their hands full; the family should not be watching a blank map because
+  // nobody tapped a button.
+  useEffect(() => {
+    if (!autoStart || autoStarted.current || sharing || busy) return;
+    autoStarted.current = true;
+    void start(true);
+  }, [autoStart, sharing, busy, start]);
+
+  // The browser revokes a wake lock every time the page is hidden, so take it
+  // back when the companion returns to the tab. Only while sharing.
+  useEffect(() => {
+    if (!sharing) return;
+    const onVisible = () => { if (document.visibilityState === 'visible') void acquireWakeLock(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [sharing, acquireWakeLock]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
@@ -131,7 +192,7 @@ export default function LocationShare({ bookingId }: { bookingId: string }) {
         variant={sharing ? 'outline' : 'primary'}
         size="sm"
         disabled={busy}
-        onClick={sharing ? stop : start}
+        onClick={sharing ? stop : () => void start()}
         iconLeft={busy ? <Loader2 className="animate-spin" style={{ width: 15, height: 15 }} />
           : sharing ? <MapPinOff style={{ width: 15, height: 15 }} /> : <MapPin style={{ width: 15, height: 15 }} />}
       >

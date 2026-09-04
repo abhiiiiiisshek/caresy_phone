@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, Image, Linking, Share, StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { MapView, Marker } from '../lib/maps';
 import { supabase } from '../lib/supabase';
 import { trackingHeadline, trackingSteps } from '@caresy/utils/bookingStatus';
+import { etaSentence } from '@caresy/utils/eta';
 import { Button, Card, EmptyState, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { color, radius, shadow, space } from '../lib/theme';
 
@@ -198,6 +199,9 @@ export default function Tracking() {
                   <View style={s.liveDot} />
                   <Txt variant="label" color={color.green}>{live ? 'Live location' : 'Location shared'}</Txt>
                 </View>
+                {/* Absent whenever the estimate isn't trustworthy — no key, no
+                    route, no pickup pin. Never a stale one left on screen. */}
+                {eta ? <Txt variant="title" color={color.greenDeep}>{eta}</Txt> : null}
                 {MapView && Marker ? (
                   <View style={s.mapWrap}>
                     <MapView
