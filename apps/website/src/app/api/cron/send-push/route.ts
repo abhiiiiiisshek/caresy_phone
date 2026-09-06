@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { accessToken, projectId, sendPush } from '@/lib/fcm';
 import { mapLimit } from '@/lib/mapLimit';
-import { chatIdsForRow, formatTelegramBatchForRows, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
+import { alertEngineering, chatIdsForRow, formatTelegramBatchForRows, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
+import { classify } from '@/lib/notificationPolicy';
+
+// notification_digest_buckets and its RPC aren't in the generated DB types
+// yet (no Database generic is threaded through this route at all — every
+// existing .from()/.rpc() call here relies on the same untyped default).
+type SupabaseAdmin = SupabaseClient;
 
 // Drains the `notifications` queue to FCM + Telegram + ops.
 // Exactly-once via claim-before-send (36_NOTIFICATIONS_CLAIM.sql):
@@ -23,8 +29,11 @@ import { chatIdsForRow, formatTelegramBatchForRows, formatTelegramForRow, sendTe
 // Env: CRON_SECRET (shared with the other cron route), SUPABASE_SERVICE_ROLE_KEY,
 // FIREBASE_SERVICE_ACCOUNT, OPS_WEBHOOK_URL for the ADMIN-role rows (see
 // pageOps below) — without it nothing reaches ops except the /admin/ops badge,
-// TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID (+ optional TELEGRAM_CHAT_ID_ADMIN/_CUSTOMER/_COMPANION)
+// TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID (+ optional TELEGRAM_CHAT_ID_ADMIN/_CUSTOMER/_COMPANION/_ENGINEERING)
 // for Telegram fan-out — without them Telegram is a silent no-op.
+// NOTIFICATION_DIGEST_WINDOW_MINUTES (default 5) sets how long INFORMATIONAL
+// events (notificationPolicy.ts) sit in notification_digest_buckets before
+// they flush as one summary — see flushDueDigestBuckets below.
 
 export const dynamic = 'force-dynamic';
 
@@ -74,17 +83,21 @@ function nextRetryAt(attempts: number): string {
 //
 // ponytail: no retry/backoff. A missed page is visible at /admin/ops, which is
 // watched anyway; add a retry column if that stops being true.
-// Telegram fan-out: one concise HTML message per CLAIMED row, alongside FCM/ops.
+// Telegram fan-out: priority-routed via notificationPolicy.classify(). CRITICAL/
+// IMPORTANT rows send individually, same as before; INFORMATIONAL rows append to
+// a digest bucket instead (notification_digest_buckets, flushed by
+// flushDueDigestBuckets on its own schedule) — no individual send.
 // Env-gated: if TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing, no-ops silently.
 // Per-role routing via TELEGRAM_CHAT_ID_ADMIN etc. falls back to TELEGRAM_CHAT_ID.
 // Idempotency: per-tick in-memory Set + DB .eq('status','SENDING') on final
 // transitions ensures a concurrent tick (which claimed a disjoint set via SKIP LOCKED)
-// has no durable duplicate; SENDING stale-reclaim handles crash mid-send.
+// has no durable duplicate; SENDING stale-reclaim handles crash mid-send. Buffering
+// a row never touches notifications.status, so it can't interact with that reclaim.
 const TELEGRAM_CONCURRENCY = 5;
 
-async function fanoutTelegram(rows: QueuedRow[]): Promise<{ sent: number; skipped: number; failed: number }> {
+async function fanoutTelegram(rows: QueuedRow[], supabase: SupabaseAdmin): Promise<{ sent: number; skipped: number; failed: number; buffered: number }> {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  if (!token) return { sent: 0, skipped: rows.length, failed: 0 };
+  if (!token) return { sent: 0, skipped: rows.length, failed: 0, buffered: 0 };
   // In-memory per-tick dedupe: if the same id appears twice in one tick, send once.
   const seen = new Set<string>();
   const toSend = rows.filter((r) => {
@@ -92,50 +105,37 @@ async function fanoutTelegram(rows: QueuedRow[]): Promise<{ sent: number; skippe
     seen.add(r.id);
     return chatIdsForRow(r).length > 0;
   });
-  if (!toSend.length) return { sent: 0, skipped: rows.length - toSend.length, failed: 0 };
+  if (!toSend.length) return { sent: 0, skipped: rows.length - toSend.length, failed: 0, buffered: 0 };
 
-  // Smart batch: if >=4 ADMIN rows in one tick, send ONE digest to ADMIN chat instead of 4+ pings
-  const adminRows = toSend.filter((r) => r.recipient_role === 'ADMIN');
-  if (adminRows.length >= 4) {
-    const adminChats = chatIdsForRow({ recipient_role: 'ADMIN' });
-    if (adminChats.length) {
-      const batchText = formatTelegramBatchForRows(adminRows as any);
-      const outs = await Promise.all(adminChats.map((chatId) => sendTelegram(batchText, { chatId })));
-      const failed = outs.find((o) => !o.ok);
-      if (failed) {
-        // batch failed counts as failed for all admin rows
-        const nonAdmin = toSend.filter((r) => r.recipient_role !== 'ADMIN');
-        // send non-admin individually
-        const restResults = await mapLimit(nonAdmin, TELEGRAM_CONCURRENCY, async (row) => {
-          const chats = chatIdsForRow(row);
-          const text = formatTelegramForRow(row as any);
-          const routs = await Promise.all(chats.map((chatId) => sendTelegram(text, { chatId })));
-          const f = routs.find((o) => !o.ok) as { ok: false; error: string } | undefined;
-          return f ? { ok: false as const, error: f.error } : { ok: true as const };
-        });
-        let restSent = 0, restFailed = 0;
-        restResults.forEach((r) => (r.ok ? restSent++ : restFailed++));
-        return { sent: restSent, skipped: rows.length - toSend.length, failed: adminRows.length + restFailed };
-      }
-      // batch sent - send non-admin individually
-      const nonAdmin = toSend.filter((r) => r.recipient_role !== 'ADMIN');
-      if (!nonAdmin.length) return { sent: adminRows.length, skipped: rows.length - toSend.length, failed: 0 };
-      const restResults = await mapLimit(nonAdmin, TELEGRAM_CONCURRENCY, async (row) => {
-        const chats = chatIdsForRow(row);
-        const text = formatTelegramForRow(row as any);
-        const routs = await Promise.all(chats.map((chatId) => sendTelegram(text, { chatId })));
-        const f = routs.find((o) => !o.ok) as { ok: false; error: string } | undefined;
-        return f ? { ok: false as const, error: f.error } : { ok: true as const };
-      });
-      let restSent = 0, restFailed = 0;
-      restResults.forEach((r) => (r.ok ? restSent++ : restFailed++));
-      return { sent: adminRows.length + restSent, skipped: rows.length - toSend.length, failed: restFailed };
-    }
+  const immediate: QueuedRow[] = [];
+  const buffered: QueuedRow[] = [];
+  for (const row of toSend) {
+    if (classify(row.event, row.recipient_role).mode === 'BUFFERED') buffered.push(row);
+    else immediate.push(row);
   }
 
-  const results = await mapLimit(toSend, TELEGRAM_CONCURRENCY, async (row) => {
+  // Buffered rows: append to their aggregation bucket now, send nothing —
+  // flushDueDigestBuckets renders and sends the digest once its window elapses.
+  if (buffered.length) {
+    const byKey = new Map<string, { role: string | null; ids: string[] }>();
+    for (const row of buffered) {
+      const policy = classify(row.event, row.recipient_role);
+      const key = policy.aggregationKey as string;
+      const bucket = byKey.get(key) ?? { role: row.recipient_role, ids: [] };
+      bucket.ids.push(row.id);
+      byKey.set(key, bucket);
+    }
+    await Promise.all(
+      [...byKey.entries()].map(([key, { role, ids }]) =>
+        supabase.rpc('append_to_digest_bucket', { p_key: key, p_role: role, p_ids: ids }),
+      ),
+    );
+  }
+
+  const results = await mapLimit(immediate, TELEGRAM_CONCURRENCY, async (row) => {
     const chats = chatIdsForRow(row);
-    const text = formatTelegramForRow(row as any);
+    const { priority } = classify(row.event, row.recipient_role);
+    const text = formatTelegramForRow(row as any, priority);
     // fan out to every chat for this role (usually 1)
     const outs = await Promise.all(
       chats.map((chatId) => sendTelegram(text, { chatId })),
@@ -149,7 +149,54 @@ async function fanoutTelegram(rows: QueuedRow[]): Promise<{ sent: number; skippe
   results.forEach((r) => (r.ok ? sent++ : failed++));
   // rows with no chat configured count as skipped (env missing for that role)
   const skipped = rows.length - toSend.length;
-  return { sent, skipped, failed };
+  return { sent, skipped, failed, buffered: buffered.length };
+}
+
+// Flushes any digest bucket whose aggregation window has elapsed into one
+// Telegram summary message. Must run every tick regardless of whether this
+// tick claimed any new rows — a quiet period still needs a bucket to flush
+// on schedule. Never writes to notifications; those rows already finalized
+// independently (FCM/ops) when they were buffered.
+async function flushDueDigestBuckets(supabase: SupabaseAdmin, windowMinutes: number): Promise<{ flushed: number }> {
+  const cutoff = new Date(Date.now() - windowMinutes * 60_000).toISOString();
+  const { data: buckets } = await supabase
+    .from('notification_digest_buckets')
+    .select('id, aggregation_key, recipient_role, notification_ids')
+    .is('flushed_at', null)
+    .lte('first_seen_at', cutoff);
+
+  if (!buckets?.length) return { flushed: 0 };
+
+  const closeBucket = (id: string) =>
+    supabase.from('notification_digest_buckets').update({ flushed_at: new Date().toISOString() }).eq('id', id).is('flushed_at', null);
+
+  let flushed = 0;
+  for (const bucket of buckets) {
+    const ids = (bucket.notification_ids as string[] | null) ?? [];
+    const chats = chatIdsForRow({ recipient_role: bucket.recipient_role as string | null });
+    if (!ids.length || !chats.length) {
+      await closeBucket(bucket.id as string);
+      continue;
+    }
+    const { data: digestRows } = await supabase
+      .from('notifications')
+      .select('id, event, title, booking_id, recipient_role, created_at')
+      .in('id', ids);
+    if (!digestRows?.length) {
+      await closeBucket(bucket.id as string);
+      continue;
+    }
+    const text = formatTelegramBatchForRows(digestRows as any, { windowMinutes });
+    const outs = await Promise.all(chats.map((chatId) => sendTelegram(text, { chatId })));
+    if (outs.every((o) => o.ok)) {
+      await closeBucket(bucket.id as string);
+      flushed++;
+    }
+    // Send failure: leave unflushed, retried next tick. Same tradeoff as
+    // pageOps' no-retry-column note above — a non-critical channel doesn't
+    // need a second backoff path.
+  }
+  return { flushed };
 }
 
 async function pageOps(rows: QueuedRow[], url: string) {
@@ -209,13 +256,25 @@ export async function GET(request: Request) {
   }
   const supabase = createClient(url, key);
 
+  // Flush any digest bucket whose window elapsed BEFORE the early-return below —
+  // a tick with zero freshly-claimed rows must still deliver a due digest.
+  const digestWindowMinutes = Number(process.env.NOTIFICATION_DIGEST_WINDOW_MINUTES) || 5;
+  try {
+    await flushDueDigestBuckets(supabase, digestWindowMinutes);
+  } catch (e) {
+    await alertEngineering(`send-push digest flush failed: ${(e as Error).message}`);
+  }
+
   // Claim-before-send: atomically move QUEUED (+ stale SENDING) → SENDING.
   // FOR UPDATE SKIP LOCKED ensures concurrent ticks claim disjoint sets.
   const { data: rows, error: readErr } = await supabase.rpc('claim_notifications', {
     p_limit: MAX_ROWS,
   });
 
-  if (readErr) return NextResponse.json({ error: readErr.message }, { status: 500 });
+  if (readErr) {
+    await alertEngineering(`send-push claim_notifications failed: ${readErr.message}`);
+    return NextResponse.json({ error: readErr.message }, { status: 500 });
+  }
   if (!rows?.length) return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ranAt: new Date().toISOString() });
 
   const all = rows as QueuedRow[];
@@ -224,12 +283,13 @@ export async function GET(request: Request) {
   // Runs alongside FCM/ops; failures are best-effort and do not block FCM.
   // In-memory per-tick Set + DB SENDING guard ensures no persistent double-send;
   // a live send needs TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID — without them this is a no-op.
-  let telegram: { sent: number; skipped: number; failed: number } = { sent: 0, skipped: 0, failed: 0 };
+  let telegram: { sent: number; skipped: number; failed: number; buffered: number } = { sent: 0, skipped: 0, failed: 0, buffered: 0 };
   try {
-    telegram = await fanoutTelegram(all);
+    telegram = await fanoutTelegram(all, supabase);
   } catch (e) {
     // best-effort: Telegram failure never blocks FCM delivery
     console.warn('[telegram] fanout failed', (e as Error).message?.slice(0, 200));
+    await alertEngineering(`send-push telegram fanout failed: ${(e as Error).message}`);
   }
 
   // Rows addressed to ops, not to a person: "a new request needs a companion".
@@ -339,7 +399,10 @@ export async function GET(request: Request) {
     .from('push_tokens')
     .select('token, user_id')
     .in('user_id', [...new Set(deliverable.map((r) => r.recipient_user_id as string))]);
-  if (tokErr) return NextResponse.json({ error: tokErr.message }, { status: 500 });
+  if (tokErr) {
+    await alertEngineering(`send-push push_tokens fetch failed: ${tokErr.message}`);
+    return NextResponse.json({ error: tokErr.message }, { status: 500 });
+  }
 
   const tokensByUser = new Map<string, string[]>();
   for (const t of tokenRows ?? []) {
@@ -357,6 +420,7 @@ export async function GET(request: Request) {
     // Leave everything SENDING — this is a configuration problem, not a per-row
     // one. Rows stay SENDING and stale-reclaim (5m) will make them eligible again;
     // or an operator can reset SENDING→QUEUED manually if urgent.
+    await alertEngineering(`send-push FCM config failed: ${(e as Error).message}`);
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }
 

@@ -44,7 +44,7 @@ second copy somewhere else.
 | Approvals, dispatch, service areas, analytics | `apps/admin` | migrations 10, 11, 15, 19 |
 | Payment ledger + waiving a bill | `apps/admin/payments` | reads migration 26 columns; waive relies on the trigger's `is_admin()` exemption |
 | Live tracking + share links | migrations 16–18, 22; `apps/website/tracking` | `share_token`, no account needed |
-| Notifications | migrations 13, 20, 21, 24; `api/cron/send-push` | enqueue in DB, drain over HTTP |
+| Notifications | migrations 13, 20, 21, 24, 49; `api/cron/send-push`, `lib/notificationPolicy.ts` | enqueue in DB, drain over HTTP to FCM + priority-routed Telegram + ops |
 | Transport facilitation | migration 27 | recorded, never billed (ADR-0006) |
 | Native shell | `apps/mobile` | no product logic lives here |
 
@@ -63,7 +63,11 @@ second copy somewhere else.
 5. Customer sees the same numbers on `my-bookings`, read from the same columns.
 
 Status changes enqueue a `notifications` row; `api/cron/send-push` drains the
-queue to FCM using the service-role key.
+queue to FCM using the service-role key, and fans out to Telegram and the ops
+webhook alongside it. Telegram delivery is priority-routed
+(`lib/notificationPolicy.ts`): CRITICAL/IMPORTANT events send individually,
+INFORMATIONAL events buffer into `notification_digest_buckets` (migration 49)
+and flush as one periodic digest.
 
 ## Server-side surface
 
@@ -73,7 +77,7 @@ server routes:
 | Route | Purpose | Auth |
 |---|---|---|
 | `apps/website/api/cron/expire-bookings` | expiry sweep (backup to pg_cron) | `CRON_SECRET` |
-| `apps/website/api/cron/send-push` | drain `notifications` → FCM | `CRON_SECRET` + service-role key |
+| `apps/website/api/cron/send-push` | drain `notifications` → FCM + priority-routed Telegram + ops webhook | `CRON_SECRET` + service-role key |
 
 Privileged writes are SECURITY DEFINER Postgres functions, not API routes —
 see `docs/SECURITY.md`.

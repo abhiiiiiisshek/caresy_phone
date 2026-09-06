@@ -99,7 +99,7 @@ export function formatTelegramForRow(row: {
   recipient_role?: string | null;
   recipient_user_id?: string | null;
   created_at?: string | null;
-}): string {
+}, priority?: 'CRITICAL' | 'IMPORTANT' | 'INFORMATIONAL'): string {
   const when = row.created_at ? new Date(row.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
   const role = row.recipient_role ? ` • ${escapeHtml(row.recipient_role)}` : '';
   const booking = row.booking_id ? `booking <code>${escapeHtml(row.booking_id.slice(0, 8))}</code>` : 'no booking';
@@ -114,7 +114,8 @@ export function formatTelegramForRow(row: {
   // Urgent request ABC123
   // A HOSPITAL_COMPANION request needs a companion.
   // booking a1b2c3d4 • 20 Aug 2026, 12:34 pm IST
-  let msg = `<b>${event}</b>${role}${to}\n`;
+  const alert = priority === 'CRITICAL' ? '🚨 ' : '';
+  let msg = `${alert}<b>${event}</b>${role}${to}\n`;
   msg += `${title}\n`;
   if (body) msg += `${body}\n`;
   msg += `${booking}${patient} • ${escapeHtml(when)}\n`;
@@ -128,8 +129,10 @@ export function chatIdsForRow(row: { recipient_role?: string | null }): string[]
 }
 
 /**
- * Batch summary for ADMIN flood control: if many ADMIN rows claimed in one
- * tick (e.g. 5 bookings in 1m), send ONE summary instead of 5 pings.
+ * Digest for a flushed INFORMATIONAL bucket (notification_digest_buckets):
+ * one summary message for a whole aggregation window instead of one ping
+ * per row. Was: a per-tick "≥4 ADMIN rows" heuristic; replaced by real
+ * time-windowed buffering keyed by notificationPolicy.ts.
  */
 export function formatTelegramBatchForRows(rows: Array<{
   id: string;
@@ -138,7 +141,7 @@ export function formatTelegramBatchForRows(rows: Array<{
   booking_id?: string | null;
   recipient_role?: string | null;
   created_at?: string | null;
-}>): string {
+}>, opts?: { windowMinutes?: number }): string {
   const n = rows.length;
   const byEvent = rows.reduce<Record<string, number>>((m, r) => {
     m[r.event] = (m[r.event] || 0) + 1;
@@ -147,11 +150,29 @@ export function formatTelegramBatchForRows(rows: Array<{
   const events = Object.entries(byEvent).map(([e,c]) => `${escapeHtml(e)}×${c}`).join(', ');
   const samples = rows.slice(0, 3).map(r => r.booking_id ? `<code>${escapeHtml(r.booking_id.slice(0,8))}</code>` : `<code>${escapeHtml(r.id.slice(0,8))}</code>`).join(', ');
   const when = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-  let msg = `<b>ADMIN digest • ${n} updates</b> • ${events}\n`;
+  const windowMinutes = opts?.windowMinutes ?? 5;
+  let msg = `📊 <b>Operations Summary — Last ${windowMinutes} minutes</b>\n`;
+  msg += `${n} updates • ${events}\n`;
   msg += samples + (n > 3 ? ` +${n-3} more` : '') + ` • ${escapeHtml(when)}\n`;
   // include titles of first 3 for context
   for (const r of rows.slice(0, 3)) {
     msg += `• ${escapeHtml(r.title.slice(0, 100))}\n`;
   }
   return msg;
+}
+
+/**
+ * Direct-send engineering alert, bypassing the notifications queue entirely
+ * (the queue itself may be what's broken). Never throws — an alert must not
+ * crash the caller it's reporting on behalf of.
+ */
+export async function alertEngineering(text: string): Promise<void> {
+  const chats = envChatIds('ENGINEERING');
+  if (!chats.length) return;
+  try {
+    const msg = `🚨 <b>ENGINEERING ALERT</b>\n${escapeHtml(text).slice(0, 3500)}`;
+    await Promise.all(chats.map((chatId) => sendTelegram(msg, { chatId })));
+  } catch {
+    // best-effort only
+  }
 }

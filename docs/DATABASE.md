@@ -62,9 +62,11 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 42 | `42_ADMIN_SAVE_INTENT.sql` | drops 41's 4-arg overload; `admin_save_booking_edit` takes explicit `p_change_status` / `p_change_companion` and takes `FOR UPDATE` before deciding | ✅ |
 | 43 | `43_FIX_IS_ADMIN_NULL.sql` | **security**: `is_admin()` returned NULL (not FALSE) for anonymous callers, so every `IF NOT is_admin() THEN RAISE` guard failed open. COALESCE moved outside the subquery; `anon` EXECUTE revoked on the three admin RPCs | ✅ |
 | 44 | `44_NOTIFICATION_RETRY.sql` | **reliability** (issue #11): `FAILED` notifications retried with bounded exponential backoff (5 attempts: 5,10,20,40,60m). `attempts` + `next_retry_at` + `claim_notifications()` now re-queues eligible FAILED rows | ✅ |
+| 45 | `45_ADMIN_SMART_NOTIFY.sql` | fixes the ADMIN Telegram flood (stale-SENDING/FAILED-retry re-sending every 5m); adds `COMPANION_PENDING_APPROVAL` and `ADMIN_STATUS_ACCEPTED/CANCELLED/EXPIRED`; 5-minute insert-side dedupe on all three ADMIN triggers | ✅ |
 | 46 | `46_PICKUP_PRECISION.sql` | scopes `"Companions read job locations"` to the assigned companion; open feed reads `open_job_pickups()` (hospital/pincode/city) instead of joining the row | ⬜ |
 | 47 | `47_TRACKING_TRIP_STATE.sql` | `get_shared_tracking` also returns `trip_id` and `trip_status`, so the tracking page can join the private `trip:<id>` Broadcast channel and draw the real trip stage | ⬜ |
 | 48 | `48_TRIP_ETA_TARGET.sql` | `get_trip_eta_target()` — the point a trip is currently heading for (the pickup pin before the patient is collected, the hospital after). Supersedes `get_trip_destination` as what `trip-eta` calls | ⬜ |
+| 49 | `49_NOTIFICATION_DIGEST.sql` | `notification_digest_buckets` + `append_to_digest_bucket()` — buffer for INFORMATIONAL Telegram events (see `apps/website/src/lib/notificationPolicy.ts`); buffered rows still finalize `notifications.status` through their existing path, this table only accumulates ids for a periodic digest | ⬜ |
 
 \* 32 is a one-off data fix — re-run `select * from patients where customer_user_id = auth.uid() and deleted_at is null group by full_name having count(*) >1` after; flip to ✅ once merged (see `32_MERGE_DUPLICATE_PATIENTS.sql` foot query).
 
@@ -79,7 +81,11 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 - `admin_users` — editable admin allowlist read by `is_admin()`.
 - `service_areas` — served pincodes, editable at `/admin/service-areas`.
 - `app_settings` — key/value config (`instant_expiry_minutes`, …).
-- `notifications` — enqueued on status change; drained to FCM.
+- `notifications` — enqueued on status change; drained to FCM + priority-routed
+  Telegram + ops webhook (`api/cron/send-push`).
+- `notification_digest_buckets` — holds INFORMATIONAL Telegram events between
+  drain ticks until their aggregation window elapses, then flushes as one
+  digest message.
 - `trips` + location rows — live tracking.
 - `booking_transport` — recorded fares, never billed.
 - `contact_messages`, `ops_metrics`, `audit_logs`.
