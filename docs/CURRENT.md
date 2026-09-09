@@ -66,7 +66,40 @@ wall — needs Supabase URL + anon key in env or `apps/website/.env.local`).
 Note the anon key is now Supabase's newer `sb_publishable_…` format; legacy JWT
 anon keys are rejected by this project.
 
-## Needs a manual run (2026-09-04)
+## Needs a manual run (2026-09-08)
+
+**`supabase/migrations/50_NOTIFICATION_ATTENTION.sql`** — run in the Supabase
+SQL editor. Additive only (new columns on `notifications`, new
+`notification_attention` table, three new SECURITY DEFINER RPCs); nothing in
+36/44/49 changes.
+
+Fixes the actual cause of the "still pending every 2-5 min" Telegram flood:
+44's FAILED-row backoff retry (for FCM/ops) was also re-triggering Telegram on
+every reclaim, even after Telegram had already delivered — no per-channel
+memory existed. `notifications.telegram_sent_at` now remembers that, and
+`resolve_notification_attention()` gates every CRITICAL/IMPORTANT send behind
+a per-entity (booking/patient) cooldown — only a real status change, a
+crossed escalation tier, or elapsed cooldown sends; a repeat is suppressed.
+INFORMATIONAL/BUFFERED routing (49) is untouched.
+
+Also adds: time-based escalation for bookings stuck PENDING (reuses
+`bookings.expires_at`, tiers at 50%/80% elapsed — no new threshold), and
+Ack/Snooze/Escalate/Resolve buttons on every attention-gated Telegram
+message, handled by the new `apps/website/api/telegram/webhook` route.
+
+**Second manual step, after deploying the route:** register the webhook with
+Telegram —
+`POST https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://<site>/api/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>`
+— and set `TELEGRAM_WEBHOOK_SECRET` in Vercel (any random string; Telegram
+echoes it back as a header, that's the auth check). Without this step the
+buttons render but pressing one just spins — Telegram has nowhere to post
+the callback.
+
+Not yet done: no admin UI reads `notification_attention` directly (only
+Telegram sees ack/snooze/escalate state today) — add a view under
+`/admin/notifications` if the Telegram-only workflow stops being enough.
+
+---
 
 **`supabase/migrations/46_PICKUP_PRECISION.sql`** — run this **before** the
 mobile build that stores a pickup pin on every booking.

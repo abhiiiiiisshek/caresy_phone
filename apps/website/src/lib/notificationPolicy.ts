@@ -56,6 +56,20 @@ function isInformational(event: string): boolean {
   return INFORMATIONAL_PREFIXES.some((p) => event === p || event.startsWith(p));
 }
 
+export type EntityType = 'BOOKING' | 'PATIENT' | 'NOTIFICATION';
+
+/**
+ * Groups a row's IMMEDIATE-priority notifications under one attention-tracked
+ * entity (50_NOTIFICATION_ATTENTION.sql) — so "booking created" then "booking
+ * expired" on the same booking are recognized as the same ongoing dispatch
+ * problem, not two unrelated pings each starting their own cooldown.
+ */
+export function dedupeKeyFor(row: { booking_id?: string | null; patient_id?: string | null; id: string }): { key: string; entityType: EntityType } {
+  if (row.booking_id) return { key: `booking:${row.booking_id}`, entityType: 'BOOKING' };
+  if (row.patient_id) return { key: `patient:${row.patient_id}`, entityType: 'PATIENT' };
+  return { key: `notif:${row.id}`, entityType: 'NOTIFICATION' };
+}
+
 export function classify(event: string, recipientRole?: string | null): EventPolicy {
   if (CRITICAL_IMMEDIATE.has(event)) return { priority: 'CRITICAL', mode: 'IMMEDIATE' };
   if (IMPORTANT_IMMEDIATE.has(event)) return { priority: 'IMPORTANT', mode: 'IMMEDIATE' };

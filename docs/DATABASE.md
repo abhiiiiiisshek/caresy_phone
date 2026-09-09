@@ -67,6 +67,7 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 | 47 | `47_TRACKING_TRIP_STATE.sql` | `get_shared_tracking` also returns `trip_id` and `trip_status`, so the tracking page can join the private `trip:<id>` Broadcast channel and draw the real trip stage | ⬜ |
 | 48 | `48_TRIP_ETA_TARGET.sql` | `get_trip_eta_target()` — the point a trip is currently heading for (the pickup pin before the patient is collected, the hospital after). Supersedes `get_trip_destination` as what `trip-eta` calls | ⬜ |
 | 49 | `49_NOTIFICATION_DIGEST.sql` | `notification_digest_buckets` + `append_to_digest_bucket()` — buffer for INFORMATIONAL Telegram events (see `apps/website/src/lib/notificationPolicy.ts`); buffered rows still finalize `notifications.status` through their existing path, this table only accumulates ids for a periodic digest | ⬜ |
+| 50 | `50_NOTIFICATION_ATTENTION.sql` | `notifications.telegram_sent_at/telegram_message_id/telegram_chat_id` (per-channel delivery memory, stops FCM/ops retry-reclaim from re-sending an already-delivered Telegram row); `notification_attention` + `resolve_notification_attention()` (per-entity send/suppress decision: cooldown, tier, snooze) + `apply_attention_action()` (Ack/Snooze/Escalate/Resolve from `/api/telegram/webhook`) + `stuck_pending_bookings()` (reuses `bookings.expires_at` for time-based escalation, no new threshold config) | ⬜ |
 
 \* 32 is a one-off data fix — re-run `select * from patients where customer_user_id = auth.uid() and deleted_at is null group by full_name having count(*) >1` after; flip to ✅ once merged (see `32_MERGE_DUPLICATE_PATIENTS.sql` foot query).
 
@@ -86,6 +87,11 @@ not in the apps — see [ADR-0001](ADR/0001-supabase-as-backend.md).
 - `notification_digest_buckets` — holds INFORMATIONAL Telegram events between
   drain ticks until their aggregation window elapses, then flushes as one
   digest message.
+- `notification_attention` — one open row per entity (booking/patient),
+  tracks last-notified status/time/tier and admin Ack/Snooze/Escalate/Resolve
+  state; gates whether a CRITICAL/IMPORTANT Telegram send is real news or a
+  repeat to suppress (`resolve_notification_attention()`), and is the write
+  target for Telegram button presses (`apply_attention_action()`).
 - `trips` + location rows — live tracking.
 - `booking_transport` — recorded fares, never billed.
 - `contact_messages`, `ops_metrics`, `audit_logs`.

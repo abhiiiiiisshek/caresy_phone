@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { classify } from './notificationPolicy.ts';
+import { classify, dedupeKeyFor } from './notificationPolicy.ts';
 
 // Every known static event resolves as expected.
 assert.deepStrictEqual(classify('BOOKING_CREATED'), { priority: 'CRITICAL', mode: 'IMMEDIATE' });
@@ -31,5 +31,16 @@ assert.notStrictEqual(
 
 // Unrecognized events fail open: sent individually, never silently dropped.
 assert.deepStrictEqual(classify('SOMETHING_MADE_UP'), { priority: 'IMPORTANT', mode: 'IMMEDIATE' });
+
+// dedupeKeyFor: booking wins over patient, patient wins over bare row id,
+// and the same booking always yields the same key regardless of event.
+assert.deepStrictEqual(dedupeKeyFor({ booking_id: 'b1', patient_id: 'p1', id: 'n1' }), { key: 'booking:b1', entityType: 'BOOKING' });
+assert.deepStrictEqual(dedupeKeyFor({ patient_id: 'p1', id: 'n1' }), { key: 'patient:p1', entityType: 'PATIENT' });
+assert.deepStrictEqual(dedupeKeyFor({ id: 'n1' }), { key: 'notif:n1', entityType: 'NOTIFICATION' });
+assert.strictEqual(
+  dedupeKeyFor({ booking_id: 'b1', id: 'n1' }).key,
+  dedupeKeyFor({ booking_id: 'b1', id: 'n2' }).key,
+  'same booking must dedupe to one key across different notification rows',
+);
 
 console.log('notificationPolicy.check.ts: all assertions passed');

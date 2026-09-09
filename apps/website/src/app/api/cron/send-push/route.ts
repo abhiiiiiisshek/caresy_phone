@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { accessToken, projectId, sendPush } from '@/lib/fcm';
 import { mapLimit } from '@/lib/mapLimit';
-import { alertEngineering, chatIdsForRow, formatTelegramBatchForRows, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
-import { classify } from '@/lib/notificationPolicy';
+import { actionKeyboard, alertEngineering, chatIdsForRow, escapeHtml, formatTelegramBatchForRows, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
+import { classify, dedupeKeyFor } from '@/lib/notificationPolicy';
 
 // notification_digest_buckets and its RPC aren't in the generated DB types
 // yet (no Database generic is threaded through this route at all — every
@@ -34,6 +34,10 @@ type SupabaseAdmin = SupabaseClient;
 // NOTIFICATION_DIGEST_WINDOW_MINUTES (default 5) sets how long INFORMATIONAL
 // events (notificationPolicy.ts) sit in notification_digest_buckets before
 // they flush as one summary — see flushDueDigestBuckets below.
+// CRITICAL/IMPORTANT sends are gated per-entity through notification_attention
+// (50_NOTIFICATION_ATTENTION.sql) — repeats of the same status inside cooldown
+// are suppressed, not resent; see fanoutTelegram/escalateStuckBookings below.
+// Admin Ack/Snooze/Escalate/Resolve buttons post back to /api/telegram/webhook.
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +60,14 @@ interface QueuedRow {
   attempts?: number | null;
   next_retry_at?: string | null;
   claimed_at?: string | null;
+  telegram_sent_at?: string | null;
+}
+
+interface AttentionDecision {
+  should_send: boolean;
+  attention_id: string;
+  tier: number;
+  notify_count: number;
 }
 
 // Header values are latin-1 only, and a booking title is otherwise free text.
@@ -93,11 +105,20 @@ function nextRetryAt(attempts: number): string {
 // transitions ensures a concurrent tick (which claimed a disjoint set via SKIP LOCKED)
 // has no durable duplicate; SENDING stale-reclaim handles crash mid-send. Buffering
 // a row never touches notifications.status, so it can't interact with that reclaim.
+//
+// Attention gate (50_NOTIFICATION_ATTENTION.sql): a row's OWN channel status
+// (telegram_sent_at) stops the FCM/ops retry-reclaim from re-driving Telegram
+// once Telegram already delivered — that reclaim loop was the actual cause of
+// "still pending" repeating every 5-60 min. resolve_notification_attention()
+// then decides, per entity (booking/patient), whether this send is real news
+// (status changed, tier crossed, or cooldown elapsed) or a repeat to suppress.
+// Attention checks run sequentially (not mapLimit) — row volume here is small
+// and two rows for the same entity in one tick must not race the same key.
 const TELEGRAM_CONCURRENCY = 5;
 
-async function fanoutTelegram(rows: QueuedRow[], supabase: SupabaseAdmin): Promise<{ sent: number; skipped: number; failed: number; buffered: number }> {
+async function fanoutTelegram(rows: QueuedRow[], supabase: SupabaseAdmin): Promise<{ sent: number; skipped: number; failed: number; buffered: number; suppressed: number }> {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  if (!token) return { sent: 0, skipped: rows.length, failed: 0, buffered: 0 };
+  if (!token) return { sent: 0, skipped: rows.length, failed: 0, buffered: 0, suppressed: 0 };
   // In-memory per-tick dedupe: if the same id appears twice in one tick, send once.
   const seen = new Set<string>();
   const toSend = rows.filter((r) => {
@@ -105,7 +126,7 @@ async function fanoutTelegram(rows: QueuedRow[], supabase: SupabaseAdmin): Promi
     seen.add(r.id);
     return chatIdsForRow(r).length > 0;
   });
-  if (!toSend.length) return { sent: 0, skipped: rows.length - toSend.length, failed: 0, buffered: 0 };
+  if (!toSend.length) return { sent: 0, skipped: rows.length - toSend.length, failed: 0, buffered: 0, suppressed: 0 };
 
   const immediate: QueuedRow[] = [];
   const buffered: QueuedRow[] = [];
@@ -132,15 +153,48 @@ async function fanoutTelegram(rows: QueuedRow[], supabase: SupabaseAdmin): Promi
     );
   }
 
-  const results = await mapLimit(immediate, TELEGRAM_CONCURRENCY, async (row) => {
+  let suppressed = 0;
+  const gated: Array<{ row: QueuedRow; attentionId: string }> = [];
+  for (const row of immediate) {
+    if (row.telegram_sent_at) { suppressed++; continue; } // already delivered; don't let an FCM/ops retry resend it
+    const { key, entityType } = dedupeKeyFor(row);
+    const { priority } = classify(row.event, row.recipient_role);
+    const { data, error } = await supabase.rpc('resolve_notification_attention', {
+      p_dedupe_key: key,
+      p_entity_type: entityType,
+      p_status: row.event,
+      p_priority: priority,
+    });
+    if (error) { gated.push({ row, attentionId: '' }); continue; } // attention RPC down: fail open, never silently drop
+    const decision = (Array.isArray(data) ? data[0] : data) as AttentionDecision | undefined;
+    if (!decision?.should_send) { suppressed++; continue; }
+    gated.push({ row, attentionId: decision.attention_id });
+  }
+
+  const results = await mapLimit(gated, TELEGRAM_CONCURRENCY, async ({ row, attentionId }) => {
     const chats = chatIdsForRow(row);
     const { priority } = classify(row.event, row.recipient_role);
     const text = formatTelegramForRow(row as any, priority);
+    const replyMarkup = attentionId ? actionKeyboard(attentionId) : undefined;
     // fan out to every chat for this role (usually 1)
     const outs = await Promise.all(
-      chats.map((chatId) => sendTelegram(text, { chatId })),
+      chats.map((chatId) => sendTelegram(text, { chatId, replyMarkup })),
     );
+    const first = outs.find((o) => o.ok) as { ok: true; messageId?: number } | undefined;
     const failed = outs.find((o) => !o.ok) as { ok: false; error: string } | undefined;
+    if (first) {
+      await supabase.from('notifications').update({
+        telegram_sent_at: new Date().toISOString(),
+        telegram_message_id: first.messageId ?? null,
+        telegram_chat_id: chats[0] ?? null,
+      }).eq('id', row.id);
+      if (attentionId) {
+        await supabase.from('notification_attention').update({
+          last_message_id: first.messageId ?? null,
+          last_chat_id: chats[0] ?? null,
+        }).eq('id', attentionId);
+      }
+    }
     return failed ? { ok: false as const, error: failed.error } : { ok: true as const };
   });
 
@@ -149,7 +203,59 @@ async function fanoutTelegram(rows: QueuedRow[], supabase: SupabaseAdmin): Promi
   results.forEach((r) => (r.ok ? sent++ : failed++));
   // rows with no chat configured count as skipped (env missing for that role)
   const skipped = rows.length - toSend.length;
-  return { sent, skipped, failed, buffered: buffered.length };
+  return { sent, skipped, failed, buffered: buffered.length, suppressed };
+}
+
+// Time-based escalation for bookings stuck PENDING — reuses bookings.expires_at
+// (already set per booking_type by 13_LIFECYCLE) instead of a new threshold:
+// tier 1 at 50% of the booking's own expiry window elapsed, tier 2 at 80%.
+// Goes through the same resolve_notification_attention() gate as event-driven
+// sends, so a tier only pings once, not every tick it stays crossed.
+// ponytail: two fixed fractions, not a config table — the event set here is
+// one query, not 9 SQL triggers like notificationPolicy; add a setting if that changes.
+async function escalateStuckBookings(supabase: SupabaseAdmin): Promise<{ escalated: number }> {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  if (!token) return { escalated: 0 };
+  const { data: stuck } = await supabase.rpc('stuck_pending_bookings');
+  if (!stuck?.length) return { escalated: 0 };
+
+  let escalated = 0;
+  for (const b of stuck as Array<{ booking_id: string; reference_code: string | null; service_type: string | null; expires_at: string; elapsed_fraction: number }>) {
+    const fraction = Number(b.elapsed_fraction) || 0;
+    const tier = fraction >= 0.8 ? 2 : fraction >= 0.5 ? 1 : 0;
+    if (tier === 0) continue;
+
+    const priority = tier >= 2 ? 'CRITICAL' : 'IMPORTANT';
+    const { data, error } = await supabase.rpc('resolve_notification_attention', {
+      p_dedupe_key: `booking:${b.booking_id}`,
+      p_entity_type: 'BOOKING',
+      p_status: `STUCK_TIER_${tier}`,
+      p_priority: priority,
+      p_forced_tier: tier,
+    });
+    if (error) continue;
+    const decision = (Array.isArray(data) ? data[0] : data) as AttentionDecision | undefined;
+    if (!decision?.should_send) continue;
+
+    const chats = chatIdsForRow({ recipient_role: 'ADMIN' });
+    if (!chats.length) continue;
+
+    const minsLeft = Math.max(0, Math.round((new Date(b.expires_at).getTime() - Date.now()) / 60_000));
+    const ref = escapeHtml(b.reference_code ?? b.booking_id.slice(0, 8));
+    const text = `${tier >= 2 ? '🚨' : '⏳'} <b>Still unassigned</b> — booking <code>${ref}</code>\n`
+      + `${escapeHtml(b.service_type ?? '')} • expires in ~${minsLeft} min\n`
+      + `<code>${escapeHtml(b.booking_id.slice(0, 8))}</code>`;
+    const outs = await Promise.all(chats.map((chatId) => sendTelegram(text, { chatId, replyMarkup: actionKeyboard(decision.attention_id) })));
+    const first = outs.find((o) => o.ok) as { ok: true; messageId?: number } | undefined;
+    if (first) {
+      await supabase.from('notification_attention').update({
+        last_message_id: first.messageId ?? null,
+        last_chat_id: chats[0] ?? null,
+      }).eq('id', decision.attention_id);
+      escalated++;
+    }
+  }
+  return { escalated };
 }
 
 // Flushes any digest bucket whose aggregation window has elapsed into one
@@ -265,6 +371,14 @@ export async function GET(request: Request) {
     await alertEngineering(`send-push digest flush failed: ${(e as Error).message}`);
   }
 
+  // Time-based escalation for stuck PENDING bookings — must also run on a
+  // tick with zero freshly-claimed rows, same reasoning as the digest flush.
+  try {
+    await escalateStuckBookings(supabase);
+  } catch (e) {
+    await alertEngineering(`send-push stuck-booking escalation failed: ${(e as Error).message}`);
+  }
+
   // Claim-before-send: atomically move QUEUED (+ stale SENDING) → SENDING.
   // FOR UPDATE SKIP LOCKED ensures concurrent ticks claim disjoint sets.
   const { data: rows, error: readErr } = await supabase.rpc('claim_notifications', {
@@ -283,7 +397,7 @@ export async function GET(request: Request) {
   // Runs alongside FCM/ops; failures are best-effort and do not block FCM.
   // In-memory per-tick Set + DB SENDING guard ensures no persistent double-send;
   // a live send needs TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID — without them this is a no-op.
-  let telegram: { sent: number; skipped: number; failed: number; buffered: number } = { sent: 0, skipped: 0, failed: 0, buffered: 0 };
+  let telegram: { sent: number; skipped: number; failed: number; buffered: number; suppressed: number } = { sent: 0, skipped: 0, failed: 0, buffered: 0, suppressed: 0 };
   try {
     telegram = await fanoutTelegram(all, supabase);
   } catch (e) {

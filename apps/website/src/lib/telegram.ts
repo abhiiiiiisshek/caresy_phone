@@ -27,7 +27,7 @@ function botToken(): string | null {
   return t || null;
 }
 
-function escapeHtml(s: string): string {
+export function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -38,12 +38,14 @@ export interface TelegramOpts {
   chatId?: string;
   parseMode?: 'HTML' | 'MarkdownV2';
   disablePreview?: boolean;
+  /** Inline keyboard, e.g. actionKeyboard() below. Telegram's raw shape, passed through as-is. */
+  replyMarkup?: unknown;
 }
 
 export async function sendTelegram(
   text: string,
   opts?: TelegramOpts,
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<{ ok: true; messageId?: number } | { ok: false; error: string }> {
   const token = botToken();
   if (!token) return { ok: true }; // env missing → silent no-op
 
@@ -66,9 +68,13 @@ export async function sendTelegram(
             text,
             parse_mode: opts?.parseMode ?? 'HTML',
             disable_web_page_preview: opts?.disablePreview ?? true,
+            ...(opts?.replyMarkup ? { reply_markup: opts.replyMarkup } : {}),
           }),
         });
-        if (res.ok) return { ok: true as const };
+        if (res.ok) {
+          const body = await res.json().catch(() => null) as { result?: { message_id?: number } } | null;
+          return { ok: true as const, messageId: body?.result?.message_id };
+        }
         const body = await res.text().catch(() => '');
         return {
           ok: false as const,
@@ -82,7 +88,58 @@ export async function sendTelegram(
 
   const failed = results.find((r) => !r.ok) as { ok: false; error: string } | undefined;
   if (failed) return failed;
-  return { ok: true };
+  return results[0] ?? { ok: true };
+}
+
+/**
+ * Inline keyboard for an attention-tracked row — buttons post back to
+ * /api/telegram/webhook as `<ACTION>:<attention_id>`, handled against
+ * apply_attention_action() (50_NOTIFICATION_ATTENTION.sql).
+ */
+export function actionKeyboard(attentionId: string) {
+  return {
+    inline_keyboard: [[
+      { text: '✅ Ack', callback_data: `ACK:${attentionId}` },
+      { text: '⏰ Snooze 30m', callback_data: `SNOOZE:${attentionId}` },
+      { text: '⬆️ Escalate', callback_data: `ESCALATE:${attentionId}` },
+      { text: '✔️ Resolve', callback_data: `RESOLVE:${attentionId}` },
+    ]],
+  };
+}
+
+/** Swap a sent message's buttons for a single status line, e.g. after Ack. */
+export function statusKeyboard(label: string) {
+  return { inline_keyboard: [[{ text: label, callback_data: 'NOOP' }]] };
+}
+
+/** Replace a message's inline keyboard in place — never touches the message text. */
+export async function editTelegramReplyMarkup(chatId: string, messageId: number, replyMarkup: unknown): Promise<void> {
+  const token = botToken();
+  if (!token) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/editMessageReplyMarkup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, message_id: messageId, reply_markup: replyMarkup }),
+    });
+  } catch {
+    // best-effort — a failed edit just leaves the old buttons visible
+  }
+}
+
+/** Telegram requires acknowledging every callback query, or the client shows a spinner/timeout. */
+export async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
+  const token = botToken();
+  if (!token) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ callback_query_id: callbackQueryId, text: text?.slice(0, 200) }),
+    });
+  } catch {
+    // best-effort
+  }
 }
 
 /**

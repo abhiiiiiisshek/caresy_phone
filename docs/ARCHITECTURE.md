@@ -44,7 +44,7 @@ second copy somewhere else.
 | Approvals, dispatch, service areas, analytics | `apps/admin` | migrations 10, 11, 15, 19 |
 | Payment ledger + waiving a bill | `apps/admin/payments` | reads migration 26 columns; waive relies on the trigger's `is_admin()` exemption |
 | Live tracking + share links | migrations 16–18, 22; `apps/website/tracking` | `share_token`, no account needed |
-| Notifications | migrations 13, 20, 21, 24, 49; `api/cron/send-push`, `lib/notificationPolicy.ts` | enqueue in DB, drain over HTTP to FCM + priority-routed Telegram + ops |
+| Notifications | migrations 13, 20, 21, 24, 49, 50; `api/cron/send-push`, `api/telegram/webhook`, `lib/notificationPolicy.ts` | enqueue in DB, drain over HTTP to FCM + priority-routed Telegram + ops; attention-gated per entity, admin-actionable via Telegram buttons |
 | Transport facilitation | migration 27 | recorded, never billed (ADR-0006) |
 | Native shell | `apps/mobile` | no product logic lives here |
 
@@ -69,6 +69,19 @@ webhook alongside it. Telegram delivery is priority-routed
 INFORMATIONAL events buffer into `notification_digest_buckets` (migration 49)
 and flush as one periodic digest.
 
+CRITICAL/IMPORTANT sends are also gated per entity through
+`notification_attention` (migration 50): `resolve_notification_attention()`
+only lets a send through on real news (status changed, an escalation tier
+crossed, or cooldown elapsed) — a channel retry (FCM/ops backoff, migration
+44) reclaiming the same row never re-fires Telegram, since `telegram_sent_at`
+on the row itself remembers that channel already delivered. The same tick
+also runs `escalateStuckBookings`, which reuses `bookings.expires_at` to
+raise urgency on a booking sitting PENDING past 50%/80% of its own expiry
+window — no separate stuck-detection threshold. Every attention-gated message
+carries Ack/Snooze/Escalate/Resolve buttons; presses post to
+`api/telegram/webhook`, which calls `apply_attention_action()` and edits the
+message's buttons in place.
+
 ## Server-side surface
 
 Almost everything is a direct Supabase query from the client under RLS. The only
@@ -77,7 +90,8 @@ server routes:
 | Route | Purpose | Auth |
 |---|---|---|
 | `apps/website/api/cron/expire-bookings` | expiry sweep (backup to pg_cron) | `CRON_SECRET` |
-| `apps/website/api/cron/send-push` | drain `notifications` → FCM + priority-routed Telegram + ops webhook | `CRON_SECRET` + service-role key |
+| `apps/website/api/cron/send-push` | drain `notifications` → FCM + attention-gated Telegram + ops webhook | `CRON_SECRET` + service-role key |
+| `apps/website/api/telegram/webhook` | receives Ack/Snooze/Escalate/Resolve button presses | `TELEGRAM_WEBHOOK_SECRET` (Telegram's `secret_token`) |
 
 Privileged writes are SECURITY DEFINER Postgres functions, not API routes —
 see `docs/SECURITY.md`.
