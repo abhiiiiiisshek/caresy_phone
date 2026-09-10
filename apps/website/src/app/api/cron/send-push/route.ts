@@ -525,6 +525,22 @@ export async function GET(request: Request) {
     tokensByUser.set(t.user_id as string, list);
   }
 
+  // Push is optional, same as Telegram/ops: no FIREBASE_SERVICE_ACCOUNT means
+  // "not set up yet", not "broken" — skip quietly instead of alerting
+  // engineering every tick for a channel nobody configured. A SET-but-malformed
+  // value below is a real bug and still alerts.
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT?.trim()) {
+    await supabase
+      .from('notifications')
+      .update({ status: 'SKIPPED', error: 'FIREBASE_SERVICE_ACCOUNT not configured' })
+      .in('id', deliverable.map((r) => r.id))
+      .eq('status', 'SENDING');
+    return NextResponse.json({
+      sent: 0, failed: 0, skipped: undeliverable.length + deliverable.length,
+      ops: opsRows.length, telegram, ranAt: new Date().toISOString(),
+    });
+  }
+
   let bearer: string;
   let project: string;
   try {
