@@ -1,6 +1,6 @@
 // Self-check for the encrypted-session round trip.
-//   node --experimental-strip-types lib/sessionCrypto.check.ts
-// from apps/mobile-app. Silence means pass.
+//   node --experimental-strip-types src/sessionCrypto.check.ts
+// from packages/native. Silence means pass.
 //
 // The property that matters is not "encrypt then decrypt returns the input" —
 // it is that decrypting with the WRONG key returns null instead of throwing or

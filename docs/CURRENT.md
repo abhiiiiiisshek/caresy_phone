@@ -1,6 +1,6 @@
 # Current state
 
-_Updated: 2026-08-31. First real customers expected 2026-08-02._
+_Updated: 2026-09-16. First real customers expected 2026-08-02._
 
 Short-lived working memory: what is in flight, what is known-broken, what is
 next. Not architecture — a thing that settles here for good belongs in
@@ -8,6 +8,73 @@ next. Not architecture — a thing that settles here for good belongs in
 here is worse than nothing.
 
 Read this first after a `/clear`.
+
+## Admin iOS app — code complete, not yet buildable on EAS (2026-09-16)
+
+`apps/admin-app`, the dispatch desk on a phone. ADR-0014 has the why; what is
+in flight:
+
+- Screens: a board bucketed **Needs action / Upcoming / Active / Done**, and a
+  booking detail that assigns a companion and overrides status through the same
+  `admin_save_booking_edit` RPC the admin website uses. Dark command-deck UI,
+  its own tokens in `apps/admin-app/lib/theme.ts`.
+- `packages/native` is new: the Supabase client and its encrypted session
+  storage moved out of `apps/mobile-app/lib/supabase.ts` so both Expo apps share
+  one copy. `apps/mobile-app/lib/supabase.ts` and `lib/sessionCrypto.ts` are now
+  re-exports; nothing else in the customer app changed, and it still bundles.
+- Push: migration **51** lets `api/cron/send-push` resolve admin user ids and
+  fan ADMIN-role rows out to `push_tokens`, and adds a per-tick sweep for
+  scheduled visits still unstaffed inside their lead window
+  (`UNSTAFFED_LEAD_MINUTES`, default 90).
+- `lib/expoPush.ts` fixes a live bug while it is there: both native apps mint
+  **Expo** push tokens, and the FCM v1 path was rejecting them as
+  INVALID_ARGUMENT and then *deleting* them as dead. Transport is now chosen per
+  token by shape.
+
+**Done (2026-09-17):** migration 51 applied; Apple App ID `in.co.caresy.admin`
+created with the Push Notifications capability; App Store Connect record
+created; `apps/admin-app/.env.local` written. `eas.json` deliberately carries no
+`ascAppId` — EAS resolves the app from the bundle identifier using the API key
+already configured, so adding one would be a second place to keep in sync.
+
+**Still blocked on you:**
+
+1. **The EAS project needs to be a *new* one, created from `apps/admin-app`.**
+   `eas init` was run from the repo root, so it wrote a stray `/app.json`
+   holding projectId `7a1b5ed6-89ec-4c34-bb40-2df4058964a7`. That id is
+   `@caresys-team/caresy` — **the customer app's project**, already carrying its
+   builds (Android development build, 2026-07-14). Pointing the admin app there
+   would put both apps' EAS Update channels in one namespace, so an admin
+   `production` update could be served to customer-app clients on a matching
+   runtimeVersion. The stray file is deleted and `extra.eas.projectId` is left
+   as the literal `SET_BY_EAS_INIT`, which `lib/auth.tsx` treats as "no push" —
+   it fails loud instead of delivering into the wrong project.
+
+   Run from **`apps/admin-app`**, not the repo root, and choose *create a new
+   project* when prompted:
+
+   ```
+   cd apps/admin-app
+   npx eas init                # pick "create a new project" → caresy-admin
+   npx eas update:configure    # writes the updates.url expo-updates needs
+   ```
+
+   `owner` is already set to `caresys-team`, so the new project lands on the
+   team account rather than a personal one.
+2. **An admin review account.** The app is email + password only, so the
+   consumer review account will not work — it is not on the `admin_users`
+   allowlist and would land Apple on the "Not an ops account" screen.
+   `docs/APP_REVIEW_NOTES.md` has the section, including the PII trade a live
+   admin account makes and the procedure for closing it after approval.
+3. **Icons are the old brand mark.** `scripts/make-icons.py` derives all six
+   assets from `apps/website/public/icon-512.png`, which `docs/NEXT_SESSION.md`
+   says is still the pre-lockup logo. Replace that file, then re-run for both
+   apps.
+
+Deliberately **not** done: no live-trip map, no payments, no analytics, no
+companion approvals — the website still owns those and nobody asked to carry
+them in a pocket. The board polls every 30s rather than using Supabase Realtime,
+which would need `bookings` added to the `supabase_realtime` publication.
 
 ## Android release readiness — audit done, rebuild pending (2026-08-31)
 
@@ -21,12 +88,12 @@ detail in `docs/PLAY_STORE_RELEASE.md`; the short version:
   bundle. Push registration and the tracking map were silently dead on every
   store build. Now static imports, verified against a bundle sourcemap.
 - App icon, splash and notification icon were Expo's placeholder on **both**
-  platforms — so the TestFlight build carries it too. `apps/mobile-app/scripts/make-icons.py`
+  platforms — so the TestFlight build carries it too. `scripts/make-icons.py`
   regenerates all six from the website's brand mark.
 - `expo-image-picker` was pulling `RECORD_AUDIO` into the manifest.
   `app.json` now pins `android.permissions` / `blockedPermissions`.
 - `LargeSecureStore.getItem` crashed on launch after an Android backup-restore.
-  Pure half extracted to `lib/sessionCrypto.ts` with a self-check.
+  Pure half extracted to `packages/native/src/sessionCrypto.ts` with a self-check.
 
 **Open, and only you can do them:** rotate the App Review demo password
 (`DEMO_APP_REVIEW_PASSWORD`, see `docs/APP_REVIEW_NOTES.md` — the old one was

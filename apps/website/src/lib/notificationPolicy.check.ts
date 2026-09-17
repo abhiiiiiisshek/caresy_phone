@@ -3,6 +3,9 @@ import { classify, dedupeKeyFor } from './notificationPolicy.ts';
 
 // Every known static event resolves as expected.
 assert.deepStrictEqual(classify('BOOKING_CREATED'), { priority: 'CRITICAL', mode: 'IMMEDIATE' });
+// An unstaffed visit inside its lead window pages the desk like a new booking,
+// and must never be swept into a digest (migration 51).
+assert.deepStrictEqual(classify('BOOKING_UPCOMING_UNSTAFFED', 'ADMIN'), { priority: 'CRITICAL', mode: 'IMMEDIATE' });
 assert.deepStrictEqual(classify('BOOKING_CANCELLED'), { priority: 'CRITICAL', mode: 'IMMEDIATE' });
 assert.deepStrictEqual(classify('ADMIN_STATUS_CANCELLED'), { priority: 'CRITICAL', mode: 'IMMEDIATE' });
 assert.deepStrictEqual(classify('COMPANION_PENDING_APPROVAL'), { priority: 'IMPORTANT', mode: 'IMMEDIATE' });

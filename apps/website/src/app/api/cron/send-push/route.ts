@@ -4,6 +4,7 @@ import { accessToken, projectId, sendPush } from '@/lib/fcm';
 import { mapLimit } from '@/lib/mapLimit';
 import { actionKeyboard, alertEngineering, chatIdsForRow, escapeHtml, formatTelegramBatchForRows, formatTelegramForRow, sendTelegram } from '@/lib/telegram';
 import { classify, dedupeKeyFor } from '@/lib/notificationPolicy';
+import { isExpoToken, sendExpoPush } from '@/lib/expoPush';
 
 // notification_digest_buckets and its RPC aren't in the generated DB types
 // yet (no Database generic is threaded through this route at all — every
@@ -38,6 +39,9 @@ type SupabaseAdmin = SupabaseClient;
 // (50_NOTIFICATION_ATTENTION.sql) — repeats of the same status inside cooldown
 // are suppressed, not resent; see fanoutTelegram/escalateStuckBookings below.
 // Admin Ack/Snooze/Escalate/Resolve buttons post back to /api/telegram/webhook.
+// ADMIN-role rows additionally push to every admin device registered in
+// push_tokens by apps/admin-app (migration 51) — no extra env, because Expo
+// push needs no server credential of ours.
 
 export const dynamic = 'force-dynamic';
 
@@ -213,6 +217,57 @@ async function fanoutTelegram(rows: QueuedRow[], supabase: SupabaseAdmin): Promi
 // sends, so a tier only pings once, not every tick it stays crossed.
 // ponytail: two fixed fractions, not a config table — the event set here is
 // one query, not 9 SQL triggers like notificationPolicy; add a setting if that changes.
+/**
+ * Pushes ADMIN-role rows to every admin's registered device.
+ *
+ * These rows carry no recipient_user_id — they are addressed to the desk, not a
+ * person — so the per-user device path below never sees them, and until the
+ * admin app existed Telegram was the only way they reached anybody. The admin
+ * ids come from a SECURITY DEFINER RPC because auth.users is not reachable over
+ * PostgREST even with the service-role key.
+ *
+ * Best-effort, exactly like the Telegram fan-out: the returned set says which
+ * rows reached at least one device, and the caller uses that to decide whether
+ * a row can be closed as SENT when no webhook and no Telegram chat exist.
+ */
+async function pushAdminDevices(rows: QueuedRow[], supabase: SupabaseAdmin): Promise<Set<string>> {
+  const delivered = new Set<string>();
+  if (!rows.length) return delivered;
+
+  const { data: admins, error: adminErr } = await supabase.rpc('admin_push_user_ids');
+  if (adminErr || !admins?.length) return delivered;
+
+  const { data: tokenRows } = await supabase
+    .from('push_tokens')
+    .select('token')
+    .in('user_id', (admins as { user_id: string }[]).map((a) => a.user_id));
+
+  // Admin devices are Expo builds; a stray FCM token here would need the
+  // service account the FCM path already owns, so leave it to that path.
+  const tokens = (tokenRows ?? []).map((t) => t.token as string).filter(isExpoToken);
+  if (!tokens.length) return delivered;
+
+  const retire = new Set<string>();
+  for (const row of rows) {
+    const results = await sendExpoPush(tokens.map((token) => ({
+      token,
+      title: row.title,
+      body: row.body,
+      data: {
+        event: row.event,
+        ...(row.booking_id ? { booking_id: row.booking_id } : {}),
+        ...(row.patient_id ? { patient_id: row.patient_id } : {}),
+      },
+    })));
+    results.forEach((r, i) => { if (!r.ok && r.retire) retire.add(tokens[i]); });
+    // One live device is a delivered notification.
+    if (results.some((r) => r.ok)) delivered.add(row.id);
+  }
+
+  if (retire.size) await supabase.from('push_tokens').delete().in('token', [...retire]);
+  return delivered;
+}
+
 async function escalateStuckBookings(supabase: SupabaseAdmin): Promise<{ escalated: number }> {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) return { escalated: 0 };
@@ -379,6 +434,18 @@ export async function GET(request: Request) {
     await alertEngineering(`send-push stuck-booking escalation failed: ${(e as Error).message}`);
   }
 
+  // Scheduled visits that are still unstaffed as their start time approaches.
+  // Writes ordinary ADMIN notification rows (migration 51) rather than sending
+  // anything itself, so they inherit this whole delivery path — including the
+  // dedupe that stops a per-minute sweep from paging 60 times.
+  try {
+    await supabase.rpc('enqueue_upcoming_unstaffed_bookings', {
+      p_lead_minutes: Number(process.env.UNSTAFFED_LEAD_MINUTES) || 90,
+    });
+  } catch (e) {
+    await alertEngineering(`send-push upcoming-unstaffed sweep failed: ${(e as Error).message}`);
+  }
+
   // Claim-before-send: atomically move QUEUED (+ stale SENDING) → SENDING.
   // FOR UPDATE SKIP LOCKED ensures concurrent ticks claim disjoint sets.
   const { data: rows, error: readErr } = await supabase.rpc('claim_notifications', {
@@ -412,6 +479,16 @@ export async function GET(request: Request) {
   // only party who can act on it — never told at all.
   const opsRows = all.filter((r) => r.recipient_role === 'ADMIN' && !r.recipient_user_id);
   const opsWebhook = process.env.OPS_WEBHOOK_URL;
+
+  // Admin phones (apps/admin-app). Runs whether or not a webhook is configured:
+  // the desk should be paged on the device it actually carries, and a webhook
+  // that posts into some other system is not a substitute for that.
+  let adminDevice = new Set<string>();
+  try {
+    adminDevice = await pushAdminDevices(opsRows, supabase);
+  } catch (e) {
+    await alertEngineering(`send-push admin device push failed: ${(e as Error).message}`);
+  }
   // FIX: don't leave ADMIN rows SENDING forever when webhook missing — rely on Telegram
   // (was the cause of 5m flood). If Telegram already sent for that ADMIN row, mark SENT.
   let opsOutcomes: Array<{ id: string; status: string; error: string | null }> = [];
@@ -425,9 +502,13 @@ export async function GET(request: Request) {
       // telegram had failures - mark those ADMIN rows FAILED with backoff, rest SENT
       // conservative: mark all as FAILED to retry with backoff (44 logic)
       for (const r of opsRows) {
-        const hasChat = chatIdsForRow(r).length > 0;
+        // Reached the desk if Telegram has somewhere to send it OR a device took it.
+        const hasChat = chatIdsForRow(r).length > 0 || adminDevice.has(r.id);
         if (!hasChat) {
-          await supabase.from('notifications').update({ status: 'SKIPPED', error: 'no OPS_WEBHOOK_URL and no TELEGRAM_CHAT_ID_ADMIN', sent_at: null }).eq('id', r.id).eq('status','SENDING');
+          await supabase.from('notifications').update({ status: 'SKIPPED', error: 'no OPS_WEBHOOK_URL, no TELEGRAM_CHAT_ID_ADMIN, no admin device', sent_at: null }).eq('id', r.id).eq('status','SENDING');
+        } else if (adminDevice.has(r.id)) {
+          // Telegram failed but the admin's phone has it — that is delivered.
+          await supabase.from('notifications').update({ status: 'SENT', error: null, sent_at: nowIso }).eq('id', r.id).eq('status', 'SENDING');
         } else {
           const prev = (r.attempts ?? 0) as number;
           const nextAttempts = prev + 1;
@@ -438,9 +519,10 @@ export async function GET(request: Request) {
     } else {
       // telegram succeeded or was skipped per-role
       for (const r of opsRows) {
-        const hasChat = chatIdsForRow(r).length > 0;
+        // Reached the desk if Telegram has somewhere to send it OR a device took it.
+        const hasChat = chatIdsForRow(r).length > 0 || adminDevice.has(r.id);
         if (!hasChat) {
-          await supabase.from('notifications').update({ status: 'SKIPPED', error: 'no OPS_WEBHOOK_URL and no TELEGRAM_CHAT_ID_ADMIN', sent_at: null }).eq('id', r.id).eq('status','SENDING');
+          await supabase.from('notifications').update({ status: 'SKIPPED', error: 'no OPS_WEBHOOK_URL, no TELEGRAM_CHAT_ID_ADMIN, no admin device', sent_at: null }).eq('id', r.id).eq('status','SENDING');
         } else {
           await supabase.from('notifications').update({ status: 'SENT', error: null, sent_at: nowIso }).eq('id', r.id).eq('status','SENDING');
         }
@@ -478,7 +560,7 @@ export async function GET(request: Request) {
 
   const queued = all.filter((r) => !opsRows.includes(r));
   if (!queued.length) {
-    return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ops: opsRows.length, telegram: telegram, ranAt: new Date().toISOString() });
+    return NextResponse.json({ sent: 0, failed: 0, skipped: 0, ops: opsRows.length, adminDevice: adminDevice.size, telegram: telegram, ranAt: new Date().toISOString() });
   }
 
   // Booking-status rows predate recipient_user_id (13_LIFECYCLE enqueues by role
@@ -525,11 +607,20 @@ export async function GET(request: Request) {
     tokensByUser.set(t.user_id as string, list);
   }
 
+  // Transport is decided per token, by shape. The native apps register **Expo**
+  // push tokens; handing one of those to FCM v1 is an INVALID_ARGUMENT, which
+  // shouldRetireToken reads as a dead device and deletes — so every device the
+  // apps registered was being retired on its first notification. Expo tokens go
+  // to Expo (no server credential needed), everything else to FCM.
+  const everyToken = [...tokensByUser.values()].flat();
+  const fcmReady = !!process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
+
   // Push is optional, same as Telegram/ops: no FIREBASE_SERVICE_ACCOUNT means
   // "not set up yet", not "broken" — skip quietly instead of alerting
   // engineering every tick for a channel nobody configured. A SET-but-malformed
-  // value below is a real bug and still alerts.
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT?.trim()) {
+  // value below is a real bug and still alerts. Only bail out wholesale when
+  // there is nothing Expo could have carried either.
+  if (!fcmReady && !everyToken.some(isExpoToken)) {
     await supabase
       .from('notifications')
       .update({ status: 'SKIPPED', error: 'FIREBASE_SERVICE_ACCOUNT not configured' })
@@ -541,11 +632,13 @@ export async function GET(request: Request) {
     });
   }
 
-  let bearer: string;
-  let project: string;
+  let bearer: string | null = null;
+  let project: string | null = null;
   try {
-    bearer = await accessToken();
-    project = projectId();
+    if (fcmReady && everyToken.some((t) => !isExpoToken(t))) {
+      bearer = await accessToken();
+      project = projectId();
+    }
   } catch (e) {
     // Leave everything SENDING — this is a configuration problem, not a per-row
     // one. Rows stay SENDING and stale-reclaim (5m) will make them eligible again;
@@ -560,25 +653,38 @@ export async function GET(request: Request) {
   let noDevice = 0;
 
   const outcomes = await mapLimit(deliverable, CONCURRENCY, async (row) => {
-    const tokens = tokensByUser.get(row.recipient_user_id as string) ?? [];
-    if (!tokens.length) return { id: row.id, status: 'SKIPPED', error: 'no registered device' };
+    const registered = tokensByUser.get(row.recipient_user_id as string) ?? [];
+    // A raw FCM token with no service account configured is the pre-existing
+    // "not set up yet" case and stays SKIPPED, not FAILED — a FAILED row would
+    // retry forever against a channel nobody has configured.
+    const tokens = registered.filter((t) => isExpoToken(t) || (fcmReady && bearer && project));
+    if (!tokens.length) {
+      return {
+        id: row.id,
+        status: 'SKIPPED',
+        error: registered.length ? 'FIREBASE_SERVICE_ACCOUNT not configured' : 'no registered device',
+      };
+    }
+
+    const message = (token: string) => ({
+      token,
+      title: row.title,
+      body: row.body,
+      data: {
+        event: row.event,
+        ...(row.booking_id ? { booking_id: row.booking_id } : {}),
+        ...(row.patient_id ? { patient_id: row.patient_id } : {}),
+      },
+    });
 
     const results = await Promise.all(
       tokens.map((token) =>
-        sendPush(
-          {
-            token,
-            title: row.title,
-            body: row.body,
-            data: {
-              event: row.event,
-              ...(row.booking_id ? { booking_id: row.booking_id } : {}),
-              ...(row.patient_id ? { patient_id: row.patient_id } : {}),
-            },
-          },
-          bearer,
-          project,
-        ),
+        // ponytail: one Expo request per token rather than one per batch of
+        // 100. Batch them if a single recipient ever has enough devices to
+        // matter — today it is one or two.
+        isExpoToken(token)
+          ? sendExpoPush([message(token)]).then((r) => r[0] ?? { ok: false as const, error: 'no ticket returned', retire: false })
+          : sendPush(message(token), bearer as string, project as string),
       ),
     );
 

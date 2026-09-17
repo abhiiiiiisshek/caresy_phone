@@ -17,12 +17,12 @@ Easy Logo(1).png` and siblings), cropped + chroma-keyed by an ad-hoc one-off
 script, not committed. In-app UI has zero references to any icon asset —
 confirmed by grep, not assumed.
 
-**`apps/mobile-app/scripts/make-icons.py` already exists and does this job
+**`scripts/make-icons.py` already exists and does this job
 properly** — read it before touching icons again, do not repeat today's ad-hoc
 approach. It derives all six assets from `apps/website/public/icon-512.png`
-(hardcoded `BRAND = (2, 140, 99)`, same green sampled from that file). **That
+(default `BRAND_DEFAULT = (2, 140, 99)`, same green sampled from that file; `--mark` / `--plate` override it). **That
 file is still the OLD logo** — confirmed by pixel-sampling, matches the old
-`BRAND` constant exactly. **Running `python3 scripts/make-icons.py` right now
+`BRAND_DEFAULT` constant exactly. **Running `python3 scripts/make-icons.py --out apps/mobile-app/assets` right now
 would silently revert today's swap back to the old mark.** Before anyone runs
 it again: replace `apps/website/public/icon-512.png` with the new logo first
 (website favicon/PWA icon is presumably still on the old mark too — not
@@ -136,7 +136,7 @@ rm -rf android    # then re-check the fingerprint still matches — see below
 `cb55a65148f32d660543fe344dbd8a9773df17bd`). Leftover prebuild output is exactly
 what broke builds 2 and 3. Confirmed clean after this session's prebuild.
 
-Icons are now generated, not hand-placed: `apps/mobile-app/scripts/make-icons.py`
+Icons are now generated, not hand-placed: `scripts/make-icons.py`
 derives all six assets from `apps/website/public/icon-512.png`. Re-running it is
 the whole update after a brand change. Verified the adaptive icon clears circle,
 squircle and rounded-square launcher masks with 18% margin.
@@ -151,7 +151,7 @@ squircle and rounded-square launcher masks with 18% margin.
 - Account deletion had no fetch timeout; notification channel raised to `HIGH`
   and created before the permission prompt; unguarded `console.debug` and a
   "Rebuild the dev client" alert removed.
-- `lib/sessionCrypto.ts` extracted with `sessionCrypto.check.ts` — covers the
+- `packages/native/src/sessionCrypto.ts` extracted with `sessionCrypto.check.ts` — covers the
   wrong-key path, which is the actual failure mode, across 200 wrong keys plus
   truncated and corrupt input.
 - Accessibility: raw `Pressable`s outside `@caresy/ui` had no

@@ -14,10 +14,13 @@ apps/
   website/     Consumer app + marketing   → caresy.co.in          (Vercel)
   companion/   Companion portal           → companion.caresy.co.in (Vercel)
   admin/       Ops dashboard              → admin.caresy.co.in     (Vercel)
-  mobile/      Capacitor shell            → Play Store            (ADR-0004)
+  mobile/      Capacitor shell            → Play Store            (ADR-0004, superseded)
+  mobile-app/  Customer Expo app          → App Store / Play      (ADR-0009)
+  admin-app/   Dispatch Expo app (iOS)    → App Store             (ADR-0014)
 packages/
-  ui/          Design primitives + theme.css tokens
-  auth/        AuthContext, AuthModal, Supabase client factories
+  ui/          Design primitives + theme.css tokens (web only)
+  auth/        AuthContext, AuthModal, Supabase client factories (web only)
+  native/      Supabase client + encrypted session storage for the Expo apps
   types/       Shared domain types
   utils/       pricing, phone, serviceArea (+ .check.ts self-checks)
 supabase/
@@ -44,9 +47,12 @@ second copy somewhere else.
 | Approvals, dispatch, service areas, analytics | `apps/admin` | migrations 10, 11, 15, 19 |
 | Payment ledger + waiving a bill | `apps/admin/payments` | reads migration 26 columns; waive relies on the trigger's `is_admin()` exemption |
 | Live tracking + share links | migrations 16–18, 22; `apps/website/tracking` | `share_token`, no account needed |
-| Notifications | migrations 13, 20, 21, 24, 49, 50; `api/cron/send-push`, `api/telegram/webhook`, `lib/notificationPolicy.ts` | enqueue in DB, drain over HTTP to FCM + priority-routed Telegram + ops; attention-gated per entity, admin-actionable via Telegram buttons |
+| Notifications | migrations 13, 20, 21, 24, 49, 50, 51; `api/cron/send-push`, `api/telegram/webhook`, `lib/notificationPolicy.ts`, `lib/expoPush.ts` | enqueue in DB, drain over HTTP to devices + priority-routed Telegram + ops; attention-gated per entity, admin-actionable via Telegram buttons. Transport is chosen per token: Expo tokens (both native apps) go to Expo, raw tokens to FCM |
+| Dispatch on a phone | `apps/admin-app` | same guarded RPCs as `apps/admin`; ADMIN-role rows fan out to admin devices via migration 51 |
+| Native session storage | `packages/native` | shared by both Expo apps; the pure half has `sessionCrypto.check.ts` |
 | Transport facilitation | migration 27 | recorded, never billed (ADR-0006) |
 | Native shell | `apps/mobile` | no product logic lives here |
+| App icons for both Expo apps | `scripts/make-icons.py` | all six assets derived from `apps/website/public/icon-512.png`; `--out` / `--plate` / `--mark` per app |
 
 ## Request flow (booking → money)
 

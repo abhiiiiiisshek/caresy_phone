@@ -6,7 +6,14 @@ the green "C" already shipped to the web. Before this script the app shipped
 Expo's placeholder (a blue X on a design grid) as launcher, splash and
 notification icon on both platforms.
 
-    python3 scripts/make-icons.py
+    python3 scripts/make-icons.py --out apps/mobile-app/assets
+    python3 scripts/make-icons.py --out apps/admin-app/assets \
+        --plate 7,15,12 --mark 47,190,143
+
+The admin app is the same mark on the dark ground its UI uses, so the two
+Caresy apps are recognisably siblings without being confusable in the app
+switcher. Both are regenerated from the same file, so a brand change is one
+edit and two commands.
 
 Everything is regenerated from that single file, so re-running after a brand
 change is the whole update. Outputs land in `assets/`.
@@ -18,12 +25,15 @@ Two Android rules drive the odd sizes here:
     throws the colour away. A full-colour square renders as a white blob.
 """
 
+import argparse
+from pathlib import Path
+
 from PIL import Image
 
-SRC = "../website/public/icon-512.png"
-OUT = "assets"
+ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / "apps/website/public/icon-512.png"
 
-BRAND = (2, 140, 99)          # the logo green, sampled from the source
+BRAND_DEFAULT = (2, 140, 99)  # the logo green, sampled from the source
 CANVAS = 1024                 # store/launcher master size
 SAFE_FRACTION = 0.62          # of CANVAS — inside Android's 66% adaptive safe zone
 
@@ -57,20 +67,40 @@ def tinted(mask, rgb):
     return img
 
 
+def rgb(text):
+    parts = tuple(int(p) for p in text.split(","))
+    if len(parts) != 3 or any(not 0 <= p <= 255 for p in parts):
+        raise argparse.ArgumentTypeError("expected R,G,B with each channel 0-255")
+    return parts
+
+
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--out", required=True, help="assets directory to write into")
+    ap.add_argument("--plate", type=rgb, default=(255, 255, 255),
+                    help="opaque background behind the mark, R,G,B (default white)")
+    ap.add_argument("--mark", type=rgb, default=BRAND_DEFAULT,
+                    help="colour of the mark itself, R,G,B (default the logo green)")
+    args = ap.parse_args()
+
+    OUT = args.out
+    BRAND = args.mark
+    PLATE = args.plate
+    Path(OUT).mkdir(parents=True, exist_ok=True)
+
     mask = logo_mask(SRC)
     print(f"logo mask {mask.size[0]}x{mask.size[1]} from {SRC}")
 
     # Square launcher/store icon: the published web icon, upscaled, kept opaque.
     # iOS rejects alpha in App Icons, and Play wants a filled 512 square.
     square_mask = placed(mask, fraction=0.68)
-    square = Image.new("RGB", (CANVAS, CANVAS), (255, 255, 255))
+    square = Image.new("RGB", (CANVAS, CANVAS), PLATE)
     square.paste(tinted(square_mask, BRAND), (0, 0), square_mask)
     square.save(f"{OUT}/icon.png")
 
     # Android adaptive icon: foreground art in the safe zone over a flat plate.
     tinted(placed(mask), BRAND).save(f"{OUT}/android-icon-foreground.png")
-    Image.new("RGB", (CANVAS, CANVAS), (255, 255, 255)).save(f"{OUT}/android-icon-background.png")
+    Image.new("RGB", (CANVAS, CANVAS), PLATE).save(f"{OUT}/android-icon-background.png")
 
     # Themed (monochrome) icon — Android 13+ recolours it, so ship black on clear.
     tinted(placed(mask), (0, 0, 0)).save(f"{OUT}/android-icon-monochrome.png")

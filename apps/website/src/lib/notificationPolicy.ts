@@ -29,6 +29,9 @@ const DEFAULT_POLICY: EventPolicy = { priority: 'IMPORTANT', mode: 'IMMEDIATE' }
 
 const CRITICAL_IMMEDIATE = new Set([
   'BOOKING_CREATED',
+  // A scheduled visit inside its lead window with nobody on it (migration 51).
+  // Same urgency as a new request: it is a booking about to fail in public.
+  'BOOKING_UPCOMING_UNSTAFFED',
   'BOOKING_CANCELLED',
   'ADMIN_STATUS_CANCELLED',
   'ADMIN_STATUS_EXPIRED',

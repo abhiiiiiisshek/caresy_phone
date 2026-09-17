@@ -26,3 +26,4 @@ header comment of the migration that implements them. The ADR is the index.
 | [0011](0011-mascot-design-system.md) | One owned mascot character, requested by pose | Superseded by 0012 | 2026-08-10 |
 | [0012](0012-drop-mascot-phosphor-motion.md) | Drop mascot; Phosphor duotone icons + Motion One spots | Accepted | 2026-08-11 |
 | [0013](0013-expo-updates-ota.md) | OTA updates via expo-updates, gated by fingerprint runtimeVersion | Accepted | 2026-08-21 |
+| [0014](0014-separate-admin-ios-app.md) | A separate admin iOS app, not admin screens in the customer app | Accepted | 2026-09-16 |

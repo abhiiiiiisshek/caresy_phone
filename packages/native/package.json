@@ -1,0 +1,19 @@
+{
+  "name": "@caresy/native",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./client": "./src/client.ts",
+    "./sessionCrypto": "./src/sessionCrypto.ts"
+  },
+  "peerDependencies": {
+    "@react-native-async-storage/async-storage": "*",
+    "@supabase/supabase-js": "*",
+    "aes-js": "*",
+    "expo-crypto": "*",
+    "expo-secure-store": "*",
+    "react-native-get-random-values": "*",
+    "react-native-url-polyfill": "*",
+    "react-native": "*"
+  }
+}

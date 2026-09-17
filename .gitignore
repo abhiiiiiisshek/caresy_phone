@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Sibling worktrees accidentally created inside the repo (see PARALLEL_WORK.md)
 /caresy_*_worktree/
+
+# Expo export output
+apps/*/dist/
