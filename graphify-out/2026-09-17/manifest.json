@@ -1637,9 +1637,9 @@
     "semantic_hash": ""
   },
   "docs/CURRENT.md": {
-    "mtime": 1789619639.2343185,
-    "seen": 1789619704.35724,
-    "ast_hash": "7209290324143835f5d1691b766f446c",
+    "mtime": 1789619776.9382057,
+    "seen": 1789619820.1666691,
+    "ast_hash": "b859f97f772d13a5d24406de8c61229f",
     "semantic_hash": ""
   },
   "docs/DATABASE.md": {
@@ -2471,9 +2471,9 @@
     "semantic_hash": ""
   },
   "apps/admin-app/app.json": {
-    "mtime": 1789578586.8929584,
-    "seen": 1789579125.6711261,
-    "ast_hash": "b65b5506cb183ac56b267c894ea20916",
+    "mtime": 1789619771.6756122,
+    "seen": 1789619820.1416,
+    "ast_hash": "401d2e8ed9d4a8e549a4783b70558f9b",
     "semantic_hash": ""
   },
   "apps/admin-app/app/_layout.tsx": {
@@ -2678,12 +2678,6 @@
     "mtime": 1789578845.460118,
     "seen": 1789579125.6952488,
     "ast_hash": "c96cf4e815504fdaf22561b8f336f63b",
-    "semantic_hash": ""
-  },
-  "app.json": {
-    "mtime": 1789579878.4371889,
-    "seen": 1789619704.33071,
-    "ast_hash": "c5b4476a18c1c658e750067f6091ccbb",
     "semantic_hash": ""
   }
 }

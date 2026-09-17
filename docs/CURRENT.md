@@ -37,30 +37,16 @@ created; `apps/admin-app/.env.local` written. `eas.json` deliberately carries no
 `ascAppId` — EAS resolves the app from the bundle identifier using the API key
 already configured, so adding one would be a second place to keep in sync.
 
-**Still blocked on you:**
+**Remaining:**
 
-1. **The EAS project needs to be a *new* one, created from `apps/admin-app`.**
-   `eas init` was run from the repo root, so it wrote a stray `/app.json`
-   holding projectId `7a1b5ed6-89ec-4c34-bb40-2df4058964a7`. That id is
-   `@caresys-team/caresy` — **the customer app's project**, already carrying its
-   builds (Android development build, 2026-07-14). Pointing the admin app there
-   would put both apps' EAS Update channels in one namespace, so an admin
-   `production` update could be served to customer-app clients on a matching
-   runtimeVersion. The stray file is deleted and `extra.eas.projectId` is left
-   as the literal `SET_BY_EAS_INIT`, which `lib/auth.tsx` treats as "no push" —
-   it fails loud instead of delivering into the wrong project.
+1. ~~EAS project~~ — **done 2026-09-17.** `@caresys-team/caresy-admin`,
+   projectId `bb0ade64-5691-4202-9a87-486db1f4420a`, `updates.url` written by
+   `eas update:configure`. Note for anyone reading the history: the first
+   `eas init` ran from the repo root and wrote a stray `/app.json` pointing at
+   `7a1b5ed6…`, which is `@caresys-team/caresy` — the **customer** app's
+   project, already holding its builds. Linking there would have put both apps'
+   EAS Update channels in one namespace. Run `eas init` from `apps/admin-app`.
 
-   Run from **`apps/admin-app`**, not the repo root, and choose *create a new
-   project* when prompted:
-
-   ```
-   cd apps/admin-app
-   npx eas init                # pick "create a new project" → caresy-admin
-   npx eas update:configure    # writes the updates.url expo-updates needs
-   ```
-
-   `owner` is already set to `caresys-team`, so the new project lands on the
-   team account rather than a personal one.
 2. **An admin review account.** The app is email + password only, so the
    consumer review account will not work — it is not on the `admin_users`
    allowlist and would land Apple on the "Not an ops account" screen.
