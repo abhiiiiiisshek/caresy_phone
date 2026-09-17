@@ -9,7 +9,7 @@ here is worse than nothing.
 
 Read this first after a `/clear`.
 
-## Admin iOS app — code complete, not yet buildable on EAS (2026-09-16)
+## Admin iOS app — build 4 uploaded to App Store Connect (2026-09-17)
 
 `apps/admin-app`, the dispatch desk on a phone. ADR-0014 has the why; what is
 in flight:
@@ -36,6 +36,18 @@ created with the Push Notifications capability; App Store Connect record
 created; `apps/admin-app/.env.local` written. `eas.json` deliberately carries no
 `ascAppId` — EAS resolves the app from the bundle identifier using the API key
 already configured, so adding one would be a second place to keep in sync.
+
+**Shipped state:** EAS project `@caresys-team/caresy-admin`
+(`bb0ade64-5691-4202-9a87-486db1f4420a`), ASC App ID **6812859884**, bundle
+`in.co.caresy.admin`. Build `fbaa8c37` (commit `eeb0e1c`, build number 4)
+finished and is uploaded to App Store Connect / TestFlight. The earlier build
+`ec3f7503` (commit `912e214`, number 3) is the pre-fix one that died in the
+Swift compile — leave it, it is only history.
+
+iOS credentials are now on the Expo servers and reusable: distribution
+certificate + provisioning profile (both expiring 2027-09-17) and — the part
+this app actually needs — an **Apple push key**, without which the Expo push
+fan-out in migration 51 would have had nothing to deliver through on iOS.
 
 **Remaining:**
 
