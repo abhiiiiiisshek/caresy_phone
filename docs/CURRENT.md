@@ -57,6 +57,56 @@ already configured, so adding one would be a second place to keep in sync.
    says is still the pre-lockup logo. Replace that file, then re-run for both
    apps.
 
+### The Xcode compile failure, and why it happened (2026-09-17)
+
+The first EAS iOS build got past credentials and died in the Swift compile:
+
+```
+cannot find 'ContentOriginRegistry' in scope
+value of type 'ExpoSwiftUI.ShadowNodeProxy' has no member 'setContentOrigin'
+value of type 'ExpoSwiftUI.ShadowNodeProxy' has no member 'clearContentOrigin'
+```
+
+All three came from one file — `@expo/ui/ios/ExpoUIModule.swift` and
+`RNHostView.swift` — and one split:
+
+| package | was | provides / needs |
+| --- | --- | --- |
+| `expo-modules-core` | 57.0.12, **one hoisted copy** | defines the symbols — but only from **57.0.14** onward |
+| `@expo/ui` (under admin-app's `expo-router`) | 57.0.18 | **calls** them |
+| `@expo/ui` (under mobile-app's `expo-router`) | 57.0.12 | does not call them — which is why only the admin build broke |
+
+`@expo/ui` declares its peer as `expo: "*"`, so npm had nothing to refuse. The
+admin app was installed later than the customer app, so its `~57.0.15` ranges
+resolved to newer patches against an `expo-modules-core` that `expo@57.0.15`
+was still pinning to `~57.0.12`.
+
+Fixed by moving the whole SDK 57 patch set forward with `expo install --fix` in
+**both** Expo apps — both, because `expo-modules-core` hoists to a single copy
+at the workspace root, so the two apps cannot sit on different patch levels.
+Now `expo@57.0.23`, `expo-modules-core@57.0.18`, `@expo/ui@57.0.18`, and all 36
+native Expo modules resolve to exactly one version each.
+
+Two things fell out of that upgrade and are also fixed here:
+
+- `expo-router@57.0.21` pulls `expo-glass-effect`, which npm nested under
+  `expo-router/node_modules`. `metro.config.js` sets
+  `disableHierarchicalLookup = true` on purpose, so Metro only looks in the app
+  and workspace root and could not see it — `Unable to resolve module
+  expo-glass-effect`. It is now a direct dependency of both apps, which is
+  where a native module belongs anyway.
+- `expo install --fix` added the `@react-native-community/datetimepicker`
+  config plugin to `apps/mobile-app/app.json`. That is correct for SDK 57, and
+  worth knowing because it changes the customer app's fingerprint
+  `runtimeVersion` — its next OTA will not reach builds made before it.
+
+`expo-doctor` on the admin app is now 16/18. The two that remain are deliberate:
+the `metro.config.js` overrides are the workspace-resolution fix its own
+comments describe, and the duplicate `react`/`react-dom` (19.2.3 in the app,
+19.2.4 at the root) is a hoisting artifact of the web apps pinning 19.2.4 —
+JS-only, not a native module, and the SDK asks for 19.2.3, so bumping it would
+trade one warning for another.
+
 Deliberately **not** done: no live-trip map, no payments, no analytics, no
 companion approvals — the website still owns those and nobody asked to carry
 them in a pocket. The board polls every 30s rather than using Supabase Realtime,
