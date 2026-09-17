@@ -27,6 +27,27 @@ allowlist (migration 10), not from self-serve signup. `is_admin()` decides what
 the UI shows; RLS and the RPC guards decide what the database allows. The app
 holds the anon key and nothing else.
 
+## Icons
+
+`assets/icon-source.png` is the artwork as the designer delivered it: a rounded
+card on a black field. iOS wants the opposite — a full-bleed opaque square with
+no alpha and no rounding, because it applies the mask itself — so the shipped
+assets are derived, not the source:
+
+```
+python3 ../../scripts/flatten-app-icon.py assets/icon-source.png \
+    --icon-out assets/icon.png --splash-out assets/splash-icon.png
+```
+
+`icon.png` fills the corners by extending the artwork's own edge pixels, so the
+background gradient carries out to the edge instead of meeting a flat patch.
+`splash-icon.png` keeps the rounded card and drops the black field to
+transparency, so it sits on the dark splash background.
+
+`scripts/make-icons.py` is the other icon path and is unrelated: it *derives* a
+mark from `apps/website/public/icon-512.png` for apps that have no finished
+artwork. This app has finished artwork, so it does not use it.
+
 ## Checks
 
 ```
