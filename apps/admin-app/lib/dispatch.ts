@@ -17,6 +17,8 @@ export interface AdminBooking {
   special_instructions: string | null;
   companion_user_id: string | null;
   final_amount_paise: number | null;
+  estimated_duration_minutes: number | null;
+  service_metadata: BookingMeta | null;
   patient?: { full_name: string | null; age: number | null; emergency_contact_phone: string | null } | null;
   pickup_location?: { title: string | null; address_line_1: string | null } | null;
 }
@@ -34,6 +36,8 @@ export const BOOKING_SELECT = `
   special_instructions,
   companion_user_id,
   final_amount_paise,
+  estimated_duration_minutes,
+  service_metadata,
   patient:patients ( full_name, age, emergency_contact_phone ),
   pickup_location:locations!pickup_location_id ( title, address_line_1 )
 `;
@@ -69,6 +73,11 @@ export function bucketOf(b: Pick<AdminBooking, 'status' | 'companion_user_id' | 
 
 const MIN = 60_000;
 
+/** A request the customer placed for right now, not for a date. */
+export function isUrgent(b: Pick<AdminBooking, 'booking_type'>): boolean {
+  return String(b.booking_type).toUpperCase() === 'INSTANT';
+}
+
 /**
  * How loudly a card should shout.
  *
@@ -77,11 +86,15 @@ const MIN = 60_000;
  * visit is judged against when it is due to begin. Anything already staffed and
  * running is calm — noise there trains the operator to ignore the colour.
  */
-export function urgency(b: Pick<AdminBooking, 'status' | 'companion_user_id' | 'created_at' | 'scheduled_start_time' | 'expires_at'>, now = Date.now()): Urgency {
+export function urgency(b: Pick<AdminBooking, 'status' | 'companion_user_id' | 'created_at' | 'scheduled_start_time' | 'expires_at' | 'booking_type'>, now = Date.now()): Urgency {
   const s = String(b.status).toUpperCase();
   if (TERMINAL.includes(s)) return 'calm';
 
   if (!b.companion_user_id) {
+    // An INSTANT request is someone asking for help right now, and it dies in
+    // 30 minutes (13_LIFECYCLE). It outranks a scheduled request that has been
+    // sitting for twenty — the desk has minutes to call back, not hours.
+    if (isUrgent(b)) return 'critical';
     // About to expire outranks everything: past this point the request is lost.
     const expires = b.expires_at ? new Date(b.expires_at).getTime() : null;
     if (expires !== null && expires - now <= 15 * MIN) return 'critical';
@@ -156,4 +169,59 @@ export const STATUS_OPTIONS: BookingStatus[] = [
 export function initials(name: string | null | undefined): string {
   if (!name) return '··';
   return name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+}
+
+/**
+ * What the booking forms wrote alongside the row.
+ *
+ * `/booking` on the website writes customerPhone/customerEmail; `/quick-help`
+ * writes phone/email. Reading only one pair is why the admin website once
+ * showed "—" for every urgent request — the single kind of booking whose whole
+ * handling is "call this person back in the next few minutes".
+ */
+export interface BookingMeta {
+  customerPhone?: string;
+  customerEmail?: string;
+  phone?: string;
+  email?: string;
+  language?: string;
+  department?: string;
+  originalService?: string;
+  companion?: { name?: string; phone?: string } | null;
+  [key: string]: unknown;
+}
+
+export interface BookingContact {
+  /** The person who placed the booking — the number the desk calls back. */
+  phone: string | null;
+  email: string | null;
+  /** Next of kin on the patient record. A fallback, not the first choice. */
+  emergencyPhone: string | null;
+  language: string | null;
+  department: string | null;
+  plan: string | null;
+}
+
+const str = (v: unknown): string | null => {
+  const s = typeof v === 'string' ? v.trim() : '';
+  return s === '' ? null : s;
+};
+
+/** Everything you need to reach a booking's customer, from either form's shape. */
+export function contactOf(b: Pick<AdminBooking, 'service_metadata' | 'patient' | 'service_type'>): BookingContact {
+  const m = b.service_metadata ?? {};
+  return {
+    phone: str(m.customerPhone) ?? str(m.phone),
+    email: str(m.customerEmail) ?? str(m.email),
+    emergencyPhone: str(b.patient?.emergency_contact_phone),
+    language: str(m.language),
+    department: str(m.department),
+    plan: str(m.originalService) ?? str(b.service_type),
+  };
+}
+
+/** `tel:` needs digits and an optional leading +; a pasted "+91 98 765" breaks the dialler. */
+export function telUri(phone: string): string {
+  const cleaned = phone.replace(/[^\d+]/g, '');
+  return `tel:${cleaned.startsWith('+') ? `+${cleaned.slice(1).replace(/\+/g, '')}` : cleaned}`;
 }

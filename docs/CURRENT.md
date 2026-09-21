@@ -1,6 +1,6 @@
 # Current state
 
-_Updated: 2026-09-16. First real customers expected 2026-08-02._
+_Updated: 2026-09-19. First real customers expected 2026-08-02._
 
 Short-lived working memory: what is in flight, what is known-broken, what is
 next. Not architecture — a thing that settles here for good belongs in
@@ -14,10 +14,44 @@ Read this first after a `/clear`.
 `apps/admin-app`, the dispatch desk on a phone. ADR-0014 has the why; what is
 in flight:
 
-- Screens: a board bucketed **Needs action / Upcoming / Active / Done**, and a
-  booking detail that assigns a companion and overrides status through the same
-  `admin_save_booking_edit` RPC the admin website uses. Dark command-deck UI,
-  its own tokens in `apps/admin-app/lib/theme.ts`.
+- Screens: a five-tab shell (`app/(tabs)`) behind one auth gate —
+  **Desk** (board bucketed Needs action / Upcoming / Active / Done),
+  **Live** (trips in the field, maps hand-off, stale-ping warnings),
+  **Alerts** (the notifications outbox: send on WhatsApp, mark sent/failed),
+  **Team** (companion approval queue) and **More**. Pushed off More:
+  **Payments** (ledger + waive) and **Analytics**. Pushed off Desk and Team:
+  booking detail, which assigns a companion and overrides status through the
+  same `admin_save_booking_edit` RPC the admin website uses, and companion
+  review with KYC documents and driving clearance. Web/mobile parity is
+  effectively closed; service areas, users and timeouts stay on the website.
+- **Alignment fix (2026-09-19).** `Touchable` put the caller's style on an
+  inner `Animated.View`, so every layout style passed to a pressable —
+  `flex: 1` on a stat tile, a tab item or a pair of buttons, `full` on a
+  primary button — was swallowed and those rows came out ragged. The style now
+  lands on the pressable itself. `StatBox` no longer auto-shrinks its figure
+  (three amounts in a row each settled on a different size), tab badges are
+  inline instead of absolutely placed off a hand-tuned offset, and the `‹ back`
+  row is one `BackLink` primitive rather than three hand-rolled copies.
+- **UI rebuilt light (2026-09-19).** The dark command-deck is gone: soft neutral
+  ground, white lifted cards, ink pills for the one primary action, and colour
+  spent only on state. Hues come from the Caresy Admin icon (amber on
+  near-black). Tokens in `apps/admin-app/lib/theme.ts`, primitives in
+  `components/ui.tsx` (`Card`, `Chip`, `Btn`, `StatTile`, `Avatar`, `Chevron`,
+  `Row`, `SectionTitle`) — there is no icon font in this app, so glyphs are
+  drawn from Views. The Overview tiles *are* the bucket filter, so no count on
+  screen is unopenable. `app.json` flipped to `userInterfaceStyle: light`.
+- **Customer contact on the phone (2026-09-19).** `BOOKING_SELECT` now carries
+  `service_metadata` + `estimated_duration_minutes`, and `contactOf()` reads
+  either website form's shape (`/booking` writes `customerPhone`,
+  `/quick-help` writes `phone`). The board's Call button dials the customer who
+  booked; the patient's next-of-kin is a labelled fallback, never a silent one.
+- **INSTANT is critical from minute zero** (`urgency()`): an instant request
+  expires in 30 minutes, so it now outranks a scheduled request that has been
+  ageing for longer. Covered in `lib/dispatch.check.ts`.
+- **Alert health is on screen.** `useAuth().pushState` reports whether this
+  device is actually in `push_tokens`; the board shows an *Alerts on/off* chip
+  and, when off, a card that re-requests permission or opens Settings. A desk
+  phone that quietly stopped receiving pushes used to look like a quiet night.
 - `packages/native` is new: the Supabase client and its encrypted session
   storage moved out of `apps/mobile-app/lib/supabase.ts` so both Expo apps share
   one copy. `apps/mobile-app/lib/supabase.ts` and `lib/sessionCrypto.ts` are now

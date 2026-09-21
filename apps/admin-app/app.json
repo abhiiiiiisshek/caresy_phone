@@ -7,8 +7,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#070F0C",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F4F4F7",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "in.co.caresy.admin",
@@ -77,7 +77,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#2FBE8F"
+          "color": "#F5B60C"
         }
       ],
       [
@@ -86,12 +86,12 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#070F0C"
+          "backgroundColor": "#F4F4F7"
         }
       ]
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": false
     },
     "extra": {
       "router": {},

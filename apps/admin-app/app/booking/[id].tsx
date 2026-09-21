@@ -10,13 +10,13 @@ import { formatINR } from '@caresy/utils/pricing';
 
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../lib/auth';
-import { useCompanions, type ApprovedCompanion } from '../../lib/useBookings';
+import { useCompanions } from '../../lib/useBookings';
 import {
-  BOOKING_SELECT, STATUS_OPTIONS, TRANSPORT_LABEL, initials, pretty, relTime,
-  type AdminBooking,
+  BOOKING_SELECT, STATUS_OPTIONS, TRANSPORT_LABEL, contactOf, initials, isUrgent,
+  pretty, relTime, telUri, type AdminBooking,
 } from '../../lib/dispatch';
-import { color, radius, space, type } from '../../lib/theme';
-import { Btn, Card, Pill, Row, Touchable } from '../../components/ui';
+import { color, radius, shadow, space, type } from '../../lib/theme';
+import { Avatar, BackLink, Btn, Card, Chip, Row, SectionTitle, Touchable } from '../../components/ui';
 
 // The one screen where the desk actually changes something. Status and
 // companion go through admin_save_booking_edit (migration 41/42) — one
@@ -116,49 +116,87 @@ export default function BookingDetail() {
   if (!booking) {
     return (
       <View style={[styles.screen, styles.center]}>
-        <ActivityIndicator color={color.green} />
+        <ActivityIndicator color={color.ink} />
       </View>
     );
   }
 
-  const phone = booking.patient?.emergency_contact_phone ?? null;
+  const contact = contactOf(booking);
+  const terminal = ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(String(booking.status).toUpperCase());
 
   return (
     <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={{ padding: space.lg, paddingTop: insets.top + space.sm, paddingBottom: insets.bottom + space.xxl }}
+        contentContainerStyle={{
+          paddingHorizontal: space.lg,
+          paddingTop: insets.top + space.md,
+          // Clear the floating save bar, whose height is fixed by its own padding.
+          paddingBottom: insets.bottom + 108,
+        }}
         keyboardShouldPersistTaps="handled"
       >
-        <Touchable onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Back">
-          <Text style={[type.label, { color: color.muted }]}>‹  Dispatch</Text>
-        </Touchable>
+        <BackLink label="Dispatch" onPress={() => router.back()} />
 
-        <Text style={[type.mono, { color: color.muted, marginTop: space.lg }]}>
+        <Text style={[type.mono, { color: color.faint, marginTop: space.lg }]}>
           {booking.reference_code ?? booking.id.slice(0, 8)}
         </Text>
-        <Text style={[type.large, { color: color.ink }]} numberOfLines={2}>
+        <Text style={[type.display, { color: color.ink }]} numberOfLines={2}>
           {booking.patient?.full_name ?? 'Patient details pending'}
         </Text>
 
-        <View style={styles.pills}>
-          <Pill label={pretty(booking.status)} tone={String(booking.status).toUpperCase() === 'IN_PROGRESS' ? 'blue' : 'calm'} />
-          {booking.companion_user_id ? <Pill label="Staffed" tone="green" /> : <Pill label="No companion" tone="red" />}
+        <View style={styles.chips}>
+          {isUrgent(booking) && !terminal ? <Chip label="Urgent" tone="critical" dot /> : null}
+          <Chip
+            label={pretty(booking.status)}
+            tone={String(booking.status).toUpperCase() === 'IN_PROGRESS' ? 'info' : 'neutral'}
+          />
+          {booking.companion_user_id
+            ? <Chip label="Staffed" tone="good" />
+            : <Chip label="No companion" tone="warn" />}
         </View>
 
-        {phone ? (
+        {/* Reaching people. The customer who booked comes first; the patient's
+            emergency contact is a fallback and says so. */}
+        <Card style={styles.block}>
+          <Text style={[type.overline, { color: color.muted, marginBottom: space.md }]}>Contact</Text>
           <Btn
-            label={`Call ${booking.patient?.full_name?.split(' ')[0] ?? 'contact'}`}
-            onPress={() => Linking.openURL(`tel:${phone}`)}
-            style={{ marginTop: space.lg }}
+            label={contact.phone ? `Call customer  ${contact.phone}` : 'No customer number on file'}
+            disabled={!contact.phone}
+            onPress={() => contact.phone && Linking.openURL(telUri(contact.phone))}
+            full
           />
-        ) : null}
+          <View style={styles.contactRow}>
+            <Btn
+              label="Emergency contact"
+              tone="ghost"
+              size="sm"
+              disabled={!contact.emergencyPhone}
+              onPress={() => contact.emergencyPhone && Linking.openURL(telUri(contact.emergencyPhone))}
+              style={styles.grow}
+            />
+            <Btn
+              label="Email"
+              tone="ghost"
+              size="sm"
+              disabled={!contact.email}
+              onPress={() => contact.email && Linking.openURL(`mailto:${contact.email}`)}
+              style={styles.grow}
+            />
+          </View>
+          <Row label="Email" value={contact.email ?? ''} />
+          <Row label="Emergency" value={contact.emergencyPhone ?? ''} />
+          <Row label="Language" value={contact.language ?? ''} />
+        </Card>
 
         <Card style={styles.block}>
-          <Row label="Service" value={pretty(booking.service_type)} />
+          <Text style={[type.overline, { color: color.muted, marginBottom: space.sm }]}>Request</Text>
+          <Row label="Service" value={contact.plan ? pretty(contact.plan) : pretty(booking.service_type)} />
           <Row label="Type" value={pretty(booking.booking_type)} />
+          <Row label="Department" value={contact.department ?? ''} />
           <Row label="Patient age" value={booking.patient?.age != null ? String(booking.patient.age) : ''} />
           <Row label="Pickup" value={booking.pickup_location?.title || booking.pickup_location?.address_line_1 || ''} />
           <Row label="Transport" value={booking.transport_mode ? TRANSPORT_LABEL[booking.transport_mode] ?? pretty(booking.transport_mode) : ''} />
+          <Row label="Expected" value={booking.estimated_duration_minutes != null ? `${booking.estimated_duration_minutes} min` : ''} />
           <Row label="Placed" value={relTime(booking.created_at)} />
           <Row label="Scheduled" value={booking.scheduled_start_time ? relTime(booking.scheduled_start_time) : ''} />
           <Row label="Expires" value={booking.expires_at ? relTime(booking.expires_at) : ''} />
@@ -166,13 +204,15 @@ export default function BookingDetail() {
         </Card>
 
         {booking.special_instructions ? (
-          <Card style={styles.block}>
-            <Text style={[type.overline, { color: color.muted }]}>Instructions</Text>
+          <Card style={[styles.block, { backgroundColor: color.brandTint }]}>
+            <Text style={[type.overline, { color: color.onBrand }]}>Instructions</Text>
             <Text style={[type.body, { color: color.ink, marginTop: space.sm }]}>{booking.special_instructions}</Text>
           </Card>
         ) : null}
 
-        <Text style={[type.overline, styles.sectionTitle]}>Companion</Text>
+        <View style={styles.sectionGap}>
+          <SectionTitle title="Companion" />
+        </View>
         <View style={{ gap: space.sm }}>
           <CompanionOption
             label="Unassigned"
@@ -196,7 +236,9 @@ export default function BookingDetail() {
           ))}
         </View>
 
-        <Text style={[type.overline, styles.sectionTitle]}>Status</Text>
+        <View style={styles.sectionGap}>
+          <SectionTitle title="Status" />
+        </View>
         <View style={styles.statusWrap}>
           {STATUS_OPTIONS.map((s) => (
             <Touchable
@@ -206,7 +248,7 @@ export default function BookingDetail() {
               accessibilityRole="button"
               accessibilityState={{ selected: status === s }}
             >
-              <Text style={[type.label, { color: status === s ? color.onSignal : color.muted }]}>{pretty(s)}</Text>
+              <Text style={[type.label, { color: status === s ? color.onInk : color.inkSoft }]}>{pretty(s)}</Text>
             </Touchable>
           ))}
         </View>
@@ -224,18 +266,22 @@ export default function BookingDetail() {
         ) : null}
 
         {message ? (
-          <Text style={[type.body, { color: message.ok ? color.green : color.terracotta, marginTop: space.lg }]}>
+          <Text style={[type.body, { color: message.ok ? color.good : color.critical, marginTop: space.lg }]}>
             {message.text}
           </Text>
         ) : null}
+      </ScrollView>
 
+      {/* The save stays in the thumb's reach whatever the scroll position —
+          an assignment half-made is the one state this screen must not invite. */}
+      <View style={[styles.saveBar, { paddingBottom: insets.bottom + space.md }]}>
         <Btn
           label={saving ? 'Saving…' : dirty ? 'Save changes' : 'No changes'}
           onPress={save}
           disabled={!dirty || saving}
-          style={{ marginTop: space.lg }}
+          full
         />
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -244,13 +290,16 @@ function CompanionOption({
   label, sub, avatar, active, warn, onPress,
 }: { label: string; sub: string; avatar?: string; active: boolean; warn?: boolean; onPress: () => void }) {
   return (
-    <Touchable onPress={onPress} style={[styles.option, active && styles.optionOn]} accessibilityRole="button" accessibilityState={{ selected: active }}>
-      <View style={[styles.avatar, active && { backgroundColor: color.green }]}>
-        <Text style={[type.label, { color: active ? color.onSignal : color.muted }]}>{avatar ?? '—'}</Text>
-      </View>
+    <Touchable
+      onPress={onPress}
+      style={[styles.option, active && styles.optionOn]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+    >
+      <Avatar text={avatar ?? '—'} size={40} tone={active ? 'brand' : 'neutral'} />
       <View style={{ flex: 1 }}>
         <Text style={[type.h2, { color: color.ink }]} numberOfLines={1}>{label}</Text>
-        <Text style={[type.caption, { color: warn ? color.amber : color.muted }]} numberOfLines={1}>
+        <Text style={[type.caption, { color: warn ? color.warn : color.muted }]} numberOfLines={1}>
           {warn ? 'No verified driving licence' : sub}
         </Text>
       </View>
@@ -262,48 +311,57 @@ function CompanionOption({
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: color.bg },
   center: { alignItems: 'center', justifyContent: 'center' },
-  back: { alignSelf: 'flex-start', paddingVertical: space.sm, paddingRight: space.lg },
-  pills: { flexDirection: 'row', gap: space.sm, marginTop: space.md },
-  block: { marginTop: space.lg },
-  sectionTitle: { color: color.muted, marginTop: space.xl, marginBottom: space.md },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: space.md },
+  block: { marginTop: space.lg, padding: space.lg },
+  contactRow: { flexDirection: 'row', gap: space.sm, marginTop: space.sm, marginBottom: space.sm },
+  grow: { flex: 1 },
+  sectionGap: { marginTop: space.xl },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.md,
     backgroundColor: color.surface,
     borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: color.line,
+    borderWidth: 2,
+    borderColor: 'transparent',
     padding: space.md,
-    minHeight: 60,
+    minHeight: 64,
+    ...shadow.card,
   },
-  optionOn: { borderColor: color.green, backgroundColor: color.surfaceHi },
-  avatar: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: color.surfaceHi,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  tick: { width: 10, height: 10, borderRadius: 5, backgroundColor: color.green },
+  optionOn: { borderColor: color.ink },
+  tick: { width: 10, height: 10, borderRadius: 5, backgroundColor: color.ink },
   statusWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   statusChip: {
     paddingHorizontal: space.lg,
     paddingVertical: 10,
     borderRadius: radius.pill,
     backgroundColor: color.surface,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: color.line,
   },
-  statusChipOn: { backgroundColor: color.green, borderColor: color.green },
+  statusChipOn: { backgroundColor: color.ink, borderColor: color.ink },
   reason: {
     marginTop: space.lg,
     backgroundColor: color.surface,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: color.lineStrong,
     borderRadius: radius.md,
     padding: space.lg,
     color: color.ink,
     fontSize: 15,
-    minHeight: 88,
+    minHeight: 96,
     textAlignVertical: 'top',
+  },
+  saveBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: space.lg,
+    paddingTop: space.md,
+    backgroundColor: color.surface,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    ...shadow.float,
   },
 });

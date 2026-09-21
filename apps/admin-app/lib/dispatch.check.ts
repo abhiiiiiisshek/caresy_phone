@@ -7,10 +7,12 @@
 //      board's historical bug was rows falling through into no column);
 //   2. urgency only ever rises as the clock advances on an unassigned request —
 //      a card must never quietly go calm while nobody is on it;
-//   3. sortForBoard puts every critical card above every non-critical one.
+//   3. sortForBoard puts every critical card above every non-critical one;
+//   4. an unassigned INSTANT request is critical immediately — it expires in
+//      30 minutes and the desk's only job is calling back inside that window.
 
 import { strict as assert } from 'node:assert';
-import { bucketOf, urgency, sortForBoard, relTime, pretty, type AdminBooking } from './dispatch.ts';
+import { bucketOf, urgency, sortForBoard, relTime, pretty, contactOf, telUri, type AdminBooking } from './dispatch.ts';
 
 const NOW = Date.parse('2026-09-16T10:00:00.000Z');
 const min = (n: number) => n * 60_000;
@@ -20,8 +22,9 @@ function booking(over: Partial<AdminBooking> = {}): AdminBooking {
   return {
     id: 'b1', reference_code: 'CR-0001', status: 'PENDING',
     created_at: at(0), scheduled_start_time: null, expires_at: null,
-    service_type: 'HOSPITAL_COMPANION', booking_type: 'INSTANT', transport_mode: null,
+    service_type: 'HOSPITAL_COMPANION', booking_type: 'SCHEDULED', transport_mode: null,
     special_instructions: null, companion_user_id: null, final_amount_paise: null,
+    estimated_duration_minutes: null, service_metadata: null,
     ...over,
   };
 }
@@ -69,6 +72,18 @@ assert.equal(urgency(booking({ created_at: at(0), scheduled_start_time: at(30) }
 // Same visit a week out is not an emergency.
 assert.equal(urgency(booking({ created_at: at(0), scheduled_start_time: at(60 * 24 * 7) }), NOW), 'calm');
 
+// 4. An INSTANT request with nobody on it shouts from minute zero, and outranks
+// a scheduled request that has been ageing for far longer.
+assert.equal(urgency(booking({ booking_type: 'INSTANT', created_at: at(0) }), NOW), 'critical');
+assert.equal(urgency(booking({ booking_type: 'SCHEDULED', created_at: at(0) }), NOW), 'calm');
+const mixed = sortForBoard([
+  booking({ id: 'old-scheduled', booking_type: 'SCHEDULED', created_at: at(-8) }),
+  booking({ id: 'fresh-instant', booking_type: 'INSTANT', created_at: at(0) }),
+], NOW);
+assert.deepEqual(mixed.map((b) => b.id), ['fresh-instant', 'old-scheduled']);
+// Once someone is on it, INSTANT is just work in progress — no permanent siren.
+assert.equal(urgency(booking({ booking_type: 'INSTANT', companion_user_id: 'c1', status: 'IN_PROGRESS' }), NOW), 'calm');
+
 // Staffed work is calm; staffed-but-overdue is a warning, never silent.
 assert.equal(urgency(booking({ status: 'IN_PROGRESS', companion_user_id: 'c1', created_at: at(-600) }), NOW), 'calm');
 assert.equal(urgency(booking({ status: 'ASSIGNED', companion_user_id: 'c1', scheduled_start_time: at(-20) }), NOW), 'warn');
@@ -113,6 +128,25 @@ assert.equal(relTime(at(120), NOW), 'in 2h');
 assert.equal(relTime(at(-150), NOW), '2h 30m ago');
 assert.equal(relTime(null, NOW), '');
 assert.equal(relTime('not a date', NOW), '');
+
+// 5. Customer contact reads from whichever shape the form wrote, and never
+// silently falls back to the patient's next-of-kin as if it were the customer.
+const fromBooking = contactOf(booking({ service_metadata: { customerPhone: '+91 98765 43210', customerEmail: 'a@b.com', language: 'Hindi' } }));
+assert.equal(fromBooking.phone, '+91 98765 43210');
+assert.equal(fromBooking.email, 'a@b.com');
+assert.equal(fromBooking.language, 'Hindi');
+const fromQuickHelp = contactOf(booking({ service_metadata: { phone: '9876543210', email: 'c@d.com' } }));
+assert.equal(fromQuickHelp.phone, '9876543210');
+assert.equal(fromQuickHelp.email, 'c@d.com');
+// Blank strings are absent, not a phone number that dials nowhere.
+assert.equal(contactOf(booking({ service_metadata: { customerPhone: '   ', phone: '99' } })).phone, '99');
+assert.equal(contactOf(booking({ service_metadata: null })).phone, null);
+assert.equal(contactOf(booking({ patient: { full_name: 'X', age: 70, emergency_contact_phone: '011-4000' } })).emergencyPhone, '011-4000');
+assert.equal(contactOf(booking({ service_metadata: { originalService: 'Dialysis support' } })).plan, 'Dialysis support');
+assert.equal(contactOf(booking()).plan, 'HOSPITAL_COMPANION');
+
+assert.equal(telUri('+91 98765-43210'), 'tel:+919876543210');
+assert.equal(telUri('(0120) 400 1234'), 'tel:01204001234');
 
 assert.equal(pretty('HOSPITAL_COMPANION'), 'Hospital companion');
 assert.equal(pretty(null), '');

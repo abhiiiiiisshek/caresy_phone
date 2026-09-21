@@ -19,6 +19,9 @@ const POLL_MS = 30_000;
 
 export function useBookings(enabled: boolean) {
   const [bookings, setBookings] = useState<AdminBooking[] | null>(null);
+  // When the server last answered. "Nothing new" and "nothing since the wifi
+  // dropped" look identical on a polling board without this.
+  const [syncedAt, setSyncedAt] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const inFlight = useRef(false);
@@ -40,6 +43,7 @@ export function useBookings(enabled: boolean) {
     // Supabase types a to-one join as an array; cast once, here at the query
     // boundary, and never deeper.
     setBookings((data ?? []) as unknown as AdminBooking[]);
+    setSyncedAt(Date.now());
   }, [enabled]);
 
   const refresh = useCallback(async () => {
@@ -61,7 +65,7 @@ export function useBookings(enabled: boolean) {
     };
   }, [enabled, load]);
 
-  return { bookings, error, refreshing, refresh, reload: load };
+  return { bookings, syncedAt, error, refreshing, refresh, reload: load };
 }
 
 export interface ApprovedCompanion {

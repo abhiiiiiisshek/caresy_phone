@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { createClient } from '@caresy/auth/supabase/client';
 import { AdminShell, AdminGuard } from '@/components/AdminShell';
-import { bookingRevenueRupees, isBilled } from '@/utils/pricing';
+import { bookingRevenueRupees, isBilled } from '@caresy/utils/pricing';
 import { ClipboardList, Users, CalendarClock, IndianRupee } from 'lucide-react';
 
 // Admin analytics. All counts come from queries admins already have RLS access

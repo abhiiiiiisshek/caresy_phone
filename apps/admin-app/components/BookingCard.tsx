@@ -2,107 +2,99 @@ import { Linking, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { color, radius, space, type } from '../lib/theme';
-import { Card, Pill, Touchable } from './ui';
-import { pretty, relTime, urgency, type AdminBooking } from '../lib/dispatch';
+import { Btn, Card, Chip, Touchable } from './ui';
+import { contactOf, isUrgent, pretty, relTime, telUri, urgency, type AdminBooking } from '../lib/dispatch';
 
-// One card per booking. The card answers, in reading order: how loud is this,
-// which booking, how long has it been waiting, who is the patient, what is the
-// job — then the two things the operator actually does about it.
+// One card per booking, in the order the operator actually reads it:
+// how loud is this → which booking → which clock is running → who is it for →
+// what is the job → the two things they do about it.
+//
+// The card is one tap target for "open"; the buttons are the exceptions that
+// need their own hit area.
 
-const ACCENT = { critical: color.terracotta, warn: color.amber, calm: color.line } as const;
+const CLOCK_TONE = { critical: color.critical, warn: color.warn, calm: color.muted } as const;
 
 export function BookingCard({ booking, now }: { booking: AdminBooking; now: number }) {
   const level = urgency(booking, now);
-  const phone = booking.patient?.emergency_contact_phone ?? null;
+  const contact = contactOf(booking);
   const patient = booking.patient?.full_name ?? 'Patient details pending';
   const age = booking.patient?.age;
-  // An unassigned request is racing its own expiry; a staffed one is waiting
-  // for its start time. Show whichever clock the operator can still act on.
+  const terminal = ['COMPLETED', 'CANCELLED', 'EXPIRED'].includes(String(booking.status).toUpperCase());
+
+  // The customer who placed the booking is who the desk calls back. Next of kin
+  // on the patient record is a fallback, and is labelled as one — ringing a
+  // frail patient's emergency contact by mistake is its own small disaster.
+  const callNumber = contact.phone ?? contact.emergencyPhone;
+  const callLabel = contact.phone ? 'Call customer' : contact.emergencyPhone ? 'Call contact' : 'No number';
+
+  // An unassigned request is racing its own expiry; a staffed one is waiting for
+  // its start time. Show whichever clock can still be acted on.
   const clock = !booking.companion_user_id && booking.expires_at
     ? `expires ${relTime(booking.expires_at, now)}`
     : booking.scheduled_start_time
       ? `starts ${relTime(booking.scheduled_start_time, now)}`
-      : `${relTime(booking.created_at, now)}`;
+      : relTime(booking.created_at, now);
+
+  const open = () => router.push(`/booking/${booking.id}`);
 
   return (
-    <Card accent={level === 'calm' ? undefined : ACCENT[level]} style={styles.card}>
-      <Touchable onPress={() => router.push(`/booking/${booking.id}`)} accessibilityRole="button">
+    <Card style={styles.card}>
+      <Touchable onPress={open} accessibilityRole="button" accessibilityLabel={`Open booking for ${patient}`}>
         <View style={styles.head}>
-          <View style={styles.headLeft}>
-            <View style={[styles.dot, { backgroundColor: ACCENT[level] === color.line ? color.faint : ACCENT[level] }]} />
-            <Text style={[type.mono, { color: color.ink }]}>{booking.reference_code ?? booking.id.slice(0, 8)}</Text>
-          </View>
-          <Text style={[type.mono, { color: level === 'critical' ? color.terracotta : color.muted }]}>{clock}</Text>
+          <Text style={[type.mono, { color: color.faint }]}>
+            {booking.reference_code ?? booking.id.slice(0, 8)}
+          </Text>
+          <Text style={[type.mono, { color: CLOCK_TONE[level] }]}>{clock}</Text>
         </View>
 
-        <Text style={[type.h1, styles.patient]} numberOfLines={1}>
-          {patient}{age ? <Text style={[type.h1, { color: color.faint }]}>{`  ${age}`}</Text> : null}
+        <Text style={[type.h1, { color: color.ink, marginTop: space.sm }]} numberOfLines={1}>
+          {patient}
+          {age != null ? <Text style={[type.h1, { color: color.faint }]}>{`   ${age}`}</Text> : null}
         </Text>
 
-        <Text style={[type.body, { color: color.muted }]} numberOfLines={1}>
+        <Text style={[type.body, { color: color.muted, marginTop: 2 }]} numberOfLines={1}>
           {[pretty(booking.service_type), booking.pickup_location?.title || booking.pickup_location?.address_line_1]
             .filter(Boolean)
             .join('  ·  ')}
         </Text>
 
-        <View style={styles.pills}>
-          {!booking.companion_user_id
-            ? <Pill label="No companion" tone="red" />
-            : <Pill label="Staffed" tone="green" />}
-          <Pill label={pretty(booking.status)} tone={String(booking.status).toUpperCase() === 'IN_PROGRESS' ? 'blue' : 'calm'} />
-          {booking.transport_mode === 'CUSTOMER_VEHICLE' ? <Pill label="Needs driver" tone="amber" /> : null}
+        <View style={styles.chips}>
+          {isUrgent(booking) && !terminal ? <Chip label="Urgent" tone="critical" dot /> : null}
+          {booking.companion_user_id
+            ? <Chip label="Staffed" tone="good" />
+            : <Chip label="No companion" tone="warn" />}
+          <Chip
+            label={pretty(booking.status)}
+            tone={String(booking.status).toUpperCase() === 'IN_PROGRESS' ? 'info' : 'neutral'}
+          />
+          {booking.transport_mode === 'CUSTOMER_VEHICLE' ? <Chip label="Needs driver" tone="brand" /> : null}
         </View>
       </Touchable>
 
       <View style={styles.actions}>
-        <Touchable
-          style={styles.action}
-          haptic="medium"
-          onPress={() => router.push(`/booking/${booking.id}`)}
-          accessibilityRole="button"
-          accessibilityLabel={booking.companion_user_id ? 'Open booking' : 'Assign a companion'}
-        >
-          <Text style={[type.label, { color: color.green }]}>
-            {booking.companion_user_id ? 'Open' : 'Assign'}
-          </Text>
-        </Touchable>
-        <Touchable
-          style={[styles.action, !phone && styles.actionOff]}
-          haptic="medium"
-          disabled={!phone}
-          onPress={() => phone && Linking.openURL(`tel:${phone}`)}
-          accessibilityRole="button"
-          accessibilityLabel={phone ? `Call ${patient}` : 'No phone number on file'}
-        >
-          <Text style={[type.label, { color: phone ? color.ink : color.faint }]}>Call</Text>
-        </Touchable>
+        <Btn
+          label={booking.companion_user_id ? 'Open' : 'Assign'}
+          size="sm"
+          onPress={open}
+          style={styles.grow}
+        />
+        <Btn
+          label={callLabel}
+          tone="ghost"
+          size="sm"
+          disabled={!callNumber}
+          onPress={() => callNumber && Linking.openURL(telUri(callNumber))}
+          style={styles.grow}
+        />
       </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { gap: space.sm },
+  card: { padding: space.lg, borderRadius: radius.lg },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headLeft: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
-  dot: { width: 8, height: 8, borderRadius: 4 },
-  patient: { color: color.ink, marginTop: space.md },
-  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.md },
-  actions: {
-    flexDirection: 'row',
-    gap: space.sm,
-    marginTop: space.md,
-    paddingTop: space.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: color.line,
-  },
-  action: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-    borderRadius: radius.md,
-    backgroundColor: color.surfaceHi,
-  },
-  actionOff: { backgroundColor: 'transparent' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: space.md },
+  actions: { flexDirection: 'row', gap: space.sm, marginTop: space.lg },
+  grow: { flex: 1 },
 });

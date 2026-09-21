@@ -47,3 +47,9 @@ next-env.d.ts
 
 # Expo export output
 apps/*/dist/
+
+# Expo prebuild output (CNG — regenerate with `expo prebuild`, never edit by hand)
+apps/admin-app/ios/
+apps/admin-app/android/
+apps/mobile-app/ios/
+apps/mobile-app/android/
