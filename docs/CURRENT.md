@@ -67,16 +67,22 @@ in flight:
 
 **Done (2026-09-17):** migration 51 applied; Apple App ID `in.co.caresy.admin`
 created with the Push Notifications capability; App Store Connect record
-created; `apps/admin-app/.env.local` written. `eas.json` deliberately carries no
-`ascAppId` — EAS resolves the app from the bundle identifier using the API key
-already configured, so adding one would be a second place to keep in sync.
+created; `apps/admin-app/.env.local` written. `eas.json` now carries
+`submit.production.ios.ascAppId` (**6812859884**). It was left out on purpose —
+EAS can resolve the app from the bundle identifier — but that resolution only
+happens interactively: `eas submit --non-interactive` fails outright with
+"Set ascAppId in the submit profile (eas.json) or re-run this command in
+interactive mode." A scripted submit needs it written down.
 
 **Shipped state:** EAS project `@caresys-team/caresy-admin`
 (`bb0ade64-5691-4202-9a87-486db1f4420a`), ASC App ID **6812859884**, bundle
-`in.co.caresy.admin`. Build `fbaa8c37` (commit `eeb0e1c`, build number 4)
-finished and is uploaded to App Store Connect / TestFlight. The earlier build
+`in.co.caresy.admin`. Build `2c5550a6` (commit `5e48626`, build number 5) is
+the current one: it carries the five-tab shell, payments, analytics, companion
+review and the pressable-layout fix, and was submitted to App Store Connect on
+2026-09-21 — processing, then TestFlight. Build `fbaa8c37` (commit `eeb0e1c`,
+number 4) is the board-and-detail-only build that was on TestFlight before it;
 `ec3f7503` (commit `912e214`, number 3) is the pre-fix one that died in the
-Swift compile — leave it, it is only history.
+Swift compile — leave both, they are only history.
 
 iOS credentials are now on the Expo servers and reusable: distribution
 certificate + provisioning profile (both expiring 2027-09-17) and — the part

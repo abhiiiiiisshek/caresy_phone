@@ -36,6 +36,7 @@
     "production": {
       "ios": {
         "appleTeamId": "46CLB4HU9B",
+        "ascAppId": "6812859884",
         "ascApiKeyPath": "../mobile-app/credentials/AuthKey_MG3LB4PP9Y.p8",
         "ascApiKeyId": "MG3LB4PP9Y",
         "ascApiKeyIssuerId": "31dd6aba-7793-4a95-ada3-dd6e708946cb"
