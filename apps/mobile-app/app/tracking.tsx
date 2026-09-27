@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { trackingHeadline, trackingSteps } from '@caresy/utils/bookingStatus';
 import { etaSentence } from '@caresy/utils/eta';
 import { Button, Card, EmptyState, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
+import { SmartImage } from '../components/SmartImage';
 import { color, radius, shadow, space } from '../lib/theme';
 
 const SUPPORT_WA = '919717500225';
@@ -168,7 +169,7 @@ export default function Tracking() {
 
   const header = <Stack.Screen options={{ headerShown: true, title: 'Live tracking' }} />;
 
-  if (loading) return <Screen>{header}<LoadingState label="Getting live status…" /></Screen>;
+  if (loading) return <Screen>{header}<LoadingState label="Getting live status…" shape="screen" /></Screen>;
 
   if (!booking) {
     return (
@@ -224,7 +225,7 @@ export default function Tracking() {
           <Stagger index={1}>
             <Card level="raised" style={s.companion}>
               {companion.photo ? (
-                <Image source={{ uri: companion.photo }} style={s.avatar} accessibilityLabel={companionName} />
+                <SmartImage source={{ uri: companion.photo }} style={s.avatar} radius={22} tint={color.greenTint} accessibilityLabel={companionName} />
               ) : (
                 <View style={[s.avatar, s.avatarFallback]}><Txt variant="h2" color={color.onGreen}>{companionName.charAt(0)}</Txt></View>
               )}

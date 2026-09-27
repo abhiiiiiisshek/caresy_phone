@@ -1,6 +1,6 @@
 # Current state
 
-_Updated: 2026-09-19. First real customers expected 2026-08-02._
+_Updated: 2026-09-27. First real customers expected 2026-08-02._
 
 Short-lived working memory: what is in flight, what is known-broken, what is
 next. Not architecture — a thing that settles here for good belongs in
@@ -8,6 +8,65 @@ next. Not architecture — a thing that settles here for good belongs in
 here is worse than nothing.
 
 Read this first after a `/clear`.
+
+## Customer app — loading experience rebuilt (2026-09-27)
+
+`apps/mobile-app`. Every blank screen and bare spinner replaced. ADR-0015 has
+the why (RN `Animated`, zero new deps).
+
+New: `lib/motion.ts` (motion hooks) + `lib/motionMath.ts` (+ self-check),
+`lib/network.ts` (connectivity derived from a global-fetch wrapper),
+`components/Skeleton.tsx`, `components/SplashGate.tsx`,
+`components/SmartImage.tsx`, `components/States.tsx`, `components/Refresh.tsx`.
+Changed: `components/ui.tsx` (Button morph, Card/Chip press springs, sheet
+spring, state views), `app/_layout.tsx`, and the four screens that gated on
+`LoadingState`.
+
+Verified: `tsc --noEmit` clean; lint 121 errors, down from a 129 baseline (all
+remaining are pre-existing, in files this pass did not touch); `expo export
+--platform ios` succeeds.
+
+**Known broken, pre-existing:** `expo export --platform android` fails on
+`Unable to resolve module @expo/ui/jetpack-compose` from
+`expo-router/build/layouts/stack-utils/toolbar/`. Reproduced on a clean tree —
+not from this work. Needs `@expo/ui` added or the router toolbar disabled
+before the next Play build.
+
+Also done: the Capacitor shell (`apps/mobile`) got the same splash handoff —
+`launchShowDuration` is now a 3s ceiling, and `NativeSplash.tsx` in the website
+paints a matching overlay then calls `SplashScreen.hide()`. Website `tsc`,
+lint and `build` all pass. Not yet seen on a device (per CLAUDE.md, verify on a
+Vercel preview rather than a local dev server).
+
+**Simulator run (mobile-app, iOS):** bundle compiles clean (1519 modules) and
+the React splash renders. Two pre-existing blockers had to be cleared first:
+a stale `ios/Podfile.lock` (ExpoFont/ExpoLocation drift — deleted, clean
+`pod install`; `ios/` is gitignored) and the `expo-router/_ctx-shared` Metro
+crash, fixed with `typedRoutes: false` in `app.json`, the same fix admin-app
+took. Note for next time: Metro `--localhost` binds IPv6 `[::1]` only and the
+app requests IPv4 `127.0.0.1` — start it with
+`REACT_NATIVE_PACKAGER_HOSTNAME=127.0.0.1 npx expo start --lan`.
+
+**Splash branding fixed (2026-09-27).** `apps/mobile-app/assets/splash-icon.png`
+was never a placeholder — it is the green Caresy C, byte-identical to
+`android-icon-foreground.png`. What showed a placeholder was the *prebuilt*
+native splash: `apps/mobile-app/ios/.../SplashScreenLogo.imageset` (generated
+Aug 27) and, worse, the Capacitor shell, which was shipping the **Capacitor
+logo** as its splash across 11 Android densities and 3 iOS variants. All 14
+regenerated from the real mark on `#f8faf5`.
+
+Sizing is now one number everywhere — the mark stands ~136pt tall: Capacitor
+images are generated at 35% of the short edge, Expo's native splash is
+`imageWidth: 220` at `contain`, and `SplashGate`'s logo box was corrected from
+168 to 220 to match it (at 168 the logo visibly jumped at the handoff). The
+source asset is 1024² with the mark occupying only a 534×635 bbox, so sizing
+off the canvas understates it by ~40% — crop to the alpha bbox first.
+`NativeSplash` now uses `public/splash-mark.png` (transparent, cropped);
+`icon-512.png` has no alpha and was painting a white square on the cream.
+
+**Not built, by decision:** Switch, Checkbox, FAB, Tabs, Accordion and search-bar
+micro-interactions — the app renders none of these today. `usePressScale` in
+`lib/motion.ts` is the primitive to compose them from when a screen needs one.
 
 ## Admin iOS app — build 4 uploaded to App Store Connect (2026-09-17)
 

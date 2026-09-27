@@ -18,6 +18,8 @@ import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { Button, Card, Field, FormScreen, LoadingState, Overline, Screen, Stagger, Txt } from '../components/ui';
 import { StatusPill } from '../components/StatusPill';
+import { SmartImage } from '../components/SmartImage';
+import { SkelCard } from '../components/Skeleton';
 import { AnimatedHeadline } from '../components/AnimatedHeadline';
 import { CapyMascot, FloatDot } from '../components/CapyMascot';
 import { color, radius, shadow, space } from '../lib/theme';
@@ -232,7 +234,9 @@ export default function Home() {
         <Stagger index={3}>
           <Txt variant="h2" color={color.ink}>Your next visit</Txt>
           {next === undefined ? (
-            <Card><View style={s.skeletonRow}><View style={s.skelLine} /><View style={[s.skelLine, { width: '60%' }]} /></View></Card>
+            // Shimmering card shaped exactly like the real next-visit card, so
+            // the swap is a cross-fade in place with no reflow.
+            <SkelCard lines={2} />
           ) : next === null ? (
             <Card style={s.emptyCard}>
               <View style={s.emptyIcon}><Txt variant="h1" color={color.green}>✦</Txt></View>
@@ -311,7 +315,9 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback
       {img ? (
         <>
           <View style={s.actionImgBox}>
-            <Image source={img} style={s.actionImgFill} resizeMode="cover" accessibilityIgnoresInvertColors />
+            {/* Dominant-colour tint = the card's own background, so the photo
+                box is never a white hole while the asset decodes. */}
+            <SmartImage source={img} style={s.actionImgFill} tint={bg} radius={0} resizeMode="cover" />
           </View>
           {/* Fade into card colour so copy stays legible — matches website: linear-gradient(90deg, bg 0%, bg 36%, transparent 84%) */}
           <LinearGradient

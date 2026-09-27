@@ -15,7 +15,11 @@ apps/
   companion/   Companion portal           → companion.caresy.co.in (Vercel)
   admin/       Ops dashboard              → admin.caresy.co.in     (Vercel)
   mobile/      Capacitor shell            → Play Store            (ADR-0004, superseded)
+  mobile/      Capacitor shell over caresy.co.in; animated splash
+               lives in website NativeSplash.tsx                        (ADR-0015)
   mobile-app/  Customer Expo app          → App Store / Play      (ADR-0009)
+               loading/motion system in lib/motion.ts + components/    (ADR-0015)
+               Skeleton, SplashGate, SmartImage, States, Refresh
   admin-app/   Dispatch Expo app (iOS)    → App Store             (ADR-0014)
 packages/
   ui/          Design primitives + theme.css tokens (web only)

@@ -3841,3 +3841,144 @@ html, body {
 
 /* Native app safe areas: keep fixed chrome clear of the status bar / home bar */
 .mobile-bottom-nav { padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+
+/* ---------------------------------------------------------------------------
+   Native splash (Capacitor shell) — see components/NativeSplash.tsx
+
+   Every animation below is transform/opacity only, so each one is handed to
+   the compositor and costs no layout and no repaint. That is what keeps the
+   first 2.5 seconds of a cold launch at 60 FPS on a mid-range Android, which
+   is the device this actually has to feel good on.
+--------------------------------------------------------------------------- */
+
+.caresy-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  /* Must match capacitor.config backgroundColor exactly (#f8faf5) or the
+     handoff from the native splash shows as a colour step. */
+  background: radial-gradient(120% 90% at 50% 18%, #ffffff 0%, var(--m3-bg, #f8faf5) 52%, #eef4ee 100%);
+  overflow: hidden;
+  /* The overlay owns the whole screen for ~2s, so promote it once up front
+     rather than letting the browser discover that mid-animation. */
+  will-change: opacity;
+}
+
+.caresy-splash.is-leaving {
+  animation: caresy-splash-out 520ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
+/* Ambient light. Blur is expensive per-frame, so it is baked into the gradient
+   stop instead of applied as a filter, and only transform is animated. */
+.caresy-splash__amb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+.caresy-splash__amb--a {
+  width: 110vw; height: 110vw; left: -30vw; top: 4vh;
+  background: radial-gradient(circle, rgba(138, 189, 169, 0.30) 0%, rgba(138, 189, 169, 0) 68%);
+  animation: caresy-drift-a 9s ease-in-out infinite alternate;
+}
+.caresy-splash__amb--b {
+  width: 90vw; height: 90vw; right: -26vw; top: 46vh;
+  background: radial-gradient(circle, rgba(39, 168, 117, 0.18) 0%, rgba(39, 168, 117, 0) 68%);
+  animation: caresy-drift-b 11s ease-in-out infinite alternate;
+}
+.caresy-splash__amb--c {
+  width: 70vw; height: 70vw; left: 2vw; bottom: -14vh;
+  background: radial-gradient(circle, rgba(196, 85, 67, 0.10) 0%, rgba(196, 85, 67, 0) 68%);
+  animation: caresy-drift-c 13s ease-in-out infinite alternate;
+}
+
+/* Logo: springs in with overshoot, then breathes. The overshoot is what makes
+   an entrance read as arrival rather than as a element simply becoming
+   visible; the breathe is what stops a slow load looking frozen. */
+.caresy-splash__mark {
+  animation:
+    caresy-mark-in 620ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    caresy-breathe 3.2s ease-in-out 620ms infinite;
+  will-change: transform, opacity;
+}
+.caresy-splash__mark img {
+  display: block;
+  /* 136px tall is the shared target: the native splash images are generated at
+     35% of the short edge, and the Expo app's is 220pt wide at contain — all
+     three land the mark at the same size, so no handoff shows a jump. */
+  width: 114px;
+  height: 136px;
+  object-fit: contain;
+}
+.caresy-splash.is-leaving .caresy-splash__mark {
+  /* Push through on exit — the mark leads the overlay out rather than fading
+     with it, so the transition has a direction. */
+  animation: caresy-mark-out 520ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
+.caresy-splash__word {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--m3-muted, #404945);
+  animation: caresy-word-in 420ms cubic-bezier(0.22, 1, 0.36, 1) 560ms both;
+}
+
+@keyframes caresy-mark-in {
+  from { opacity: 0; transform: scale(0.86); }
+  60%  { opacity: 1; transform: scale(1.03); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes caresy-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+@keyframes caresy-mark-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.14); }
+}
+@keyframes caresy-word-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes caresy-splash-out {
+  from { opacity: 1; }
+  to   { opacity: 0; visibility: hidden; }
+}
+@keyframes caresy-drift-a {
+  from { transform: translate3d(0, -24px, 0); }
+  to   { transform: translate3d(12px, 22px, 0); }
+}
+@keyframes caresy-drift-b {
+  from { transform: translate3d(0, 20px, 0); }
+  to   { transform: translate3d(-14px, -18px, 0); }
+}
+@keyframes caresy-drift-c {
+  from { transform: translate3d(0, -14px, 0); }
+  to   { transform: translate3d(10px, 16px, 0); }
+}
+
+/* Reduce Motion: the splash still covers the seam — that is a correctness job,
+   not a decorative one — but every loop and every travel is removed. It becomes
+   a plain cross-dissolve, which is what the setting asks for. */
+@media (prefers-reduced-motion: reduce) {
+  .caresy-splash__amb { display: none; }
+  .caresy-splash__mark,
+  .caresy-splash.is-leaving .caresy-splash__mark,
+  .caresy-splash__word {
+    animation: caresy-fade-in 160ms linear both;
+  }
+  .caresy-splash.is-leaving {
+    animation: caresy-splash-out 160ms linear forwards;
+  }
+  @keyframes caresy-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}

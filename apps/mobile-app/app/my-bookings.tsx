@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, Platform, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Platform, StyleSheet, View } from 'react-native';
 import { Redirect, Stack, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 import { isPastBooking, prettyService } from '@caresy/utils/bookingStatus';
 import { formatINR, runningTotalPaise } from '@caresy/utils/pricing';
 import { Button, Card, Chip, EmptyState, ErrorState, FieldButton, LoadingState, Screen, Stagger, Txt } from '../components/ui';
+import { BrandRefresh, LiquidDots } from '../components/Refresh';
 import { StatusPill } from '../components/StatusPill';
 import { color, radius, space } from '../lib/theme';
 
@@ -194,7 +195,7 @@ export default function MyBookings() {
     }
   };
 
-  if (authLoading || loading) return <Screen><Stack.Screen options={{ headerShown: true, title: 'My Bookings' }} /><LoadingState label="Loading your bookings…" /></Screen>;
+  if (authLoading || loading) return <Screen><Stack.Screen options={{ headerShown: true, title: 'My Bookings' }} /><LoadingState label="Loading your bookings…" shape="list" count={4} /></Screen>;
   if (!session) return <Redirect href="/" />;
 
   const shown = bookings.filter((b) => (filter === 'past' ? isPastBooking(b) : !isPastBooking(b)));
@@ -267,7 +268,7 @@ export default function MyBookings() {
           data={shown}
           keyExtractor={(b) => b.id}
           contentContainerStyle={shown.length ? s.list : s.listEmpty}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetch('pull')} tintColor={color.green} />}
+          refreshControl={<BrandRefresh refreshing={refreshing} onRefresh={() => fetch('pull')} />}
           ListEmptyComponent={
             <View>
               <EmptyState
@@ -277,6 +278,7 @@ export default function MyBookings() {
               />
             </View>
           }
+          ListHeaderComponent={<LiquidDots active={refreshing} />}
           renderItem={({ item, index }) => (
             <Stagger index={index + 1}>
               <BookingCard b={item} onCancel={cancel} onReschedule={openReschedule} onTrack={(bk) => router.push({ pathname: '/tracking', params: { token: bk.share_token } })} />

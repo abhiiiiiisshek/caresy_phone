@@ -10,6 +10,7 @@ import AuthModal from '@caresy/auth/modal';
 import RegisterSW from '@/components/RegisterSW';
 import InstallPrompt from '@/components/InstallPrompt';
 import NativeBridge from '@/components/NativeBridge';
+import NativeSplash from '@/components/NativeSplash';
 import './globals.css';
 
 const poppins = Poppins({
@@ -124,6 +125,7 @@ export default function RootLayout({
           <RegisterSW />
           <InstallPrompt />
           <NativeBridge />
+          <NativeSplash />
         </AuthProvider>
       </body>
     </html>

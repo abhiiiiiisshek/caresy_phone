@@ -97,7 +97,7 @@ export default function FamilyScreen() {
     ]);
   };
 
-  if (loading) return <Screen><Stack.Screen options={{ headerShown: true, title: 'Family' }} /><LoadingState label="Loading family…" /></Screen>;
+  if (loading) return <Screen><Stack.Screen options={{ headerShown: true, title: 'Family' }} /><LoadingState label="Loading family…" shape="list" count={3} /></Screen>;
 
   return (
     <Screen>

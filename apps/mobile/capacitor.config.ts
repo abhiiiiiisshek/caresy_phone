@@ -16,9 +16,21 @@ const config: CapacitorConfig = {
   backgroundColor: '#f8faf5',
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1200,
+      // A CEILING, not a cue. The webview loads the live site, so the page can
+      // still be fetching when a 1200ms auto-hide fires — and the gap between
+      // the native splash going and the site painting is a white flash.
+      // NativeSplash in the web app calls SplashScreen.hide() as soon as its
+      // own pixel-matched overlay has painted, which is normally well under a
+      // second. This longer duration only matters if that call never arrives
+      // (JS blocked, plugin missing): the splash still clears itself rather
+      // than hanging forever, which is why launchAutoHide stays true.
+      launchShowDuration: 3000,
+      launchAutoHide: true,
       backgroundColor: '#f8faf5',
       showSpinner: false,
+      androidSpinnerStyle: 'horizontal',
+      splashFullScreen: false,
+      splashImmersive: false,
     },
     StatusBar: {
       overlaysWebView: false,
