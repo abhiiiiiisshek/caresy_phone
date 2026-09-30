@@ -19,6 +19,21 @@ import { decryptSession, encryptSession } from './sessionCrypto';
 // (access + refresh token + user metadata) can exceed that. So the session
 // itself lives in AsyncStorage, encrypted with an AES key that lives in
 // SecureStore — the documented Supabase + Expo pattern, not a custom scheme.
+
+// Supabase hands us whatever its `storageKey` resolved to. When that was
+// `undefined`, AsyncStorage's native module threw "Invalid key - must be a
+// string.  Key: <null>" — an error naming neither Caresy nor Supabase, which
+// is why a total sign-in outage survived twelve commits and a release. Fail
+// with something greppable instead.
+function assertKey(key: unknown): asserts key is string {
+  if (typeof key !== 'string' || key === '') {
+    throw new Error(
+      `[caresy/native] session storage key must be a non-empty string, got ${JSON.stringify(key)}. ` +
+        'Check the `storageKey` passed to createNativeClient.',
+    );
+  }
+}
+
 class LargeSecureStore {
   constructor(private readonly prefix: string) {}
 
@@ -36,6 +51,7 @@ class LargeSecureStore {
   }
 
   async getItem(key: string): Promise<string | null> {
+    assertKey(key);
     const encrypted = await AsyncStorage.getItem(key);
     if (!encrypted) return null;
 
@@ -50,10 +66,12 @@ class LargeSecureStore {
   }
 
   async setItem(key: string, value: string): Promise<void> {
+    assertKey(key);
     await AsyncStorage.setItem(key, encryptSession(value, await this.getEncryptionKey(key)));
   }
 
   async removeItem(key: string): Promise<void> {
+    assertKey(key);
     await AsyncStorage.removeItem(key);
     await SecureStore.deleteItemAsync(this.keyName(key));
   }
@@ -81,7 +99,14 @@ export function createNativeClient(opts: NativeClientOptions): SupabaseClient {
   const client = createClient(opts.url, opts.anonKey, {
     auth: {
       storage: new LargeSecureStore(opts.keyPrefix ?? ''),
-      storageKey: opts.storageKey,
+      // Spread, not `storageKey: opts.storageKey`: supabase-js merges options
+      // over its defaults with Object.assign, so an explicit `undefined`
+      // *overwrites* the default 'supabase.auth.token' instead of falling back
+      // to it. The client then called AsyncStorage.getItem(undefined) and the
+      // native module threw "Invalid key - must be a string. Key: <null>" on
+      // every auth call — the customer app (which passes no storageKey) could
+      // not sign in at all.
+      ...(opts.storageKey ? { storageKey: opts.storageKey } : {}),
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
