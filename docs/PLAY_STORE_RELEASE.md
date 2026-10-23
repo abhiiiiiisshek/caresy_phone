@@ -9,6 +9,21 @@ production access. The 14 days are wall-clock and cannot be compressed. Every
 engineering task below takes hours; the clock takes two weeks. **Start the clock
 first, polish second.**
 
+> **⚠️ Check the account type before doing any of that (noted 2026-10-23).**
+> Google scopes the 12-tester/14-day rule to **personal developer accounts
+> created after 2023-11-13** — "Google Play requires personal developer accounts
+> created after November 13, 2023, to test their apps before those apps are
+> eligible for distribution on Google Play"
+> (support.google.com/googleplay/android-developer/answer/14151465).
+> **Organization accounts are not subject to it.** Caresy is registering as
+> CARESY COMPANION SERVICES (OPC) PRIVATE LIMITED and now has a D-U-N-S
+> (312183790), so if this account is an organization account — or gets converted
+> to one — the whole 14-day clock and the 12-tester hunt below are moot and the
+> AAB can target production directly. **Confirm the account type in Play Console
+> → Settings → Developer account → Account details before spending two weeks on
+> a closed test.** Everything from "Order of operations" down assumes a personal
+> account and only applies if that is what this one turns out to be.
+
 ## What is already true (verified 2026-08-29, not assumed)
 
 | Thing | State |
