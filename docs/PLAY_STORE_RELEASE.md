@@ -257,6 +257,33 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-10-23** — Cleared the Android export blocker. `expo export --platform
+  android` had been failing on `Unable to resolve module
+  @expo/ui/jetpack-compose`. It was never a missing package: `@expo/ui` is a
+  hard dependency of `expo-router` 57.0.21, npm installed it nested under
+  `node_modules/expo-router/node_modules/`, and `metro.config.js`'s
+  `disableHierarchicalLookup = true` stops Metro from walking into a nested
+  copy. Declaring `"@expo/ui": "~57.0.18"` in the app's `package.json` hoists it
+  to the workspace root, which is in `nodeModulesPaths`. Same line added to
+  `apps/admin-app`, which had the identical latent bug. Gates re-run after the
+  dependency change: android export exit 0, sourcemap check passes for
+  `expo-notifications`/`expo-device`/`react-native-maps`/`@expo/ui`, local
+  android fingerprint `a98ed55d8a93868d17d6f2f461d59ba796548304`, no uncovered
+  node_modules pollution (`react-native-maps/android/` holds only tarball files
+  plus `build/`, already in `fingerprint.config.js`). **Still blocking the
+  store, both browser-gated:** Play Console organisation verification (D-U-N-S
+  312183790 on hand, not yet entered) and `android/service-account.json`, which
+  does not exist, so `eas submit --platform android` cannot run and uploads stay
+  manual.
+- **2026-10-23** — First Android production AAB carrying the storageKey fix
+  (`10f8bee`). Build `4c086bc3-b224-4361-ad6b-8183b003c2fa`, **versionCode 10**
+  (auto-incremented from 9), signed with the existing keystore
+  `tX_VA-aRur (default)`, app version 2.0.1.
+  Artifact: `https://expo.dev/artifacts/eas/K9GZCTBm92Ty8_FBfw9uQVuLEBfNkegsoJ2L9F4yu7g.aab`
+  Logs: `https://expo.dev/accounts/caresy/projects/caresy/builds/4c086bc3-b224-4361-ad6b-8183b003c2fa`
+  Not submitted — `eas submit` still blocked on the missing service account, so
+  this AAB needs a manual upload through the Play Console.
+
 - **2026-08-29** — Both production builds FAILED at `Configure expo-updates`
   (versionCode 2 and 3). Blocked pending the phase log. Keystore
   confirmed to already exist as EAS build credentials `tX_VA-aRur (default)` —

@@ -1,6 +1,6 @@
 # Current state
 
-_Updated: 2026-09-27. First real customers expected 2026-08-02._
+_Updated: 2026-10-23. First real customers expected 2026-08-02._
 
 Short-lived working memory: what is in flight, what is known-broken, what is
 next. Not architecture — a thing that settles here for good belongs in
@@ -26,11 +26,23 @@ Verified: `tsc --noEmit` clean; lint 121 errors, down from a 129 baseline (all
 remaining are pre-existing, in files this pass did not touch); `expo export
 --platform ios` succeeds.
 
-**Known broken, pre-existing:** `expo export --platform android` fails on
-`Unable to resolve module @expo/ui/jetpack-compose` from
-`expo-router/build/layouts/stack-utils/toolbar/`. Reproduced on a clean tree —
-not from this work. Needs `@expo/ui` added or the router toolbar disabled
-before the next Play build.
+**Fixed 2026-10-23 (was: Android export broken).** `expo export --platform
+android` failed on `Unable to resolve module @expo/ui/jetpack-compose` from
+`expo-router/build/.../toolbar/`. Root cause was resolution, not a missing
+package: `@expo/ui` is a hard dependency of `expo-router` 57.0.21 and npm had
+installed it *nested* at `node_modules/expo-router/node_modules/@expo/ui`, but
+`metro.config.js` sets `disableHierarchicalLookup = true`, so Metro only
+searches the two explicit `nodeModulesPaths` and never walks into a nested
+copy. iOS was unaffected because the import exists only in `.android.js` files.
+
+Fix: declare `"@expo/ui": "~57.0.18"` in `apps/mobile-app/package.json` so npm
+hoists it to the workspace root, which *is* a searched path — the same
+already-established pattern as `expo-symbols` and `expo-glass-effect`, both
+also expo-router dependencies declared explicitly for this reason.
+`apps/admin-app` had the identical latent bug (same metro config, same nesting)
+and got the same line. Verified: android export exits 0 (3.9MB bundle), `tsc
+--noEmit` clean in both apps, and the sourcemap gate shows `@expo/ui` 81
+sources, `expo-notifications` 57, `react-native-maps` 35, `expo-device` 3.
 
 Also done: the Capacitor shell (`apps/mobile`) got the same splash handoff —
 `launchShowDuration` is now a 3s ceiling, and `NativeSplash.tsx` in the website
