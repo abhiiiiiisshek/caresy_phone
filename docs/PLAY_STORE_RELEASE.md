@@ -272,6 +272,47 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-10-24** — **Read the Play Console directly for the first time. Several
+  things in this runbook were wrong.**
+
+  **The app was rejected on 2026-09-06** and nothing in this repo recorded it.
+  Policy centre, issue `4989587713359237569`: *"Your app is not compliant with
+  the Play Console Requirements policy. Some types of apps can only be
+  distributed by organizations. You have selected an app category or declared
+  your app offers certain [features requiring an] organization account."*
+  Status: "App not available on Google Play", enforced Sep 6. The developer
+  account itself has no policy issues — this is app-level.
+
+  **So the account type is not an optimisation, it is the blocker.** The
+  account (`abhiiiiiisshek`, ID `5083717952522204612`, owner
+  `caresy.co@gmail.com`, Google account `/u/2`) is **Personal**. Caresy cannot
+  ship from a personal account at all, whatever the closed-test clock does.
+
+  **The unlock chain, verified by clicking through it:**
+
+  1. Search Console ownership of `caresy.co.in` — **does not exist**; the
+     property list under `caresy.co@gmail.com` is empty.
+  2. → Play Console → Account details → Website: "Send verification request"
+     (requires 1 to exist first).
+  3. → "Change account type" stops being greyed out. Its tooltip: *"To change
+     your account type, provide and verify a website for your organization
+     below."*
+  4. → organisation verification, where the D-U-N-S (312183790) finally goes.
+  5. → resubmit the app.
+
+  **In progress:** a Search Console *Domain* property for `caresy.co.in` is
+  pending DNS verification. Domain (not URL-prefix) was chosen because it also
+  covers `companion.` and `admin.caresy.co.in`, needs no deploy, and does not
+  depend on the unpushed commits. Registrar is **GoDaddy**, which Search
+  Console can verify automatically via OAuth, or manually with TXT on `@`:
+  `google-site-verification=rwiCis5BsAVlIiw4r-xffxYA7u14X-K8coj6kGZW1Mc`.
+  Verification itself is the user's step (GoDaddy credentials / OAuth grant).
+
+  Current account legal name and address are the *personal* ones
+  (ABHISHEK SHARMA, 754a/16 lakhpat colony-2 Mithapur, Delhi - 110044) and come
+  from the Google payments profile; the organisation details in the D-U-N-S
+  record will have to match whatever D&B holds, not these.
+
 - **2026-10-23** — Cleared the Android export blocker. `expo export --platform
   android` had been failing on `Unable to resolve module
   @expo/ui/jetpack-compose`. It was never a missing package: `@expo/ui` is a
