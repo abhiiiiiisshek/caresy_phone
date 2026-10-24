@@ -272,6 +272,37 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-10-24 (later)** — **Chain unblocked up to the payments profile.**
+
+  1. Search Console **Domain** property for `caresy.co.in` created under
+     `caresy.co@gmail.com` and **auto-verified** ("Verification method: Domain
+     name provider"). TXT on `@` confirmed live from both 8.8.8.8 and 1.1.1.1:
+     `google-site-verification=rwiCis5BsAVlIiw4r-xffxYA7u14X-K8coj6kGZW1Mc`.
+     Nameservers are GoDaddy (`ns49/ns50.domaincontrol.com`).
+     Note: do not remove that TXT record — verification lapses if it goes.
+  2. Play Console → Account details → "Send verification request" then returned
+     **"Website verified"** immediately (no email round-trip, because Search
+     Console ownership already existed).
+  3. **"Change account type" is now enabled.**
+
+  **Where it now stands, and the thing the runbook never said:** the D-U-N-S is
+  *not* entered in Play Console. The conversion flow requires linking a **Google
+  payments profile** that holds the organisation's legal name, address and
+  D-U-N-S — Play reads them from there. No organisation payments profile exists
+  on this account; the dialog offers only "Create new payments profile". That
+  creation needs Indian tax identity (PAN, probably GSTIN/CIN) and is the
+  account owner's step, not an automatable one.
+
+  Remaining after the payments profile exists: link it, verify a public
+  developer-profile phone + email by code, verify a private contact phone +
+  email by code, then resubmit the app against issue
+  `4989587713359237569`.
+
+  Caution carried forward: Google matches the profile's legal name and address
+  against the D&B record behind D-U-N-S 312183790. The address supplied by the
+  user is Shopno-5 Ramavtar Complex, Sector-2 Greater Noida, Dadri, Gautam Budh
+  Nagar, Uttar Pradesh 203207 — if D&B holds a different spelling, D&B wins.
+
 - **2026-10-24** — **Read the Play Console directly for the first time. Several
   things in this runbook were wrong.**
 
