@@ -9,6 +9,53 @@ here is worse than nothing.
 
 Read this first after a `/clear`.
 
+## App Store seller name — entity migration submitted (2026-10-23)
+
+The App Store shows **Abhishek Sharma** under the Caresy app, because the
+Apple Developer membership is an *individual* one and Apple locks the seller
+name to the holder's legal name. There is no App Store Connect setting for
+this.
+
+Submitted to Apple on 2026-10-23: individual → organization migration for
+CARESY COMPANION SERVICES (OPC) PRIVATE LIMITED (D-U-N-S 312183790, CIN
+U86100UW2026OPC257621). Answered **No** to the DBA/trade-name question
+deliberately — India has no DBA registry and the "Caresy" trademark is not
+filed, so claiming one would stall the request. The seller name will therefore
+become the full legal name, not bare "Caresy".
+
+Apple's turnaround is 2–4 weeks and they e-mail for documents: the Certificate
+of Incorporation is staged at `~/Downloads/apple-entity-migration/`. **Do not
+send the Udyam certificate** — its address says Bishrakh/Patwari where MCA and
+D&B both say Dadri, and the mismatch invites a rejection.
+
+⚠️ Migration resets the IDFV for every existing user on their next update, so
+analytics will read them as new installs. Apple says this cannot be undone.
+
+Website side (done, this commit): the footer named **"Caresy Care Services
+Pvt. Ltd."** at an address in Bisrakh Jalalpur. No such entity is registered —
+both were placeholders written before incorporation, and a company name on the
+site that disagrees with the D-U-N-S record is a standard verification
+rejection. The footer also returned `null` on the four app tabs, `/` among
+them, so the domain root Apple actually loads carried no company identity at
+all.
+
+New `apps/website/src/lib/company.ts` (+ self-check) is the single source for
+the registered identity. `Footer.tsx` now renders the legal strip on every
+page while the marketing footer still stops at the bottom nav on app tabs;
+`layout.tsx` JSON-LD gained `legalName` and a full postal address; the phantom
+name and address are gone from `privacy/` and `terms/`.
+
+Verified: `tsc --noEmit` clean, `company.check.ts` passes, `build` succeeds,
+and the built `index.html` contains the legal name, CIN and 203207 with no
+trace of the old values. Lint is unchanged at 42 errors / 4 warnings, all
+pre-existing and in files this pass did not touch.
+
+Next: deploy, then once the migration lands ask Apple to update the seller
+name if it has not followed automatically (it often does not). Getting the
+display name shortened to bare "Caresy" is a separate job needing a Class 44
+trademark — ~₹4,500 govt fee with the Udyam rebate, ~8–18 months. Not blocking.
+Android's Play Console developer name is self-serve and still unchanged.
+
 ## Customer app — loading experience rebuilt (2026-09-27)
 
 `apps/mobile-app`. Every blank screen and bare spinner replaced. ADR-0015 has
