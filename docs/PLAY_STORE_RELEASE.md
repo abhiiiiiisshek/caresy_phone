@@ -272,6 +272,41 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-11-01 (later)** — **Production release staged. Two earlier claims in
+  this file were wrong and are corrected here.**
+
+  **Correction 1 — the store listing was never blank.** It is complete and has
+  been since around Sep 2: app name, short description (72/80), full
+  description, app icon, feature graphic, and 4 of 8 phone screenshots (the
+  minimum is 4). The "everything still blank" note under *Store listing items
+  still needed* was read off a `NEXT_SESSION.md` entry describing **App Store
+  Connect**, not Play.
+
+  **Correction 2 — the App content declarations were never outstanding.** All
+  10 are actioned and "Ready to send for review", completed Sep 1-2: Health
+  apps, Advertising ID, Financial features, Government apps, Data safety,
+  Target audience and content, Content ratings, Ads, Sign in details, Privacy
+  policy. The content-rating questionnaire does not need answering.
+
+  **The 12-tester / 14-day closed test does not apply** now the account is an
+  Organization, so production is reachable directly.
+
+  Staged on the production track (`tracks/4697677760727873812/releases/1`):
+  release name `10 (2.0.1)`, release notes written, saved as draft. The only
+  thing missing is the bundle itself.
+
+  **The AAB upload cannot be automated from here.** The Claude-in-Chrome bridge
+  caps a file upload at 10 MB and the bundle is 65 MB; this was tested, not
+  assumed. The automated path is `eas submit --platform android`, which needs
+  `apps/mobile-app/android/service-account.json` — a Google Cloud service
+  account key that still does not exist. Until it does, every Play upload is a
+  manual drag. Creating it is the single highest-leverage chore left for
+  release tooling.
+
+  A copy of the bundle for that drag is at
+  `~/Downloads/caresy-v10-production.aab` (sha256 verified against the EAS
+  artifact).
+
 - **2026-11-01** — **The account is now an Organization. The blocker is cleared.**
 
   Account details now reads:
