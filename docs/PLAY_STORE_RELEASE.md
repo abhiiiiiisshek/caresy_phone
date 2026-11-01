@@ -272,6 +272,44 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-11-01** — **The account is now an Organization. The blocker is cleared.**
+
+  Account details now reads:
+
+  ```
+  Account type        Organization
+  Registry            Dun & Bradstreet
+  D-U-N-S number      312183790
+  Organization name   CARESY COMPANION SERVICES (OPC) PRIVATE LIMITED
+  Organization address Shopno-5 Ramavtar Complex, Sector-2 Greater Noida, Dadri
+                       Gautam Budh Nagar - 203207, India (IN)
+  ```
+
+  **No registration document had to be uploaded after all.** The wizard's
+  "Is this verified info still correct?" step showed the organisation had
+  already been verified through the payments profile on 2026-10-23; confirming
+  it completed the conversion. The document-upload screen was a path, not a
+  requirement, once prior verification existed.
+
+  For the record, since it caused confusion: the file named
+  `SPICE + Part B_Approval Letter_AC5420559 2.pdf` **is** the MCA Certificate of
+  Incorporation (CIN `U86100UW2026OPC257621`, incorporated 2026-08-21, Central
+  Registration Centre, Manesar). The Udyam/MSME certificate is **not** on
+  Google's accepted list and must not be used. Keep the COI to hand — the
+  Authorized-representative step may still ask for identity documents.
+
+  Note the CIN's NIC code `86100` is "human health activities", which is exactly
+  why Play classified Caresy as organisation-only in the first place.
+
+  **Still open before resubmitting** (the policy centre still lists the Sep 6
+  rejection; it clears on resubmission, not on the account change). The release
+  checklist is: select countries and regions, create a new release, preview and
+  confirm, send to Google for review, publish. Do **not** spend a review cycle
+  until the store listing is complete — privacy policy URL, Data safety form,
+  content rating questionnaire, feature graphic, screenshots and descriptions
+  were all still blank. The versionCode 10 AAB from 2026-10-23 is the binary to
+  upload.
+
 - **2026-10-24 (later)** — **Chain unblocked up to the payments profile.**
 
   1. Search Console **Domain** property for `caresy.co.in` created under
