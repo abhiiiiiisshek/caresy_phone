@@ -272,6 +272,42 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-11-01 (submitted)** — **Caresy is in review on Google Play.**
+
+  Production release `10 (2.0.1)` sent for review at 100% rollout, together
+  with the country changes, as three items in one submission:
+
+  ```
+  Production  10 (2.0.1)         Start full rollout
+              Countries/regions  Remove 176 countries / regions
+              Countries/regions  Remove rest of world
+  ```
+
+  Publishing overview now reads **"Changes in review"**. Google runs ~14
+  minutes of automated quick checks first, then human review, "typically
+  within 7 days".
+
+  **Targeting narrowed to India only.** The track defaulted to 178 countries.
+  Caresy is an in-person service in Delhi NCR, so publishing worldwide would
+  have let people install it where no companion can be dispatched, and their
+  one-star reviews stay on the listing permanently. Country targeting can be
+  widened later without another review.
+
+  Release facts worth keeping: install size **28.7 MB** (the 65 MB AAB splits
+  per-device), ~15s download, API 24+, target SDK 36, 4 ABIs, signed with the
+  existing upload key. The only warning on the release is the missing
+  deobfuscation file, which does not apply — R8 is not running, confirmed both
+  from the DEX (`com/facebook/react` and `expo/modules` class names fully
+  readable in classes3/classes4) and from Play's own DEX optimization panel
+  (obfuscation 1%, shrinking and optimization empty). Native crashes are
+  already covered: the bundle ships 40 debug-symbol entries.
+
+  **Next, once it passes review:** enabling R8 is the obvious size win on a
+  28.7 MB install, but it is not a safe flag flip on React Native — native
+  modules resolve classes reflectively, so it needs keep rules plus a device
+  pass over maps, notifications, image picker, secure store and location, and
+  a mapping-file upload on every release thereafter.
+
 - **2026-11-01 (later)** — **Production release staged. Two earlier claims in
   this file were wrong and are corrected here.**
 
