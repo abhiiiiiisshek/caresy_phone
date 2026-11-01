@@ -17,8 +17,8 @@ const PRIVACY_SECTIONS = [
   {
     id: 'introduction',
     title: '2. Introduction',
-    content: `Caresy is built and operated by Caresy Care Services Private Limited (“Caresy”, “we”, “us”, “our”) — a hospital companion service for families who cannot be physically present during a hospital visit.\n\nThis Privacy Policy explains what personal information we collect, how we use it, how we share it, how long we keep it, and how you control it when you use caresy.co.in, our booking widgets, and our iOS and Android apps (collectively, the “Service”).\n\nLast Updated: ${LAST_UPDATED} • Version: ${VERSION}\nCompany: Caresy Care Services Private Limited\nWebsite/App: caresy.co.in and Caresy (iOS bundle in.co.caresy.app / Android package in.co.caresy.app)`,
-    summary: 'We are Caresy Care Services Pvt Ltd. This policy covers our website and apps and explains what we do with your data in plain language.'
+    content: `Caresy is built and operated by Caresy Companion Services (OPC) Private Limited (“Caresy”, “we”, “us”, “our”) — a hospital companion service for families who cannot be physically present during a hospital visit.\n\nThis Privacy Policy explains what personal information we collect, how we use it, how we share it, how long we keep it, and how you control it when you use caresy.co.in, our booking widgets, and our iOS and Android apps (collectively, the “Service”).\n\nLast Updated: ${LAST_UPDATED} • Version: ${VERSION}\nCompany: Caresy Companion Services (OPC) Private Limited\nWebsite/App: caresy.co.in and Caresy (iOS bundle in.co.caresy.app / Android package in.co.caresy.app)`,
+    summary: 'We are Caresy Companion Services (OPC) Private Limited. This policy covers our website and apps and explains what we do with your data in plain language.'
   },
   {
     id: 'scope',
@@ -113,8 +113,8 @@ const PRIVACY_SECTIONS = [
   {
     id: 'contact',
     title: '18. Contact Us',
-    content: `Questions, requests, complaints, or deletion help — contact us in your preferred way.\n\nCompany: Caresy Care Services Private Limited\nSupport & Privacy: support@caresy.co.in — for rights, deletion, DPDP requests, and general support — replies within 24 hours\nGrievance Officer: Caresy Grievance Officer, Caresy Care Services Private Limited\nPostal: The Skyboat Affection, Paramount Emotions, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318\nWebsite: https://caresy.co.in • In-app: Profile → Help & support → Chat on WhatsApp / Call / Email\nPhone: +91 97175 00225 (also WhatsApp: https://wa.me/919717500225)\n\nWe aim to acknowledge privacy/rights requests within 48 hours and resolve within 30 days. If you are in India and remain unresolved, you can approach the Data Protection Board of India.`,
-    summary: 'Email support@caresy.co.in, call +91 97175 00225, or write to the Grievance Officer in Bisrakh Jalalpur.'
+    content: `Questions, requests, complaints, or deletion help — contact us in your preferred way.\n\nCompany: Caresy Companion Services (OPC) Private Limited\nSupport & Privacy: support@caresy.co.in — for rights, deletion, DPDP requests, and general support — replies within 24 hours\nGrievance Officer: Caresy Grievance Officer, Caresy Companion Services (OPC) Private Limited\nPostal: ShopNo-5 Ramavtar Complex, Sector-2 Greater Noida, Dadri, Noida, Gautam Buddha Nagar, Uttar Pradesh 203207\nWebsite: https://caresy.co.in • In-app: Profile → Help & support → Chat on WhatsApp / Call / Email\nPhone: +91 97175 00225 (also WhatsApp: https://wa.me/919717500225)\n\nWe aim to acknowledge privacy/rights requests within 48 hours and resolve within 30 days. If you are in India and remain unresolved, you can approach the Data Protection Board of India.`,
+    summary: 'Email support@caresy.co.in, call +91 97175 00225, or write to the Grievance Officer in Greater Noida.'
   }
 ];
 

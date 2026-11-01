@@ -11,6 +11,7 @@ import RegisterSW from '@/components/RegisterSW';
 import InstallPrompt from '@/components/InstallPrompt';
 import NativeBridge from '@/components/NativeBridge';
 import NativeSplash from '@/components/NativeSplash';
+import { LEGAL_NAME, REGISTERED_ADDRESS } from '@/lib/company';
 import './globals.css';
 
 const poppins = Poppins({
@@ -79,6 +80,9 @@ const JSON_LD = {
   '@type': 'LocalBusiness',
   '@id': 'https://caresy.co.in/#business',
   name: 'Caresy',
+  // The registered entity behind the brand. Verifiers (App Store organization
+  // review, Google Business) match this against the D-U-N-S record.
+  legalName: LEGAL_NAME,
   slogan: 'Your Care, Our Priority',
   description: SITE_DESCRIPTION,
   url: 'https://caresy.co.in',
@@ -91,8 +95,10 @@ const JSON_LD = {
   ],
   address: {
     '@type': 'PostalAddress',
-    addressLocality: 'Noida',
-    addressRegion: 'Uttar Pradesh',
+    streetAddress: `${REGISTERED_ADDRESS.line1}, ${REGISTERED_ADDRESS.line2}`,
+    addressLocality: REGISTERED_ADDRESS.district,
+    addressRegion: REGISTERED_ADDRESS.state,
+    postalCode: REGISTERED_ADDRESS.pincode,
     addressCountry: 'IN',
   },
   priceRange: '₹₹',

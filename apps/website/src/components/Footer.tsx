@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Shield, CheckCircle, Send, MessageCircle } from 'lucide-react';
 import { IconButton } from '@caresy/ui';
+import {
+  LEGAL_NAME,
+  CIN,
+  REGISTERED_ADDRESS_LINE,
+  SUPPORT_EMAIL,
+  SUPPORT_PHONE,
+  SUPPORT_PHONE_E164,
+} from '@/lib/company';
 
 // The 4 core app tabs end at the bottom nav, matching the app design — the
 // full website footer only renders on secondary marketing/legal pages.
@@ -12,10 +20,18 @@ const APP_TABS = ['/', '/my-bookings', '/support', '/profile', '/login', '/booki
 
 export default function Footer() {
   const pathname = usePathname();
-  if (APP_TABS.includes(pathname)) return null;
+  // The marketing footer still stops at the bottom nav on app tabs, but the
+  // legal strip below it renders everywhere: Indian company law expects the
+  // registered identity on the site, and App Store organization verification
+  // checks the domain root, which is an app tab.
+  // ponytail: the strip also shows inside the Capacitor shell, where it is
+  // merely redundant. Gate on window.Capacitor.isNativePlatform() if that
+  // ever looks wrong in the app.
+  const isAppTab = APP_TABS.includes(pathname);
 
   return (
     <footer className="footer">
+      {!isAppTab && (
       <div className="footer-container">
         <div className="footer-brand">
           <Link className="brand" href="/" aria-label="Caresy home">
@@ -88,16 +104,19 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      
+      )}
+
       <div className="footer-bottom">
         <div className="footer-bottom-container">
-          <p className="copyright">&copy; 2026 Caresy Care Services Pvt. Ltd. All rights reserved.</p>
+          <p className="copyright">&copy; 2026 {LEGAL_NAME}. All rights reserved.</p>
           <div className="footer-bottom-links">
-            <span className="footer-address-mini">The Skyboat Affection, Paramount Emotions, Sector 1, Bisrakh Jalalpur, Uttar Pradesh 201318</span>
+            <span className="footer-address-mini">
+              Registered office: {REGISTERED_ADDRESS_LINE}, India &middot; CIN: {CIN}
+            </span>
             <span className="footer-divider">|</span>
-            <a href="tel:+919717500225">+91 97175 00225</a>
+            <a href={`tel:+${SUPPORT_PHONE_E164}`}>{SUPPORT_PHONE}</a>
             <span className="footer-divider">|</span>
-            <a href="mailto:support@caresy.co">support@caresy.co</a>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
           </div>
         </div>
       </div>
