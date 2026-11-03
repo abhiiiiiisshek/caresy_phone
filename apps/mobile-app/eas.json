@@ -51,7 +51,7 @@
         "ascApiKeyIssuerId": "31dd6aba-7793-4a95-ada3-dd6e708946cb"
       },
       "android": {
-        "serviceAccountKeyPath": "./android/service-account.json",
+        "serviceAccountKeyPath": "./credentials/service-account.json",
         "track": "internal"
       }
     }

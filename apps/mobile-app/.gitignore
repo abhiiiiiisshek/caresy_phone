@@ -18,6 +18,13 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Google Play service account key used by `eas submit --platform android`.
+# This key can publish to the production track, so it is a production
+# credential, not config. It lives in credentials/ rather than android/
+# because `expo prebuild` regenerates android/ and would delete it.
+credentials/service-account.json
+service-account.json
+
 # Metro
 .metro-health-check*
 
