@@ -1,6 +1,6 @@
 # Current state
 
-_Updated: 2026-10-23. First real customers expected 2026-08-02._
+_Updated: 2026-11-03. First real customers expected 2026-08-02._
 
 Short-lived working memory: what is in flight, what is known-broken, what is
 next. Not architecture — a thing that settles here for good belongs in
@@ -8,6 +8,54 @@ next. Not architecture — a thing that settles here for good belongs in
 here is worse than nothing.
 
 Read this first after a `/clear`.
+
+## Android app — sign-in dead end and seven more, fixed (2026-11-03)
+
+A Play-Store install could not get past Google sign-in: the OAuth redirect
+`caresy://auth/callback` deep-links back into the app, expo-router resolved it
+as a route, and there was no `app/auth/callback.tsx` — so every sign-in landed
+on expo-router's "Unmatched Route" screen. The session was usually set; the
+user just never saw the app. The new route consumes the tokens itself as well
+as existing, because a cold start has no `openAuthSessionAsync` promise left to
+receive them.
+
+A read of the whole `apps/mobile-app` source then turned up seven more, all
+fixed in the same pass:
+
+- **Attachments were never uploading.** `booking.tsx` sent a React Native
+  `Blob` to Supabase Storage, which storage-js documents as not working on RN
+  ("upload file using `ArrayBuffer`… instead"); the failure was swallowed by a
+  bare `catch {}` while the screen still read "✓ Selected". Now
+  `expo-file-system`'s `File.arrayBuffer()`, a zero-byte guard, and an alert
+  that names the ref code when it fails. The booking still succeeds regardless.
+- **Removed family members came back.** `booking.tsx`'s patient picker did not
+  filter `deleted_at`, which `family.tsx` sets on Remove.
+- **The "Relation" field did nothing** — no such column existed (migration 53
+  adds it; `patient_members.relation` is a different thing).
+- **Every address was filed as "Noida"**, hardcoded, though the pincode check
+  had already resolved the real city.
+- **Timezone.** Slots were written with `new Date("…T10:00")` — device-local —
+  so a family member booking from abroad moved the visit by their UTC offset,
+  and the home card formatted in device time while My Bookings forced IST. Now
+  one checked helper, `lib/bookingTime.ts` (`istSlotToDate` + self-check
+  asserting the instant is identical under five timezones), and IST everywhere
+  it is displayed. **`availableSlots` in `packages/utils` is still
+  device-local** — shared with the website, so out of scope here; a booking
+  from a non-IST phone gets a slightly wrong *available-slot window* even
+  though the time it writes is now right.
+- **Support FAQ contradicted the app**, claiming reschedule was "coming soon"
+  (it ships, with a 60-min lead) and that account deletion was support-only
+  (it is in Profile → Danger zone). The second is a data-deletion claim on a
+  live Play listing.
+- Android date picker advanced to the time picker even when dismissed; dead
+  `reduceMotion` const removed from five screens.
+
+Verified: `tsc --noEmit` clean, `expo export --platform android` builds,
+`bookingTime.check.ts` passes. Migration 53 applied before the OTA, since the
+Family screen now selects `patients.relation` and would 400 without it.
+
+Shipped as an `eas update` to the production branch — JS-only, fingerprint
+unchanged, so it reaches installed Play builds without a new AAB or review.
 
 ## App Store seller name — entity migration submitted (2026-10-23)
 

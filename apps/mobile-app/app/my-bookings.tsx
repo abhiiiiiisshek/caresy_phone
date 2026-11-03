@@ -150,9 +150,12 @@ export default function MyBookings() {
     setRescheduling(false);
   };
 
-  const onDateChange = (_: unknown, selected?: Date) => {
+  const onDateChange = (event: { type?: string }, selected?: Date) => {
     if (Platform.OS === 'android') setShowDatePicker(false);
-    if (!selected) return;
+    // Android reports a dismissal with the unchanged date rather than an
+    // undefined one, so without this check backing out of the date picker
+    // still advanced to the time picker.
+    if (event?.type === 'dismissed' || !selected) return;
     setRescheduleAt((prev) => {
       const base = prev ?? new Date();
       const next = new Date(base);
@@ -164,9 +167,9 @@ export default function MyBookings() {
     }
   };
 
-  const onTimeChange = (_: unknown, selected?: Date) => {
+  const onTimeChange = (event: { type?: string }, selected?: Date) => {
     if (Platform.OS === 'android') setShowTimePicker(false);
-    if (!selected) return;
+    if (event?.type === 'dismissed' || !selected) return;
     setRescheduleAt((prev) => {
       const base = prev ?? new Date();
       const next = new Date(base);

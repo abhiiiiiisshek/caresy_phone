@@ -177,7 +177,6 @@ export default function QuickHelp() {
     }
   };
 
-  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const back = () => {
     if (step > 1) setStep((n) => n - 1);
     else router.back();

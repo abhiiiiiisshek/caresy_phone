@@ -47,7 +47,6 @@ const ETA_STATUSES = ['assigned', 'en_route_pickup'];
 export default function Tracking() {
   const { token } = useLocalSearchParams<{ token?: string }>();
   const router = useRouter();
-  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const [booking, setBooking] = useState<TrackedBooking | null>(null);
   const [loading, setLoading] = useState(!!token);
   const [tripId, setTripId] = useState<string | null>(null);

@@ -41,7 +41,6 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function ProfileScreen() {
   const { session, loading, signInWithGoogle, signInWithApple, signOut } = useAuth();
   const router = useRouter();
-  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const [profile, setProfile] = useState<Profile | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(Platform.OS === 'ios');

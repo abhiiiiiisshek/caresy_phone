@@ -13,8 +13,12 @@ import { BottomSheet, Button, Card, Chip, ChipRow, Field, FieldButton, FormScree
 import { color, radius, space } from '../lib/theme';
 import { HOSPITALS, pincodeForArea } from '../lib/hospitals';
 import { useCurrentLocation } from '../lib/useLocation';
+import { istSlotToDate } from '../lib/bookingTime';
 
 import * as ImagePicker from 'expo-image-picker';
+// SDK 57 File API. Named import collides with nothing here; `File` the DOM
+// global is not a thing React Native has.
+import { File } from 'expo-file-system';
 
 // Business rules mirror apps/website/src/app/booking (data contract, not layout).
 const SERVICES = [
@@ -118,7 +122,11 @@ export default function Booking() {
 
   useEffect(() => {
     if (!session) return;
+    // `.is('deleted_at', null)` is load-bearing: family.tsx removes a member by
+    // soft-delete, and without this filter they came straight back in this
+    // picker — including, in the worst case, a parent who has died.
     supabase.from('patients').select('id, full_name, age, emergency_contact_phone').eq('customer_user_id', session.user.id)
+      .is('deleted_at', null)
       .then(({ data }) => setSavedPatients((data as SavedPatient[]) || []));
   }, [session]);
 
@@ -208,7 +216,10 @@ export default function Booking() {
 
       const { data: loc, error: locErr } = await supabase.from('locations').insert({
         customer_user_id: uid, title: hospital, address_line_1: meetAddress.trim() || hospital,
-        city: 'Noida', state: 'Uttar Pradesh', pincode: pincode.trim(),
+        // The pincode lookup already resolved the real city; hardcoding 'Noida'
+        // filed every Greater Noida visit under the wrong one. quick-help.tsx
+        // has always done this correctly.
+        city: pincodeCheck?.city || 'Noida', state: 'Uttar Pradesh', pincode: pincode.trim(),
         // Store the pin whenever the customer captured one, whatever the meeting
         // mode. Gating this on 'home' meant a companion meeting a family at a
         // hospital gate got a name search over "Max Hospital" and nothing else —
@@ -219,7 +230,7 @@ export default function Booking() {
       }).select().single();
       if (locErr) throw locErr;
 
-      const scheduledStart = new Date(`${date}T${time}:00`);
+      const scheduledStart = istSlotToDate(date, time);
       const { data: bk, error: bkErr } = await supabase.from('bookings').insert({
         customer_user_id: uid, patient_id: patientId, pickup_location_id: loc.id,
         service_type: chosenService.key, booking_type: 'SCHEDULED', status: 'PENDING',
@@ -232,20 +243,41 @@ export default function Booking() {
       }).select().single();
       if (bkErr) throw bkErr;
 
-      // Patient doc upload (Phase 4) — best-effort, booking already succeeded
+      // Patient doc upload — best-effort for the BOOKING (which already
+      // succeeded), never silent for the CUSTOMER. The old version swallowed
+      // every failure and left the screen still saying "✓ Selected", so a
+      // prescription could go missing with nobody on either side told.
+      //
+      // ArrayBuffer via expo-file-system, not `fetch(uri).blob()`. storage-js
+      // says so in its own type docs: "For React Native, using either Blob,
+      // File or FormData does not work as intended. Upload file using
+      // ArrayBuffer from base64 file data instead." The Blob path uploaded an
+      // empty object, which is how this failed quietly for every attachment.
       if (docUri && patientId) {
+        let docError: string | null = null;
         try {
           setDocUploading(true);
-          const resp = await fetch(docUri);
-          const blob = await resp.blob();
+          const bytes = await new File(docUri).arrayBuffer();
+          if (bytes.byteLength === 0) throw new Error('The selected photo came back empty.');
           const ext = docUri.split('.').pop()?.split('?')[0] || 'jpg';
           const path = `${patientId}/${Date.now()}.${ext}`;
-          const { error: upErr } = await supabase.storage.from('patient-docs').upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false });
-          if (!upErr) {
-            await supabase.from('patient_documents').insert({ patient_id: patientId, booking_id: bk.id, doc_type: 'OTHER', title: 'Booking attachment', file_path: path });
-          }
-        } catch {}
-        setDocUploading(false);
+          const contentType = ext.toLowerCase() === 'png' ? 'image/png' : 'image/jpeg';
+          const { error: upErr } = await supabase.storage.from('patient-docs').upload(path, bytes, { contentType, upsert: false });
+          if (upErr) throw upErr;
+          const { error: docErr } = await supabase.from('patient_documents')
+            .insert({ patient_id: patientId, booking_id: bk.id, doc_type: 'OTHER', title: 'Booking attachment', file_path: path });
+          if (docErr) throw docErr;
+        } catch (e: unknown) {
+          docError = (e as Error)?.message || 'Upload failed.';
+        } finally {
+          setDocUploading(false);
+        }
+        if (docError) {
+          Alert.alert(
+            'Booking confirmed — attachment did not upload',
+            `${bk.reference_code} is booked. The document could not be attached (${docError}) — send it on WhatsApp and we'll add it to the visit.`,
+          );
+        }
       }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -258,7 +290,6 @@ export default function Booking() {
     }
   };
 
-  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   if (authLoading) return <Screen />;
   if (!session) return <Redirect href="/" />;
 

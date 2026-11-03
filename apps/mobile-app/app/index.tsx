@@ -67,7 +67,10 @@ function serviceLabel(b: NextBooking) {
 }
 function whenLabel(iso: string | null) {
   if (!iso) return 'Time to be confirmed';
-  return new Date(iso).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  // IST, like my-bookings.tsx: the visit happens on Indian wall-clock time,
+  // and the same booking reading 10:00 here and 15:30 there is worse than
+  // either being 'wrong' for a family member abroad.
+  return new Date(iso).toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' });
 }
 
 export default function Home() {

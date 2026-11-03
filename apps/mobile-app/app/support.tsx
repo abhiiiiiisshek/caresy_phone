@@ -15,8 +15,8 @@ const FAQS = [
   { q: 'How is pricing calculated?', a: 'By companion time on the day, not a flat fee. The booking shows an estimate; final amount is metered and you pay after the visit (cash/UPI). Evening visits add a small surcharge.', cat: 'Pricing' },
   { q: 'Can I book for tomorrow or next week?', a: 'Yes — use “Book a companion” and pick date & slot. For today, use “Need help urgently” for fastest assignment.', cat: 'Booking' },
   { q: 'Will I get live location?', a: 'Yes, once the companion starts the trip. Before that the tracking screen says “Location will be shared when trip starts.” No fake map before start.', cat: 'Tracking' },
-  { q: 'How do I cancel or reschedule?', a: 'Open My Bookings → Cancel. Reschedule is coming soon — for now cancel and rebook, or message support and we’ll help.', cat: 'Booking' },
-  { q: 'Is my data safe?', a: 'Supabase RLS protects your bookings. We never sell data. Delete account is available via support and will be in-app before store submission.', cat: 'Privacy' },
+  { q: 'How do I cancel or reschedule?', a: 'Open My Bookings and use Cancel or Reschedule on the booking. Rescheduling needs at least 60 minutes’ notice and stays within 90 days. Cancelling is free up to 6 hours before a scheduled visit, or within 30 minutes of an urgent one — after that, or once a companion has set out, there is a ₹99 fee that goes to the companion.', cat: 'Booking' },
+  { q: 'Is my data safe?', a: 'Your bookings are protected row-by-row — nobody else’s account can read them. We never sell data. You can delete your account and everything in it from Profile → Delete account, or write to support@caresy.co.in.', cat: 'Privacy' },
 ];
 
 const CATS = ['All', 'Service', 'Booking', 'Pricing', 'Coverage', 'Tracking'] as const;

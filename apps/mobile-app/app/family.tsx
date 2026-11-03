@@ -20,7 +20,6 @@ type FamilyMember = {
 export default function FamilyScreen() {
   const { session } = useAuth();
   const router = useRouter();
-  const reduceMotion = false; // RN 0.86: reanimated removed, fallback to full motion (respect via AccessibilityInfo if needed)
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -37,7 +36,7 @@ export default function FamilyScreen() {
     setLoading(true);
     const { data } = await supabase
       .from('patients')
-      .select('id, full_name, age, blood_group, allergies')
+      .select('id, full_name, age, blood_group, allergies, relation')
       .eq('customer_user_id', session.user.id)
       .is('deleted_at', null)
       .order('created_at', { ascending: true })
@@ -68,6 +67,7 @@ export default function FamilyScreen() {
           age: age ? Number(age) : null,
           blood_group: bloodGroup.trim() || null,
           allergies: allergies.trim() || null,
+          relation: relation.trim() || null,
         }).eq('id', editTarget.id).eq('customer_user_id', session.user.id);
         if (error) throw error;
       } else {
@@ -77,6 +77,7 @@ export default function FamilyScreen() {
           age: age ? Number(age) : null,
           blood_group: bloodGroup.trim() || null,
           allergies: allergies.trim() || null,
+          relation: relation.trim() || null,
         });
         if (error) throw error;
       }
@@ -136,7 +137,7 @@ export default function FamilyScreen() {
                 <View style={s.avatar}><Txt variant="title" color={color.onGreen}>{item.full_name.charAt(0).toUpperCase()}</Txt></View>
                 <View style={s.flex1}>
                   <Txt variant="title" color={color.ink}>{item.full_name}</Txt>
-                  <Txt variant="caption" color={color.faint}>{[item.age ? `${item.age}y` : null, item.blood_group, item.allergies ? `Allergy: ${item.allergies}` : null].filter(Boolean).join(' · ') || 'Tap to edit'}</Txt>
+                  <Txt variant="caption" color={color.faint}>{[item.relation, item.age ? `${item.age}y` : null, item.blood_group, item.allergies ? `Allergy: ${item.allergies}` : null].filter(Boolean).join(' · ') || 'Tap to edit'}</Txt>
                 </View>
               </Pressable>
               {/* "Remove" alone does not say who, and every row reads the same. */}
