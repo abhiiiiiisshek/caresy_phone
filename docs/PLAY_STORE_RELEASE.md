@@ -272,6 +272,39 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-11-03** — **The store listing is LIVE on Google Play.**
+  `https://play.google.com/store/apps/details?id=in.co.caresy.app` serves a
+  public page with an Install button, screenshots, Data safety and a "Rated for
+  3+" badge.
+
+  **Policy status is now "No issues found"** — the 2026-09-06 rejection has
+  cleared, confirming the Organization conversion was the fix.
+
+  Note the distinction, because the console shows both at once:
+
+  | Thing | State |
+  |---|---|
+  | Store listing | **Live**, public, India only |
+  | Release `10 (2.0.1)` | **Still in review** |
+  | Production track | Active · 1 country/region · 0 installs |
+
+  So the page is discoverable while the binary is still with reviewers. The
+  store page's "Updated on 4 Sept 2026" is the listing's content date, not the
+  serving build — do not read it as the shipped version.
+
+  **Developer name changed.** The public byline read `abhiiiiiisshek` — a
+  personal handle on a healthcare app, inconsistent with the registered
+  identity established across the website, privacy policy and D-U-N-S record.
+  Set to `Caresy Companion Services (OPC) Private Limited` (47/50 chars).
+  **This change is itself reviewed by Google**: the console states "Users will
+  see abhiiiiiisshek until your new name ... is approved." It is account-level,
+  so it applies to every app under developer ID 5083717952522204612 (including
+  the admin app if it ever ships).
+
+  Still outstanding: `apps/mobile-app/android/service-account.json` does not
+  exist, so Play uploads remain a manual drag; and R8 is off, worth revisiting
+  for the 28.7 MB install size once the release is approved.
+
 - **2026-11-01 (submitted)** — **Caresy is in review on Google Play.**
 
   Production release `10 (2.0.1)` sent for review at 100% rollout, together
