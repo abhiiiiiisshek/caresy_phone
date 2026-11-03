@@ -272,10 +272,22 @@ gitignored before it lands on disk.
 
 ## Log
 
-- **2026-11-03** — **The store listing is LIVE on Google Play.**
-  `https://play.google.com/store/apps/details?id=in.co.caresy.app` serves a
-  public page with an Install button, screenshots, Data safety and a "Rated for
-  3+" badge.
+- **2026-11-03** — ~~The store listing is LIVE on Google Play.~~
+  **CORRECTED 2026-11-03 (later): it is not public yet.** The store URL
+  `https://play.google.com/store/apps/details?id=in.co.caresy.app` rendered a
+  full page *only because the browser was signed into the Caresy Co developer
+  account* — Play shows owners their own listing before publication. Signed-out
+  users and anyone sent the link get **"item not found"**.
+
+  The giveaway was on the same screen and was missed: the production track read
+  "Release 10 (2.0.1) **in review**". **Check a store link signed out, or in a
+  private window, before calling an app live.**
+
+  What is actually installable today is the **Closed testing - Alpha** track
+  (release "Caresy Trial", last updated Sep 4), which is invite-only by
+  definition. That is why only listed testers can install and everyone else
+  sees a 404. There is no setting that widens this: it resolves when release
+  10 (2.0.1) clears review.
 
   **Policy status is now "No issues found"** — the 2026-09-06 rejection has
   cleared, confirming the Organization conversion was the fix.
