@@ -272,6 +272,35 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-11-03 — queued: widen country targeting once review clears.**
+
+  Do **not** do this while release 10 (2.0.1) is in review. Nobody can install
+  the app anywhere until it is approved, so adding countries early gains
+  nothing and only adds a second pending change to an in-flight review, which
+  can extend it. Country targeting changes need no review of their own, so
+  doing it after approval is free.
+
+  **The moment release 10 is approved**, set Production > Countries / regions
+  to:
+
+  | Market | Why |
+  |---|---|
+  | **India** | where the service is actually delivered - primary market |
+  | USA, Canada, Australia | largest English-speaking Indian diaspora |
+  | UK, UAE, Singapore | comparable or larger Indian populations; UAE especially, where most expatriates have parents in India |
+
+  The product reason: the payer and the patient are in different countries. An
+  NRI son or daughter books and pays from Toronto or Dubai; the companion
+  shows up at a hospital in Delhi NCR. The booking flow has to work for someone
+  who will never physically be there, so widening targeting is a real feature
+  decision, not just a store setting - check that pricing display, phone number
+  entry and support hours hold up for a user in another timezone before
+  promoting these markets hard.
+
+  Path: Production > Countries / regions > Edit countries / regions, tick the
+  seven, Save, then Submit for review in Publishing overview (the submit step
+  is required even though the change itself is not reviewed).
+
 - **2026-11-03** — ~~The store listing is LIVE on Google Play.~~
   **CORRECTED 2026-11-03 (later): it is not public yet.** The store URL
   `https://play.google.com/store/apps/details?id=in.co.caresy.app` rendered a
