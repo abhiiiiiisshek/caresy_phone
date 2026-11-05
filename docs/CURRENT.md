@@ -22,10 +22,15 @@ crops padding rather than the wordmark. Dropping the iOS asset in unscaled
 would have cropped it to roughly "aresy".
 
 **In-app icons.** SF Symbols on iOS, typographic characters on Android — `▦`
-for bookings, `●` for profile, `🩺` on the sign-in badge. Both platforms now
-render `lucide-react-native`, which is also what the website already uses. See
-ADR-0016, including why icons are imported per subpath (the barrel costs
-2.5MB). `expo-symbols` removed.
+for bookings, `●` for profile, `🩺` on the sign-in badge. **iOS is untouched**
+and keeps SF Symbols; Android now draws the nearest lucide equivalent instead
+of a text glyph. `components/Icon.tsx` holds the pairing table and call sites
+never branch on platform. See ADR-0016, including why icons are imported per
+subpath (the barrel costs 2.5MB).
+
+The two apps are deliberately *not* pixel-identical — an earlier pass moved
+both to lucide and was reverted, because the iOS app is shipped and approved
+and is the reference the Android one is being brought up to.
 
 **Card surfaces.** Android got a solid fill plus `elevation: 1` where iOS got
 translucent white and a hairline border. One `actionSurface` / `cardSurface`

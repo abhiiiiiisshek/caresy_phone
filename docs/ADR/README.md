@@ -28,4 +28,4 @@ header comment of the migration that implements them. The ADR is the index.
 | [0013](0013-expo-updates-ota.md) | OTA updates via expo-updates, gated by fingerprint runtimeVersion | Accepted | 2026-08-21 |
 | [0014](0014-separate-admin-ios-app.md) | A separate admin iOS app, not admin screens in the customer app | Accepted | 2026-09-16 |
 | [0015](0015-loading-experience-on-rn-animated.md) | The loading experience runs on RN `Animated`, not Reanimated | Accepted | 2026-09-27 |
-| [0016](0016-one-icon-set-across-platforms.md) | One icon set on both platforms: `lucide-react-native`, not SF Symbols | Accepted | 2026-11-05 |
+| [0016](0016-one-icon-set-across-platforms.md) | Keep SF Symbols on iOS; draw the same meanings with lucide on Android | Accepted | 2026-11-05 |

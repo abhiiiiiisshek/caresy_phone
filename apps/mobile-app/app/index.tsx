@@ -22,34 +22,9 @@ import { SmartImage } from '../components/SmartImage';
 import { SkelCard } from '../components/Skeleton';
 import { AnimatedHeadline } from '../components/AnimatedHeadline';
 import { CapyMascot, FloatDot } from '../components/CapyMascot';
-// Per-icon subpaths, not the `lucide-react-native` barrel. The barrel pulls
-// every one of ~1,600 icons into the bundle — it took the Android build from
-// 3.9MB to 6.4MB, which is 2.5MB of nothing over Indian mobile data.
-import BookOpen from 'lucide-react-native/icons/book-open';
-import Calendar from 'lucide-react-native/icons/calendar';
-import CalendarPlus from 'lucide-react-native/icons/calendar-plus';
-import CircleUser from 'lucide-react-native/icons/circle-user';
-import HeartPulse from 'lucide-react-native/icons/heart-pulse';
-import MessageCircleQuestionMark from 'lucide-react-native/icons/message-circle-question-mark';
-import ShieldCheck from 'lucide-react-native/icons/shield-check';
-import Stethoscope from 'lucide-react-native/icons/stethoscope';
-
+import { Icon, type IconName } from '../components/Icon';
 import { color, radius, shadow, space } from '../lib/theme';
 
-// One icon set on both platforms (ADR-0012). This used to be SF Symbols on
-// iOS with a typographic fallback on Android — '▦', '✦', '◐' — which are
-// characters from a text font, not icons, so the two apps did not look like
-// the same product. lucide is also what the website already uses, so phone
-// and web finally draw the same shapes.
-const Icon = {
-  bookings: Calendar,
-  care: BookOpen,
-  help: MessageCircleQuestionMark,
-  profile: CircleUser,
-  urgent: HeartPulse,
-  schedule: CalendarPlus,
-} as const;
-export type IconKey = keyof typeof Icon;
 
 const SUPPORT_WA = '919717500225';
 
@@ -284,7 +259,7 @@ export default function Home() {
 
         <Stagger index={8}>
           <View style={s.trustHeaderRow}>
-            <ShieldCheck size={20} color={color.green} strokeWidth={2.25} />
+            <Icon name="verified" size={20} color={color.green} />
             <Txt variant="title" color={color.ink}>Verified Companions</Txt>
           </View>
           <Txt variant="caption" color={color.muted} style={s.trustBody}>
@@ -305,9 +280,8 @@ export default function Home() {
 
 function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, icon, decor, img, onPress, accessibilityLabel }: {
   bg: string; ink: string; inkMuted?: string; btnBg: string; label: string; title: string; desc: string;
-  icon: IconKey; decor: 'urgent' | 'schedule'; img?: any; onPress: () => void; accessibilityLabel: string;
+  icon: IconName; decor: 'urgent' | 'schedule'; img?: any; onPress: () => void; accessibilityLabel: string;
 }) {
-  const Glyph = Icon[icon];
   return (
     <Pressable
       onPress={onPress}
@@ -343,7 +317,7 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, icon, decor,
       <View style={s.actionCardLeft}>
         <View style={s.actionLabelRow}>
           <View style={[s.actionLabelIcon, { backgroundColor: decor === 'urgent' ? '#fff' : 'rgba(255,255,255,0.18)' }]}>
-            <Glyph size={14} color={decor === 'urgent' ? color.urgent : color.onGreen} strokeWidth={2.5} />
+            <Icon name={icon} size={14} color={decor === 'urgent' ? color.urgent : color.onGreen} strokeWidth={2.5} />
           </View>
           <Overline color={decor === 'urgent' ? color.urgent : 'rgba(255,255,255,0.92)'}>{label}</Overline>
         </View>
@@ -357,8 +331,7 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, icon, decor,
   );
 }
 
-function QuickAction({ label, sub, onPress, icon, tint, iconColor }: { label: string; sub?: string; onPress: () => void; icon: IconKey; tint: string; iconColor: string }) {
-  const Glyph = Icon[icon];
+function QuickAction({ label, sub, onPress, icon, tint, iconColor }: { label: string; sub?: string; onPress: () => void; icon: IconName; tint: string; iconColor: string }) {
   return (
     <Pressable
       onPress={() => { Haptics.selectionAsync(); onPress(); }}
@@ -367,7 +340,7 @@ function QuickAction({ label, sub, onPress, icon, tint, iconColor }: { label: st
       style={({ pressed }) => [s.action, shadow.raised, pressed && s.pressedCard, s.actionSurface]}
     >
       <View style={[s.actionIcon, { backgroundColor: tint }]}>
-        <Glyph size={20} color={iconColor} strokeWidth={2.25} />
+        <Icon name={icon} size={20} color={iconColor} />
       </View>
       <Txt variant="title" color={color.greenDeep}>{label}</Txt>
       {sub ? <Txt variant="caption" color={color.faint}>{sub}</Txt> : null}
@@ -469,7 +442,7 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
 
       {/* medical touch — makes the "hospital companion" framing visible at a glance */}
       <View style={a.medicalBadge}>
-        <Stethoscope size={12} color="#1B4D3E" strokeWidth={2.25} />
+        <Icon name="medical" size={12} color="#1B4D3E" />
         <Text style={a.medicalBadgeTxt}>Verified hospital companions</Text>
       </View>
 

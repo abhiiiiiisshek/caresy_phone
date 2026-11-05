@@ -1,4 +1,4 @@
-# ADR-0016 — One icon set on both platforms: `lucide-react-native`, not SF Symbols
+# ADR-0016 — Keep SF Symbols on iOS; draw the same meanings with lucide on Android
 
 Date: 2026-11-05
 Status: Accepted
@@ -38,17 +38,33 @@ Three candidates:
 
 ## Decision
 
-`lucide-react-native` on both platforms. `expo-symbols` is removed.
+iOS keeps SF Symbols. Android draws the nearest lucide equivalent.
 
-This is the one option that makes the phone apps identical *and* collapses a
-third icon language: the website was already on `lucide-react`, so caresy.co.in,
-iOS and Android now draw the same shapes from the same names.
+The first version of this ADR moved **both** platforms to lucide, on the
+reasoning that identical is the only real parity. That was reverted the same
+day: the iOS app is shipped, approved and considered finished, and changing its
+icon language to chase Android was spending a known-good surface to fix a
+broken one. The brief was "the iOS app is perfect, configure the Android one" —
+iOS is the reference, not a participant in the negotiation.
 
-It is a new runtime dependency, which `CLAUDE.md` says needs an ADR — this one.
-It brings `react-native-svg` with it, a native module, so adopting it costs a
-new EAS build and a new fingerprint runtime version. That cost was already
-being paid in the same change for the Android app icon (a native asset), so it
-is not an additional build.
+So parity here means *Android stops looking broken*, not *both platforms become
+the same*. The gap being closed is '▦' versus a calendar, not an SF calendar
+versus a lucide calendar.
+
+`components/Icon.tsx` owns the split. Call sites name the icon's meaning and
+never branch on platform:
+
+```tsx
+<Icon name="bookings" size={20} color={color.green} />
+```
+
+The pairing table in that file is the contract — one row per icon, the SF name
+and the lucide component side by side. A new icon is one row there.
+
+`lucide-react-native` is still a new runtime dependency, which `CLAUDE.md` says
+needs an ADR; this is it. It brings `react-native-svg`, a native module, so it
+costs a new EAS build and a new fingerprint runtime version. That build was
+already required for the Android app icon, so it is not an extra one.
 
 Icons are imported **per subpath**, never from the package root:
 
@@ -57,26 +73,27 @@ import Calendar from 'lucide-react-native/icons/calendar';   // yes
 import { Calendar } from 'lucide-react-native';              // no
 ```
 
-The barrel import pulls all ~1,600 icons into the bundle and took the Android
-export from 3.9MB to 6.4MB. Per-icon imports land it at 4.1MB — about 200KB for
-the whole icon system, `react-native-svg` included. On Indian mobile data a
-2.5MB regression in an OTA payload is not a rounding error, so the subpath form
-is a rule here, not a preference.
+The barrel pulls all ~1,600 icons in and took the Android export from 3.9MB to
+6.4MB. Per-icon imports land it at 4.1MB — roughly 200KB for the whole icon
+system, `react-native-svg` included. On Indian mobile data a 2.5MB regression
+in an OTA payload is not a rounding error, so the subpath form is a rule, not a
+preference.
 
 ## Consequences
 
-- iOS visibly changes: SF Symbols become lucide outlines. This is the intended
-  trade — parity was chosen over platform nativeness, deliberately.
-- Icons can no longer be addressed by an SF name string. `app/index.tsx` holds
-  an `Icon` map from a semantic key (`bookings`, `urgent`) to a component, and
-  `IconKey` is the type passed to `ActionCard` / `QuickAction`. Adding an icon
-  means adding a subpath import and a map entry.
-- `react-native-svg` must stay aligned with the SDK patch set; install it with
+- **iOS is unchanged.** All eight SF names (`calendar`, `book.closed`,
+  `questionmark.bubble`, `person.crop.circle`, `bolt.heart`,
+  `calendar.badge.plus`, `checkmark.shield.fill`, `stethoscope`) render exactly
+  as before, at the same sizes. `expo-symbols` stays.
+- The two apps are therefore **not pixel-identical**, and will not be. lucide's
+  outlines are close to SF's but not the same strokes. Held side by side a
+  designer will see it. That is the accepted cost of not touching iOS.
+- The website is on `lucide-react` and Android is now on `lucide-react-native`,
+  so those two share an icon language. iOS is the odd one out, deliberately.
+- `react-native-svg` must stay aligned with the SDK patch set — install with
   `npx expo install`, never bare `npm install`.
-- Anything that genuinely *is* platform-specific stays platform-specific. Sign
-  in with Apple is still iOS-only (Apple requires it); the date picker still
-  uses each platform's native presentation. Parity is about brand surface, not
-  about overriding OS affordances.
-- `expo-glass-effect` and `@expo/ui` remain in `package.json` and are imported
-  nowhere. They were not removed here to keep this change reviewable, but they
-  are dead weight in the build and should go.
+- Anything genuinely platform-specific stays so. Sign in with Apple is iOS-only
+  because Apple requires it; date pickers keep each platform's native
+  presentation. Parity is about brand surface, not overriding OS affordances.
+- `expo-glass-effect` and `@expo/ui` are still in `package.json` and imported
+  nowhere. Dead weight in every build; they should go on the next pass.
