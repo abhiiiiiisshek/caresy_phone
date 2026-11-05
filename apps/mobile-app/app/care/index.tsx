@@ -2,7 +2,6 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 
 import { useState } from 'react';
-import { Platform } from 'react-native';
 import { CARE_GUIDES } from '@caresy/utils/careGuides';
 import { Card, Chip, ChipRow, Overline, Screen, Txt } from '../../components/ui';
 import { color, radius, space } from '../../lib/theme';
@@ -66,7 +65,7 @@ export default function CareGuides() {
         {shown.map((g) => {
           const m = GUIDE_META[g.slug] || { cat: 'Daily care', audience: 'Everyone', icon: '·', tint: color.card };
           return (
-            <Card key={g.slug} onPress={() => router.push({ pathname: '/care/[slug]', params: { slug: g.slug } })} style={[s.card, Platform.OS === 'ios' ? s.cardIos : s.cardAndroid]}>
+            <Card key={g.slug} onPress={() => router.push({ pathname: '/care/[slug]', params: { slug: g.slug } })} style={[s.card, s.cardSurface]}>
               <View style={[s.cardAccent, { backgroundColor: m.tint }]} />
               <View style={s.cardTop}>
                 <View style={[s.iconBadge, { backgroundColor: m.tint }]}><Txt variant="label" color={color.ink}>{m.icon}</Txt></View>
@@ -95,6 +94,6 @@ const s = StyleSheet.create({
   cardTop: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   iconBadge: { width: 32, height: 32, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center' },
   cardMeta: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardIos: { borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)', backgroundColor: 'rgba(255,255,255,0.92)' },
-  cardAndroid: { borderWidth: 1, borderColor: color.line },
+  // Same surface on both platforms — see the note on actionSurface in index.tsx.
+  cardSurface: { borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)', backgroundColor: 'rgba(255,255,255,0.92)' },
 });

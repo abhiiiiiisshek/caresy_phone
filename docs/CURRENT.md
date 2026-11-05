@@ -9,6 +9,40 @@ here is worse than nothing.
 
 Read this first after a `/clear`.
 
+## Android/iOS parity — icon and interface (2026-11-05)
+
+The two phone apps did not look like the same product. Three causes, all fixed:
+
+**App icon.** iOS shipped the full "Caresy / Care Made Easy" lockup;
+Android shipped `assets/android-icon-foreground.png`, which was md5-identical
+to `splash-icon.png` — the bare green C. Someone had wired the splash logo in
+as the app icon. Android now uses the same lockup, scaled into the adaptive
+icon's 66% safe zone (683px of 1024) on white, so a launcher's circular mask
+crops padding rather than the wordmark. Dropping the iOS asset in unscaled
+would have cropped it to roughly "aresy".
+
+**In-app icons.** SF Symbols on iOS, typographic characters on Android — `▦`
+for bookings, `●` for profile, `🩺` on the sign-in badge. Both platforms now
+render `lucide-react-native`, which is also what the website already uses. See
+ADR-0016, including why icons are imported per subpath (the barrel costs
+2.5MB). `expo-symbols` removed.
+
+**Card surfaces.** Android got a solid fill plus `elevation: 1` where iOS got
+translucent white and a hairline border. One `actionSurface` / `cardSurface`
+treatment on both now.
+
+⚠️ **This needs a new AAB and a Play review — it cannot go out as an OTA.**
+The app icon is a native asset and `react-native-svg` is a native module, so
+the fingerprint moves. Confirmed with `eas fingerprint:compare`.
+
+Deliberately still platform-specific: Sign in with Apple (iOS-only, Apple
+requires it) and the native date-picker presentation.
+
+Android export is 4.1MB, from a 3.9MB baseline.
+
+Still dead in `package.json` and imported nowhere: `expo-glass-effect`,
+`@expo/ui`. Worth removing on the next pass.
+
 ## Android app — sign-in dead end and seven more, fixed (2026-11-03)
 
 A Play-Store install could not get past Google sign-in: the OAuth redirect

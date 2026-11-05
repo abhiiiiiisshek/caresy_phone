@@ -22,27 +22,34 @@ import { SmartImage } from '../components/SmartImage';
 import { SkelCard } from '../components/Skeleton';
 import { AnimatedHeadline } from '../components/AnimatedHeadline';
 import { CapyMascot, FloatDot } from '../components/CapyMascot';
+// Per-icon subpaths, not the `lucide-react-native` barrel. The barrel pulls
+// every one of ~1,600 icons into the bundle — it took the Android build from
+// 3.9MB to 6.4MB, which is 2.5MB of nothing over Indian mobile data.
+import BookOpen from 'lucide-react-native/icons/book-open';
+import Calendar from 'lucide-react-native/icons/calendar';
+import CalendarPlus from 'lucide-react-native/icons/calendar-plus';
+import CircleUser from 'lucide-react-native/icons/circle-user';
+import HeartPulse from 'lucide-react-native/icons/heart-pulse';
+import MessageCircleQuestionMark from 'lucide-react-native/icons/message-circle-question-mark';
+import ShieldCheck from 'lucide-react-native/icons/shield-check';
+import Stethoscope from 'lucide-react-native/icons/stethoscope';
+
 import { color, radius, shadow, space } from '../lib/theme';
 
-// SF Symbols for iOS with consistent Android fallback — lazy to keep web/SSR green
-let SymbolView: any = null;
-try { SymbolView = require('expo-symbols').SymbolView; } catch {}
-const SF: Record<string, string> = {
-  bookings: 'calendar',
-  care: 'book.closed',
-  help: 'questionmark.bubble',
-  profile: 'person.crop.circle',
-  urgent: 'bolt.heart',
-  schedule: 'calendar.badge.plus',
-};
-const FallbackGlyph: Record<string, string> = {
-  bookings: '▦',
-  care: '✦',
-  help: '◐',
-  profile: '●',
-  urgent: '♥',
-  schedule: '◑',
-};
+// One icon set on both platforms (ADR-0012). This used to be SF Symbols on
+// iOS with a typographic fallback on Android — '▦', '✦', '◐' — which are
+// characters from a text font, not icons, so the two apps did not look like
+// the same product. lucide is also what the website already uses, so phone
+// and web finally draw the same shapes.
+const Icon = {
+  bookings: Calendar,
+  care: BookOpen,
+  help: MessageCircleQuestionMark,
+  profile: CircleUser,
+  urgent: HeartPulse,
+  schedule: CalendarPlus,
+} as const;
+export type IconKey = keyof typeof Icon;
 
 const SUPPORT_WA = '919717500225';
 
@@ -209,8 +216,7 @@ export default function Home() {
               label="Immediate need"
               title="Urgent Booking"
               desc="Find a companion for last-minute emergencies."
-              sf={SF.urgent}
-              fallback={FallbackGlyph.urgent}
+              icon="urgent"
               decor="urgent"
               img={require('../assets/caresy-hospital-support.webp')}
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy); router.push('/quick-help'); }}
@@ -224,8 +230,7 @@ export default function Home() {
               label="Plan ahead"
               title="Schedule Appointment"
               desc="Book a companion for a future medical visit."
-              sf={SF.schedule}
-              fallback={FallbackGlyph.schedule}
+              icon="schedule"
               decor="schedule"
               img={require('../assets/caresy-family-app.webp')}
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push('/booking'); }}
@@ -268,22 +273,18 @@ export default function Home() {
         {/* Quick actions — stagger 56ms */}
         <View style={s.actions}>
           {[
-            { label: 'My bookings', sub: 'Track & manage', route: '/my-bookings' as const, sf: SF.bookings, fb: FallbackGlyph.bookings, tint: color.greenTint, iconColor: color.green },
-            { label: 'Care guides', sub: 'Recovery tips', route: '/care' as const, sf: SF.care, fb: FallbackGlyph.care, tint: color.terracottaSoft, iconColor: color.terracottaDeep },
-            { label: 'Get help', sub: 'Chat or call', route: '/support' as const, sf: SF.help, fb: FallbackGlyph.help, tint: color.successSoft, iconColor: color.success },
-            { label: 'Profile', sub: 'You & family', route: '/profile' as const, sf: SF.profile, fb: FallbackGlyph.profile, tint: color.chip, iconColor: color.muted },
+            { label: 'My bookings', sub: 'Track & manage', route: '/my-bookings' as const, icon: 'bookings' as const, tint: color.greenTint, iconColor: color.green },
+            { label: 'Care guides', sub: 'Recovery tips', route: '/care' as const, icon: 'care' as const, tint: color.terracottaSoft, iconColor: color.terracottaDeep },
+            { label: 'Get help', sub: 'Chat or call', route: '/support' as const, icon: 'help' as const, tint: color.successSoft, iconColor: color.success },
+            { label: 'Profile', sub: 'You & family', route: '/profile' as const, icon: 'profile' as const, tint: color.chip, iconColor: color.muted },
           ].map((a, i) => (
-              <Stagger key={a.label} index={4 + i} style={s.actionStagger}><QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} sf={a.sf} fallback={a.fb} tint={a.tint} iconColor={a.iconColor} /></Stagger>
+              <Stagger key={a.label} index={4 + i} style={s.actionStagger}><QuickAction label={a.label} sub={a.sub} onPress={() => router.push(a.route)} icon={a.icon} tint={a.tint} iconColor={a.iconColor} /></Stagger>
           ))}
         </View>
 
         <Stagger index={8}>
           <View style={s.trustHeaderRow}>
-            {Platform.OS === 'ios' && SymbolView ? (
-              <SymbolView name="checkmark.shield.fill" size={20} tintColor={color.green} />
-            ) : (
-              <Txt variant="label" color={color.green}>✓</Txt>
-            )}
+            <ShieldCheck size={20} color={color.green} strokeWidth={2.25} />
             <Txt variant="title" color={color.ink}>Verified Companions</Txt>
           </View>
           <Txt variant="caption" color={color.muted} style={s.trustBody}>
@@ -302,11 +303,11 @@ export default function Home() {
   );
 }
 
-function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback, decor, img, onPress, accessibilityLabel }: {
+function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, icon, decor, img, onPress, accessibilityLabel }: {
   bg: string; ink: string; inkMuted?: string; btnBg: string; label: string; title: string; desc: string;
-  sf?: string; fallback?: string; decor: 'urgent' | 'schedule'; img?: any; onPress: () => void; accessibilityLabel: string;
+  icon: IconKey; decor: 'urgent' | 'schedule'; img?: any; onPress: () => void; accessibilityLabel: string;
 }) {
-  const useSF = Platform.OS === 'ios' && !!SymbolView && !!sf;
+  const Glyph = Icon[icon];
   return (
     <Pressable
       onPress={onPress}
@@ -342,11 +343,7 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback
       <View style={s.actionCardLeft}>
         <View style={s.actionLabelRow}>
           <View style={[s.actionLabelIcon, { backgroundColor: decor === 'urgent' ? '#fff' : 'rgba(255,255,255,0.18)' }]}>
-            {useSF ? (
-              <SymbolView name={sf!} size={14} tintColor={decor === 'urgent' ? color.urgent : color.onGreen} fallback={null} />
-            ) : (
-              <Txt variant="caption" color={decor === 'urgent' ? color.urgent : color.onGreen}>{fallback ?? '•'}</Txt>
-            )}
+            <Glyph size={14} color={decor === 'urgent' ? color.urgent : color.onGreen} strokeWidth={2.5} />
           </View>
           <Overline color={decor === 'urgent' ? color.urgent : 'rgba(255,255,255,0.92)'}>{label}</Overline>
         </View>
@@ -360,21 +357,17 @@ function ActionCard({ bg, ink, inkMuted, btnBg, label, title, desc, sf, fallback
   );
 }
 
-function QuickAction({ label, sub, onPress, sf, fallback, tint, iconColor }: { label: string; sub?: string; onPress: () => void; sf?: string; fallback?: string; tint: string; iconColor: string }) {
-  const useSF = Platform.OS === 'ios' && !!SymbolView && !!sf;
+function QuickAction({ label, sub, onPress, icon, tint, iconColor }: { label: string; sub?: string; onPress: () => void; icon: IconKey; tint: string; iconColor: string }) {
+  const Glyph = Icon[icon];
   return (
     <Pressable
       onPress={() => { Haptics.selectionAsync(); onPress(); }}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [s.action, shadow.raised, pressed && s.pressedCard, Platform.OS === 'ios' ? s.actionIos : s.actionAndroid]}
+      style={({ pressed }) => [s.action, shadow.raised, pressed && s.pressedCard, s.actionSurface]}
     >
       <View style={[s.actionIcon, { backgroundColor: tint }]}>
-        {useSF ? (
-          <SymbolView name={sf!} size={20} tintColor={iconColor} fallback={null} />
-        ) : (
-          <Txt variant="title" color={iconColor}>{fallback ?? '•'}</Txt>
-        )}
+        <Glyph size={20} color={iconColor} strokeWidth={2.25} />
       </View>
       <Txt variant="title" color={color.greenDeep}>{label}</Txt>
       {sub ? <Txt variant="caption" color={color.faint}>{sub}</Txt> : null}
@@ -476,11 +469,7 @@ function BeautifulAuth({ signingIn, appleAvailable, onGoogle, onApple }: {
 
       {/* medical touch — makes the "hospital companion" framing visible at a glance */}
       <View style={a.medicalBadge}>
-        {Platform.OS === 'ios' && SymbolView ? (
-          <SymbolView name="stethoscope" size={12} tintColor="#1B4D3E" />
-        ) : (
-          <Text style={a.medicalBadgeGlyph}>🩺</Text>
-        )}
+        <Stethoscope size={12} color="#1B4D3E" strokeWidth={2.25} />
         <Text style={a.medicalBadgeTxt}>Verified hospital companions</Text>
       </View>
 
@@ -691,8 +680,10 @@ const s = StyleSheet.create({
   actionStagger: { width: '48%' },
   action: { width: '100%', backgroundColor: color.surface, borderRadius: radius.lg, padding: space.lg, height: 106, justifyContent: 'center', gap: 4, borderWidth: 1, borderColor: 'transparent' },
   actionIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  actionIos: { backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.06)' },
-  actionAndroid: { backgroundColor: color.surface, borderColor: color.line, elevation: 1 },
+  // One surface treatment on both platforms. Android used to get a solid fill
+  // plus `elevation: 1`, which reads as a Material card next to iOS's
+  // translucent one — the two apps did not look like the same product.
+  actionSurface: { backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.06)' },
   skeletonRow: { gap: space.sm },
   skelLine: { height: 12, borderRadius: 6, backgroundColor: '#E8EDE9', width: '100%' },
   emptyCard: { alignItems: 'center', paddingVertical: space.xl, gap: space.sm },
