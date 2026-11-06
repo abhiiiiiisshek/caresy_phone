@@ -9,6 +9,29 @@ here is worse than nothing.
 
 Read this first after a `/clear`.
 
+## Android v12 built and verified, awaiting Play submit (2026-11-06)
+
+`eas build` produced **versionCode 12** (`7dd57a36`) from `087a6b4`. versionCode
+11 (`632a5f44`) is an identical duplicate — two builds were queued by accident,
+same commit, same tree; 11 is simply unused.
+
+The app icon was verified against the **shipped artifact**, not the source: the
+AAB's `mipmap-xxxhdpi/ic_launcher_foreground.webp` carries the wordmark lockup
+with ink at 59% of canvas, inside Android's 66% safe zone. Rendered under a
+circular mask at launcher sizes, nothing clips — the furthest ink pixel is
+329px from centre against a 341px guaranteed radius, so there is 12px of
+headroom. Thin but real. **Do not scale the lockup up** without re-running that
+check; the binding constraint is the ink box's diagonal, not its width.
+
+Android's icon reads smaller than the iOS one for the same artwork, because
+iOS fills the tile and Android must fit the mask. That is physics, not a bug.
+
+Still to do: `eas submit`. Blocked for the agent by the Production Deploy
+guard, so it is a manual step. `eas.json` keeps the Android track on
+`internal` deliberately — **do not change it to `production`**: `eas.json` is a
+fingerprint input, so editing it strands every OTA for builds already out
+there. Promote internal -> production inside Play Console instead.
+
 ## Android/iOS parity — icon and interface (2026-11-05)
 
 The two phone apps did not look like the same product. Three causes, all fixed:
