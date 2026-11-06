@@ -272,6 +272,39 @@ gitignored before it lands on disk.
 
 ## Log
 
+- **2026-11-06** — **`eas submit` works now.** The blocker was never a CLI flag:
+  the service account authenticated fine but had never been granted anything in
+  Play Console, so every submit died on
+  `403 "The caller does not have permission"`. Creating it in Google Cloud and
+  enabling the Play Android Developer API grants nothing on its own — it must
+  also be invited under **Users and permissions**. Done on 2026-11-06 with
+  **two permissions only**: *View app information* and *Release apps to testing
+  tracks*. Deliberately **not** *Release to production* — an automated CI key
+  should not be able to publish to users; promote by hand in the Console.
+
+  Probe the grant without submitting: mint a JWT from the key, exchange it for
+  an `androidpublisher` token, POST to
+  `androidpublisher/v3/applications/in.co.caresy.app/edits`. An unused edit
+  expires by itself. 403 means the invite is missing, 200 means submit will work.
+
+  **versionCode 12** (build `7dd57a36-2445-443c-8f6e-9dac53e0b03e`, app version
+  2.0.1) submitted to the **internal** track. Carries the Android app icon fix,
+  lucide in-app icons, unified card surfaces, and the 2026-11-03 bug pass.
+  versionCode 11 (`632a5f44`) is an identical duplicate from a double-queued
+  build and is unused.
+
+  **Trader status declared.** Google requires every developer account to declare
+  trader/non-trader by **1 February 2027**, *"regardless of
+  where apps are targeted or distributed"*, on pain of global removal. Declared
+  **trader** at account level and confirmed at app level with ToS URL
+  `https://caresy.co.in/terms`; the app-level half went into review. Non-trader
+  was available (Google permits it when not distributing in the EEA/UK, and
+  Caresy is India-only — production shows 1 country/region) but was rejected:
+  CARESY COMPANION SERVICES (OPC) PRIVATE LIMITED meets every trader criterion
+  Google lists, falsely claiming non-trader risks global removal, and a UK
+  launch for diaspora families would require correcting it anyway.
+
+
 - **2026-11-03 — queued: widen country targeting once review clears.**
 
   Do **not** do this while release 10 (2.0.1) is in review. Nobody can install
